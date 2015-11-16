@@ -65,7 +65,7 @@
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
-				<version>2.3.7</version>
+				<version>2.4.0</version>
 				<extensions>true</extensions>
 				<configuration>
 					<instructions>
@@ -75,8 +75,8 @@
 						<Private-Package>${bundle.namespace}.internal.*</Private-Package>
 						<Bundle-Activator>${bundle.namespace}.internal.CyActivator</Bundle-Activator>
 						
-						<Import-Package>!com.google.inject.internal.asm.util,*</Import-Package>
-						<Embed-Dependency>guice,peaberry;inline=true,javax.inject;inline=true,aopalliance;inline=true,guice-assistedinject;inline=true,colt;inline=true,concurrent;inline=true;version=1.3.4</Embed-Dependency>
+						<Import-Package>!com.google.inject.internal.asm.util,sun.misc;resolution:=optional,*</Import-Package>
+						<Embed-Dependency>guice,peaberry,javax.inject,aopalliance,guice-assistedinject,guava</Embed-Dependency>
 						<Embed-Transitive>true</Embed-Transitive>
 					</instructions>
 				</configuration>
@@ -136,17 +136,17 @@
 		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
-			<version>3.0</version>
+			<version>4.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.ops4j</groupId>
 			<artifactId>peaberry</artifactId>
-			<version>1.1.1</version>
+			<version>1.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.inject.extensions</groupId>
 			<artifactId>guice-assistedinject</artifactId>
-			<version>3.0</version>
+			<version>4.0</version>
 		</dependency>
 	</dependencies>
 
