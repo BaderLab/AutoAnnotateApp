@@ -1,0 +1,74 @@
+package org.baderlab.autoannotate.internal.task;
+
+import java.util.Collection;
+import java.util.Map;
+
+import org.baderlab.autoannotate.internal.model.AnnotationSet;
+import org.baderlab.autoannotate.internal.model.ModelManager;
+import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.model.WordInfo;
+import org.cytoscape.model.CyNode;
+import org.cytoscape.work.AbstractTask;
+import org.cytoscape.work.SynchronousTaskManager;
+import org.cytoscape.work.TaskMonitor;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+
+public class CreateAnnotationSetTask extends AbstractTask {
+
+	@Inject private Provider<RunClusterMakerTaskFactory> clusterMakerProvider;
+	@Inject private Provider<RunWordCloudTaskFactory> wordCloudProvider;
+	@Inject private SynchronousTaskManager<?> syncTaskManager;
+	@Inject private ModelManager modelManager;
+	
+	private CreationParameters params;
+	
+	public void setParameters(CreationParameters params) {
+		this.params = params;
+	}
+	
+	@Override
+	public void run(TaskMonitor taskMonitor) throws Exception {
+		taskMonitor.setTitle("AutoAnnotate");
+		
+		// Run clusterMaker
+		taskMonitor.setStatusMessage("Generating Clusters");
+		
+		RunClusterMakerTaskFactory clusterMakerTaskFactory = clusterMakerProvider.get();
+		clusterMakerTaskFactory.setParameters(params);
+		RunClusterMakerResultObserver clusterResultObserver = new RunClusterMakerResultObserver();
+		syncTaskManager.execute(clusterMakerTaskFactory.createTaskIterator(clusterResultObserver));
+		Map<Integer,Collection<CyNode>> clusters = clusterResultObserver.getResult();
+
+		
+		// Run wordCloud
+		taskMonitor.setStatusMessage("Generating Labels");
+		
+		RunWordCloudTaskFactory wordCloudTaskFactory = wordCloudProvider.get();
+		wordCloudTaskFactory.setClusters(clusters);
+		wordCloudTaskFactory.setParameters(params);
+		RunWordCloudResultObserver cloudResultObserver = new RunWordCloudResultObserver();
+		syncTaskManager.execute(wordCloudTaskFactory.createTaskIterator(cloudResultObserver));
+		Map<Integer,Collection<WordInfo>> wordInfos = cloudResultObserver.getResults();
+		
+		
+		// MKTODO
+		// layout the network
+		// create groups
+		
+		// Build the AnnotationSet
+		NetworkViewSet networkViewSet = modelManager.getNetworkViewSet(params.getNetworkView());
+		AnnotationSet annotationSet = networkViewSet.createAnnotationSet("AnnotationSet");
+		for(int cluster : clusters.keySet()) {
+			Collection<CyNode> nodes = clusters.get(cluster);
+			Collection<WordInfo> words = wordInfos.get(cluster);
+			annotationSet.createCluster(nodes, words);
+		}
+		
+		networkViewSet.select(annotationSet);
+	}
+	
+	
+
+}

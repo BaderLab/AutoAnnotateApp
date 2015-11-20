@@ -5,6 +5,7 @@
 		<project.name>AutoAnnotate</project.name>
 		<bundle.symbolicName>org.baderlab.autoannotate</bundle.symbolicName>
 		<bundle.namespace>org.baderlab.autoannotate</bundle.namespace>
+		<cytoscape.version>3.3.0</cytoscape.version>
 	</properties>
 
 	<modelVersion>4.0.0</modelVersion>
@@ -109,6 +110,7 @@
 	</repositories>
 
 	<dependencies>
+	
 		<dependency>
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.core</artifactId>
@@ -119,17 +121,22 @@
 		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>service-api</artifactId>
-			<version>3.3.0</version>
+			<version>${cytoscape.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>swing-application-api</artifactId>
-			<version>3.3.0</version>
+			<version>${cytoscape.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>session-api</artifactId>
-			<version>3.3.0</version>
+			<version>${cytoscape.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>command-executor-api</artifactId>
+			<version>${cytoscape.version}</version>
 		</dependency>
 
 		<!-- Dependency Injection -->
@@ -148,6 +155,14 @@
 			<artifactId>guice-assistedinject</artifactId>
 			<version>4.0</version>
 		</dependency>
+		
+		<!-- additional libraries -->
+		<dependency>
+		     <groupId>com.google.guava</groupId>
+		     <artifactId>guava</artifactId>
+	     	<version>18.0</version>
+	   	</dependency>
+	   	
 	</dependencies>
 
 </project>

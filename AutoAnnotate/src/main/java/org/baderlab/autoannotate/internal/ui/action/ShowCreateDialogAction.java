@@ -4,7 +4,7 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.JDialog;
 
-import org.baderlab.autoannotate.internal.ui.create.CreateAnnotationSetDialog;
+import org.baderlab.autoannotate.internal.ui.CreateAnnotationSetDialog;
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CySwingApplication;
 
