@@ -3,13 +3,15 @@ package org.baderlab.autoannotate.internal.model;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.cytoscape.model.CyNetwork;
 import org.cytoscape.view.model.CyNetworkView;
 
 public class NetworkViewSet {
 
 	private final ModelManager parent;
-	private final CyNetworkView networkView;
 	
+	private final DisplayOptions displayOptions;
+	private final CyNetworkView networkView;
 	private final Set<AnnotationSet> annotationSets;
 	private AnnotationSet activeSet = null;
 	
@@ -18,6 +20,7 @@ public class NetworkViewSet {
 		this.parent = parent;
 		this.networkView = networkView;
 		this.annotationSets = new HashSet<>();
+		this.displayOptions = new DisplayOptions(this);
 	}
 	
 	
@@ -39,4 +42,15 @@ public class NetworkViewSet {
 		return parent;
 	}
 	
+	public CyNetworkView getNetworkView() {
+		return networkView;
+	}
+	
+	public CyNetwork getNetwork() {
+		return networkView.getModel();
+	}
+	
+	public DisplayOptions getDisplayOptions() {
+		return displayOptions;
+	}
 }

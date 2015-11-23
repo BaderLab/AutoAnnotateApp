@@ -41,4 +41,17 @@ public class ModelEvents {
 		}
 	}
 	
+	
+	public static class DisplayOptionsChanged {
+		private final DisplayOptions displayOptions;
+		
+		DisplayOptionsChanged(DisplayOptions displayOptions) {
+			this.displayOptions = displayOptions;
+		}
+		
+		public DisplayOptions getDisplayOptions() {
+			return displayOptions;
+		}
+	}
+	
 }

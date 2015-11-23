@@ -33,7 +33,7 @@ public class RunWordCloudResultObserver implements TaskObserver {
 		List<WordInfo> wordInfos = new ArrayList<>(size);
 		result.put(cluster, wordInfos);
 		for(int i = 0; i < size; i++) {
-			WordInfo wordInfo = new WordInfo(words.get(i), fontSizes.get(i));
+			WordInfo wordInfo = new WordInfo(words.get(i), fontSizes.get(i), clusters.get(i), numbers.get(i));
 			wordInfos.add(wordInfo);
 		}
 	}

@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
+import org.baderlab.autoannotate.internal.model.LabelMaker;
+import org.baderlab.autoannotate.internal.model.LabelOptions;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.model.WordInfo;
@@ -57,13 +59,16 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		// layout the network
 		// create groups
 		
+		LabelMaker labelMaker = new LabelMaker(params.getNetworkView().getModel(), "", LabelOptions.defaults());
+		
 		// Build the AnnotationSet
 		NetworkViewSet networkViewSet = modelManager.getNetworkViewSet(params.getNetworkView());
 		AnnotationSet annotationSet = networkViewSet.createAnnotationSet("AnnotationSet");
 		for(int cluster : clusters.keySet()) {
 			Collection<CyNode> nodes = clusters.get(cluster);
 			Collection<WordInfo> words = wordInfos.get(cluster);
-			annotationSet.createCluster(nodes, words);
+			String label = labelMaker.makeLabel(nodes, words);
+			annotationSet.createCluster(nodes, label);
 		}
 		
 		networkViewSet.select(annotationSet);

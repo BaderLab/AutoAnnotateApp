@@ -21,8 +21,8 @@ public class AnnotationSet {
 	}
 	
 	
-	public Cluster createCluster(Collection<CyNode> nodes, Collection<WordInfo> wordInfos) {
-		Cluster cluster = new Cluster(this, nodes, wordInfos);
+	public Cluster createCluster(Collection<CyNode> nodes, String label) {
+		Cluster cluster = new Cluster(this, nodes, label);
 		clusters.add(cluster);
 		parent.getParent().getEventBus().post(new ModelEvents.ClusterAdded(cluster));
 		return cluster;
