@@ -36,6 +36,10 @@ public class AnnotationSet {
 		return Collections.unmodifiableSet(clusters);
 	}
 	
+	public int getClusterCount() {
+		return clusters.size();
+	}
+	
 	public NetworkViewSet getParent() {
 		return parent;
 	}

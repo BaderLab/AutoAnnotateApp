@@ -41,4 +41,9 @@ public class Cluster {
 		return nodes.size();
 	}
 	
+	@Override
+	public String toString() {
+		return label;
+	}
+	
 }

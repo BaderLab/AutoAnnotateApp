@@ -1,29 +1,105 @@
 package org.baderlab.autoannotate.internal.task;
 
+import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.cytoscape.view.model.CyNetworkView;
 
 public class CreationParameters {
 
 	private final CyNetworkView networkView;
 	private final String labelColumn;
-	private final String clusterDataColumn;
+	private final boolean useClusterMaker;
+	private final ClusterAlgorithm clusterMakerAlgorithm;
+	private final String clusterMakerAttribute;
+	private final String clusterDataColumn; // existing cluster IDs
+	private final boolean layoutClusters;
+	private final boolean createGroups;
 	
-	public CreationParameters(CyNetworkView networkView, String labelColumn, String clusterDataColumn) {
-		this.networkView = networkView;
-		this.labelColumn = labelColumn;
-		this.clusterDataColumn = clusterDataColumn;
+	private CreationParameters(Builder builder) {
+		this.networkView = builder.networkView;
+		this.labelColumn = builder.labelColumn;
+		this.useClusterMaker = builder.useClusterMaker;
+		this.clusterMakerAlgorithm = builder.clusterMakerAlgorithm;
+		this.clusterMakerAttribute = builder.clusterMakerAttribute;
+		this.clusterDataColumn = builder.clusterDataColumn;
+		this.layoutClusters = builder.layoutClusters;
+		this.createGroups = builder.createGroups;
 	}
 	
+	public static class Builder {
+		private final CyNetworkView networkView;
+		private String labelColumn = "name";
+		private boolean useClusterMaker = true;
+		private ClusterAlgorithm clusterMakerAlgorithm = ClusterAlgorithm.values()[0];
+		private String clusterMakerAttribute;
+		private String clusterDataColumn;
+		private boolean layoutClusters = false;
+		private boolean createGroups = false;
+		
+		public Builder(CyNetworkView networkView) {
+			this.networkView = networkView;
+		}
+		
+		public Builder setLabelColumn(String labelColumn) {
+			this.labelColumn = labelColumn;
+			return this;
+		}
+		public Builder setUseClusterMaker(boolean useClusterMaker) {
+			this.useClusterMaker = useClusterMaker;
+			return this;
+		}
+		public Builder setClusterAlgorithm(ClusterAlgorithm clusterAlgorithm) {
+			this.clusterMakerAlgorithm = clusterAlgorithm;
+			return this;
+		}
+		public Builder setClusterDataColumn(String clusterDataColumn) {
+			this.clusterDataColumn = clusterDataColumn;
+			return this;
+		}
+		public Builder setLayoutClusters(boolean layoutClusters) {
+			this.layoutClusters = layoutClusters;
+			return this;
+		}
+		public Builder setCreateGroups(boolean createGroups) {
+			this.createGroups = createGroups;
+			return this;
+		}
+		public Builder setClusterMakerAttribute(String name) {
+			this.clusterMakerAttribute = name;
+			return this;
+		}
+		
+		public CreationParameters build() {
+			return new CreationParameters(this);
+		}
+	}
+
 	public CyNetworkView getNetworkView() {
 		return networkView;
 	}
-	
+
 	public String getLabelColumn() {
 		return labelColumn;
 	}
-	
+
+	public boolean isUseClusterMaker() {
+		return useClusterMaker;
+	}
+
+	public ClusterAlgorithm getClusterAlgorithm() {
+		return clusterMakerAlgorithm;
+	}
+
 	public String getClusterDataColumn() {
 		return clusterDataColumn;
 	}
+
+	public boolean isLayoutClusters() {
+		return layoutClusters;
+	}
+
+	public boolean isCreateGroups() {
+		return createGroups;
+	}
+	
 	
 }

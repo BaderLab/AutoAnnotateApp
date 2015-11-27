@@ -3,6 +3,7 @@ package org.baderlab.autoannotate.internal.task;
 import java.util.Collection;
 import java.util.Map;
 
+import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.LabelMaker;
 import org.baderlab.autoannotate.internal.model.LabelOptions;
@@ -32,7 +33,7 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		taskMonitor.setTitle("AutoAnnotate");
+		taskMonitor.setTitle(CyActivator.APP_NAME);
 		
 		// Run clusterMaker
 		taskMonitor.setStatusMessage("Generating Clusters");
@@ -63,7 +64,10 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		
 		// Build the AnnotationSet
 		NetworkViewSet networkViewSet = modelManager.getNetworkViewSet(params.getNetworkView());
-		AnnotationSet annotationSet = networkViewSet.createAnnotationSet("AnnotationSet");
+		
+		String name = createName(networkViewSet);
+		
+		AnnotationSet annotationSet = networkViewSet.createAnnotationSet(name);
 		for(int cluster : clusters.keySet()) {
 			Collection<CyNode> nodes = clusters.get(cluster);
 			Collection<WordInfo> words = wordInfos.get(cluster);
@@ -72,6 +76,12 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		}
 		
 		networkViewSet.select(annotationSet);
+	}
+	
+	private String createName(NetworkViewSet networkViewSet) {
+		return "Huh?";
+		
+		
 	}
 	
 	

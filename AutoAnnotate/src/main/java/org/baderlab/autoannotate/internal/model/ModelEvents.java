@@ -29,6 +29,19 @@ public class ModelEvents {
 	}
 	
 	
+	public static class AnnotationSetDeleted {
+		private final AnnotationSet annotationSet;
+		
+		AnnotationSetDeleted(AnnotationSet annotationSet) {
+			this.annotationSet = annotationSet;
+		}
+		
+		public AnnotationSet getAnnotationSet() {
+			return annotationSet;
+		}
+	}
+	
+	
 	public static class ClusterAdded {
 		private final Cluster cluster;
 		

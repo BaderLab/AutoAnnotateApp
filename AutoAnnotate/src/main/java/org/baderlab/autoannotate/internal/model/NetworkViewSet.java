@@ -1,5 +1,7 @@
 package org.baderlab.autoannotate.internal.model;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,6 +38,14 @@ public class NetworkViewSet {
 			activeSet = annotationSet;
 			parent.getEventBus().post(new ModelEvents.AnnotationSetSelected(annotationSet));
 		}
+	}
+	
+	public AnnotationSet getActiveAnnotationSet() {
+		return activeSet;
+	}
+	
+	public Collection<AnnotationSet> getAnnotationSets() {
+		return Collections.unmodifiableCollection(annotationSets);
 	}
 	
 	public ModelManager getParent() {
