@@ -8,6 +8,8 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Properties;
 
+import javax.swing.UIManager;
+
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.ui.ShowCreateDialogAction;
 import org.baderlab.autoannotate.internal.ui.annotations.AnnotationRenderer;
@@ -41,20 +43,29 @@ import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
 
 public class CyActivator extends AbstractCyActivator {
-
-	public static final String APP_NAME = "AutoAnnotate";
+	
+	public static final String APP_NAME = "AutoAnnotate";  // Suitable for display in the UI
+	public static final String APP_ID = "org.baderlab.autoannotate";  // Suitable as an ID for the App
 	
 	@Override
 	public void start(BundleContext context) throws Exception {
 		Injector injector = Guice.createInjector(osgiModule(context), new MainModule());
 		
-		// Eagerly create singleton managers to register with event bus
+		// Eagerly create singleton managers to wire up event bus
 		injector.getInstance(ModelManager.class);
+		injector.getInstance(UIManager.class);
 		injector.getInstance(AnnotationRenderer.class);
 		
 		ShowCreateDialogAction showDialogAction = injector.getInstance(ShowCreateDialogAction.class);
 		showDialogAction.setPreferredMenu("Apps." + APP_NAME);
 		registerAllServices(context, showDialogAction, new Properties());
+		
+//		SessionListener sessionListener = injector.getInstance(SessionListener.class);
+//		registerAllServices(context, sessionListener, new Properties());
+		
+		TestGsonAction gsonAction = injector.getInstance(TestGsonAction.class);
+		gsonAction.setPreferredMenu("Apps." + APP_NAME);
+		registerAllServices(context, gsonAction, new Properties());
 	}
 	
 	

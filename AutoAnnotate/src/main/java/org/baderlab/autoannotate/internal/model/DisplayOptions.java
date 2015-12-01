@@ -19,7 +19,7 @@ public class DisplayOptions {
 	public static final int WIDTH_MAX = 10;
 	
 	
-	private final NetworkViewSet parent;
+	private final transient NetworkViewSet parent;
 
 	
 	private ShapeType shapeType = ShapeType.ELLIPSE;
@@ -41,7 +41,7 @@ public class DisplayOptions {
 	}
 	
 	private void fireEvent() {
-		parent.getParent().getEventBus().post(new ModelEvents.DisplayOptionsChanged(this));
+		parent.getParent().postEvent(new ModelEvents.DisplayOptionsChanged(this));
 	}
 	
 	

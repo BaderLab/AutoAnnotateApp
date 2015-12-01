@@ -10,12 +10,12 @@ import org.cytoscape.view.model.CyNetworkView;
 
 public class NetworkViewSet {
 
-	private final ModelManager parent;
+	private final transient ModelManager parent;
 	
+	private final transient CyNetworkView networkView;
 	private final DisplayOptions displayOptions;
-	private final CyNetworkView networkView;
 	private final Set<AnnotationSet> annotationSets;
-	private AnnotationSet activeSet = null;
+	private transient AnnotationSet activeSet = null;
 	
 	
 	NetworkViewSet(ModelManager parent, CyNetworkView networkView) {
@@ -29,14 +29,14 @@ public class NetworkViewSet {
 	public AnnotationSet createAnnotationSet(String name) {
 		AnnotationSet set = new AnnotationSet(this, name);
 		annotationSets.add(set);
-		parent.getEventBus().post(new ModelEvents.AnnotationSetAdded(set));
+		parent.postEvent(new ModelEvents.AnnotationSetAdded(set));
 		return set;
 	}
 	
 	public void select(AnnotationSet annotationSet) {
 		if(annotationSet == null || annotationSets.contains(annotationSet)) {
 			activeSet = annotationSet;
-			parent.getEventBus().post(new ModelEvents.AnnotationSetSelected(annotationSet));
+			parent.postEvent(new ModelEvents.AnnotationSetSelected(annotationSet));
 		}
 	}
 	

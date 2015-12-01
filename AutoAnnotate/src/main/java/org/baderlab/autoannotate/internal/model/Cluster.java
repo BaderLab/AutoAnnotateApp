@@ -8,12 +8,10 @@ import org.cytoscape.model.CyNode;
 
 public class Cluster {
 
-	private final AnnotationSet parent;
+	private final transient AnnotationSet parent;
 	
 	private final String label;
 	private final Set<CyNode> nodes;
-//	private Bounds bounds;
-	
 	
 	Cluster(AnnotationSet parent, Collection<CyNode> nodes, String label) {
 		this.parent = parent;

@@ -77,7 +77,7 @@
 						<Bundle-Activator>${bundle.namespace}.internal.CyActivator</Bundle-Activator>
 						
 						<Import-Package>!com.google.inject.internal.asm.util,sun.misc;resolution:=optional,*</Import-Package>
-						<Embed-Dependency>guice,peaberry,javax.inject,aopalliance,guice-assistedinject,guava</Embed-Dependency>
+						<Embed-Dependency>guice,peaberry,javax.inject,aopalliance,guice-assistedinject,guava,gson</Embed-Dependency>
 						<Embed-Transitive>true</Embed-Transitive>
 					</instructions>
 				</configuration>
@@ -115,6 +115,12 @@
 			<groupId>org.osgi</groupId>
 			<artifactId>org.osgi.core</artifactId>
 			<version>4.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ops4j.pax.logging</groupId>
+			<artifactId>pax-logging-api</artifactId>
+			<version>1.5.2</version>
+			<scope>provided</scope>
 		</dependency>
 		
 		<!-- Cytoscape -->
@@ -167,6 +173,11 @@
 		     <artifactId>guava</artifactId>
 	     	<version>18.0</version>
 	   	</dependency>
+	   	<dependency>
+	  		<groupId>com.google.code.gson</groupId>
+	  		<artifactId>gson</artifactId>
+	  		<version>2.5</version>
+	  	</dependency>
 	   	
 	</dependencies>
 

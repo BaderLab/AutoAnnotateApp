@@ -9,7 +9,7 @@ import org.cytoscape.model.CyNode;
 
 public class AnnotationSet {
 
-	private final NetworkViewSet parent;
+	private final transient NetworkViewSet parent;
 	
 	private final String name;
 	private Set<Cluster> clusters = new HashSet<>();
@@ -24,7 +24,7 @@ public class AnnotationSet {
 	public Cluster createCluster(Collection<CyNode> nodes, String label) {
 		Cluster cluster = new Cluster(this, nodes, label);
 		clusters.add(cluster);
-		parent.getParent().getEventBus().post(new ModelEvents.ClusterAdded(cluster));
+		parent.getParent().postEvent(new ModelEvents.ClusterAdded(cluster));
 		return cluster;
 	}
 	
