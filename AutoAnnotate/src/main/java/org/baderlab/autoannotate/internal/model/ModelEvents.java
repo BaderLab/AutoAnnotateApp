@@ -55,15 +55,27 @@ public class ModelEvents {
 	}
 	
 	
-	public static class DisplayOptionsChanged {
+	public static class DisplayOptionChanged {
+		
+		public static enum Option {
+			SHAPE_TYPE, SHOW_CLUSTERS, SHOW_LABELS, USE_CONSTANT_FONT_SIZE,
+			CONSTANT_FONT_SIZE, OPACITY, BORDER_WIDTH
+		}
+		
+		private final Option option;
 		private final DisplayOptions displayOptions;
 		
-		DisplayOptionsChanged(DisplayOptions displayOptions) {
+		DisplayOptionChanged(DisplayOptions displayOptions, Option option) {
+			this.option = option;
 			this.displayOptions = displayOptions;
 		}
 		
 		public DisplayOptions getDisplayOptions() {
 			return displayOptions;
+		}
+		
+		public Option getOption() {
+			return option;
 		}
 	}
 	

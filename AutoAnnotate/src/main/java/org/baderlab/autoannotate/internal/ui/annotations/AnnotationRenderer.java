@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
+import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
@@ -33,7 +34,7 @@ public class AnnotationRenderer {
 	}
 	
 	@Subscribe
-	public void annotationSetSelected(ModelEvents.AnnotationSetSelected event) {
+	public void handleAnnotationSetSelected(ModelEvents.AnnotationSetSelected event) {
 		TaskIterator tasks = new TaskIterator();
 		
 		AnnotationSet annotationSet = event.getAnnotationSet();
@@ -49,6 +50,28 @@ public class AnnotationRenderer {
 		}
 		
 		dialogTaskManager.execute(tasks);
+	}
+	
+	@Subscribe
+	public void handleDisplayOptionChanged(ModelEvents.DisplayOptionChanged event) {
+		DisplayOptions options = event.getDisplayOptions();
+		
+		switch(event.getOption()) {
+		case BORDER_WIDTH:
+			for(Cluster cluster: options.getParent().getClusters()) {
+				ShapeAnnotation shape = shapeAnnotations.get(cluster);
+				shape.setBorderWidth(options.getBorderWidth());
+				shape.update();
+			}
+			break;
+		case OPACITY:
+			for(Cluster cluster: options.getParent().getClusters()) {
+				ShapeAnnotation shape = shapeAnnotations.get(cluster);
+				shape.setFillOpacity(options.getOpacity());
+				shape.update();
+			}
+			break;
+		}
 	}
 	
 	

@@ -2,64 +2,62 @@ package org.baderlab.autoannotate.internal.model;
 
 public enum ClusterAlgorithm {
 
-	AFFINITY_PROPAGATION("Affinity Propagation Cluster", "__APCluster"),
-	CLUSTER_FIZZIFIER("Cluster Fuzzifier", "__fuzzifierCluster"),
-	GLAY("Community cluster (GLay)", "__glayCluster", false),
-	CONNECTED_COMPONENTS("ConnectedComponents Cluster", "__ccCluster"),
-	FUZZY_C_MEANS("Fuzzy C-Means Cluster", "__fcmlCluster"),
-	MCL("MCL Cluster", "__mclCluster"),
-	SCPS("SCPS Cluster", "__scpsCluster");
+	AFFINITY_PROPAGATION("af", "Affinity Propagation Cluster", "__APCluster"),
+	CLUSTER_FIZZIFIER("fuzzifier", "Cluster Fuzzifier", "__fuzzifierCluster"),
+	GLAY("glay", "Community cluster (GLay)", "__glayCluster", false),
+	CONNECTED_COMPONENTS("connectedcomponents", "ConnectedComponents Cluster", "__ccCluster"),
+	FUZZY_C_MEANS("fcml", "Fuzzy C-Means Cluster", "__fcmlCluster"),
+	MCL("mcl", "MCL Cluster", "__mclCluster"),
+	SCPS("scps", "SCPS Cluster", "__scpsCluster");
 	
-	private final String algorithmName;
+	
+	private final String commandName;
 	private final String columnName;
+	private final String displayName;
 	private final boolean attributeRequired;
 	
-	ClusterAlgorithm(String algorithmName, String columnName) {
-		this(algorithmName, columnName, true);
+	ClusterAlgorithm(String commandName, String displayName, String columnName) {
+		this(commandName, displayName, columnName, true);
 	}
 	
-	ClusterAlgorithm(String algorithmName, String columnName, boolean attributeRequired) {
-		this.algorithmName = algorithmName;
+	ClusterAlgorithm(String commandName, String displayName, String columnName, boolean attributeRequired) {
+		this.commandName = commandName;
 		this.columnName = columnName;
+		this.displayName = displayName;
 		this.attributeRequired = attributeRequired;
 	}
 	
-	public String getAlgorithmName() {
-		return algorithmName;
-	}
 	
+	public String getCommandName() {
+		return commandName;
+	}
+
 	public String getColumnName() {
 		return columnName;
 	}
-	
+
+	public String getDisplayName() {
+		return displayName;
+	}
+
 	public boolean isAttributeRequired() {
 		return attributeRequired;
 	}
 	
 	@Override
 	public String toString() {
-		return algorithmName;
+		return displayName;
+	}
+
+	public String getClusterCommand(String edgeAttribute) {
+		return attributeRequired
+			? String.format("cluster %s clusterAttribute=\"%s\" attribute=\"%s\"", commandName, columnName, edgeAttribute)
+			: String.format("cluster %s clusterAttribute=\"%s\"", commandName, columnName);
+	}
+	
+	public String getNetworkCommand() {
+		return "cluster getnetworkcluster algorithm=" + commandName;
 	}
 	
 	
-	public String getCommand(String edgeAttribute, String clusterColumnName) {
-		switch(this) {
-		case AFFINITY_PROPAGATION:
-			return "cluster ap attribute=\"" + edgeAttribute + "\" clusterAttribute=\"" + clusterColumnName + "\" selectedOnly=true";
-		case CLUSTER_FIZZIFIER:
-			return "cluster fuzzifier attribute=\"" + edgeAttribute + "\" clusterAttribute=\"" + clusterColumnName + "\" selectedOnly=true";
-		case CONNECTED_COMPONENTS:
-			return "cluster connectedcomponents attribute=\"" + edgeAttribute + "\" clusterAttribute=\"" + clusterColumnName + "\" selectedOnly=true";
-		case FUZZY_C_MEANS:
-			return "cluster fcml attribute=\"" + edgeAttribute + "\" clusterAttribute=\"" + clusterColumnName + "\" selectedOnly=true";
-		case GLAY:
-			return "cluster glay clusterAttribute=\"" + clusterColumnName + "\" selectedOnly=true";
-		case MCL:
-			return "cluster mcl attribute=\"" + edgeAttribute + "\" clusterAttribute=\"" + clusterColumnName + "\" selectedOnly=true";
-		case SCPS:
-			return "cluster scps attribute=\"" + edgeAttribute + "\" clusterAttribute=\"" + clusterColumnName + "\" selectedOnly=true";
-		default:
-			return null;
-		}
-	}
 }

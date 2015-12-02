@@ -26,9 +26,14 @@ public class ClusterTableModel extends AbstractTableModel {
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		Cluster cluster = clusters.get(rowIndex);
 		if(columnIndex == 0)
-			return cluster;
+			return cluster.getLabel();
 		else
 			return cluster.getNodeCount();
+	}
+	
+	@Override
+	public Class<?> getColumnClass(int columnIndex) {
+		return (columnIndex == 0) ? String.class : Integer.class;
 	}
 	
 	@Override

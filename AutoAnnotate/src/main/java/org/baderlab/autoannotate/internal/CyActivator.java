@@ -8,10 +8,9 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Properties;
 
-import javax.swing.UIManager;
-
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.ui.ShowCreateDialogAction;
+import org.baderlab.autoannotate.internal.ui.UIManager;
 import org.baderlab.autoannotate.internal.ui.annotations.AnnotationRenderer;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;

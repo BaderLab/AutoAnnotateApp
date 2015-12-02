@@ -29,6 +29,9 @@ public class LabelMaker {
 	 * MKTODO this code makes no sense to me
 	 */
 	public String makeLabel(Collection<CyNode> nodes, Collection<WordInfo> wordInfos) {
+		if(wordInfos == null || wordInfos.isEmpty())
+			return "";
+		
 		// Work with a copy so as to not mess up the order for comparisons
 		ArrayList<WordInfo> wordInfosCopy = new ArrayList<WordInfo>();
 		for (WordInfo wordInfo : wordInfos) {

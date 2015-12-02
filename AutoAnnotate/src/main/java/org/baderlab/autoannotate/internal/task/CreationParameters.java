@@ -101,5 +101,9 @@ public class CreationParameters {
 		return createGroups;
 	}
 	
+	public String getClusterMakerAttribute() {
+		return clusterMakerAttribute;
+	}
+	
 	
 }

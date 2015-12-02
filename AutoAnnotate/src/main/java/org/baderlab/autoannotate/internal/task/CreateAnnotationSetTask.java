@@ -44,6 +44,7 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		syncTaskManager.execute(clusterMakerTaskFactory.createTaskIterator(clusterResultObserver));
 		Map<Integer,Collection<CyNode>> clusters = clusterResultObserver.getResult();
 
+		// MKTODO clusterMaker might fail or return 0 clusters
 		
 		// Run wordCloud
 		taskMonitor.setStatusMessage("Generating Labels");
@@ -59,8 +60,11 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		// MKTODO
 		// layout the network
 		// create groups
-		
-		LabelMaker labelMaker = new LabelMaker(params.getNetworkView().getModel(), "", LabelOptions.defaults());
+		String weightAttribute = "";
+		if(params.isUseClusterMaker() && params.getClusterAlgorithm().isAttributeRequired())
+			weightAttribute = params.getClusterMakerAttribute();
+			
+		LabelMaker labelMaker = new LabelMaker(params.getNetworkView().getModel(), weightAttribute, LabelOptions.defaults());
 		
 		// Build the AnnotationSet
 		NetworkViewSet networkViewSet = modelManager.getNetworkViewSet(params.getNetworkView());
@@ -78,10 +82,22 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		networkViewSet.select(annotationSet);
 	}
 	
+	
 	private String createName(NetworkViewSet networkViewSet) {
-		return "Huh?";
+		String originalName;
+		if(params.isUseClusterMaker())
+			originalName = params.getClusterAlgorithm().getDisplayName() + " Annotation Set";
+		else
+			originalName = params.getClusterDataColumn() + " Column Annotation Set";
 		
+		Collection<AnnotationSet> sets = networkViewSet.getAnnotationSets();
 		
+		String name[] = {originalName};
+		int suffix = 2;
+		while(sets.stream().anyMatch(a -> a.getName().equals(name[0]))) {
+			name[0] = originalName + " " + (suffix++);
+		}
+		return name[0];
 	}
 	
 	

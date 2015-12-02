@@ -86,7 +86,7 @@ public class ModelImporter {
 		CyNetworkView view = views.iterator().next();
 		NetworkViewSet networkViewSet = modelManager.getNetworkViewSet(view);
 		
-		restoreDisplayOptions(networkViewSet, object.get("displayOptions").getAsJsonObject());
+		
 		
 		JsonArray elements = object.get("annotationSets").getAsJsonArray();
 		for(JsonElement element : elements) {
@@ -95,7 +95,7 @@ public class ModelImporter {
 	}
 	
 	
-	private void restoreDisplayOptions(NetworkViewSet networkViewSet, JsonObject object) {
+	private void restoreDisplayOptions(AnnotationSet annotationSet, JsonObject object) {
 		ShapeType shapeType = ShapeType.valueOf(object.get("shapeType").getAsString());
 		boolean showClusters = object.get("showClusters").getAsBoolean();
 		boolean showLabels = object.get("showLabels").getAsBoolean();
@@ -104,7 +104,7 @@ public class ModelImporter {
 		int opacity = object.get("opacity").getAsInt();
 		int borderWidth = object.get("borderWidth").getAsInt();
 		
-		DisplayOptions options = networkViewSet.getDisplayOptions();
+		DisplayOptions options = annotationSet.getDisplayOptions();
 		options.setShapeType(shapeType);
 		options.setShowClusters(showClusters);
 		options.setShowLabels(showLabels);
@@ -117,9 +117,11 @@ public class ModelImporter {
 	
 	private void restoreAnnotationSet(NetworkViewSet networkViewSet, JsonObject object) {
 		String name = object.get("name").getAsString();
-		JsonArray clusters = object.get("clusters").getAsJsonArray();
 		
 		AnnotationSet annotationSet = networkViewSet.createAnnotationSet(name);
+		restoreDisplayOptions(annotationSet, object.get("displayOptions").getAsJsonObject());
+		
+		JsonArray clusters = object.get("clusters").getAsJsonArray();
 		for(JsonElement cluster : clusters) {
 			restoreCluster(annotationSet, cluster.getAsJsonObject());
 		}

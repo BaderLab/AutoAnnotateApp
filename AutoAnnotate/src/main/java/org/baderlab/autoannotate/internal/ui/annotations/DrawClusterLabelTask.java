@@ -34,7 +34,7 @@ public class DrawClusterLabelTask extends AbstractTask {
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		AnnotationSet annotationSet = cluster.getParent();
 		CyNetworkView view = annotationSet.getParent().getNetworkView();
-		DisplayOptions displayOptions = annotationSet.getParent().getDisplayOptions();
+		DisplayOptions displayOptions = annotationSet.getDisplayOptions();
 		
 		double zoom = view.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR);
 		String labelText = cluster.getLabel();

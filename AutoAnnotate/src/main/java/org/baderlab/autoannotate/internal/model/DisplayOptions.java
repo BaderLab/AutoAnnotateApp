@@ -1,14 +1,10 @@
 package org.baderlab.autoannotate.internal.model;
 
+import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 
-/**
- * MKTODO should these be per-networkview or per-annotationset
- * @author mkucera
- *
- */
+
 public class DisplayOptions {
-	
 	
 	public static final int OPACITY_DEFAULT = 20;
 	public static final int OPACITY_MIN = 1;
@@ -18,8 +14,12 @@ public class DisplayOptions {
 	public static final int WIDTH_MIN = 1;
 	public static final int WIDTH_MAX = 10;
 	
+	public static final int FONT_DEFAULT = 12;
+	public static final int FONT_MIN = 1;
+	public static final int FONT_MAX = 40;
 	
-	private final transient NetworkViewSet parent;
+	
+	private final transient AnnotationSet parent;
 
 	
 	private ShapeType shapeType = ShapeType.ELLIPSE;
@@ -32,27 +32,26 @@ public class DisplayOptions {
 	private int borderWidth = WIDTH_DEFAULT;//
 	
 	
-	DisplayOptions(NetworkViewSet parent) {
+	DisplayOptions(AnnotationSet parent) {
 		this.parent = parent;
 	}
 	
-	public NetworkViewSet getParent() {
+	public AnnotationSet getParent() {
 		return parent;
 	}
 	
-	private void fireEvent() {
-		parent.getParent().postEvent(new ModelEvents.DisplayOptionsChanged(this));
+	private void postEvent(Option option) {
+		parent.getParent().getParent().postEvent(new ModelEvents.DisplayOptionChanged(this, option));
 	}
 	
 	
-
 	public boolean isShowClusters() {
 		return showClusters;
 	}
 
 	public void setShowClusters(boolean showClusters) {
 		this.showClusters = showClusters;
-		fireEvent();
+		postEvent(Option.SHOW_CLUSTERS);
 	}
 
 	public boolean isShowLabels() {
@@ -61,7 +60,7 @@ public class DisplayOptions {
 
 	public void setShowLabels(boolean showLabels) {
 		this.showLabels = showLabels;
-		fireEvent();
+		postEvent(Option.SHOW_LABELS);
 	}
 
 	public boolean isUseConstantFontSize() {
@@ -70,7 +69,7 @@ public class DisplayOptions {
 
 	public void setUseConstantFontSize(boolean useConstantFontSize) {
 		this.useConstantFontSize = useConstantFontSize;
-		fireEvent();
+		postEvent(Option.USE_CONSTANT_FONT_SIZE);
 	}
 
 	public int getConstantFontSize() {
@@ -79,7 +78,7 @@ public class DisplayOptions {
 
 	public void setConstantFontSize(int constantFontSize) {
 		this.constantFontSize = constantFontSize;
-		fireEvent();
+		postEvent(Option.CONSTANT_FONT_SIZE);
 	}
 
 	public ShapeType getShapeType() {
@@ -88,7 +87,7 @@ public class DisplayOptions {
 
 	public void setShapeType(ShapeType shapeType) {
 		this.shapeType = shapeType;
-		fireEvent();
+		postEvent(Option.SHAPE_TYPE);
 	}
 
 	public int getOpacity() {
@@ -97,7 +96,7 @@ public class DisplayOptions {
 
 	public void setOpacity(int opacity) {
 		this.opacity = opacity;
-		fireEvent();
+		postEvent(Option.OPACITY);
 	}
 
 	public int getBorderWidth() {
@@ -106,9 +105,7 @@ public class DisplayOptions {
 
 	public void setBorderWidth(int borderWidth) {
 		this.borderWidth = borderWidth;
-		fireEvent();
+		postEvent(Option.BORDER_WIDTH);
 	}
-	
-	
 	
 }

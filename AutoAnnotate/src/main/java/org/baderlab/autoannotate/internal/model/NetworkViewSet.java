@@ -13,7 +13,7 @@ public class NetworkViewSet {
 	private final transient ModelManager parent;
 	
 	private final transient CyNetworkView networkView;
-	private final DisplayOptions displayOptions;
+	
 	private final Set<AnnotationSet> annotationSets;
 	private transient AnnotationSet activeSet = null;
 	
@@ -22,7 +22,6 @@ public class NetworkViewSet {
 		this.parent = parent;
 		this.networkView = networkView;
 		this.annotationSets = new HashSet<>();
-		this.displayOptions = new DisplayOptions(this);
 	}
 	
 	
@@ -45,7 +44,7 @@ public class NetworkViewSet {
 	}
 	
 	public Collection<AnnotationSet> getAnnotationSets() {
-		return Collections.unmodifiableCollection(annotationSets);
+		return Collections.unmodifiableSet(annotationSets);
 	}
 	
 	public ModelManager getParent() {
@@ -60,7 +59,4 @@ public class NetworkViewSet {
 		return networkView.getModel();
 	}
 	
-	public DisplayOptions getDisplayOptions() {
-		return displayOptions;
-	}
 }

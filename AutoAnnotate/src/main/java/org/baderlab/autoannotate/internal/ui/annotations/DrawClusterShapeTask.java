@@ -41,7 +41,7 @@ public class DrawClusterShapeTask extends AbstractTask {
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		AnnotationSet annotationSet = cluster.getParent();
 		CyNetworkView view = annotationSet.getParent().getNetworkView();
-		DisplayOptions displayOptions = annotationSet.getParent().getDisplayOptions();
+		DisplayOptions displayOptions = annotationSet.getDisplayOptions();
 		
 		ShapeType shapeType = displayOptions.getShapeType();
 		int ellipseBorderWidth = displayOptions.getBorderWidth();

@@ -12,12 +12,14 @@ public class AnnotationSet {
 	private final transient NetworkViewSet parent;
 	
 	private final String name;
+	private final DisplayOptions displayOptions;
 	private Set<Cluster> clusters = new HashSet<>();
 	
 	
 	AnnotationSet(NetworkViewSet parent, String name) {
 		this.parent = parent;
 		this.name = name;
+		this.displayOptions = new DisplayOptions(this);
 	}
 	
 	
@@ -30,6 +32,10 @@ public class AnnotationSet {
 	
 	public String getName() {
 		return name;
+	}
+	
+	public DisplayOptions getDisplayOptions() {
+		return displayOptions;
 	}
 	
 	public Set<Cluster> getClusters() {
