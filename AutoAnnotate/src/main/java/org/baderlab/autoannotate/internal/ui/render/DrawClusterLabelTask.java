@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.ui.annotations;
+package org.baderlab.autoannotate.internal.ui.render;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +31,7 @@ public class DrawClusterLabelTask extends AbstractTask {
 	
 	
 	@Override
-	public void run(TaskMonitor taskMonitor) throws Exception {
+	public void run(TaskMonitor taskMonitor) {
 		AnnotationSet annotationSet = cluster.getParent();
 		CyNetworkView view = annotationSet.getParent().getNetworkView();
 		DisplayOptions displayOptions = annotationSet.getDisplayOptions();

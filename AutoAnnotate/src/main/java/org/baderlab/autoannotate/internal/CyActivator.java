@@ -9,9 +9,9 @@ import java.util.Arrays;
 import java.util.Properties;
 
 import org.baderlab.autoannotate.internal.model.ModelManager;
-import org.baderlab.autoannotate.internal.ui.ShowCreateDialogAction;
 import org.baderlab.autoannotate.internal.ui.UIManager;
-import org.baderlab.autoannotate.internal.ui.annotations.AnnotationRenderer;
+import org.baderlab.autoannotate.internal.ui.action.ShowCreateDialogAction;
+import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.command.AvailableCommands;
@@ -92,8 +92,8 @@ public class CyActivator extends AbstractCyActivator {
 			TypeLiteral<AnnotationFactory<TextAnnotation>> textFactory = new TypeLiteral<AnnotationFactory<TextAnnotation>>(){};
 			bind(textFactory).toProvider(service(textFactory).filter(ldap("(type=TextAnnotation.class)")).single());
 			
-			// Create a single EventBus for the entire App
-			bind(EventBus.class).toInstance(new EventBus(APP_NAME));
+			// Create a single EventBus
+			bind(EventBus.class).toInstance(new EventBus((e,c) -> e.printStackTrace()));
 			
 			// Call methods annotated with @AfterInjection after injection, mainly used to create UIs
 			bindListener(new AfterInjectionMatcher(), new TypeListener() {

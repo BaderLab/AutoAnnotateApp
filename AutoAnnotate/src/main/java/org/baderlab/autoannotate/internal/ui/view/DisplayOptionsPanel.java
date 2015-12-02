@@ -2,6 +2,7 @@ package org.baderlab.autoannotate.internal.ui.view;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
@@ -14,6 +15,7 @@ import javax.swing.JSlider;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.ui.GBCFactory;
@@ -24,6 +26,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 
+@SuppressWarnings("serial")
 public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent {
 
 	private volatile DisplayOptions displayOptions;
@@ -33,7 +36,6 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent {
 	private JSlider fontSlider;
 	
 	
-	
 	@Inject
 	public void listenToModelEvents(EventBus eventBus) {
 		eventBus.register(this);
@@ -41,11 +43,14 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent {
 	
 	@Subscribe
 	public void annotationSetSelected(ModelEvents.AnnotationSetSelected event) {
-		displayOptions = event.getAnnotationSet().getDisplayOptions();
-		borderWidthSlider.setValue(displayOptions.getBorderWidth());
-		opacitySlider.setValue(displayOptions.getOpacity());
+		AnnotationSet annotationSet = event.getAnnotationSet();
+		recursiveEnable(this, annotationSet != null);
+		if(annotationSet != null) {
+			displayOptions = annotationSet.getDisplayOptions();
+			borderWidthSlider.setValue(displayOptions.getBorderWidth());
+			opacitySlider.setValue(displayOptions.getOpacity());
+		}
 	}
-	
 	
 	@AfterInjection
 	private void createContents() {
@@ -66,12 +71,6 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent {
 		
 		add(panel, BorderLayout.NORTH);
 	}
-	
-//	@Subscribe
-//	public void annotationSetAdded(ModelEvents.AnnotationSetAdded event) {
-//		AnnotationSet aset = event.getAnnotationSet();
-//		aset.getDisplayOptions();
-//	}
 	
 	
 	private JPanel createSliderPanel() {
@@ -128,6 +127,19 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent {
 		return panel;
 	}
 	
+	
+	/**
+	 * Call setEnabled(enabled) on the given component and all its children recursively.
+	 * Warning: The current enabled state of components is not remembered.
+	 */
+	private static void recursiveEnable(Component component, boolean enabled) {
+    	component.setEnabled(enabled);
+    	if(component instanceof Container) {
+    		for(Component child : ((Container)component).getComponents()) {
+    			recursiveEnable(child, enabled);
+    		}
+    	}
+    }
 	
 	@Override
 	public Component getComponent() {

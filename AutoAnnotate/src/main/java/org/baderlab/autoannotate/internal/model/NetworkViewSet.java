@@ -59,4 +59,19 @@ public class NetworkViewSet {
 		return networkView.getModel();
 	}
 	
+	public String getNetworkName() {
+		CyNetwork network = getNetwork();
+		return network.getRow(network).get(CyNetwork.NAME, String.class);
+	}
+
+
+	void delete(AnnotationSet annotationSet) {
+		if(annotationSets.remove(annotationSet)) {
+			if(activeSet == annotationSet) {
+				activeSet = null;
+				parent.postEvent(new ModelEvents.AnnotationSetSelected(null));
+			}
+			parent.postEvent(new ModelEvents.AnnotationSetDeleted(annotationSet));
+		}
+	}
 }

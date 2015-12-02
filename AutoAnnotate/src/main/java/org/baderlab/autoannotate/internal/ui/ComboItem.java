@@ -13,7 +13,7 @@ public class ComboItem<V> {
 	}
 	
 	public ComboItem(V value) {
-		this(value, value.toString());
+		this(value, String.valueOf(value));
 	}
 	
 	public V getValue() {

@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.ui.annotations;
+package org.baderlab.autoannotate.internal.ui.render;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,8 +22,10 @@ import com.google.inject.Singleton;
 public class AnnotationRenderer {
 	
 	@Inject private DialogTaskManager dialogTaskManager;
+	
 	@Inject private Provider<DrawClusterShapeTask> shapeTaskProvider;
 	@Inject private Provider<DrawClusterLabelTask> labelTaskProvier;
+	@Inject private Provider<RemoveClusterAnnotationsTask> removeTaskProvider;
 	
 	private Map<Cluster,TextAnnotation> textAnnotations = new HashMap<>();
 	private Map<Cluster,ShapeAnnotation> shapeAnnotations = new HashMap<>();
@@ -36,21 +38,40 @@ public class AnnotationRenderer {
 	@Subscribe
 	public void handleAnnotationSetSelected(ModelEvents.AnnotationSetSelected event) {
 		TaskIterator tasks = new TaskIterator();
+		tasks.append(getRemoveExistingAnnotationsTasks());
 		
 		AnnotationSet annotationSet = event.getAnnotationSet();
-		for(Cluster cluster : annotationSet.getClusters()) {
-			// The shape task must go first because the label task needs to know the location/size of the shape.
-			DrawClusterShapeTask shapeTask = shapeTaskProvider.get();
-			shapeTask.setCluster(cluster);
-			tasks.append(shapeTask);
-			
-			DrawClusterLabelTask labelTask = labelTaskProvier.get();
-			labelTask.setCluster(cluster);
-			tasks.append(labelTask);
+		if(annotationSet != null) {
+			for(Cluster cluster : annotationSet.getClusters()) {
+				// The shape task must go first because the label task needs to know the location/size of the shape.
+				DrawClusterShapeTask shapeTask = shapeTaskProvider.get();
+				shapeTask.setCluster(cluster);
+				tasks.append(shapeTask);
+				
+				DrawClusterLabelTask labelTask = labelTaskProvier.get();
+				labelTask.setCluster(cluster);
+				tasks.append(labelTask);
+			}
 		}
 		
-		dialogTaskManager.execute(tasks);
+		if(tasks.getNumTasks() > 0) {
+			dialogTaskManager.execute(tasks);
+		}
 	}
+	
+	
+	private TaskIterator getRemoveExistingAnnotationsTasks() {
+		TaskIterator tasks = new TaskIterator();
+		
+		for(Cluster cluster : textAnnotations.keySet()) {
+			RemoveClusterAnnotationsTask removeTask = removeTaskProvider.get();
+			removeTask.setCluster(cluster);
+			tasks.append(removeTask);
+		}
+		
+		return tasks;
+	}
+	
 	
 	@Subscribe
 	public void handleDisplayOptionChanged(ModelEvents.DisplayOptionChanged event) {
@@ -75,6 +96,8 @@ public class AnnotationRenderer {
 	}
 	
 	
+	// MKTODO should I be using a TaskObserver to get the results instead?
+	
 	ShapeAnnotation getShapeAnnotation(Cluster cluster) {
 		return shapeAnnotations.get(cluster);
 	}
@@ -91,4 +114,11 @@ public class AnnotationRenderer {
 		textAnnotations.put(cluster, textAnnotation);
 	}
 
+	TextAnnotation removeTextAnnotation(Cluster cluster) {
+		return textAnnotations.remove(cluster);
+	}
+	
+	ShapeAnnotation removeShapeAnnoation(Cluster cluster) {
+		return shapeAnnotations.remove(cluster);
+	}
 }

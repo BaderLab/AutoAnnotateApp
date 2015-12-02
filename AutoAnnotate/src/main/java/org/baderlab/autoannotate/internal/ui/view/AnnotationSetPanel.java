@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -22,7 +23,8 @@ import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.ComboItem;
-import org.baderlab.autoannotate.internal.ui.ShowCreateDialogAction;
+import org.baderlab.autoannotate.internal.ui.action.DeleteAnnotationSetAction;
+import org.baderlab.autoannotate.internal.ui.action.ShowCreateDialogAction;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.util.swing.IconManager;
@@ -39,7 +41,9 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 	@Inject private ModelManager modelManager;
 	@Inject private Provider<IconManager> iconManagerProvider;
 	@Inject private Provider<ShowCreateDialogAction> showDialogActionProvider;
+	@Inject private Provider<DeleteAnnotationSetAction> deleteSetActionProvider;
 	
+	private ActionListener selectListener;
 	private JComboBox<ComboItem<AnnotationSet>> annotationSetCombo;
 	private JTable clusterTable;
 	
@@ -51,6 +55,7 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 	
 	@Subscribe
 	public void annotationSetAdded(ModelEvents.AnnotationSetAdded event) {
+		System.out.println("AnnotationSetPanel.annotationSetAdded()");
 		AnnotationSet aset = event.getAnnotationSet();
 		annotationSetCombo.addItem(new ComboItem<>(aset, aset.getName()));
 	}
@@ -63,15 +68,23 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 	@Subscribe
 	public void annotationSetSelected(ModelEvents.AnnotationSetSelected event) {
 		AnnotationSet annotationSet = event.getAnnotationSet();
-		ComboItem<AnnotationSet> item = new ComboItem<>(annotationSet);
-		if(!item.equals(annotationSetCombo.getSelectedItem())) {
-			annotationSetCombo.setSelectedItem(item);
-		}
-		annotationSetSelected();
+		annotationSetCombo.removeActionListener(selectListener);
+		annotationSetCombo.setSelectedItem(new ComboItem<>(annotationSet)); // works when annotationSet is null
+		annotationSetCombo.addActionListener(selectListener);
+		updateClusterTable();
 	}
 	
-	private void annotationSetSelected() {
-		AnnotationSet annotationSet = annotationSetCombo.getItemAt(annotationSetCombo.getSelectedIndex()).getValue();
+	private void selectAnnotationSet() {
+		int index = annotationSetCombo.getSelectedIndex();
+		if(index != -1) {
+			AnnotationSet annotationSet = annotationSetCombo.getItemAt(index).getValue(); // may be null
+			modelManager.getActiveNetworkViewSet().select(annotationSet);
+		}
+	}
+	
+	private void updateClusterTable() {
+		int index = annotationSetCombo.getSelectedIndex();
+		AnnotationSet annotationSet = annotationSetCombo.getItemAt(index).getValue();
 		ClusterTableModel clusterModel = new ClusterTableModel(annotationSet);
 		int widthCol0 = clusterTable.getColumnModel().getColumn(0).getPreferredWidth();
 		int widthCol1 = clusterTable.getColumnModel().getColumn(1).getPreferredWidth();
@@ -89,8 +102,6 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 		JPanel tablePanel = createTablePanel();
 		JPanel buttonPanel = createButtonPanel();
 		
-		updateNetworkView();
-		
 		add(comboPanel, BorderLayout.NORTH);
 		add(tablePanel, BorderLayout.CENTER);
 		add(buttonPanel, BorderLayout.SOUTH);
@@ -99,8 +110,8 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 	private JPanel createComboPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
 		
-		annotationSetCombo = new JComboBox<>();
-		annotationSetCombo.addActionListener(e -> annotationSetSelected());
+		annotationSetCombo = createAnnotationSetCombo();
+		annotationSetCombo.addActionListener(selectListener = e -> selectAnnotationSet());
 		
 		JButton actionButton = new JButton();
 		actionButton.setFont(iconManagerProvider.get().getIconFont(12));
@@ -110,6 +121,19 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 		panel.add(annotationSetCombo, BorderLayout.CENTER);
 		panel.add(actionButton, BorderLayout.EAST);
 		return panel;
+	}
+	
+	private JComboBox<ComboItem<AnnotationSet>> createAnnotationSetCombo() {
+		JComboBox<ComboItem<AnnotationSet>> combo = new JComboBox<>();
+		combo.addItem(new ComboItem<>(null, "(none)"));
+		combo.setSelectedIndex(0);
+		NetworkViewSet networkViewSet = modelManager.getActiveNetworkViewSet();
+		if(networkViewSet != null) {
+			for(AnnotationSet annotationSet : networkViewSet.getAnnotationSets()) {
+				combo.addItem(new ComboItem<>(annotationSet, annotationSet.getName()));
+			}
+		}
+		return combo;
 	}
 	
 	
@@ -153,26 +177,18 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 	private void showPopupMenu(ActionEvent event) {
 		JMenuItem createMenuItem = new JMenuItem("Create...");
 		JMenuItem renameMenuItem = new JMenuItem("Rename");
+		JMenuItem deleteMenuItem = new JMenuItem("Delete");
 		
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(createMenuItem);
 		menu.add(renameMenuItem);
+		menu.add(deleteMenuItem);
 		
 		createMenuItem.addActionListener(showDialogActionProvider.get());
+		deleteMenuItem.addActionListener(deleteSetActionProvider.get());
 		
 		Component c = (Component)event.getSource();
 		menu.show(c, 0, c.getHeight());
-	}
-	
-	
-	private void updateNetworkView() {
-		annotationSetCombo.removeAllItems();
-		NetworkViewSet networkViewSet = modelManager.getActiveNetworkViewSet();
-		if(networkViewSet != null) {
-			for(AnnotationSet annotationSet : networkViewSet.getAnnotationSets()) {
-				annotationSetCombo.addItem(new ComboItem<>(annotationSet, annotationSet.getName()));
-			}
-		}
 	}
 	
 	

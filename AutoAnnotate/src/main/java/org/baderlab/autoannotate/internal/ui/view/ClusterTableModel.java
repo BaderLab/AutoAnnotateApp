@@ -15,11 +15,14 @@ public class ClusterTableModel extends AbstractTableModel {
 	private final ArrayList<Cluster> clusters;
 	
 	public ClusterTableModel() {
-		this.clusters = new ArrayList<>(0);
+		this(null);
 	}
 	
 	public ClusterTableModel(AnnotationSet annotationSet) {
-		this.clusters = new ArrayList<>(annotationSet.getClusters());
+		if(annotationSet == null)
+			this.clusters = new ArrayList<>(0);
+		else
+			this.clusters = new ArrayList<>(annotationSet.getClusters());
 	}
 	
 	@Override

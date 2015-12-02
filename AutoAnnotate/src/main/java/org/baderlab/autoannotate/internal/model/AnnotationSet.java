@@ -50,7 +50,12 @@ public class AnnotationSet {
 		return parent;
 	}
 
-	
+	/**
+	 * Deleting an annotation set also clears the active annotation set if this was the active one.
+	 */
+	public void delete() {
+		parent.delete(this);
+	}
 	
 	
 }

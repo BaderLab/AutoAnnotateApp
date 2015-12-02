@@ -7,6 +7,7 @@ import org.cytoscape.application.swing.AbstractCyAction;
 
 import com.google.inject.Inject;
 
+@SuppressWarnings("serial")
 public class TestGsonAction extends AbstractCyAction {
 
 	@Inject private ModelExporter porter;
@@ -19,11 +20,8 @@ public class TestGsonAction extends AbstractCyAction {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		StringBuilder sb = new StringBuilder();
-		
 		porter.exportJSON(sb);
-		
 		System.out.println(sb.toString());
-		
 	}
 
 }
