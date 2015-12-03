@@ -14,22 +14,20 @@ public class DisplayOptions {
 	public static final int WIDTH_MIN = 1;
 	public static final int WIDTH_MAX = 10;
 	
-	public static final int FONT_DEFAULT = 12;
-	public static final int FONT_MIN = 1;
-	public static final int FONT_MAX = 40;
+	public static final int FONT_SCALE_DEFAULT = 50;
+	public static final int FONT_SCALE_MIN = 1;
+	public static final int FONT_SCALE_MAX = 100;
 	
 	
 	private final transient AnnotationSet parent;
-
 	
 	private ShapeType shapeType = ShapeType.ELLIPSE;
 	private boolean showClusters = true;
 	private boolean showLabels = true;
 	private boolean useConstantFontSize = false;
-	private int	constantFontSize = 12; 
-	
-	private int opacity = OPACITY_DEFAULT; // value between 0 and 100
-	private int borderWidth = WIDTH_DEFAULT;//
+	private int	fontScale = FONT_SCALE_DEFAULT; 
+	private int opacity = OPACITY_DEFAULT;
+	private int borderWidth = WIDTH_DEFAULT;
 	
 	
 	DisplayOptions(AnnotationSet parent) {
@@ -72,13 +70,13 @@ public class DisplayOptions {
 		postEvent(Option.USE_CONSTANT_FONT_SIZE);
 	}
 
-	public int getConstantFontSize() {
-		return constantFontSize;
+	public int getFontScale() {
+		return fontScale;
 	}
 
-	public void setConstantFontSize(int constantFontSize) {
-		this.constantFontSize = constantFontSize;
-		postEvent(Option.CONSTANT_FONT_SIZE);
+	public void setFontScale(int fontScale) {
+		this.fontScale = fontScale;
+		postEvent(Option.FONT_SCALE);
 	}
 
 	public ShapeType getShapeType() {

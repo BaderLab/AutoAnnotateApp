@@ -20,7 +20,6 @@ import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.EventBus;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -42,9 +41,8 @@ public class ModelImporter {
 	@Inject private ModelManager modelManager;
 	@Inject private CyNetworkManager networkManager;
 	@Inject private CyNetworkViewManager networkViewManager;
-	@Inject private EventBus eventBus;
-	
 
+	
 	public void importJSON(Reader reader) {
 		Logger log = LoggerFactory.getLogger(CyUserLog.NAME);
 		
@@ -86,8 +84,6 @@ public class ModelImporter {
 		CyNetworkView view = views.iterator().next();
 		NetworkViewSet networkViewSet = modelManager.getNetworkViewSet(view);
 		
-		
-		
 		JsonArray elements = object.get("annotationSets").getAsJsonArray();
 		for(JsonElement element : elements) {
 			restoreAnnotationSet(networkViewSet, element.getAsJsonObject());
@@ -100,7 +96,7 @@ public class ModelImporter {
 		boolean showClusters = object.get("showClusters").getAsBoolean();
 		boolean showLabels = object.get("showLabels").getAsBoolean();
 		boolean useConstantFontSize = object.get("useConstantFontSize").getAsBoolean();
-		int constantFontSize = object.get("constantFontSize").getAsInt();
+		int fontScale = object.get("fontScale").getAsInt();
 		int opacity = object.get("opacity").getAsInt();
 		int borderWidth = object.get("borderWidth").getAsInt();
 		
@@ -109,7 +105,7 @@ public class ModelImporter {
 		options.setShowClusters(showClusters);
 		options.setShowLabels(showLabels);
 		options.setUseConstantFontSize(useConstantFontSize);
-		options.setConstantFontSize(constantFontSize);
+		options.setFontScale(fontScale);
 		options.setOpacity(opacity);
 		options.setBorderWidth(borderWidth);
 	}

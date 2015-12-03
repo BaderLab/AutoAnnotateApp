@@ -5,6 +5,8 @@ import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -15,6 +17,11 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowSorter;
+import javax.swing.RowSorter.SortKey;
+import javax.swing.SortOrder;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.CyActivator;
@@ -91,6 +98,15 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 		clusterTable.setModel(clusterModel);
 		clusterTable.getColumnModel().getColumn(0).setPreferredWidth(widthCol0);
 		clusterTable.getColumnModel().getColumn(1).setPreferredWidth(widthCol1);
+		
+		// sort
+		TableRowSorter<TableModel> sorter = new TableRowSorter<>(clusterTable.getModel());
+		clusterTable.setRowSorter(sorter);
+		List<SortKey> sortKeys = new ArrayList<>(2);
+		sortKeys.add(new RowSorter.SortKey(ClusterTableModel.NODES_COLUMN_INDEX, SortOrder.DESCENDING));
+		sortKeys.add(new RowSorter.SortKey(ClusterTableModel.CLUSTER_COLUMN_INDEX, SortOrder.ASCENDING));
+		sorter.setSortKeys(sortKeys);
+		sorter.sort();
 	}
 	
 	

@@ -59,7 +59,7 @@ public class ModelEvents {
 		
 		public static enum Option {
 			SHAPE_TYPE, SHOW_CLUSTERS, SHOW_LABELS, USE_CONSTANT_FONT_SIZE,
-			CONSTANT_FONT_SIZE, OPACITY, BORDER_WIDTH
+			FONT_SCALE, OPACITY, BORDER_WIDTH
 		}
 		
 		private final Option option;

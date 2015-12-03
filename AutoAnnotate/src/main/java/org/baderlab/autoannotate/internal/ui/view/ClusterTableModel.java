@@ -10,6 +10,9 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 @SuppressWarnings("serial")
 public class ClusterTableModel extends AbstractTableModel {
 	
+	public static final int CLUSTER_COLUMN_INDEX = 0;
+	public static final int NODES_COLUMN_INDEX = 1;
+	
 	private final String[] columnNames = {"Cluster", "Nodes"};
 	
 	private final ArrayList<Cluster> clusters;
@@ -36,12 +39,12 @@ public class ClusterTableModel extends AbstractTableModel {
 	
 	@Override
 	public Class<?> getColumnClass(int columnIndex) {
-		return (columnIndex == 0) ? String.class : Integer.class;
+		return (columnIndex == CLUSTER_COLUMN_INDEX) ? String.class : Integer.class;
 	}
 	
 	@Override
 	public boolean isCellEditable(int row, int col) { 
-		return col == 0;
+		return col == CLUSTER_COLUMN_INDEX;
 	}
 	
 	@Override

@@ -30,37 +30,58 @@ public class DrawClusterLabelTask extends AbstractTask {
 	}
 	
 	
-	@Override
-	public void run(TaskMonitor taskMonitor) {
+	public static class LabelArgs {
+		public final double x;
+		public final double y;
+		public final double width;
+		public final double height;
+		public final String label;
+		public final double zoom;
+		public final double fontSize;
+		
+		public LabelArgs(double x, double y, double width, double height, String label, double zoom, double fontSize) {
+			this.x = x;
+			this.y = y;
+			this.width = width;
+			this.height = height;
+			this.label = label;
+			this.zoom = zoom;
+			this.fontSize = fontSize;
+		}
+	}
+	
+	public static LabelArgs computeLabelArgs(AnnotationRenderer annotationRenderer, Cluster cluster) {
 		AnnotationSet annotationSet = cluster.getParent();
 		CyNetworkView view = annotationSet.getParent().getNetworkView();
 		DisplayOptions displayOptions = annotationSet.getDisplayOptions();
 		
 		double zoom = view.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR);
 		String labelText = cluster.getLabel();
-
-		double xPos= 0.0,yPos= 0.0,width= 0.0,height = 0.0;
-		if(annotationRenderer.getShapeAnnotation(cluster) != null){
-			Map<String, String> ellipseArgs = annotationRenderer.getShapeAnnotation(cluster).getArgMap();
-			xPos = Double.parseDouble(ellipseArgs.get("x"));
-			yPos = Double.parseDouble(ellipseArgs.get("y"));
-			width = Double.parseDouble(ellipseArgs.get("width"));
-			height = Double.parseDouble(ellipseArgs.get("height"));
+		
+		double xPos=0.0, yPos=0.0, width=0.0, height=0.0;
+		
+		if(annotationRenderer.getShapeAnnotation(cluster) != null) {
+			Map<String,String> shapeArgs = annotationRenderer.getShapeAnnotation(cluster).getArgMap();
+			xPos = Double.parseDouble(shapeArgs.get("x"));
+			yPos = Double.parseDouble(shapeArgs.get("y"));
+			width = Double.parseDouble(shapeArgs.get("width"));
+			height = Double.parseDouble(shapeArgs.get("height"));
 		}
-		// Create the text annotation 
-		Integer labelFontSize = null;
-		if (displayOptions.isUseConstantFontSize()) {
-			labelFontSize = displayOptions.getConstantFontSize();
-		} else {
-			labelFontSize = (int) Math.round(5*Math.pow(cluster.getNodeCount(), 0.4));
-		}
+		
+		int baseFontSize;
+		if(displayOptions.isUseConstantFontSize())
+			baseFontSize = 40;
+		else
+			baseFontSize = 2 * (int) Math.round(5 * Math.pow(cluster.getNodeCount(), 0.4));
+		
+		int labelFontSize = (int) Math.round(((double)displayOptions.getFontScale()/DisplayOptions.FONT_SCALE_MAX) * baseFontSize);
+		
 		double labelWidth = 2.3;
 		double labelHeight = 4.8;
-		if(labelText != null && labelFontSize != null){
+		if(labelText != null) {
 			labelWidth= 2.3*labelFontSize*labelText.length();
 			labelHeight = 4.8*labelFontSize;
 		}
-		
 		
 		// MKTODO Default to above-centered for now
 		double xOffset = 0.5;
@@ -75,18 +96,31 @@ public class DrawClusterLabelTask extends AbstractTask {
 		}
 		yPos = (int) Math.round(yPos + height/zoom*yOffset - labelHeight*(1.0-yOffset) - 10 + yOffset*20.0);
 		
-		// Create and draw the label
-		HashMap<String, String> arguments = new HashMap<String,String>();
-		arguments.put("x", String.valueOf(xPos));
-		arguments.put("y", String.valueOf(yPos));
-		arguments.put("zoom", String.valueOf(zoom));
+		double fontSize = 5*zoom*labelFontSize;
+		
+		return new LabelArgs(xPos, yPos, width, height, labelText, zoom, fontSize);
+	}
+	
+	
+	@Override
+	public void run(TaskMonitor taskMonitor) {
+		AnnotationSet annotationSet = cluster.getParent();
+		CyNetworkView view = annotationSet.getParent().getNetworkView();
+		DisplayOptions displayOptions = annotationSet.getDisplayOptions();
+		
+		LabelArgs args = computeLabelArgs(annotationRenderer, cluster);
+		
+		Map<String,String> arguments = new HashMap<>();
+		arguments.put("x", String.valueOf(args.x));
+		arguments.put("y", String.valueOf(args.y));
+		arguments.put("zoom", String.valueOf(args.zoom));
 		arguments.put("canvas", "foreground");
 		TextAnnotation textAnnotation = textFactory.createAnnotation(TextAnnotation.class, view, arguments);
 
 		// MKTODO why create the annotation at all if we're not going to show it?
-		if(textAnnotation != null && labelText != null){
-			textAnnotation.setText(labelText);
-			textAnnotation.setFontSize(5*zoom*labelFontSize);
+		if(textAnnotation != null && args.label != null){
+			textAnnotation.setText(args.label);
+			textAnnotation.setFontSize(args.fontSize);
 			annotationRenderer.setTextAnnotation(cluster, textAnnotation);
 			if (displayOptions.isShowLabels()) {
 				annotationManager.addAnnotation(textAnnotation);
@@ -94,5 +128,6 @@ public class DrawClusterLabelTask extends AbstractTask {
 		}
 		
 	}
+	
 
 }
