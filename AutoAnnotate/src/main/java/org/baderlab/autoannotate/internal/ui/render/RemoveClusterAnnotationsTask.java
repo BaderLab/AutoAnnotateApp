@@ -23,6 +23,7 @@ public class RemoveClusterAnnotationsTask extends AbstractTask {
 	public void run(TaskMonitor taskMonitor) {
 		ShapeAnnotation shape = annotationRenderer.removeShapeAnnoation(cluster);
 		TextAnnotation text = annotationRenderer.removeTextAnnotation(cluster);
+		annotationRenderer.setSelected(cluster, false);
 		
 		if(shape != null) {
 			shape.removeAnnotation();

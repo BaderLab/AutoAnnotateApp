@@ -1,5 +1,6 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
+import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +23,8 @@ public class DrawClusterLabelTask extends AbstractTask {
 	@Inject private AnnotationManager annotationManager;
 	@Inject private AnnotationRenderer annotationRenderer;
 	
+	
+	public static final Color DEFAULT_TEXT_COLOR = Color.BLACK;
 	
 	private Cluster cluster;
 	
@@ -121,6 +124,7 @@ public class DrawClusterLabelTask extends AbstractTask {
 		if(textAnnotation != null && args.label != null){
 			textAnnotation.setText(args.label);
 			textAnnotation.setFontSize(args.fontSize);
+			textAnnotation.setTextColor(DEFAULT_TEXT_COLOR);
 			annotationRenderer.setTextAnnotation(cluster, textAnnotation);
 			if (displayOptions.isShowLabels()) {
 				annotationManager.addAnnotation(textAnnotation);

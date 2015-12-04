@@ -15,6 +15,7 @@ public class ClusterTableModel extends AbstractTableModel {
 	
 	private final String[] columnNames = {"Cluster", "Nodes"};
 	
+	private final AnnotationSet annotationSet;
 	private final ArrayList<Cluster> clusters;
 	
 	public ClusterTableModel() {
@@ -22,6 +23,7 @@ public class ClusterTableModel extends AbstractTableModel {
 	}
 	
 	public ClusterTableModel(AnnotationSet annotationSet) {
+		this.annotationSet = annotationSet;
 		if(annotationSet == null)
 			this.clusters = new ArrayList<>(0);
 		else
@@ -37,6 +39,14 @@ public class ClusterTableModel extends AbstractTableModel {
 			return cluster.getNodeCount();
 	}
 	
+	public Cluster getCluster(int rowIndex) {
+		return clusters.get(rowIndex);
+	}
+	
+	public AnnotationSet getAnnotationSet() {
+		return annotationSet;
+	}
+	
 	@Override
 	public Class<?> getColumnClass(int columnIndex) {
 		return (columnIndex == CLUSTER_COLUMN_INDEX) ? String.class : Integer.class;
@@ -44,7 +54,7 @@ public class ClusterTableModel extends AbstractTableModel {
 	
 	@Override
 	public boolean isCellEditable(int row, int col) { 
-		return col == CLUSTER_COLUMN_INDEX;
+		return false; //col == CLUSTER_COLUMN_INDEX;
 	}
 	
 	@Override

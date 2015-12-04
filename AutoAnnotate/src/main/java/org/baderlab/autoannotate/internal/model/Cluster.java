@@ -1,6 +1,7 @@
 package org.baderlab.autoannotate.internal.model;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,6 +38,10 @@ public class Cluster {
 	
 	public int getNodeCount() {
 		return nodes.size();
+	}
+	
+	public Collection<CyNode> getNodes() {
+		return Collections.unmodifiableSet(nodes);
 	}
 	
 	@Override

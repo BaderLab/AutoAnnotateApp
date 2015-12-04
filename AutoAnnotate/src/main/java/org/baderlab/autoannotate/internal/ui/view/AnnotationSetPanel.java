@@ -49,6 +49,7 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 	@Inject private Provider<IconManager> iconManagerProvider;
 	@Inject private Provider<ShowCreateDialogAction> showDialogActionProvider;
 	@Inject private Provider<DeleteAnnotationSetAction> deleteSetActionProvider;
+	@Inject private Provider<ClusterTableSelectionListener> clusterTableSelectionListenerProvider;
 	
 	private ActionListener selectListener;
 	private JComboBox<ComboItem<AnnotationSet>> annotationSetCombo;
@@ -62,7 +63,6 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 	
 	@Subscribe
 	public void annotationSetAdded(ModelEvents.AnnotationSetAdded event) {
-		System.out.println("AnnotationSetPanel.annotationSetAdded()");
 		AnnotationSet aset = event.getAnnotationSet();
 		annotationSetCombo.addItem(new ComboItem<>(aset, aset.getName()));
 	}
@@ -167,12 +167,11 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 	
 	private JTable createClusterTable() {
 		JTable table = new JTable(new ClusterTableModel()); // create with dummy model
-		table.getColumnModel().getColumn(0).setPreferredWidth(100);
+		table.getColumnModel().getColumn(0).setPreferredWidth(200);
 		table.getColumnModel().getColumn(1).setPreferredWidth(10);
-		
-				
 		table.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-		//table.getSelectionModel().addListSelectionListener(new ClusterTableSelctionAction(annotationSet));
+		ClusterTableSelectionListener selectionListener = clusterTableSelectionListenerProvider.get().init(table);
+		table.getSelectionModel().addListSelectionListener(selectionListener);
 		table.setAutoCreateRowSorter(true);
 		return table;
 	}

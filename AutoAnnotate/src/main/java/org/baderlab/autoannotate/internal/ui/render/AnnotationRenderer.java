@@ -1,8 +1,11 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
 import java.awt.geom.Point2D;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
@@ -28,9 +31,12 @@ public class AnnotationRenderer {
 	@Inject private Provider<DrawClusterShapeTask> shapeTaskProvider;
 	@Inject private Provider<DrawClusterLabelTask> labelTaskProvier;
 	@Inject private Provider<RemoveClusterAnnotationsTask> removeTaskProvider;
+	@Inject private Provider<SelectClusterTask> selectTaskProvider;
 	
 	private Map<Cluster,TextAnnotation> textAnnotations = new HashMap<>();
 	private Map<Cluster,ShapeAnnotation> shapeAnnotations = new HashMap<>();
+	private Set<Cluster> selectedClusters = new HashSet<>();
+	
 	
 	@Inject
 	public void listenToModelEvents(EventBus eventBus) {
@@ -66,17 +72,40 @@ public class AnnotationRenderer {
 		}
 	}
 	
-	
 	private TaskIterator getRemoveExistingAnnotationsTasks() {
 		TaskIterator tasks = new TaskIterator();
-		
 		for(Cluster cluster : textAnnotations.keySet()) {
 			RemoveClusterAnnotationsTask removeTask = removeTaskProvider.get();
 			removeTask.setCluster(cluster);
 			tasks.append(removeTask);
 		}
-		
 		return tasks;
+	}
+	
+	
+	/**
+	 * Assumes all the clusters are from the same annotation set.
+	 */
+	public void selectClusters(AnnotationSet annotationSet, Collection<Cluster> select) {
+		// Its defensive programming to deselect all the clusters that are not being selected.
+		Set<Cluster> deselect = new HashSet<>(annotationSet.getClusters());
+		deselect.removeAll(select);
+		
+		TaskIterator tasks = new TaskIterator();
+		
+		for(Cluster cluster : deselect) {
+			SelectClusterTask deselectTask = selectTaskProvider.get();
+			deselectTask.setCluster(cluster);
+			deselectTask.setSelect(false);
+			tasks.append(deselectTask);
+		}
+		for(Cluster cluster : select) {
+			SelectClusterTask selectTask = selectTaskProvider.get();
+			selectTask.setCluster(cluster);
+			tasks.append(selectTask);
+		}
+		
+		dialogTaskManager.execute(tasks);
 	}
 	
 	
@@ -151,4 +180,16 @@ public class AnnotationRenderer {
 	ShapeAnnotation removeShapeAnnoation(Cluster cluster) {
 		return shapeAnnotations.remove(cluster);
 	}
+	
+	boolean isSelected(Cluster cluster) {
+		return selectedClusters.contains(cluster);
+	}
+	
+	void setSelected(Cluster cluster, boolean select) {
+		if(select)
+			selectedClusters.add(cluster);
+		else
+			selectedClusters.remove(cluster);
+	}
+
 }

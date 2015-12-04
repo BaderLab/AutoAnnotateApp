@@ -27,8 +27,9 @@ public class DrawClusterShapeTask extends AbstractTask {
 	@Inject private AnnotationRenderer annotationRenderer;
 	
 	private final int minSize = 50; // Minimum size of the ellipse
-	private final Color fillColor = Color.getHSBColor(0.19f, 1.25f, 0.95f);
-
+	
+	public static final Color DEFAULT_FILL_COLOR = Color.getHSBColor(0.19f, 1.25f, 0.95f);
+	public static final Color DEFAULT_BORDER_COLOR = Color.DARK_GRAY;
 	
 	private Cluster cluster;
 	
@@ -83,8 +84,8 @@ public class DrawClusterShapeTask extends AbstractTask {
 		ShapeAnnotation shape = shapeFactory.createAnnotation(ShapeAnnotation.class, view, arguments);
 		shape.setSize(width*zoom, height*zoom);
 		shape.setBorderWidth(ellipseBorderWidth);
-		shape.setBorderColor(Color.DARK_GRAY);
-		shape.setFillColor(fillColor);
+		shape.setBorderColor(DEFAULT_BORDER_COLOR);
+		shape.setFillColor(DEFAULT_FILL_COLOR);
 		shape.setFillOpacity(ellipseOpacity);
 		
 		annotationRenderer.setShapeAnnotation(cluster, shape);
