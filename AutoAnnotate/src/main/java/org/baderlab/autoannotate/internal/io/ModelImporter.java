@@ -2,7 +2,6 @@ package org.baderlab.autoannotate.internal.io;
 
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.baderlab.autoannotate.internal.CyActivator;
@@ -11,11 +10,9 @@ import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.cytoscape.application.CyUserLog;
-import org.cytoscape.model.CyNetwork;
-import org.cytoscape.model.CyNetworkManager;
+import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
-import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,11 +36,18 @@ import com.google.inject.Inject;
 public class ModelImporter {
 	
 	@Inject private ModelManager modelManager;
-	@Inject private CyNetworkManager networkManager;
-	@Inject private CyNetworkViewManager networkViewManager;
 
+	@FunctionalInterface
+	public interface ObjectMapper {
+		<T extends CyIdentifiable> T getObject(Long suid, Class<T> clazz);
+	}
 	
-	public void importJSON(Reader reader) {
+	/**
+	 * The CySession object is needed to map stored SUIDs to the objects they represent.
+	 * @param session
+	 * @param reader
+	 */
+	public void importJSON(ObjectMapper mapper, Reader reader) {
 		Logger log = LoggerFactory.getLogger(CyUserLog.NAME);
 		
 		JsonElement root;
@@ -60,7 +64,7 @@ public class ModelImporter {
 			modelManager.silenceEvents(true);
 			
 			for(JsonElement element : root.getAsJsonArray()) {
-				restoreNetworkViewSet(element.getAsJsonObject());
+				restoreNetworkViewSet(mapper, element.getAsJsonObject());
 			}
 		} catch(Exception e) {
 			log.error(CyActivator.APP_NAME + ": Error restoring model from JSON", e);
@@ -71,22 +75,15 @@ public class ModelImporter {
 	}
 	
 	
-	private void restoreNetworkViewSet(JsonObject object) {
+	private void restoreNetworkViewSet(ObjectMapper mapper, JsonObject object) {
 		long networkId = object.get("networkView").getAsLong();
-		CyNetwork network = networkManager.getNetwork(networkId);
-		if(network == null)
-			return;
-		// For now assume one view per network (this will no longer be true in Cytoscape 3.4)
-		Collection<CyNetworkView> views = networkViewManager.getNetworkViews(network);
-		if(views.isEmpty())
-			return;
+		CyNetworkView view = mapper.getObject(networkId, CyNetworkView.class);
 		
-		CyNetworkView view = views.iterator().next();
 		NetworkViewSet networkViewSet = modelManager.getNetworkViewSet(view);
 		
 		JsonArray elements = object.get("annotationSets").getAsJsonArray();
 		for(JsonElement element : elements) {
-			restoreAnnotationSet(networkViewSet, element.getAsJsonObject());
+			restoreAnnotationSet(mapper, networkViewSet, element.getAsJsonObject());
 		}
 	}
 	
@@ -111,7 +108,7 @@ public class ModelImporter {
 	}
 	
 	
-	private void restoreAnnotationSet(NetworkViewSet networkViewSet, JsonObject object) {
+	private void restoreAnnotationSet(ObjectMapper mapper, NetworkViewSet networkViewSet, JsonObject object) {
 		String name = object.get("name").getAsString();
 		
 		AnnotationSet annotationSet = networkViewSet.createAnnotationSet(name);
@@ -119,20 +116,19 @@ public class ModelImporter {
 		
 		JsonArray clusters = object.get("clusters").getAsJsonArray();
 		for(JsonElement cluster : clusters) {
-			restoreCluster(annotationSet, cluster.getAsJsonObject());
+			restoreCluster(mapper, annotationSet, cluster.getAsJsonObject());
 		}
 	}
 	
 	
-	private void restoreCluster(AnnotationSet annotationSet, JsonObject object) {
+	private void restoreCluster(ObjectMapper mapper, AnnotationSet annotationSet, JsonObject object) {
 		String label = object.get("label").getAsString();
-		CyNetwork network = annotationSet.getParent().getNetwork();
 		
 		JsonArray nodeIds = object.get("nodes").getAsJsonArray();
 		List<CyNode> nodes = new ArrayList<>();
 		for(JsonElement element : nodeIds) {
 			long id = element.getAsLong();
-			CyNode node = network.getNode(id);
+			CyNode node = mapper.getObject(id, CyNode.class);
 			nodes.add(node);
 		}
 		

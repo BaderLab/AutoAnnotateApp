@@ -62,21 +62,42 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 	}
 	
 	@Subscribe
-	public void annotationSetAdded(ModelEvents.AnnotationSetAdded event) {
+	public void handleAnnotationSetAdded(ModelEvents.AnnotationSetAdded event) {
 		AnnotationSet aset = event.getAnnotationSet();
-		annotationSetCombo.addItem(new ComboItem<>(aset, aset.getName()));
+		if(aset.getParent().isSelected()) {
+			annotationSetCombo.addItem(new ComboItem<>(aset, aset.getName()));
+		}
 	}
 	
 	@Subscribe
-	public void annotationSetDeleted(ModelEvents.AnnotationSetDeleted event) {
+	public void handleAnnotationSetDeleted(ModelEvents.AnnotationSetDeleted event) {
 		annotationSetCombo.removeItem(new ComboItem<>(event.getAnnotationSet()));
 	}
 	
 	@Subscribe
-	public void annotationSetSelected(ModelEvents.AnnotationSetSelected event) {
+	public void handleAnnotationSetSelected(ModelEvents.AnnotationSetSelected event) {
 		AnnotationSet annotationSet = event.getAnnotationSet();
+		if(annotationSet == null || annotationSet.getParent().isSelected()) {
+			annotationSetCombo.removeActionListener(selectListener);
+			annotationSetCombo.setSelectedItem(new ComboItem<>(annotationSet)); // works when annotationSet is null
+			annotationSetCombo.addActionListener(selectListener);
+			updateClusterTable();
+		}
+	}
+	
+	@Subscribe
+	public void handleNetworkViewSetSelected(ModelEvents.NetworkViewSetSelected event) {
 		annotationSetCombo.removeActionListener(selectListener);
-		annotationSetCombo.setSelectedItem(new ComboItem<>(annotationSet)); // works when annotationSet is null
+		annotationSetCombo.removeAllItems();
+		annotationSetCombo.addItem(new ComboItem<>(null, "(none)"));
+		NetworkViewSet nvs = event.getNetworkViewSet();
+		if(nvs != null) {
+			for(AnnotationSet as : nvs.getAnnotationSets()) {
+				annotationSetCombo.addItem(new ComboItem<>(as, as.getName()));
+			}
+			AnnotationSet as = nvs.getActiveAnnotationSet();
+			annotationSetCombo.setSelectedItem(new ComboItem<>(as));
+		}
 		annotationSetCombo.addActionListener(selectListener);
 		updateClusterTable();
 	}
@@ -85,7 +106,14 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 		int index = annotationSetCombo.getSelectedIndex();
 		if(index != -1) {
 			AnnotationSet annotationSet = annotationSetCombo.getItemAt(index).getValue(); // may be null
-			modelManager.getActiveNetworkViewSet().select(annotationSet);
+			if(annotationSet != null) {
+				NetworkViewSet networkViewSet = annotationSet.getParent();
+				networkViewSet.select(annotationSet);
+			} else if(annotationSetCombo.getItemCount() > 0) {
+				annotationSet = annotationSetCombo.getItemAt(1).getValue();
+				NetworkViewSet networkViewSet = annotationSet.getParent();
+				networkViewSet.select(null);
+			}
 		}
 	}
 	

@@ -6,8 +6,6 @@ import java.util.Collection;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.cytoscape.model.CyIdentifiable;
-import org.cytoscape.model.CyNetwork;
-import org.cytoscape.view.model.CyNetworkView;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -26,7 +24,7 @@ public class ModelExporter {
 	@Inject private ModelManager modelManager;
 	
 	/**
-	 * Serialize CyNode and friends using the SUID.
+	 * Serialize CyNode, CyNetworkView and friends using the SUID.
 	 */
 	private class SUIDSerializer implements JsonSerializer<CyIdentifiable> {
 		@Override
@@ -35,28 +33,14 @@ public class ModelExporter {
 		}
 	}
 	
-	/**
-	 * Serialize CyNetworkView using the SUID of its parent CyNetwork.
-	 * WARNING: THIS DOES NOT SUPPORT MULTIPLE NETWORK VIEWS PER NETWORK!!!!
-	 */
-	private class NetworkViewSerializer implements JsonSerializer<CyNetworkView> {
-		@Override
-		public JsonElement serialize(CyNetworkView networkView, Type type, JsonSerializationContext context) {
-			CyNetwork network = networkView.getModel();
-			return new JsonPrimitive(network.getSUID());
-		}
-	}
-	
 	public void exportJSON(Appendable writer) {
 		Gson gson = new GsonBuilder()
 			.registerTypeHierarchyAdapter(CyIdentifiable.class, new SUIDSerializer())
-			.registerTypeHierarchyAdapter(CyNetworkView.class, new NetworkViewSerializer())
 			.setPrettyPrinting()
 			.create();
 		
 		Collection<NetworkViewSet> viewSets = modelManager.getNetworkViewSets();
 		gson.toJson(viewSets, writer);
 	}
-	
 	
 }

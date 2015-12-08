@@ -11,6 +11,7 @@ import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
+import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.render.DrawClusterLabelTask.LabelArgs;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
@@ -46,13 +47,10 @@ public class AnnotationRenderer {
 	@Subscribe
 	public void handleAnnotationSetSelected(ModelEvents.AnnotationSetSelected event) {
 		AnnotationSet annotationSet = event.getAnnotationSet();
-		renderAnnotations(annotationSet);
-	}
-	
-	
-	private void renderAnnotations(AnnotationSet annotationSet) {
+		NetworkViewSet networkViewSet = event.getNetworkViewSet();
+		
 		TaskIterator tasks = new TaskIterator();
-		tasks.append(getRemoveExistingAnnotationsTasks());
+		tasks.append(getRemoveExistingAnnotationsTasks(networkViewSet));
 		
 		if(annotationSet != null) {
 			for(Cluster cluster : annotationSet.getClusters()) {
@@ -72,12 +70,14 @@ public class AnnotationRenderer {
 		}
 	}
 	
-	private TaskIterator getRemoveExistingAnnotationsTasks() {
+	private TaskIterator getRemoveExistingAnnotationsTasks(NetworkViewSet networkViewSet) {
 		TaskIterator tasks = new TaskIterator();
-		for(Cluster cluster : textAnnotations.keySet()) {
-			RemoveClusterAnnotationsTask removeTask = removeTaskProvider.get();
-			removeTask.setCluster(cluster);
-			tasks.append(removeTask);
+		for(Cluster cluster : networkViewSet.getAllClusters()) {
+			if(textAnnotations.containsKey(cluster) || shapeAnnotations.containsKey(cluster)) {
+				RemoveClusterAnnotationsTask removeTask = removeTaskProvider.get();
+				removeTask.setCluster(cluster);
+				tasks.append(removeTask);
+			}
 		}
 		return tasks;
 	}

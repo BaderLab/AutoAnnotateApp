@@ -18,13 +18,19 @@ public class ModelEvents {
 	
 	public static class AnnotationSetSelected {
 		private final AnnotationSet annotationSet;
+		private final NetworkViewSet networkViewSet; // because annotationSet may be null
 		
-		AnnotationSetSelected(AnnotationSet annotationSet) {
+		AnnotationSetSelected(NetworkViewSet networkViewSet, AnnotationSet annotationSet) {
+			this.networkViewSet = networkViewSet;
 			this.annotationSet = annotationSet;
 		}
 		
 		public AnnotationSet getAnnotationSet() {
 			return annotationSet;
+		}
+		
+		public NetworkViewSet getNetworkViewSet() {
+			return networkViewSet;
 		}
 	}
 	
@@ -55,11 +61,42 @@ public class ModelEvents {
 	}
 	
 	
+	public static class NetworkViewSetSelected {
+		private final NetworkViewSet networkViewSet;
+		
+		public NetworkViewSetSelected(NetworkViewSet networkViewSet) {
+			this.networkViewSet = networkViewSet;
+		}
+		
+		public NetworkViewSet getNetworkViewSet() {
+			return networkViewSet;
+		}
+	}
+	
+	
+	public static class NetworkViewSetDeleted {
+		private final NetworkViewSet networkViewSet;
+		
+		public NetworkViewSetDeleted(NetworkViewSet networkViewSet) {
+			this.networkViewSet = networkViewSet;
+		}
+		
+		public NetworkViewSet getNetworkViewSet() {
+			return networkViewSet;
+		}
+	}
+	
+	
 	public static class DisplayOptionChanged {
 		
 		public static enum Option {
-			SHAPE_TYPE, SHOW_CLUSTERS, SHOW_LABELS, USE_CONSTANT_FONT_SIZE,
-			FONT_SCALE, OPACITY, BORDER_WIDTH
+			SHAPE_TYPE, 
+			SHOW_CLUSTERS, 
+			SHOW_LABELS, 
+			USE_CONSTANT_FONT_SIZE,
+			FONT_SCALE, 
+			OPACITY, 
+			BORDER_WIDTH
 		}
 		
 		private final Option option;

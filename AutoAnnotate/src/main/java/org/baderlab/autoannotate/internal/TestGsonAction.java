@@ -6,11 +6,12 @@ import org.baderlab.autoannotate.internal.io.ModelExporter;
 import org.cytoscape.application.swing.AbstractCyAction;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 @SuppressWarnings("serial")
 public class TestGsonAction extends AbstractCyAction {
 
-	@Inject private ModelExporter porter;
+	@Inject private Provider<ModelExporter> exporterProvider;
 	
 	
 	public TestGsonAction() {
@@ -19,8 +20,9 @@ public class TestGsonAction extends AbstractCyAction {
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		ModelExporter exporter = exporterProvider.get();
 		StringBuilder sb = new StringBuilder();
-		porter.exportJSON(sb);
+		exporter.exportJSON(sb);
 		System.out.println(sb.toString());
 	}
 

@@ -6,14 +6,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.application.events.SetSelectedNetworkViewsEvent;
+import org.cytoscape.application.events.SetSelectedNetworkViewsListener;
 import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.view.model.events.NetworkViewAboutToBeDestroyedEvent;
+import org.cytoscape.view.model.events.NetworkViewAboutToBeDestroyedListener;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class ModelManager {
+public class ModelManager implements SetSelectedNetworkViewsListener, NetworkViewAboutToBeDestroyedListener {
 	
 	@Inject private CyApplicationManager applicationManager;
 	@Inject private EventBus eventBus;
@@ -50,4 +54,27 @@ public class ModelManager {
 	public synchronized void silenceEvents(boolean silence) {
 		this.silenceEvents = silence;
 	}
+
+	@Override
+	public void handleEvent(SetSelectedNetworkViewsEvent e) {
+		NetworkViewSet nvs = getActiveNetworkViewSet();
+		postEvent(new ModelEvents.NetworkViewSetSelected(nvs));
+	}
+
+	@Override
+	public void handleEvent(NetworkViewAboutToBeDestroyedEvent e) {
+		CyNetworkView networkView = e.getNetworkView();
+		NetworkViewSet networkViewSet = networkViews.remove(networkView);
+		if(networkViewSet != null) {
+			postEvent(new ModelEvents.NetworkViewSetDeleted(networkViewSet));
+		}
+	}
+
+	public boolean isNetworkViewSetSelected(NetworkViewSet networkViewSet) {
+		CyNetworkView view = applicationManager.getCurrentNetworkView();
+		if(view == null)
+			return networkViewSet == null;
+		return view.equals(networkViewSet.getNetworkView());
+	}
+	
 }

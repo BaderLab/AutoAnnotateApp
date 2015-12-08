@@ -35,7 +35,7 @@ public class NetworkViewSet {
 	public void select(AnnotationSet annotationSet) {
 		if(annotationSet == null || annotationSets.contains(annotationSet)) {
 			activeSet = annotationSet;
-			parent.postEvent(new ModelEvents.AnnotationSetSelected(annotationSet));
+			parent.postEvent(new ModelEvents.AnnotationSetSelected(this, annotationSet));
 		}
 	}
 	
@@ -51,6 +51,10 @@ public class NetworkViewSet {
 		return parent;
 	}
 	
+	public ModelManager getModelManager() {
+		return parent;
+	}
+	
 	public CyNetworkView getNetworkView() {
 		return networkView;
 	}
@@ -63,13 +67,25 @@ public class NetworkViewSet {
 		CyNetwork network = getNetwork();
 		return network.getRow(network).get(CyNetwork.NAME, String.class);
 	}
+	
+	public boolean isSelected() {
+		return parent.isNetworkViewSetSelected(this);
+	}
+	
+	public Collection<Cluster> getAllClusters() {
+		Set<Cluster> clusters = new HashSet<>();
+		for(AnnotationSet annotationSet : annotationSets) {
+			clusters.addAll(annotationSet.getClusters());
+		}
+		return clusters;
+	}
 
 
 	void delete(AnnotationSet annotationSet) {
 		if(annotationSets.remove(annotationSet)) {
 			if(activeSet == annotationSet) {
 				activeSet = null;
-				parent.postEvent(new ModelEvents.AnnotationSetSelected(null));
+				parent.postEvent(new ModelEvents.AnnotationSetSelected(this, null));
 			}
 			parent.postEvent(new ModelEvents.AnnotationSetDeleted(annotationSet));
 		}

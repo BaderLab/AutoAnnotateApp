@@ -19,7 +19,7 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
-public class UIManager {
+public class PanelManager {
 
 	@Inject private Provider<AnnotationSetPanel> mainPanelProvider;
 	@Inject private Provider<DisplayOptionsPanel> optionsPanelProvider;
@@ -40,8 +40,7 @@ public class UIManager {
 		if(mainPanel == null) {
 			mainPanel = mainPanelProvider.get();
 			registrar.registerService(mainPanel, CytoPanelComponent.class, new Properties());
-			// MKTODO is this safe?
-			mainPanel.annotationSetSelected(event);
+			mainPanel.handleAnnotationSetSelected(event);
 		}
 		
 		if(optionsPanel == null) {
@@ -64,5 +63,5 @@ public class UIManager {
 		int index = cytoPanel.indexOfComponent(component);
 		cytoPanel.setSelectedIndex(index);
 	}
-	
+
 }
