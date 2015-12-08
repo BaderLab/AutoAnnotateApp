@@ -39,12 +39,12 @@ public class RunWordCloudTaskFactory implements TaskFactory {
 			
 			StringBuilder names = new StringBuilder();
 			for(CyNode node : nodes) {
-				names.append("SUID:" + network.getRow(node).get(CyNetwork.SUID,Long.class) + ",");
+				names.append("SUID:" + network.getRow(node).get(CyNetwork.SUID, Long.class) + ",");
 			}
 			
-			String command = "wordcloud create wordColumnName=\"" + params.getLabelColumn() + "\"" + 
-			" cloudName=\"Cloud_" +  clusterNumber + "\""
-			+ " nodelist=\"" + names + "\"";
+			String command = 
+				String.format("wordcloud create wordColumnName=\"%s\" cloudName=\"Cloud_%d\" nodeList=\"%s\" create=false", 
+					          params.getLabelColumn(), clusterNumber, names);
 			
 			commands.add(command);
 		}
