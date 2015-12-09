@@ -212,7 +212,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	private JPanel createParametersPanel_LabelPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
-		labelColumnNameCombo = createComboBox(getColumnsOfType(String.class, true));
+		labelColumnNameCombo = createComboBox(getColumnsOfType(String.class, true, true));
 		for(int i = 0; i < labelColumnNameCombo.getItemCount(); i++) {
 			if(labelColumnNameCombo.getItemAt(i).endsWith("GS_DESCR")) {
 				labelColumnNameCombo.setSelectedIndex(i);
@@ -244,7 +244,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 		JLabel edgeWeightLabel = new JLabel("       Edge weight column:");
 		panel.add(edgeWeightLabel, GBCFactory.grid(0,3).get());
 		
-		edgeWeightColumnCombo = createComboBox(getColumnsOfType(Number.class, false));
+		edgeWeightColumnCombo = createComboBox(getColumnsOfType(Number.class, false, true));
 		panel.add(edgeWeightColumnCombo, GBCFactory.grid(1,3).weightx(1.0).get());
 		
 		JRadioButton columnRadio = new JRadioButton("Use existing clusters");
@@ -253,7 +253,14 @@ public class CreateAnnotationSetDialog extends JDialog {
 		JLabel clusterIdLabel = new JLabel("       Cluster node ID column:");
 		panel.add(clusterIdLabel, GBCFactory.grid(0,5).get());
 		
-		clusterIdColumnCombo = createComboBox(getColumnsOfType(Integer.class, true));
+		List<String> columns = new ArrayList<>();
+		columns.addAll(getColumnsOfType(Integer.class, true, false));
+		columns.addAll(getColumnsOfType(Long.class, true, false));
+		columns.addAll(getColumnsOfType(String.class, true, false));
+		if(columns.isEmpty())
+			columns.add(NONE);
+		columns.sort(Comparator.naturalOrder());
+		clusterIdColumnCombo = createComboBox(columns);
 		panel.add(clusterIdColumnCombo, GBCFactory.grid(1,5).weightx(1.0).get());
 		
 		ButtonGroup group = new ButtonGroup();
@@ -371,8 +378,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 		dialogTaskManager.execute(new TaskIterator(task));
 	}
 	
-	
-	private List<String> getColumnsOfType(Class<?> type, boolean node) {
+	private List<String> getColumnsOfType(Class<?> type, boolean node, boolean addNone) {
 		List<String> columns = new ArrayList<String>();
 		CyTable table;
 		if(node)
@@ -394,7 +400,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 		
 		columns.sort(Comparator.naturalOrder());
 		
-		if(columns.isEmpty()) {
+		if(addNone && columns.isEmpty()) {
 			columns.add(NONE);
 		}
 		return columns;

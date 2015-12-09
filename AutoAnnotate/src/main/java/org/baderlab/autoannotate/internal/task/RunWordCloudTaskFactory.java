@@ -18,10 +18,10 @@ public class RunWordCloudTaskFactory implements TaskFactory {
 
 	@Inject CommandExecutorTaskFactory commandTaskFactory;
 	
-	private Map<Integer,Collection<CyNode>> clusters;
+	private Map<?,Collection<CyNode>> clusters;
 	private CreationParameters params;
 	
-	public void setClusters(Map<Integer,Collection<CyNode>> clusters) {
+	public void setClusters(Map<?,Collection<CyNode>> clusters) {
 		this.clusters = clusters;
 	}
 	
@@ -33,10 +33,8 @@ public class RunWordCloudTaskFactory implements TaskFactory {
 		List<String> commands = new ArrayList<>(clusters.size());
 		CyNetwork network = params.getNetworkView().getModel();
 		
-		for(Map.Entry<Integer,Collection<CyNode>> cluster : clusters.entrySet()) {
-			int clusterNumber = cluster.getKey();
-			Collection<CyNode> nodes = cluster.getValue();
-			
+		int i = 0;
+		for(Collection<CyNode> nodes : clusters.values()) {
 			StringBuilder names = new StringBuilder();
 			for(CyNode node : nodes) {
 				names.append("SUID:" + network.getRow(node).get(CyNetwork.SUID, Long.class) + ",");
@@ -44,7 +42,7 @@ public class RunWordCloudTaskFactory implements TaskFactory {
 			
 			String command = 
 				String.format("wordcloud create wordColumnName=\"%s\" cloudName=\"Cloud_%d\" nodeList=\"%s\" create=false", 
-					          params.getLabelColumn(), clusterNumber, names);
+					          params.getLabelColumn(), i++, names);
 			
 			commands.add(command);
 		}

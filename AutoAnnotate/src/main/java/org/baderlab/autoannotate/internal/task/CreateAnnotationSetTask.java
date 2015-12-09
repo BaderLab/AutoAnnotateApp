@@ -1,6 +1,10 @@
 package org.baderlab.autoannotate.internal.task;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import org.baderlab.autoannotate.internal.CyActivator;
@@ -10,6 +14,7 @@ import org.baderlab.autoannotate.internal.model.LabelOptions;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.model.WordInfo;
+import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.SynchronousTaskManager;
@@ -35,16 +40,23 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		taskMonitor.setTitle(CyActivator.APP_NAME);
 		
-		// Run clusterMaker
 		taskMonitor.setStatusMessage("Generating Clusters");
 		
-		RunClusterMakerTaskFactory clusterMakerTaskFactory = clusterMakerProvider.get();
-		clusterMakerTaskFactory.setParameters(params);
-		RunClusterMakerResultObserver clusterResultObserver = new RunClusterMakerResultObserver();
-		syncTaskManager.execute(clusterMakerTaskFactory.createTaskIterator(clusterResultObserver));
-		Map<Integer,Collection<CyNode>> clusters = clusterResultObserver.getResult();
-
-		// MKTODO clusterMaker might fail or return 0 clusters
+		Map<?,Collection<CyNode>> clusters;
+		if(params.isUseClusterMaker()) {
+			RunClusterMakerTaskFactory clusterMakerTaskFactory = clusterMakerProvider.get();
+			clusterMakerTaskFactory.setParameters(params);
+			RunClusterMakerResultObserver clusterResultObserver = new RunClusterMakerResultObserver();
+			syncTaskManager.execute(clusterMakerTaskFactory.createTaskIterator(clusterResultObserver));
+			clusters = clusterResultObserver.getResult();
+		}
+		else {
+			clusters = computeClustersFromColumn();
+		}
+		
+		if(clusters == null || clusters.isEmpty()) {
+			return;
+		}
 		
 		// Run wordCloud
 		taskMonitor.setStatusMessage("Generating Labels");
@@ -72,9 +84,9 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		String name = createName(networkViewSet);
 		
 		AnnotationSet annotationSet = networkViewSet.createAnnotationSet(name);
-		for(int cluster : clusters.keySet()) {
-			Collection<CyNode> nodes = clusters.get(cluster);
-			Collection<WordInfo> words = wordInfos.get(cluster);
+		for(Object clusterKey : clusters.keySet()) {
+			Collection<CyNode> nodes = clusters.get(clusterKey);
+			Collection<WordInfo> words = wordInfos.get(clusterKey);
 			String label = labelMaker.makeLabel(nodes, words);
 			annotationSet.createCluster(nodes, label);
 		}
@@ -100,6 +112,39 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		return name[0];
 	}
 	
+	
+	private Map<?,Collection<CyNode>> computeClustersFromColumn() {
+		String attribute = params.getClusterDataColumn();
+		CyNetwork network = params.getNetworkView().getModel();
+		
+		Map<Object, Collection<CyNode>> clusters = new HashMap<>();
+		
+		boolean isList = false;
+		Class<?> type = network.getDefaultNodeTable().getColumn(attribute).getType();
+		if(type == List.class) {
+			isList = true;
+			type = network.getDefaultNodeTable().getColumn(attribute).getListElementType();
+		}
+		
+		for(CyNode node : network.getNodeList()) {
+			List<?> list;
+			if(isList)
+				list = network.getRow(node).getList(attribute, type);
+			else
+				list = Collections.singletonList(network.getRow(node).get(attribute, type));
+
+			for(Object o : list) {
+				Collection<CyNode> cluster = clusters.get(o);
+				if(cluster == null) {
+					cluster = new HashSet<>();
+					clusters.put(o, cluster);
+				}
+				cluster.add(node);
+			}
+		}
+		
+		return clusters;
+	}
 	
 
 }
