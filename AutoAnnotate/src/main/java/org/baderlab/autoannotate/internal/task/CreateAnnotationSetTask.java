@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
@@ -14,10 +15,17 @@ import org.baderlab.autoannotate.internal.model.LabelOptions;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.model.WordInfo;
+import org.cytoscape.group.CyGroupFactory;
+import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.view.layout.CyLayoutAlgorithm;
+import org.cytoscape.view.layout.CyLayoutAlgorithmManager;
+import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.view.model.View;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.SynchronousTaskManager;
+import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 
 import com.google.inject.Inject;
@@ -28,6 +36,10 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	@Inject private Provider<RunClusterMakerTaskFactory> clusterMakerProvider;
 	@Inject private Provider<RunWordCloudTaskFactory> wordCloudProvider;
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
+	@Inject private CyLayoutAlgorithmManager layoutManager;
+	@Inject	private CyGroupManager groupManager;
+	@Inject private CyGroupFactory groupFactory;
+	
 	@Inject private ModelManager modelManager;
 	
 	private CreationParameters params;
@@ -41,37 +53,25 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		taskMonitor.setTitle(CyActivator.APP_NAME);
 		
 		taskMonitor.setStatusMessage("Generating Clusters");
-		
 		Map<String,Collection<CyNode>> clusters;
-		if(params.isUseClusterMaker()) {
-			RunClusterMakerTaskFactory clusterMakerTaskFactory = clusterMakerProvider.get();
-			clusterMakerTaskFactory.setParameters(params);
-			RunClusterMakerResultObserver clusterResultObserver = new RunClusterMakerResultObserver();
-			syncTaskManager.execute(clusterMakerTaskFactory.createTaskIterator(clusterResultObserver));
-			clusters = clusterResultObserver.getResult();
-		}
-		else {
+		if(params.isUseClusterMaker())
+			clusters = runClusterMaker();
+		else
 			clusters = computeClustersFromColumn();
-		}
 		
-		if(clusters == null || clusters.isEmpty()) {
+		if(clusters == null || clusters.isEmpty())
 			return;
+		
+		taskMonitor.setStatusMessage("Generating Labels");
+		Map<String,Collection<WordInfo>> wordInfos = runWordCloud(clusters);
+		
+		if(params.isLayoutClusters()) {
+			taskMonitor.setStatusMessage("Laying out clusters");
+			layoutNodes(clusters, params.getNetworkView());
 		}
 		
-		// Run wordCloud
-		taskMonitor.setStatusMessage("Generating Labels");
+		// MKTODO create groups
 		
-		RunWordCloudTaskFactory wordCloudTaskFactory = wordCloudProvider.get();
-		wordCloudTaskFactory.setClusters(clusters);
-		wordCloudTaskFactory.setParameters(params);
-		RunWordCloudResultObserver cloudResultObserver = new RunWordCloudResultObserver();
-		syncTaskManager.execute(wordCloudTaskFactory.createTaskIterator(cloudResultObserver));
-		Map<String,Collection<WordInfo>> wordInfos = cloudResultObserver.getResults();
-
-		
-		// MKTODO
-		// layout the network
-		// create groups
 		String weightAttribute = "";
 		if(params.isUseClusterMaker() && params.getClusterAlgorithm().isAttributeRequired())
 			weightAttribute = params.getClusterMakerAttribute();
@@ -91,6 +91,25 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		}
 		
 		networkViewSet.select(annotationSet);
+	}
+	
+	
+	private Map<String,Collection<CyNode>> runClusterMaker() {
+		RunClusterMakerTaskFactory clusterMakerTaskFactory = clusterMakerProvider.get();
+		clusterMakerTaskFactory.setParameters(params);
+		RunClusterMakerResultObserver clusterResultObserver = new RunClusterMakerResultObserver();
+		syncTaskManager.execute(clusterMakerTaskFactory.createTaskIterator(clusterResultObserver));
+		return clusterResultObserver.getResult();
+	}
+	
+	
+	private Map<String,Collection<WordInfo>> runWordCloud(Map<String,Collection<CyNode>> clusters) {
+		RunWordCloudTaskFactory wordCloudTaskFactory = wordCloudProvider.get();
+		wordCloudTaskFactory.setClusters(clusters);
+		wordCloudTaskFactory.setParameters(params);
+		RunWordCloudResultObserver cloudResultObserver = new RunWordCloudResultObserver();
+		syncTaskManager.execute(wordCloudTaskFactory.createTaskIterator(cloudResultObserver));
+		return cloudResultObserver.getResults();
 	}
 	
 	
@@ -144,6 +163,26 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		}
 		
 		return clusters;
+	}
+	
+	
+	private void layoutNodes(Map<?,Collection<CyNode>> clusters, CyNetworkView view) {
+		CyLayoutAlgorithm attributeCircle = layoutManager.getLayout("attributes-layout");
+		TaskIterator iterator = attributeCircle.createTaskIterator(view, attributeCircle.createLayoutContext(), CyLayoutAlgorithm.ALL_NODE_VIEWS, null);
+		syncTaskManager.execute(iterator);
+		CyLayoutAlgorithm force_directed = layoutManager.getLayout("force-directed");
+		
+		for(Collection<CyNode> cluster : clusters.values()) {
+			Set<View<CyNode>> nodeViewSet = new HashSet<View<CyNode>>();
+			for(CyNode node : cluster) {
+				nodeViewSet.add(view.getNodeView(node));
+			}
+			// Only apply layout to nodes of size greater than 4
+			if (nodeViewSet.size() > 4) {
+				iterator = force_directed.createTaskIterator(view, force_directed.createLayoutContext(), nodeViewSet, null);
+				syncTaskManager.execute(iterator);
+			}
+		}
 	}
 	
 

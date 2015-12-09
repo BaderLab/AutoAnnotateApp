@@ -17,11 +17,14 @@ import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.command.AvailableCommands;
 import org.cytoscape.command.CommandExecutorTaskFactory;
+import org.cytoscape.group.CyGroupFactory;
+import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.util.swing.IconManager;
+import org.cytoscape.view.layout.CyLayoutAlgorithmManager;
 import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.presentation.annotations.AnnotationFactory;
@@ -92,6 +95,9 @@ public class CyActivator extends AbstractCyActivator {
 			bind(CyNetworkViewManager.class).toProvider(service(CyNetworkViewManager.class).single());
 			bind(CyNetworkFactory.class).toProvider(service(CyNetworkFactory.class).single());
 			bind(IconManager.class).toProvider(service(IconManager.class).single());
+			bind(CyLayoutAlgorithmManager.class).toProvider(service(CyLayoutAlgorithmManager.class).single());
+			bind(CyGroupManager.class).toProvider(service(CyGroupManager.class).single());
+			bind(CyGroupFactory.class).toProvider(service(CyGroupFactory.class).single());
 			
 			bind(DialogTaskManager.class).toProvider(service(DialogTaskManager.class).single());
 			TypeLiteral<SynchronousTaskManager<?>> synchronousManager = new TypeLiteral<SynchronousTaskManager<?>>(){};

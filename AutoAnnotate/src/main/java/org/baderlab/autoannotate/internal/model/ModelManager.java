@@ -59,7 +59,6 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 	public void handleEvent(SetSelectedNetworkViewsEvent e) {
 		System.out.println("ModelManager.handleEvent(SetSelectedNetworkViewsEvent)");
 		NetworkViewSet nvs = getActiveNetworkViewSet();
-		System.out.println("nvs: " + nvs);
 		postEvent(new ModelEvents.NetworkViewSetSelected(nvs));
 	}
 

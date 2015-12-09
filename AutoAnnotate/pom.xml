@@ -149,7 +149,18 @@
 			<artifactId>swing-util-api</artifactId>
 			<version>${cytoscape.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>layout-api</artifactId>
+			<version>${cytoscape.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>group-api</artifactId>
+			<version>${cytoscape.version}</version>
+		</dependency>
 
+ 
 		<!-- Dependency Injection -->
 		<dependency>
 			<groupId>com.google.inject</groupId>
