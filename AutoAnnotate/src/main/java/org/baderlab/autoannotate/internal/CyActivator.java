@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Properties;
 
+import org.baderlab.autoannotate.internal.io.SessionListener;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
 import org.baderlab.autoannotate.internal.ui.action.ShowCreateDialogAction;
@@ -51,19 +52,9 @@ public class CyActivator extends AbstractCyActivator {
 	public void start(BundleContext context) throws Exception {
 		Injector injector = Guice.createInjector(osgiModule(context), new MainModule());
 		
-		EventBus eventBus = injector.getInstance(EventBus.class);
-		eventBus.register(new Object() {
-			@Subscribe
-			public void log(Object event) {
-				System.out.println("Event: " + event.getClass().getName());
-			}
-		});
-		
-		
 		// Eagerly create singleton managers to wire up event bus
 		ModelManager modelManager = injector.getInstance(ModelManager.class);
 		registerAllServices(context, modelManager, new Properties());
-		
 		injector.getInstance(PanelManager.class);
 		injector.getInstance(AnnotationRenderer.class);
 		
@@ -71,13 +62,22 @@ public class CyActivator extends AbstractCyActivator {
 		showDialogAction.setPreferredMenu("Apps." + APP_NAME);
 		registerAllServices(context, showDialogAction, new Properties());
 		
-//		SessionListener sessionListener = injector.getInstance(SessionListener.class);
-//		registerAllServices(context, sessionListener, new Properties());
+		SessionListener sessionListener = injector.getInstance(SessionListener.class);
+		registerAllServices(context, sessionListener, new Properties());
 		
 		// TEMPORARY
 		TestGsonAction gsonAction = injector.getInstance(TestGsonAction.class);
 		gsonAction.setPreferredMenu("Apps." + APP_NAME);
 		registerAllServices(context, gsonAction, new Properties());
+		
+		
+		// print all events to console
+		EventBus eventBus = injector.getInstance(EventBus.class);
+		eventBus.register(new Object() {
+			@Subscribe public void log(Object event) {
+				System.out.println("Event: " + event.getClass().getSimpleName());
+			}
+		});
 	}
 	
 	

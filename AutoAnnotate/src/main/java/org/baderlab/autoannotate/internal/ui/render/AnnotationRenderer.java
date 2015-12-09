@@ -32,6 +32,7 @@ public class AnnotationRenderer {
 	@Inject private Provider<DrawClusterShapeTask> shapeTaskProvider;
 	@Inject private Provider<DrawClusterLabelTask> labelTaskProvier;
 	@Inject private Provider<RemoveClusterAnnotationsTask> removeTaskProvider;
+	@Inject private Provider<RemoveAllAnnotationsTask> removeAllTaskProvider;
 	@Inject private Provider<SelectClusterTask> selectTaskProvider;
 	
 	private Map<Cluster,TextAnnotation> textAnnotations = new HashMap<>();
@@ -71,15 +72,17 @@ public class AnnotationRenderer {
 	}
 	
 	private TaskIterator getRemoveExistingAnnotationsTasks(NetworkViewSet networkViewSet) {
-		TaskIterator tasks = new TaskIterator();
-		for(Cluster cluster : networkViewSet.getAllClusters()) {
-			if(textAnnotations.containsKey(cluster) || shapeAnnotations.containsKey(cluster)) {
-				RemoveClusterAnnotationsTask removeTask = removeTaskProvider.get();
-				removeTask.setCluster(cluster);
-				tasks.append(removeTask);
-			}
-		}
-		return tasks;
+//		TaskIterator tasks = new TaskIterator();
+//		for(Cluster cluster : networkViewSet.getAllClusters()) {
+//			if(textAnnotations.containsKey(cluster) || shapeAnnotations.containsKey(cluster)) {
+//				RemoveClusterAnnotationsTask removeTask = removeTaskProvider.get();
+//				removeTask.setCluster(cluster);
+//				tasks.append(removeTask);
+//			}
+//		}
+		RemoveAllAnnotationsTask task = removeAllTaskProvider.get();
+		task.setNetworkView(networkViewSet.getNetworkView());
+		return new TaskIterator(task);
 	}
 	
 	

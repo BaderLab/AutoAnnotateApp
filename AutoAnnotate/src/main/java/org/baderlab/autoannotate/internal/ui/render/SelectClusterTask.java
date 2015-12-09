@@ -41,14 +41,22 @@ public class SelectClusterTask extends AbstractTask {
 		
 		if(select) {
 			// Make annotations look selected
-			shape.setBorderColor(Color.YELLOW);
-			shape.setBorderWidth(3 * displayOptions.getBorderWidth());
-			text.setTextColor(Color.YELLOW);
+			if(shape != null) {
+				shape.setBorderColor(Color.YELLOW);
+				shape.setBorderWidth(3 * displayOptions.getBorderWidth());
+			}
+			if(text != null) {
+				text.setTextColor(Color.YELLOW);
+			}
 		}
 		else {
-			shape.setBorderColor(DrawClusterShapeTask.DEFAULT_BORDER_COLOR);
-			shape.setBorderWidth(displayOptions.getBorderWidth());
-			text.setTextColor(DrawClusterLabelTask.DEFAULT_TEXT_COLOR);
+			if(shape != null) {
+				shape.setBorderColor(DrawClusterShapeTask.DEFAULT_BORDER_COLOR);
+				shape.setBorderWidth(displayOptions.getBorderWidth());
+			}
+			if(text != null) {
+				text.setTextColor(DrawClusterLabelTask.DEFAULT_TEXT_COLOR);
+			}
 		}
 		
 		annotationRenderer.setSelected(cluster, select);
@@ -58,8 +66,12 @@ public class SelectClusterTask extends AbstractTask {
 			network.getRow(node).set(CyNetwork.SELECTED, select);
 		}
 		
-		shape.update();
-		text.update();
+		if(shape != null) {
+			shape.update();
+		}
+		if(text != null) {
+			text.update();
+		}
 	}
 
 	

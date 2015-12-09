@@ -57,12 +57,15 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 
 	@Override
 	public void handleEvent(SetSelectedNetworkViewsEvent e) {
+		System.out.println("ModelManager.handleEvent(SetSelectedNetworkViewsEvent)");
 		NetworkViewSet nvs = getActiveNetworkViewSet();
+		System.out.println("nvs: " + nvs);
 		postEvent(new ModelEvents.NetworkViewSetSelected(nvs));
 	}
 
 	@Override
 	public void handleEvent(NetworkViewAboutToBeDestroyedEvent e) {
+		System.out.println("ModelManager.handleEvent(NetworkViewAboutToBeDestroyedEvent)");
 		CyNetworkView networkView = e.getNetworkView();
 		NetworkViewSet networkViewSet = networkViews.remove(networkView);
 		if(networkViewSet != null) {

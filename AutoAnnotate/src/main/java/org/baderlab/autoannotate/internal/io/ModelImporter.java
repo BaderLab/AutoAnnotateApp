@@ -61,17 +61,13 @@ public class ModelImporter {
 		}
 		
 		try {
-			modelManager.silenceEvents(true);
-			
 			for(JsonElement element : root.getAsJsonArray()) {
 				restoreNetworkViewSet(mapper, element.getAsJsonObject());
 			}
 		} catch(Exception e) {
 			log.error(CyActivator.APP_NAME + ": Error restoring model from JSON", e);
 			return;
-		} finally {
-			modelManager.silenceEvents(false);
-		}
+		} 
 	}
 	
 	

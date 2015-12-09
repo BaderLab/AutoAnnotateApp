@@ -109,7 +109,7 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 			if(annotationSet != null) {
 				NetworkViewSet networkViewSet = annotationSet.getParent();
 				networkViewSet.select(annotationSet);
-			} else if(annotationSetCombo.getItemCount() > 0) {
+			} else if(annotationSetCombo.getItemCount() > 1) {
 				annotationSet = annotationSetCombo.getItemAt(1).getValue();
 				NetworkViewSet networkViewSet = annotationSet.getParent();
 				networkViewSet.select(null);

@@ -12,8 +12,7 @@ public class NetworkViewSet {
 
 	private final transient ModelManager parent;
 	
-	private final transient CyNetworkView networkView;
-	
+	private final CyNetworkView networkView;
 	private final Set<AnnotationSet> annotationSets;
 	private transient AnnotationSet activeSet = null;
 	
