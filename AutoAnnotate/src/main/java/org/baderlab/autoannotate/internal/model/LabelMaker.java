@@ -103,7 +103,7 @@ public class LabelMaker {
 				}
 			}
 			
-			if(sum > mostCentralSum) {
+			if(mostCentralNode == null || sum > mostCentralSum) {
 				mostCentralNode = node;
 				mostCentralSum = sum;
 			}

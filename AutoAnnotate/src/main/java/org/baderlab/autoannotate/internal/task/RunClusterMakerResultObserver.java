@@ -11,7 +11,7 @@ import org.cytoscape.work.TaskObserver;
 
 public class RunClusterMakerResultObserver implements TaskObserver {
 
-	private Map<Integer,Collection<CyNode>> result;
+	private Map<String,Collection<CyNode>> result;
 	
 	@Override
 	public void taskFinished(ObservableTask task) {
@@ -20,7 +20,7 @@ public class RunClusterMakerResultObserver implements TaskObserver {
 		result = new HashMap<>();
 		int clusterNumber = 0;
 		for(Collection<CyNode> nodes : clusters) {
-			result.put(clusterNumber++, nodes);
+			result.put(String.valueOf(clusterNumber++), nodes);
 		}
 	}
 
@@ -28,7 +28,7 @@ public class RunClusterMakerResultObserver implements TaskObserver {
 	public void allFinished(FinishStatus finishStatus) {
 	}
 	
-	public Map<Integer,Collection<CyNode>> getResult() {
+	public Map<String,Collection<CyNode>> getResult() {
 		return result;
 	}
 

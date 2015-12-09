@@ -44,6 +44,12 @@ public class WordInfo {
 	public int getNumber() {
 		return number;
 	}
+
+	@Override
+	public String toString() {
+		return "WordInfo[word=" + word + "]";
+	}
+	
 	
 	
 }

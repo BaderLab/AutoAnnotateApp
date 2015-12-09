@@ -13,25 +13,22 @@ import org.cytoscape.work.TaskObserver;
 
 public class RunWordCloudResultObserver implements TaskObserver {
 
-	private Map<Integer,Collection<WordInfo>> result = new HashMap<>();
+	private Map<String,Collection<WordInfo>> result = new HashMap<>();
 	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void taskFinished(ObservableTask task) {
 		Map<String,?> results = task.getResults(Map.class);
 		
-		// MKTODO better error checking
 		int size = (Integer)results.get("size");
 		String cloudName = (String)results.get("name");
-		int cluster = Integer.parseInt(cloudName.substring("Cloud_".length()));
-		
 		List<String> words = (List<String>) results.get("words");
 		List<Integer> fontSizes = (List<Integer>) results.get("fontSizes");
 		List<Integer> clusters = (List<Integer>) results.get("clusters");
 		List<Integer> numbers = (List<Integer>) results.get("numbers");
 		
 		List<WordInfo> wordInfos = new ArrayList<>(size);
-		result.put(cluster, wordInfos);
+		result.put(cloudName, wordInfos);
 		for(int i = 0; i < size; i++) {
 			WordInfo wordInfo = new WordInfo(words.get(i), fontSizes.get(i), clusters.get(i), numbers.get(i));
 			wordInfos.add(wordInfo);
@@ -45,7 +42,7 @@ public class RunWordCloudResultObserver implements TaskObserver {
 
 	
 	
-	public Map<Integer,Collection<WordInfo>> getResults() {
+	public Map<String,Collection<WordInfo>> getResults() {
 		return result;
 	}
 }

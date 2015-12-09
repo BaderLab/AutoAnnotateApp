@@ -42,7 +42,7 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		
 		taskMonitor.setStatusMessage("Generating Clusters");
 		
-		Map<?,Collection<CyNode>> clusters;
+		Map<String,Collection<CyNode>> clusters;
 		if(params.isUseClusterMaker()) {
 			RunClusterMakerTaskFactory clusterMakerTaskFactory = clusterMakerProvider.get();
 			clusterMakerTaskFactory.setParameters(params);
@@ -66,8 +66,8 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		wordCloudTaskFactory.setParameters(params);
 		RunWordCloudResultObserver cloudResultObserver = new RunWordCloudResultObserver();
 		syncTaskManager.execute(wordCloudTaskFactory.createTaskIterator(cloudResultObserver));
-		Map<Integer,Collection<WordInfo>> wordInfos = cloudResultObserver.getResults();
-		
+		Map<String,Collection<WordInfo>> wordInfos = cloudResultObserver.getResults();
+
 		
 		// MKTODO
 		// layout the network
@@ -80,11 +80,10 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		
 		// Build the AnnotationSet
 		NetworkViewSet networkViewSet = modelManager.getNetworkViewSet(params.getNetworkView());
-		
 		String name = createName(networkViewSet);
-		
 		AnnotationSet annotationSet = networkViewSet.createAnnotationSet(name);
-		for(Object clusterKey : clusters.keySet()) {
+		
+		for(String clusterKey : clusters.keySet()) {
 			Collection<CyNode> nodes = clusters.get(clusterKey);
 			Collection<WordInfo> words = wordInfos.get(clusterKey);
 			String label = labelMaker.makeLabel(nodes, words);
@@ -113,11 +112,11 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	}
 	
 	
-	private Map<?,Collection<CyNode>> computeClustersFromColumn() {
+	private Map<String,Collection<CyNode>> computeClustersFromColumn() {
 		String attribute = params.getClusterDataColumn();
 		CyNetwork network = params.getNetworkView().getModel();
 		
-		Map<Object, Collection<CyNode>> clusters = new HashMap<>();
+		Map<String,Collection<CyNode>> clusters = new HashMap<>();
 		
 		boolean isList = false;
 		Class<?> type = network.getDefaultNodeTable().getColumn(attribute).getType();
@@ -134,10 +133,11 @@ public class CreateAnnotationSetTask extends AbstractTask {
 				list = Collections.singletonList(network.getRow(node).get(attribute, type));
 
 			for(Object o : list) {
-				Collection<CyNode> cluster = clusters.get(o);
+				String key = String.valueOf(o);
+				Collection<CyNode> cluster = clusters.get(key);
 				if(cluster == null) {
 					cluster = new HashSet<>();
-					clusters.put(o, cluster);
+					clusters.put(key, cluster);
 				}
 				cluster.add(node);
 			}
