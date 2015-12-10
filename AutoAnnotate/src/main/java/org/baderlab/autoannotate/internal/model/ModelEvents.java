@@ -61,6 +61,19 @@ public class ModelEvents {
 	}
 	
 	
+	public static class ClusterChanged {
+		private final Cluster cluster;
+		
+		ClusterChanged(Cluster cluster) {
+			this.cluster = cluster;
+		}
+		
+		public Cluster getCluster() {
+			return cluster;
+		}
+	}
+	
+	
 	public static class NetworkViewSetSelected {
 		private final NetworkViewSet networkViewSet;
 		

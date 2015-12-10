@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.swing.SwingUtilities;
 
+import org.baderlab.autoannotate.internal.model.Cluster;
+import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.presentation.annotations.AnnotationManager;
@@ -15,20 +17,29 @@ import com.google.inject.Inject;
 public class RemoveAllAnnotationsTask extends AbstractTask {
 
 	@Inject private AnnotationManager annotationManager;
+	@Inject private AnnotationRenderer annotationRenderer;
 	
-	private CyNetworkView networkView;
+	private NetworkViewSet networkViewSet;
 	
-	public void setNetworkView(CyNetworkView networkView) {
-		this.networkView = networkView;
+	public void setNetworkViewSet(NetworkViewSet networkViewSet) {
+		this.networkViewSet = networkViewSet;
 	}
 	
 	@Override
-	public void run(TaskMonitor taskMonitor) throws Exception {
+	public void run(TaskMonitor taskMonitor) {
+		CyNetworkView networkView = networkViewSet.getNetworkView();
 		List<Annotation> annotations = annotationManager.getAnnotations(networkView);
 		if(annotations != null) { // seriously?
 			for(Annotation annotation : annotations) {
-				SwingUtilities.invokeAndWait(annotation::removeAnnotation);
+				try {
+					SwingUtilities.invokeAndWait(annotation::removeAnnotation);
+				} catch (Exception e) {}
 			}
+		}
+		
+		for(Cluster cluster : networkViewSet.getAllClusters()) {
+			annotationRenderer.removeShapeAnnoation(cluster);
+			annotationRenderer.removeTextAnnotation(cluster);
 		}
 	}
 

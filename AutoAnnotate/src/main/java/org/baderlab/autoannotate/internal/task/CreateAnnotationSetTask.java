@@ -15,8 +15,6 @@ import org.baderlab.autoannotate.internal.model.LabelOptions;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.model.WordInfo;
-import org.cytoscape.group.CyGroupFactory;
-import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.layout.CyLayoutAlgorithm;
@@ -37,8 +35,6 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	@Inject private Provider<RunWordCloudTaskFactory> wordCloudProvider;
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	@Inject private CyLayoutAlgorithmManager layoutManager;
-	@Inject	private CyGroupManager groupManager;
-	@Inject private CyGroupFactory groupFactory;
 	
 	@Inject private ModelManager modelManager;
 	

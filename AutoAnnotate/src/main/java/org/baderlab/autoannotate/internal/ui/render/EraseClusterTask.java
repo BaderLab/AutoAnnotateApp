@@ -3,7 +3,6 @@ package org.baderlab.autoannotate.internal.ui.render;
 import javax.swing.SwingUtilities;
 
 import org.baderlab.autoannotate.internal.model.Cluster;
-import org.cytoscape.view.presentation.annotations.AnnotationManager;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
 import org.cytoscape.work.AbstractTask;
@@ -11,23 +10,16 @@ import org.cytoscape.work.TaskMonitor;
 
 import com.google.inject.Inject;
 
-public class RemoveClusterAnnotationsTask extends AbstractTask {
+public class EraseClusterTask extends AbstractTask {
 
 	@Inject private AnnotationRenderer annotationRenderer;
-	@Inject private AnnotationManager annotationManager;
 	
 	private Cluster cluster;
-	private boolean useManager;
 	
-	
-	void setCluster(Cluster cluster) {
+	EraseClusterTask setCluster(Cluster cluster) {
 		this.cluster = cluster;
+		return this;
 	}
-	
-	void setUseManager(boolean useManager) {
-		this.useManager = useManager;
-	}
-	
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
@@ -35,22 +27,22 @@ public class RemoveClusterAnnotationsTask extends AbstractTask {
 		TextAnnotation text = annotationRenderer.removeTextAnnotation(cluster);
 		annotationRenderer.setSelected(cluster, false);
 		
-		if(useManager) {
-			if(shape != null) {
-				SwingUtilities.invokeAndWait(() -> annotationManager.removeAnnotation(text));
-			}
-			if(text != null) {
-				SwingUtilities.invokeAndWait(() -> annotationManager.removeAnnotation(shape));
-			}
-		}
-		else {
-			if(shape != null) {
+		// invokeAndWait forces the shape to update on the current thread
+		if(shape != null) {
+			if(SwingUtilities.isEventDispatchThread()) {
+				shape.removeAnnotation();
+			} else {
 				SwingUtilities.invokeAndWait(shape::removeAnnotation);
 			}
-			if(text != null) {
+		}
+		if(text != null) {
+			if(SwingUtilities.isEventDispatchThread()) {
+				text.removeAnnotation();
+			} else {
 				SwingUtilities.invokeAndWait(text::removeAnnotation);
 			}
 		}
+		
 	}
 
 }

@@ -28,8 +28,9 @@ public class DrawClusterLabelTask extends AbstractTask {
 	
 	private Cluster cluster;
 	
-	void setCluster(Cluster cluster) {
+	DrawClusterLabelTask setCluster(Cluster cluster) {
 		this.cluster = cluster;
+		return this;
 	}
 	
 	

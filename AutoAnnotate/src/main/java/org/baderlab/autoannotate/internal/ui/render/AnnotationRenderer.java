@@ -15,6 +15,7 @@ import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.render.DrawClusterLabelTask.LabelArgs;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
+import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.swing.DialogTaskManager;
 
@@ -28,10 +29,11 @@ import com.google.inject.Singleton;
 public class AnnotationRenderer {
 	
 	@Inject private DialogTaskManager dialogTaskManager;
+	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	
 	@Inject private Provider<DrawClusterShapeTask> shapeTaskProvider;
 	@Inject private Provider<DrawClusterLabelTask> labelTaskProvier;
-	@Inject private Provider<RemoveClusterAnnotationsTask> removeTaskProvider;
+	@Inject private Provider<EraseClusterTask> eraseTaskProvider;
 	@Inject private Provider<RemoveAllAnnotationsTask> removeAllTaskProvider;
 	@Inject private Provider<SelectClusterTask> selectTaskProvider;
 	
@@ -56,13 +58,8 @@ public class AnnotationRenderer {
 		if(annotationSet != null) {
 			for(Cluster cluster : annotationSet.getClusters()) {
 				// The shape task must go first because the label task needs to know the location/size of the shape.
-				DrawClusterShapeTask shapeTask = shapeTaskProvider.get();
-				shapeTask.setCluster(cluster);
-				tasks.append(shapeTask);
-				
-				DrawClusterLabelTask labelTask = labelTaskProvier.get();
-				labelTask.setCluster(cluster);
-				tasks.append(labelTask);
+				tasks.append(shapeTaskProvider.get().setCluster(cluster));
+				tasks.append(labelTaskProvier.get().setCluster(cluster));
 			}
 		}
 		
@@ -71,18 +68,24 @@ public class AnnotationRenderer {
 		}
 	}
 	
+	
 	private TaskIterator getRemoveExistingAnnotationsTasks(NetworkViewSet networkViewSet) {
-//		TaskIterator tasks = new TaskIterator();
-//		for(Cluster cluster : networkViewSet.getAllClusters()) {
-//			if(textAnnotations.containsKey(cluster) || shapeAnnotations.containsKey(cluster)) {
-//				RemoveClusterAnnotationsTask removeTask = removeTaskProvider.get();
-//				removeTask.setCluster(cluster);
-//				tasks.append(removeTask);
-//			}
-//		}
 		RemoveAllAnnotationsTask task = removeAllTaskProvider.get();
-		task.setNetworkView(networkViewSet.getNetworkView());
+		task.setNetworkViewSet(networkViewSet);
 		return new TaskIterator(task);
+	}
+	
+	
+	@Subscribe
+	public void handleClusterChanged(ModelEvents.ClusterChanged event) {
+		Cluster cluster = event.getCluster();
+		
+		TaskIterator tasks = new TaskIterator();
+		tasks.append(eraseTaskProvider.get().setCluster(cluster));
+		tasks.append(shapeTaskProvider.get().setCluster(cluster));
+		tasks.append(labelTaskProvier.get().setCluster(cluster));
+		
+		syncTaskManager.execute(tasks);
 	}
 	
 	
