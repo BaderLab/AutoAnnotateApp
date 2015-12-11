@@ -59,6 +59,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 	private static final String NONE = "(none)";
 	
 	@Inject private Provider<CreateAnnotationSetTask> taskProvider;
+	@Inject private Provider<WarnDialog> warnDialogProvider;
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	@Inject private IconManager iconManager;
@@ -350,10 +351,14 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	
 	private void createButtonPressed() {
-		try {
-			createAnnotations();
-		} finally {
-			dispose(); // close this dialog
+		WarnDialog warnDialog = warnDialogProvider.get();
+		boolean doIt = warnDialog.warnUser(this);
+		if(doIt) {
+			try {
+				createAnnotations();
+			} finally {
+				dispose(); // close this dialog
+			}
 		}
 	}
 	

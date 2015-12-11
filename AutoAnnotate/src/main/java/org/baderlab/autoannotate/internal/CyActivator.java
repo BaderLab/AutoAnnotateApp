@@ -21,6 +21,8 @@ import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
+import org.cytoscape.property.AbstractConfigDirPropsReader;
+import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.util.swing.IconManager;
@@ -36,10 +38,10 @@ import org.cytoscape.work.swing.DialogTaskManager;
 import org.osgi.framework.BundleContext;
 
 import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.spi.InjectionListener;
@@ -49,7 +51,7 @@ import com.google.inject.spi.TypeListener;
 public class CyActivator extends AbstractCyActivator {
 	
 	public static final String APP_NAME = "AutoAnnotate";  // Suitable for display in the UI
-	public static final String APP_ID = "org.baderlab.autoannotate";  // Suitable as an ID for the App
+	public static final String APP_ID = "autoannotate";  // Suitable as an ID for the App
 	
 	@Override
 	public void start(BundleContext context) throws Exception {
@@ -73,20 +75,27 @@ public class CyActivator extends AbstractCyActivator {
 		gsonAction.setPreferredMenu("Apps." + APP_NAME);
 		registerAllServices(context, gsonAction, new Properties());
 		
+		// Configuration properties
+		CyProperty<Properties> configProps = injector.getInstance(Key.get(new TypeLiteral<CyProperty<Properties>>(){}));
+		Properties propsReaderServiceProps = new Properties();
+		propsReaderServiceProps.setProperty("cyPropertyName", APP_ID+".props");
+		registerAllServices(context, configProps, propsReaderServiceProps);
 		
-		// print all events to console
-		EventBus eventBus = injector.getInstance(EventBus.class);
-		eventBus.register(new Object() {
-			@Subscribe public void log(Object event) {
-				System.out.println("Event: " + event.getClass().getSimpleName());
-			}
-		});
+		
+//		// print all events to console
+//		EventBus eventBus = injector.getInstance(EventBus.class);
+//		eventBus.register(new Object() {
+//			@Subscribe public void log(Object event) {
+//				System.out.println("Event: " + event.getClass().getSimpleName());
+//			}
+//		});
 	}
 	
 	
 	private class MainModule extends AbstractModule {
 		@Override
 		protected void configure() {
+			// Bind cytoscape OSGi services
 			bind(CyServiceRegistrar.class).toProvider(service(CyServiceRegistrar.class).single());
 			bind(CyApplicationManager.class).toProvider(service(CyApplicationManager.class).single());
 			bind(CySwingApplication.class).toProvider(service(CySwingApplication.class).single());
@@ -98,13 +107,11 @@ public class CyActivator extends AbstractCyActivator {
 			bind(CyLayoutAlgorithmManager.class).toProvider(service(CyLayoutAlgorithmManager.class).single());
 			bind(CyGroupManager.class).toProvider(service(CyGroupManager.class).single());
 			bind(CyGroupFactory.class).toProvider(service(CyGroupFactory.class).single());
-			
+			bind(AvailableCommands.class).toProvider(service(AvailableCommands.class).single());
+			bind(CommandExecutorTaskFactory.class).toProvider(service(CommandExecutorTaskFactory.class).single());
 			bind(DialogTaskManager.class).toProvider(service(DialogTaskManager.class).single());
 			TypeLiteral<SynchronousTaskManager<?>> synchronousManager = new TypeLiteral<SynchronousTaskManager<?>>(){};
 			bind(synchronousManager).toProvider(service(synchronousManager).single());
-			bind(AvailableCommands.class).toProvider(service(AvailableCommands.class).single());
-			bind(CommandExecutorTaskFactory.class).toProvider(service(CommandExecutorTaskFactory.class).single());
-			
 			bind(AnnotationManager.class).toProvider(service(AnnotationManager.class).single());
 			TypeLiteral<AnnotationFactory<ShapeAnnotation>> shapeFactory = new TypeLiteral<AnnotationFactory<ShapeAnnotation>>(){};
 			bind(shapeFactory).toProvider(service(shapeFactory).filter(ldap("(type=ShapeAnnotation.class)")).single());
@@ -114,6 +121,9 @@ public class CyActivator extends AbstractCyActivator {
 			// Create a single EventBus
 			bind(EventBus.class).toInstance(new EventBus((e,c) -> e.printStackTrace()));
 			
+			// Set up the properties
+			bind(new TypeLiteral<CyProperty<Properties>>(){}).toInstance(new PropsReader(APP_ID, APP_ID+".props"));
+			
 			// Call methods annotated with @AfterInjection after injection, mainly used to create UIs
 			bindListener(new AfterInjectionMatcher(), new TypeListener() {
 				AfterInjectionInvoker invoker = new AfterInjectionInvoker();
@@ -122,7 +132,13 @@ public class CyActivator extends AbstractCyActivator {
 				}
 			});
 		}
-		
+	}
+	
+	
+	class PropsReader extends AbstractConfigDirPropsReader {
+		public PropsReader(String name, String fileName) {
+			super(name, fileName, CyProperty.SavePolicy.CONFIG_DIR);
+		}
 	}
 	
 	/**
