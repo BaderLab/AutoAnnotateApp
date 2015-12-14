@@ -56,6 +56,17 @@ public class AnnotationSet {
 	public void delete() {
 		parent.delete(this);
 	}
-	
+
+	public void removeNodes(Collection<CyNode> nodes) {
+		for(Cluster cluster : clusters) {
+			cluster.removeNodes(nodes);
+		}
+	}
+
+	void delete(Cluster cluster) {
+		if(clusters.remove(cluster)) {
+			parent.getParent().postEvent(new ModelEvents.ClusterRemoved(cluster));
+		}
+	}
 	
 }

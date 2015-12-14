@@ -5,11 +5,9 @@ public class ModelEvents {
 	
 	public static class AnnotationSetAdded {
 		private final AnnotationSet annotationSet;
-		
 		AnnotationSetAdded(AnnotationSet annotationSet) {
 			this.annotationSet = annotationSet;
 		}
-		
 		public AnnotationSet getAnnotationSet() {
 			return annotationSet;
 		}
@@ -19,16 +17,13 @@ public class ModelEvents {
 	public static class AnnotationSetSelected {
 		private final AnnotationSet annotationSet;
 		private final NetworkViewSet networkViewSet; // because annotationSet may be null
-		
 		AnnotationSetSelected(NetworkViewSet networkViewSet, AnnotationSet annotationSet) {
 			this.networkViewSet = networkViewSet;
 			this.annotationSet = annotationSet;
 		}
-		
 		public AnnotationSet getAnnotationSet() {
 			return annotationSet;
 		}
-		
 		public NetworkViewSet getNetworkViewSet() {
 			return networkViewSet;
 		}
@@ -37,11 +32,9 @@ public class ModelEvents {
 	
 	public static class AnnotationSetDeleted {
 		private final AnnotationSet annotationSet;
-		
 		AnnotationSetDeleted(AnnotationSet annotationSet) {
 			this.annotationSet = annotationSet;
 		}
-		
 		public AnnotationSet getAnnotationSet() {
 			return annotationSet;
 		}
@@ -50,11 +43,9 @@ public class ModelEvents {
 	
 	public static class ClusterAdded {
 		private final Cluster cluster;
-		
 		ClusterAdded(Cluster cluster) {
 			this.cluster = cluster;
 		}
-		
 		public Cluster getCluster() {
 			return cluster;
 		}
@@ -63,11 +54,19 @@ public class ModelEvents {
 	
 	public static class ClusterChanged {
 		private final Cluster cluster;
-		
 		ClusterChanged(Cluster cluster) {
 			this.cluster = cluster;
 		}
-		
+		public Cluster getCluster() {
+			return cluster;
+		}
+	}
+	
+	public static class ClusterRemoved {
+		private final Cluster cluster;
+		ClusterRemoved(Cluster cluster) {
+			this.cluster = cluster;
+		}
 		public Cluster getCluster() {
 			return cluster;
 		}
@@ -76,11 +75,9 @@ public class ModelEvents {
 	
 	public static class NetworkViewSetSelected {
 		private final NetworkViewSet networkViewSet;
-		
 		public NetworkViewSetSelected(NetworkViewSet networkViewSet) {
 			this.networkViewSet = networkViewSet;
 		}
-		
 		public NetworkViewSet getNetworkViewSet() {
 			return networkViewSet;
 		}
@@ -89,11 +86,9 @@ public class ModelEvents {
 	
 	public static class NetworkViewSetDeleted {
 		private final NetworkViewSet networkViewSet;
-		
 		public NetworkViewSetDeleted(NetworkViewSet networkViewSet) {
 			this.networkViewSet = networkViewSet;
 		}
-		
 		public NetworkViewSet getNetworkViewSet() {
 			return networkViewSet;
 		}
@@ -119,11 +114,9 @@ public class ModelEvents {
 			this.option = option;
 			this.displayOptions = displayOptions;
 		}
-		
 		public DisplayOptions getDisplayOptions() {
 			return displayOptions;
 		}
-		
 		public Option getOption() {
 			return option;
 		}

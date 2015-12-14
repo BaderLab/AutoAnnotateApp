@@ -11,6 +11,8 @@ import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.events.SetSelectedNetworkViewsEvent;
 import org.cytoscape.application.events.SetSelectedNetworkViewsListener;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.model.events.AboutToRemoveNodesEvent;
+import org.cytoscape.model.events.AboutToRemoveNodesListener;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
 import org.cytoscape.view.model.VisualProperty;
@@ -26,7 +28,8 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class ModelManager implements SetSelectedNetworkViewsListener, NetworkViewAboutToBeDestroyedListener, ViewChangedListener {
+public class ModelManager implements SetSelectedNetworkViewsListener, NetworkViewAboutToBeDestroyedListener, 
+                                     ViewChangedListener, AboutToRemoveNodesListener {
 	
 	@Inject private CyApplicationManager applicationManager;
 	@Inject private EventBus eventBus;
@@ -66,14 +69,12 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 
 	@Override
 	public void handleEvent(SetSelectedNetworkViewsEvent e) {
-		System.out.println("ModelManager.handleEvent(SetSelectedNetworkViewsEvent)");
 		NetworkViewSet nvs = getActiveNetworkViewSet();
 		postEvent(new ModelEvents.NetworkViewSetSelected(nvs));
 	}
 
 	@Override
 	public void handleEvent(NetworkViewAboutToBeDestroyedEvent e) {
-		System.out.println("ModelManager.handleEvent(NetworkViewAboutToBeDestroyedEvent)");
 		CyNetworkView networkView = e.getNetworkView();
 		NetworkViewSet networkViewSet = networkViews.remove(networkView);
 		if(networkViewSet != null) {
@@ -89,6 +90,9 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 	}
 	
 	
+	/**
+	 * Handle nodes being moved around.
+	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void handleEvent(ViewChangedEvent<?> e) {
@@ -125,7 +129,17 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 				postEvent(new ModelEvents.ClusterChanged(cluster));
 			}
 		}
-		
 	}
+
+
+	@Override
+	public void handleEvent(AboutToRemoveNodesEvent e) {
+		Collection<CyNode> nodes = e.getNodes();
+		for(NetworkViewSet nvs : getNetworkViewSets()) {
+			nvs.removeNodes(nodes);
+		}
+	}
+	
+	
 	
 }

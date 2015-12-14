@@ -11,13 +11,17 @@ public class Cluster {
 
 	private final transient AnnotationSet parent;
 	
-	private final String label;
+	private String label;
 	private final Set<CyNode> nodes;
 	
 	Cluster(AnnotationSet parent, Collection<CyNode> nodes, String label) {
 		this.parent = parent;
 		this.nodes = new HashSet<>(nodes);
 		this.label = label;
+	}
+	
+	private void postEvent(Object event) {
+		parent.getParent().getParent().postEvent(event);
 	}
 	
 	public AnnotationSet getParent() {
@@ -47,6 +51,24 @@ public class Cluster {
 	@Override
 	public String toString() {
 		return label;
+	}
+	
+	public void delete() {
+		parent.delete(this);
+	}
+
+	public void removeNodes(Collection<CyNode> nodesToRemove) {
+		boolean changed = nodes.removeAll(nodesToRemove);
+		if(changed) {
+			postEvent(new ModelEvents.ClusterChanged(this));
+		}
+	}
+	
+	public void setLabel(String newLabel) {
+		if(!newLabel.equals(label)) {
+			label = newLabel;
+			postEvent(new ModelEvents.ClusterChanged(this));
+		}
 	}
 	
 }

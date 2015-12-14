@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
 
 public class NetworkViewSet {
@@ -87,6 +88,13 @@ public class NetworkViewSet {
 				parent.postEvent(new ModelEvents.AnnotationSetSelected(this, null));
 			}
 			parent.postEvent(new ModelEvents.AnnotationSetDeleted(annotationSet));
+		}
+	}
+
+
+	public void removeNodes(Collection<CyNode> nodes) {
+		for(AnnotationSet as : getAnnotationSets()) {
+			as.removeNodes(nodes);
 		}
 	}
 }

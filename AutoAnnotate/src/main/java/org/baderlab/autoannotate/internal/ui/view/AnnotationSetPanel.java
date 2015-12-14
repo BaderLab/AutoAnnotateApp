@@ -2,9 +2,11 @@ package org.baderlab.autoannotate.internal.ui.view;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.FlowLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +28,7 @@ import javax.swing.table.TableRowSorter;
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
+import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
@@ -102,6 +105,28 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 		updateClusterTable();
 	}
 	
+	@Subscribe
+	public void handleClusterChanged(ModelEvents.ClusterChanged event) {
+		Cluster cluster = event.getCluster();
+		ClusterTableModel model = (ClusterTableModel) clusterTable.getModel();
+		model.updateCluster(cluster);
+	}
+	
+	@Subscribe
+	public void handleClusterAdded(ModelEvents.ClusterAdded event) {
+		Cluster cluster = event.getCluster();
+		ClusterTableModel model = (ClusterTableModel) clusterTable.getModel();
+		model.addCluster(cluster);
+	}
+	
+	@Subscribe
+	public void handleClusterRemoved(ModelEvents.ClusterRemoved event) {
+		Cluster cluster = event.getCluster();
+		ClusterTableModel model = (ClusterTableModel) clusterTable.getModel();
+		model.removeCluster(cluster);
+	}
+	
+	
 	private void selectAnnotationSet() {
 		int index = annotationSetCombo.getSelectedIndex();
 		if(index != -1) {
@@ -144,12 +169,11 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 		
 		JPanel comboPanel = createComboPanel();
 		JPanel tablePanel = createTablePanel();
-		JPanel buttonPanel = createButtonPanel();
 		
 		add(comboPanel, BorderLayout.NORTH);
 		add(tablePanel, BorderLayout.CENTER);
-		add(buttonPanel, BorderLayout.SOUTH);
 	}
+
 	
 	private JPanel createComboPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
@@ -160,7 +184,7 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 		JButton actionButton = new JButton();
 		actionButton.setFont(iconManagerProvider.get().getIconFont(12));
 		actionButton.setText(IconManager.ICON_CARET_DOWN);
-		actionButton.addActionListener(this::showPopupMenu);
+		actionButton.addActionListener(this::showAnnotationSetPopupMenu);
 		
 		panel.add(annotationSetCombo, BorderLayout.CENTER);
 		panel.add(actionButton, BorderLayout.EAST);
@@ -201,23 +225,37 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 		ClusterTableSelectionListener selectionListener = clusterTableSelectionListenerProvider.get().init(table);
 		table.getSelectionModel().addListSelectionListener(selectionListener);
 		table.setAutoCreateRowSorter(true);
+		
+		JPopupMenu popupMenu = new JPopupMenu();
+		ClusterMenuActions actions = new ClusterMenuActions(table);
+		actions.addTo(popupMenu);
+		
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if(!e.isPopupTrigger())
+					return;
+				
+				Point point = e.getPoint();
+				int rowIndex = table.rowAtPoint(point);
+				if(rowIndex < 0) 
+					return;
+				
+				ListSelectionModel model = table.getSelectionModel();
+				if(!model.isSelectedIndex(rowIndex)) {
+					model.setSelectionInterval(rowIndex, rowIndex);
+				}
+				
+				actions.updateEnablement();
+				popupMenu.show(e.getComponent(), e.getX(), e.getY());
+			}
+		});
+		
 		return table;
 	}
 
 	
-	private JPanel createButtonPanel() {
-		JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-		
-		JButton mergeButton = new JButton("Merge");
-		JButton deleteButton = new JButton("Delete");
-		
-		panel.add(mergeButton);
-		panel.add(deleteButton);
-		return panel;
-	}
-	
-	
-	private void showPopupMenu(ActionEvent event) {
+	private void showAnnotationSetPopupMenu(ActionEvent event) {
 		JMenuItem createMenuItem = new JMenuItem("Create...");
 		JMenuItem renameMenuItem = new JMenuItem("Rename");
 		JMenuItem deleteMenuItem = new JMenuItem("Delete");

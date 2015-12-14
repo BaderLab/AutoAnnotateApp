@@ -39,9 +39,32 @@ public class ClusterTableModel extends AbstractTableModel {
 			return cluster.getNodeCount();
 	}
 	
-	public Cluster getCluster(int rowIndex) {
-		return clusters.get(rowIndex);
+	public Cluster getCluster(int index) {
+		return clusters.get(index);
 	}
+	
+	
+	public void removeCluster(Cluster cluster) {
+		int index = clusters.indexOf(cluster);
+		if(index < 0)
+			return;
+		clusters.remove(index);
+		fireTableRowsDeleted(index, index);
+	}
+	
+	public void updateCluster(Cluster cluster) {
+		int index = clusters.indexOf(cluster);
+		if(index < 0)
+			return;
+		fireTableRowsUpdated(index, index);
+	}
+	
+	public void addCluster(Cluster cluster) {
+		int index = clusters.size();
+		clusters.add(cluster);
+		fireTableRowsInserted(index, index);
+	}
+	
 	
 	public AnnotationSet getAnnotationSet() {
 		return annotationSet;
@@ -54,7 +77,7 @@ public class ClusterTableModel extends AbstractTableModel {
 	
 	@Override
 	public boolean isCellEditable(int row, int col) { 
-		return false; //col == CLUSTER_COLUMN_INDEX;
+		return false;
 	}
 	
 	@Override
