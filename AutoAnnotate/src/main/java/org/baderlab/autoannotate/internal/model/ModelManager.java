@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.cytoscape.application.CyApplicationManager;
@@ -48,9 +49,9 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 		return set;
 	}
 	
-	public NetworkViewSet getActiveNetworkViewSet() {
+	public Optional<NetworkViewSet> getActiveNetworkViewSet() {
 		CyNetworkView activeView = applicationManager.getCurrentNetworkView();
-		return networkViews.get(activeView);
+		return Optional.ofNullable(networkViews.get(activeView));
 	}
 	
 	public Collection<NetworkViewSet> getNetworkViewSets() {
@@ -69,8 +70,9 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 
 	@Override
 	public void handleEvent(SetSelectedNetworkViewsEvent e) {
-		NetworkViewSet nvs = getActiveNetworkViewSet();
-		postEvent(new ModelEvents.NetworkViewSetSelected(nvs));
+		Optional<NetworkViewSet> nvs = getActiveNetworkViewSet();
+		if(nvs.isPresent())
+			postEvent(new ModelEvents.NetworkViewSetSelected(nvs.get()));
 	}
 
 	@Override
@@ -97,36 +99,41 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 	@Override
 	public void handleEvent(ViewChangedEvent<?> e) {
 		CyNetworkView networkView = e.getSource();
-		NetworkViewSet nvs = getActiveNetworkViewSet();
+		Optional<NetworkViewSet> optional = getActiveNetworkViewSet();
+		if(optional.isPresent()) {
+			NetworkViewSet nvs = optional.get();
+			if(networkView.equals(nvs.getNetworkView())) {
+				Set<Cluster> affectedClusters = new HashSet<>();
+				
+				Collection<?> payload = e.getPayloadCollection();
+				
+				for(ViewChangeRecord vcr: (Collection<ViewChangeRecord>)payload) {
+					if (!(vcr.getView().getModel() instanceof CyNode))
+						continue;
 		
-		if(networkView.equals(nvs.getNetworkView())) {
-			Set<Cluster> affectedClusters = new HashSet<>();
-			
-			Collection<?> payload = e.getPayloadCollection();
-			
-			for(ViewChangeRecord vcr: (Collection<ViewChangeRecord>)payload) {
-				if (!(vcr.getView().getModel() instanceof CyNode))
-					continue;
-	
-				VisualProperty<?> property =  vcr.getVisualProperty();
-				if (property.equals(BasicVisualLexicon.NODE_X_LOCATION) ||
-				    property.equals(BasicVisualLexicon.NODE_Y_LOCATION) ||
-						property.equals(BasicVisualLexicon.NODE_WIDTH) ||
-						property.equals(BasicVisualLexicon.NODE_HEIGHT)) {
-	
-					View<CyNode> nodeView = vcr.getView();
-					CyNode node = nodeView.getModel();
-					
-					for(Cluster cluster : nvs.getActiveAnnotationSet().getClusters()) {
-						if(cluster.contains(node)) {
-							affectedClusters.add(cluster);
+					VisualProperty<?> property =  vcr.getVisualProperty();
+					if (property.equals(BasicVisualLexicon.NODE_X_LOCATION) ||
+					    property.equals(BasicVisualLexicon.NODE_Y_LOCATION) ||
+							property.equals(BasicVisualLexicon.NODE_WIDTH) ||
+							property.equals(BasicVisualLexicon.NODE_HEIGHT)) {
+		
+						View<CyNode> nodeView = vcr.getView();
+						CyNode node = nodeView.getModel();
+						
+						Optional<AnnotationSet> active = nvs.getActiveAnnotationSet();
+						if(active.isPresent()) {
+							for(Cluster cluster : active.get().getClusters()) {
+								if(cluster.contains(node)) {
+									affectedClusters.add(cluster);
+								}
+							}
 						}
 					}
 				}
-			}
-			
-			for(Cluster cluster : affectedClusters) {
-				postEvent(new ModelEvents.ClusterChanged(cluster));
+				
+				for(Cluster cluster : affectedClusters) {
+					postEvent(new ModelEvents.ClusterChanged(cluster));
+				}
 			}
 		}
 	}

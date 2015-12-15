@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.ui.action;
+package org.baderlab.autoannotate.internal.ui.view;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -37,16 +37,12 @@ public class DeleteAnnotationSetAction extends AbstractCyAction {
 			return;
 		
 		NetworkViewSet networkViewSet = modelManager.getNetworkViewSet(networkView);
-		if(networkViewSet == null)
-			return;
 		
-		AnnotationSet annotationSet = networkViewSet.getActiveAnnotationSet();
-		if(annotationSet == null)
-			return;
-		
-		if(confirmDelete(annotationSet)) {
-			annotationSet.delete();
-		}
+		networkViewSet.getActiveAnnotationSet().ifPresent(annotationSet -> {
+			if(confirmDelete(annotationSet)) {
+				annotationSet.delete();
+			}
+		});
 	}
 	
 	

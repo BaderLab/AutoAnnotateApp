@@ -1,5 +1,6 @@
 package org.baderlab.autoannotate.internal;
 
+import static org.cytoscape.work.ServiceProperties.*;
 import static org.ops4j.peaberry.Peaberry.*;
 import static org.ops4j.peaberry.util.Filters.ldap;
 
@@ -10,9 +11,10 @@ import java.util.Properties;
 
 import org.baderlab.autoannotate.internal.io.SessionListener;
 import org.baderlab.autoannotate.internal.model.ModelManager;
+import org.baderlab.autoannotate.internal.ui.CreateClusterTaskFactory;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
-import org.baderlab.autoannotate.internal.ui.action.ShowCreateDialogAction;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
+import org.baderlab.autoannotate.internal.ui.view.ShowCreateDialogAction;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.command.AvailableCommands;
@@ -48,6 +50,7 @@ import com.google.inject.spi.InjectionListener;
 import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
 
+
 public class CyActivator extends AbstractCyActivator {
 	
 	public static final String APP_NAME = "AutoAnnotate";  // Suitable for display in the UI
@@ -67,12 +70,19 @@ public class CyActivator extends AbstractCyActivator {
 		showDialogAction.setPreferredMenu("Apps." + APP_NAME);
 		registerAllServices(context, showDialogAction, new Properties());
 		
+		CreateClusterTaskFactory createClusterTaskFactory = injector.getInstance(CreateClusterTaskFactory.class);
+		Properties createClusterProps = new Properties();
+		createClusterProps.setProperty(IN_MENU_BAR, "false");
+		createClusterProps.setProperty(PREFERRED_MENU, APPS_MENU+".AutoAnnotate");
+		createClusterProps.setProperty(TITLE, "Create Cluster");
+		registerAllServices(context, createClusterTaskFactory, createClusterProps);
+		
 		SessionListener sessionListener = injector.getInstance(SessionListener.class);
 		registerAllServices(context, sessionListener, new Properties());
 		
 		// TEMPORARY
 		TestGsonAction gsonAction = injector.getInstance(TestGsonAction.class);
-		gsonAction.setPreferredMenu("Apps." + APP_NAME);
+		gsonAction.setPreferredMenu("Apps."+APP_NAME);
 		registerAllServices(context, gsonAction, new Properties());
 		
 		// Configuration properties

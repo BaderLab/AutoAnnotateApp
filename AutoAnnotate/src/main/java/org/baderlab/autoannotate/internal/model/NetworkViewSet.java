@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.cytoscape.model.CyNetwork;
@@ -16,7 +17,7 @@ public class NetworkViewSet {
 	
 	private final CyNetworkView networkView;
 	private final Set<AnnotationSet> annotationSets;
-	private transient AnnotationSet activeSet = null;
+	private transient Optional<AnnotationSet> activeSet = Optional.empty();
 	
 	
 	NetworkViewSet(ModelManager parent, CyNetworkView networkView) {
@@ -58,12 +59,12 @@ public class NetworkViewSet {
 	
 	public void select(AnnotationSet annotationSet) {
 		if(annotationSet == null || annotationSets.contains(annotationSet)) {
-			activeSet = annotationSet;
-			parent.postEvent(new ModelEvents.AnnotationSetSelected(this, annotationSet));
+			activeSet = Optional.ofNullable(annotationSet);
+			parent.postEvent(new ModelEvents.AnnotationSetSelected(this, activeSet));
 		}
 	}
 	
-	public AnnotationSet getActiveAnnotationSet() {
+	public Optional<AnnotationSet> getActiveAnnotationSet() {
 		return activeSet;
 	}
 	
@@ -107,10 +108,10 @@ public class NetworkViewSet {
 
 	void delete(AnnotationSet annotationSet) {
 		if(annotationSets.remove(annotationSet)) {
-			if(activeSet == annotationSet) {
+			activeSet.ifPresent(as -> {
 				activeSet = null;
 				parent.postEvent(new ModelEvents.AnnotationSetSelected(this, null));
-			}
+			});
 			parent.postEvent(new ModelEvents.AnnotationSetDeleted(annotationSet));
 		}
 	}

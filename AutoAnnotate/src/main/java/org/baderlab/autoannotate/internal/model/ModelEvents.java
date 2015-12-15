@@ -1,5 +1,7 @@
 package org.baderlab.autoannotate.internal.model;
 
+import java.util.Optional;
+
 public class ModelEvents {
 
 	
@@ -15,13 +17,13 @@ public class ModelEvents {
 	
 	
 	public static class AnnotationSetSelected {
-		private final AnnotationSet annotationSet;
+		private final Optional<AnnotationSet> annotationSet;
 		private final NetworkViewSet networkViewSet; // because annotationSet may be null
-		AnnotationSetSelected(NetworkViewSet networkViewSet, AnnotationSet annotationSet) {
+		AnnotationSetSelected(NetworkViewSet networkViewSet, Optional<AnnotationSet> annotationSet) {
 			this.networkViewSet = networkViewSet;
 			this.annotationSet = annotationSet;
 		}
-		public AnnotationSet getAnnotationSet() {
+		public Optional<AnnotationSet> getAnnotationSet() {
 			return annotationSet;
 		}
 		public NetworkViewSet getNetworkViewSet() {

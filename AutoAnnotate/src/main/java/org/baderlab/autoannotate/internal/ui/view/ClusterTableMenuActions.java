@@ -20,7 +20,7 @@ import org.baderlab.autoannotate.internal.task.WordCloudAdapter;
 import org.cytoscape.model.CyNode;
 
 @SuppressWarnings("serial")
-class ClusterMenuActions {
+class ClusterTableMenuActions {
 
 	private final JTable table;
 	private final Action renameAction;
@@ -30,7 +30,7 @@ class ClusterMenuActions {
 	private final WordCloudAdapter wordCloudAdapter;
 	
 	
-	public ClusterMenuActions(JTable table, WordCloudAdapter wordCloudAdapter) {
+	public ClusterTableMenuActions(JTable table, WordCloudAdapter wordCloudAdapter) {
 		this.table = table;
 		this.wordCloudAdapter = wordCloudAdapter;
 		this.renameAction = new RenameAction();

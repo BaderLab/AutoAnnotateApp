@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
@@ -49,14 +50,14 @@ public class AnnotationRenderer {
 	
 	@Subscribe
 	public void handleAnnotationSetSelected(ModelEvents.AnnotationSetSelected event) {
-		AnnotationSet annotationSet = event.getAnnotationSet();
+		Optional<AnnotationSet> selected = event.getAnnotationSet();
 		NetworkViewSet networkViewSet = event.getNetworkViewSet();
 		
 		TaskIterator tasks = new TaskIterator();
 		tasks.append(getRemoveExistingAnnotationsTasks(networkViewSet));
 		
-		if(annotationSet != null) {
-			for(Cluster cluster : annotationSet.getClusters()) {
+		if(selected.isPresent()) {
+			for(Cluster cluster : selected.get().getClusters()) {
 				// The shape task must go first because the label task needs to know the location/size of the shape.
 				tasks.append(shapeTaskProvider.get().setCluster(cluster));
 				tasks.append(labelTaskProvier.get().setCluster(cluster));

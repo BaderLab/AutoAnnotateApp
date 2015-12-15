@@ -9,6 +9,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -34,8 +35,6 @@ import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.ui.ComboItem;
-import org.baderlab.autoannotate.internal.ui.action.DeleteAnnotationSetAction;
-import org.baderlab.autoannotate.internal.ui.action.ShowCreateDialogAction;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.util.swing.IconManager;
@@ -81,10 +80,10 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 	
 	@Subscribe
 	public void handleAnnotationSetSelected(ModelEvents.AnnotationSetSelected event) {
-		AnnotationSet annotationSet = event.getAnnotationSet();
-		if(annotationSet == null || annotationSet.getParent().isSelected()) {
+		Optional<AnnotationSet> annotationSet = event.getAnnotationSet();
+		if(!annotationSet.isPresent() || annotationSet.get().getParent().isSelected()) {
 			annotationSetCombo.removeActionListener(selectListener);
-			annotationSetCombo.setSelectedItem(new ComboItem<>(annotationSet)); // works when annotationSet is null
+			annotationSetCombo.setSelectedItem(new ComboItem<>(annotationSet.orElse(null)));
 			annotationSetCombo.addActionListener(selectListener);
 			updateClusterTable();
 		}
@@ -100,8 +99,8 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 			for(AnnotationSet as : nvs.getAnnotationSets()) {
 				annotationSetCombo.addItem(new ComboItem<>(as, as.getName()));
 			}
-			AnnotationSet as = nvs.getActiveAnnotationSet();
-			annotationSetCombo.setSelectedItem(new ComboItem<>(as));
+			Optional<AnnotationSet> as = nvs.getActiveAnnotationSet();
+			annotationSetCombo.setSelectedItem(new ComboItem<>(as.orElse(null)));
 		}
 		annotationSetCombo.addActionListener(selectListener);
 		updateClusterTable();
@@ -197,9 +196,9 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 		JComboBox<ComboItem<AnnotationSet>> combo = new JComboBox<>();
 		combo.addItem(new ComboItem<>(null, "(none)"));
 		combo.setSelectedIndex(0);
-		NetworkViewSet networkViewSet = modelManager.getActiveNetworkViewSet();
-		if(networkViewSet != null) {
-			for(AnnotationSet annotationSet : networkViewSet.getAnnotationSets()) {
+		Optional<NetworkViewSet> nvs = modelManager.getActiveNetworkViewSet();
+		if(nvs.isPresent()) {
+			for(AnnotationSet annotationSet : nvs.get().getAnnotationSets()) {
 				combo.addItem(new ComboItem<>(annotationSet, annotationSet.getName()));
 			}
 		}
@@ -229,7 +228,7 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 		table.setAutoCreateRowSorter(true);
 		
 		JPopupMenu popupMenu = new JPopupMenu();
-		ClusterMenuActions actions = new ClusterMenuActions(table, wordCloudAdapterProvider.get());
+		ClusterTableMenuActions actions = new ClusterTableMenuActions(table, wordCloudAdapterProvider.get());
 		actions.addTo(popupMenu);
 		
 		table.addMouseListener(new MouseAdapter() {

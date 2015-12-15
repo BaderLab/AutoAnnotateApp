@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.Optional;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -49,18 +50,18 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent {
 	
 	@Subscribe
 	public void annotationSetSelected(ModelEvents.AnnotationSetSelected event) {
-		AnnotationSet annotationSet = event.getAnnotationSet();
-		recursiveEnable(this, annotationSet != null);
-		if(annotationSet != null) {
-			displayOptions = annotationSet.getDisplayOptions();
-			
+		Optional<AnnotationSet> annotationSet = event.getAnnotationSet();
+		recursiveEnable(this, annotationSet.isPresent());
+		
+		annotationSet.ifPresent(as -> {
+			displayOptions = as.getDisplayOptions();
 			borderWidthSlider.setValue(displayOptions.getBorderWidth());
 			opacitySlider.setValue(displayOptions.getOpacity());
 			hideClustersCheckBox.setSelected(!displayOptions.isShowClusters());
 			hideLabelsCheckBox.setSelected(!displayOptions.isShowLabels());
 			fontByClusterCheckbox.setSelected(!displayOptions.isUseConstantFontSize());
 			ellipseRadio.setSelected(displayOptions.getShapeType() == ShapeType.ELLIPSE);
-		}
+		});
 	}
 	
 	@AfterInjection
