@@ -19,19 +19,33 @@ public class RunWordCloudTaskFactory implements TaskFactory {
 	@Inject CommandExecutorTaskFactory commandTaskFactory;
 	
 	private Map<?,Collection<CyNode>> clusters;
-	private CreationParameters params;
+	private CyNetwork network;
+	private String labelColumn;
 	
 	public void setClusters(Map<?,Collection<CyNode>> clusters) {
 		this.clusters = clusters;
 	}
 	
+//	public void setClusters(Collection<Collection<CyNode>> clusters) {
+//		Map<Integer,Collection<CyNode>> theClusters = new HashMap<>();
+//		int i = 0;
+//		for(Collection<CyNode> cluster : clusters) {
+//			theClusters.put(i++, cluster);
+//		}
+//		this.clusters = theClusters;
+//	}
+	
 	public void setParameters(CreationParameters params) {
-		this.params = params;
+		setParameters(params.getNetworkView().getModel(), params.getLabelColumn());
+	}
+	
+	public void setParameters(CyNetwork network, String labelColumn) {
+		this.network = network;
+		this.labelColumn = labelColumn;
 	}
 	
 	public TaskIterator createTaskIterator(TaskObserver taskObserver) {
 		List<String> commands = new ArrayList<>(clusters.size());
-		CyNetwork network = params.getNetworkView().getModel();
 		
 		for(Map.Entry<?,Collection<CyNode>> entry : clusters.entrySet()) {
 			Object key = entry.getKey();
@@ -44,7 +58,7 @@ public class RunWordCloudTaskFactory implements TaskFactory {
 			
 			String command = 
 				String.format("wordcloud create wordColumnName=\"%s\" cloudName=\"%s\" nodeList=\"%s\" create=false", 
-					          params.getLabelColumn(), String.valueOf(key), names);
+					          labelColumn, String.valueOf(key), names);
 			
 			commands.add(command);
 		}

@@ -3,6 +3,7 @@ package org.baderlab.autoannotate.internal.model;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.cytoscape.model.CyNetwork;
@@ -25,11 +26,34 @@ public class NetworkViewSet {
 	}
 	
 	
-	public AnnotationSet createAnnotationSet(String name) {
-		AnnotationSet set = new AnnotationSet(this, name);
-		annotationSets.add(set);
-		parent.postEvent(new ModelEvents.AnnotationSetAdded(set));
-		return set;
+	public AnnotationSetBuilder getAnnotationSetBuilder(String name, String labelColumn) {
+		return new AnnotationSetBuilder(this, name, labelColumn);
+	}
+	
+	AnnotationSet build(AnnotationSetBuilder builder) {
+		AnnotationSet as = new AnnotationSet(this, builder.getName(), builder.getLabelColumn());
+		annotationSets.add(as);
+		
+		List<Collection<CyNode>> clusterNodes = builder.getClusterNodes();
+		List<String> clusterLabels = builder.clusterLabels();
+		
+		int n = clusterNodes.size();
+		for(int i = 0; i < n; i++) {
+			Collection<CyNode> nodes = clusterNodes.get(i);
+			String label = clusterLabels.get(i);
+			as.createClusterNoEvent(nodes, label);
+		}
+		
+		parent.postEvent(new ModelEvents.AnnotationSetAdded(as));
+		return as;
+	}
+
+
+	public AnnotationSet createAnnotationSet(String name, String labelColumn) {
+		AnnotationSet as = new AnnotationSet(this, name, labelColumn);
+		annotationSets.add(as);
+		parent.postEvent(new ModelEvents.AnnotationSetAdded(as));
+		return as;
 	}
 	
 	public void select(AnnotationSet annotationSet) {
@@ -97,4 +121,6 @@ public class NetworkViewSet {
 			as.removeNodes(nodes);
 		}
 	}
+	
+	
 }

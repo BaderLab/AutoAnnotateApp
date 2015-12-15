@@ -32,6 +32,7 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.task.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.ui.ComboItem;
 import org.baderlab.autoannotate.internal.ui.action.DeleteAnnotationSetAction;
 import org.baderlab.autoannotate.internal.ui.action.ShowCreateDialogAction;
@@ -53,6 +54,7 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 	@Inject private Provider<ShowCreateDialogAction> showDialogActionProvider;
 	@Inject private Provider<DeleteAnnotationSetAction> deleteSetActionProvider;
 	@Inject private Provider<ClusterTableSelectionListener> clusterTableSelectionListenerProvider;
+	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
 	
 	private ActionListener selectListener;
 	private JComboBox<ComboItem<AnnotationSet>> annotationSetCombo;
@@ -227,7 +229,7 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 		table.setAutoCreateRowSorter(true);
 		
 		JPopupMenu popupMenu = new JPopupMenu();
-		ClusterMenuActions actions = new ClusterMenuActions(table);
+		ClusterMenuActions actions = new ClusterMenuActions(table, wordCloudAdapterProvider.get());
 		actions.addTo(popupMenu);
 		
 		table.addMouseListener(new MouseAdapter() {

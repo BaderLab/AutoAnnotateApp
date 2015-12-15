@@ -106,8 +106,9 @@ public class ModelImporter {
 	
 	private void restoreAnnotationSet(ObjectMapper mapper, NetworkViewSet networkViewSet, JsonObject object) {
 		String name = object.get("name").getAsString();
+		String labelColumn = object.get("labelColumn").getAsString();
 		
-		AnnotationSet annotationSet = networkViewSet.createAnnotationSet(name);
+		AnnotationSet annotationSet = networkViewSet.createAnnotationSet(name, labelColumn);
 		restoreDisplayOptions(annotationSet, object.get("displayOptions").getAsJsonObject());
 		
 		JsonArray clusters = object.get("clusters").getAsJsonArray();

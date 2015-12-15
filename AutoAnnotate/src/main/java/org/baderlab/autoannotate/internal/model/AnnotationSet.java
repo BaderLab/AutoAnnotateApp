@@ -13,12 +13,14 @@ public class AnnotationSet {
 	
 	private final String name;
 	private final DisplayOptions displayOptions;
+	private final String labelColumn;
 	private Set<Cluster> clusters = new HashSet<>();
 	
 	
-	AnnotationSet(NetworkViewSet parent, String name) {
+	AnnotationSet(NetworkViewSet parent, String name, String labelColumn) {
 		this.parent = parent;
 		this.name = name;
+		this.labelColumn = labelColumn;
 		this.displayOptions = new DisplayOptions(this);
 	}
 	
@@ -30,8 +32,19 @@ public class AnnotationSet {
 		return cluster;
 	}
 	
+	Cluster createClusterNoEvent(Collection<CyNode> nodes, String label) {
+		Cluster cluster = new Cluster(this, nodes, label);
+		clusters.add(cluster);
+		return cluster;
+	}
+	
+	
 	public String getName() {
 		return name;
+	}
+	
+	public String getLabelColumn() {
+		return labelColumn;
 	}
 	
 	public DisplayOptions getDisplayOptions() {

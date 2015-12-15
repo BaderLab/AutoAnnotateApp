@@ -16,6 +16,7 @@ import javax.swing.SwingUtilities;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
+import org.baderlab.autoannotate.internal.task.WordCloudAdapter;
 import org.cytoscape.model.CyNode;
 
 @SuppressWarnings("serial")
@@ -26,9 +27,12 @@ class ClusterMenuActions {
 	private final Action deleteAction;
 	private final Action mergeAction;
 	
+	private final WordCloudAdapter wordCloudAdapter;
 	
-	public ClusterMenuActions(JTable table) {
+	
+	public ClusterMenuActions(JTable table, WordCloudAdapter wordCloudAdapter) {
 		this.table = table;
+		this.wordCloudAdapter = wordCloudAdapter;
 		this.renameAction = new RenameAction();
 		this.deleteAction = new DeleteAction();
 		this.mergeAction = new MergeAction();
@@ -118,19 +122,23 @@ class ClusterMenuActions {
 			JFrame frame = (JFrame) SwingUtilities.getRoot(table);
 			int result = JOptionPane.showConfirmDialog(frame, message, "Merge Clusters", JOptionPane.OK_CANCEL_OPTION);
 			
-			if(result == JOptionPane.OK_OPTION) {
-				AnnotationSet annotationSet = clusters.get(0).getParent();
+			if(result != JOptionPane.OK_OPTION)
+				return;
+			if(!wordCloudAdapter.isWordcloudRequiredVersionInstalled())
+				return;
 				
-				Set<CyNode> nodes = new HashSet<>();
-				for(Cluster cluster : clusters) {
-					nodes.addAll(cluster.getNodes());
-				}
-				for(Cluster cluster : clusters) {
-					cluster.delete();
-				}
-				// MKTODO call out to wordcloud to get the new label!
-				annotationSet.createCluster(nodes, "Blah");
+			Set<CyNode> nodes = new HashSet<>();
+			for(Cluster cluster : clusters) {
+				nodes.addAll(cluster.getNodes());
 			}
+			
+			AnnotationSet annotationSet = clusters.get(0).getParent();
+			String label = wordCloudAdapter.getLabel(nodes, annotationSet.getParent().getNetwork(), annotationSet.getLabelColumn());
+			
+			for(Cluster cluster : clusters) {
+				cluster.delete();
+			}
+			annotationSet.createCluster(nodes, label);
 		}
 	}
 

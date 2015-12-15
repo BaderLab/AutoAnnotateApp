@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
+import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
 import org.baderlab.autoannotate.internal.model.LabelMaker;
 import org.baderlab.autoannotate.internal.model.LabelOptions;
 import org.baderlab.autoannotate.internal.model.ModelManager;
@@ -77,16 +78,17 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		// Build the AnnotationSet
 		NetworkViewSet networkViewSet = modelManager.getNetworkViewSet(params.getNetworkView());
 		String name = createName(networkViewSet);
-		AnnotationSet annotationSet = networkViewSet.createAnnotationSet(name);
 		
+		AnnotationSetBuilder builder = networkViewSet.getAnnotationSetBuilder(name, params.getLabelColumn());
 		for(String clusterKey : clusters.keySet()) {
 			Collection<CyNode> nodes = clusters.get(clusterKey);
 			Collection<WordInfo> words = wordInfos.get(clusterKey);
 			String label = labelMaker.makeLabel(nodes, words);
-			annotationSet.createCluster(nodes, label);
+			builder.addCluster(nodes, label);
 		}
 		
-		networkViewSet.select(annotationSet);
+		AnnotationSet annotationSet = builder.build(); // fires ModelEvent.AnnotationSetAdded
+		networkViewSet.select(annotationSet); // fires ModelEvent.AnnotationSetSelected
 	}
 	
 	

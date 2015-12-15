@@ -29,23 +29,18 @@ import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.internal.task.CreationParameters;
+import org.baderlab.autoannotate.internal.task.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.ui.GBCFactory;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.command.AvailableCommands;
-import org.cytoscape.command.CommandExecutorTaskFactory;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.view.model.CyNetworkView;
-import org.cytoscape.work.FinishStatus;
-import org.cytoscape.work.ObservableTask;
-import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
-import org.cytoscape.work.TaskObserver;
 import org.cytoscape.work.swing.DialogTaskManager;
-import org.osgi.framework.Version;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -60,10 +55,9 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	@Inject private Provider<CreateAnnotationSetTask> taskProvider;
 	@Inject private Provider<WarnDialog> warnDialogProvider;
+	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
 	@Inject private DialogTaskManager dialogTaskManager;
-	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	@Inject private IconManager iconManager;
-	@Inject private CommandExecutorTaskFactory commandTaskFactory;
 	@Inject private AvailableCommands availableCommands;
 	
 	private final CyNetworkView networkView;
@@ -77,8 +71,6 @@ public class CreateAnnotationSetDialog extends JDialog {
 	private JCheckBox groupCheckbox;
 	private JButton createButton;
 	
-	private static final Version WORDCLOUD_MINIMUM = new Version(3,0,2);
-	
 	private boolean isClusterMakerInstalled;
 	private boolean isWordCloudInstalled;
 
@@ -91,49 +83,10 @@ public class CreateAnnotationSetDialog extends JDialog {
 	}
 	
 	
-	private boolean isWordcloudRequiredVersionInstalled(AvailableCommands availableCommands) {
-		if(!availableCommands.getNamespaces().contains("wordcloud"))
-			return false;
-		if(!availableCommands.getCommands("wordcloud").contains("version"))
-			return false;
-		
-		String command = "wordcloud version";
-		VersionTaskObserver observer = new VersionTaskObserver();
-		
-		TaskIterator taskIterator = commandTaskFactory.createTaskIterator(observer, command);
-		syncTaskManager.execute(taskIterator);
-		
-		if(!observer.hasResult())
-			return false;
-		
-		int major = observer.version[0];
-		int minor = observer.version[1];
-		int micro = observer.version[2];
-		
-		Version actual = new Version(major, minor, micro);
-		return actual.compareTo(WORDCLOUD_MINIMUM) >= 0;
-	}
-	
-	
-	private static class VersionTaskObserver implements TaskObserver {
-		int[] version = null;
-		@Override
-		public void taskFinished(ObservableTask task) {
-			version = task.getResults(int[].class);
-		}
-		boolean hasResult() {
-			return version != null && version.length == 3;
-		}
-		@Override
-		public void allFinished(FinishStatus finishStatus) {
-		}
-	}
-	
-	
 	@AfterInjection
 	private void createContents() {
 		isClusterMakerInstalled = availableCommands.getNamespaces().contains("cluster");
-		isWordCloudInstalled = isWordcloudRequiredVersionInstalled(availableCommands);
+		isWordCloudInstalled = wordCloudAdapterProvider.get().isWordcloudRequiredVersionInstalled();
 		
 		
 		setLayout(new BorderLayout());
@@ -169,7 +122,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 			messagePanel.add(warnPanel, GBCFactory.grid(0,y++).weightx(1.0).get());
 		}
 		if(!isWordCloudInstalled) {
-			JPanel warnPanel = createMessage("WordCloud app is not installed (required, please install version " + WORDCLOUD_MINIMUM + " or above)", true);
+			JPanel warnPanel = createMessage("WordCloud app is not installed (required, please install version " + WordCloudAdapter.WORDCLOUD_MINIMUM + " or above)", true);
 			messagePanel.add(warnPanel, GBCFactory.grid(0,y++).weightx(1.0).get());
 		}
 		
