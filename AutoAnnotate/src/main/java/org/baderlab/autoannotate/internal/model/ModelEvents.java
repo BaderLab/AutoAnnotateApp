@@ -43,6 +43,17 @@ public class ModelEvents {
 	}
 	
 	
+	public static class AnnotationSetChanged {
+		private final AnnotationSet annotationSet;
+		AnnotationSetChanged(AnnotationSet annotationSet) {
+			this.annotationSet = annotationSet;
+		}
+		public AnnotationSet getAnnotationSet() {
+			return annotationSet;
+		}
+	}
+	
+	
 	public static class ClusterAdded {
 		private final Cluster cluster;
 		ClusterAdded(Cluster cluster) {

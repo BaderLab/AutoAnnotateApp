@@ -60,7 +60,10 @@ public class Cluster {
 	public void removeNodes(Collection<CyNode> nodesToRemove) {
 		boolean changed = nodes.removeAll(nodesToRemove);
 		if(changed) {
-			postEvent(new ModelEvents.ClusterChanged(this));
+			if(nodes.isEmpty())
+				delete();
+			else 
+				postEvent(new ModelEvents.ClusterChanged(this));
 		}
 	}
 	

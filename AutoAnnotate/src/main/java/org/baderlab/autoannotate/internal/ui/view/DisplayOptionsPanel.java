@@ -44,12 +44,12 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent {
 	private JRadioButton ellipseRadio;
 	
 	@Inject
-	public void listenToModelEvents(EventBus eventBus) {
+	public void registerForEvents(EventBus eventBus) {
 		eventBus.register(this);
 	}
 	
 	@Subscribe
-	public void annotationSetSelected(ModelEvents.AnnotationSetSelected event) {
+	public void handle(ModelEvents.AnnotationSetSelected event) {
 		Optional<AnnotationSet> annotationSet = event.getAnnotationSet();
 		recursiveEnable(this, annotationSet.isPresent());
 		

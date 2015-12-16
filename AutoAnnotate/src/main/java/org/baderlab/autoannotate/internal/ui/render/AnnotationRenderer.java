@@ -44,12 +44,12 @@ public class AnnotationRenderer {
 	
 	
 	@Inject
-	public void listenToModelEvents(EventBus eventBus) {
+	public void registerForEvents(EventBus eventBus) {
 		eventBus.register(this);
 	}
 	
 	@Subscribe
-	public void handleAnnotationSetSelected(ModelEvents.AnnotationSetSelected event) {
+	public void handle(ModelEvents.AnnotationSetSelected event) {
 		Optional<AnnotationSet> selected = event.getAnnotationSet();
 		NetworkViewSet networkViewSet = event.getNetworkViewSet();
 		
@@ -78,7 +78,7 @@ public class AnnotationRenderer {
 	
 	
 	@Subscribe
-	public void handleClusterChanged(ModelEvents.ClusterChanged event) {
+	public void handle(ModelEvents.ClusterChanged event) {
 		Cluster cluster = event.getCluster();
 		TaskIterator tasks = new TaskIterator();
 		tasks.append(eraseTaskProvider.get().setCluster(cluster));
@@ -89,7 +89,7 @@ public class AnnotationRenderer {
 	
 	
 	@Subscribe
-	public void handleClusterRemoved(ModelEvents.ClusterRemoved event) {
+	public void handle(ModelEvents.ClusterRemoved event) {
 		Cluster cluster = event.getCluster();
 		TaskIterator tasks = new TaskIterator();
 		tasks.append(eraseTaskProvider.get().setCluster(cluster));
@@ -98,7 +98,7 @@ public class AnnotationRenderer {
 	
 	
 	@Subscribe
-	public void handleClusterAdded(ModelEvents.ClusterAdded event) {
+	public void handle(ModelEvents.ClusterAdded event) {
 		Cluster cluster = event.getCluster();
 		TaskIterator tasks = new TaskIterator();
 		tasks.append(shapeTaskProvider.get().setCluster(cluster));
@@ -134,7 +134,7 @@ public class AnnotationRenderer {
 	
 	
 	@Subscribe
-	public void handleDisplayOptionChanged(ModelEvents.DisplayOptionChanged event) {
+	public void handle(ModelEvents.DisplayOptionChanged event) {
 		DisplayOptions options = event.getDisplayOptions();
 		
 		switch(event.getOption()) {

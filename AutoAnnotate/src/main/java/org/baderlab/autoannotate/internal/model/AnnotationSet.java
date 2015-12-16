@@ -11,7 +11,7 @@ public class AnnotationSet {
 
 	private final transient NetworkViewSet parent;
 	
-	private final String name;
+	private String name;
 	private final DisplayOptions displayOptions;
 	private final String labelColumn;
 	private Set<Cluster> clusters = new HashSet<>();
@@ -41,6 +41,13 @@ public class AnnotationSet {
 	
 	public String getName() {
 		return name;
+	}
+	
+	public void setName(String newName) {
+		if(!newName.equals(name)) {
+			name = newName;
+			parent.getParent().postEvent(new ModelEvents.AnnotationSetChanged(this));
+		}
 	}
 	
 	public String getLabelColumn() {

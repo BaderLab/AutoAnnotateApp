@@ -2,6 +2,7 @@ package org.baderlab.autoannotate.internal.ui.view;
 
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,7 +16,9 @@ import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
+import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
 import org.baderlab.autoannotate.internal.model.Cluster;
+import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.WordCloudAdapter;
 import org.cytoscape.model.CyNode;
 
@@ -26,6 +29,7 @@ class ClusterTableMenuActions {
 	private final Action renameAction;
 	private final Action deleteAction;
 	private final Action mergeAction;
+	private final Action createAction;
 	
 	private final WordCloudAdapter wordCloudAdapter;
 	
@@ -36,19 +40,22 @@ class ClusterTableMenuActions {
 		this.renameAction = new RenameAction();
 		this.deleteAction = new DeleteAction();
 		this.mergeAction = new MergeAction();
+		this.createAction = new CreateAction();
 	}
 	
 	public void addTo(JPopupMenu menu) {
 		menu.add(renameAction);
 		menu.add(mergeAction);
 		menu.add(deleteAction);
+		menu.add(createAction);
 	}
 	
 	public void updateEnablement() {
 		int rowCount = table.getSelectedRowCount();
 		renameAction.setEnabled(rowCount == 1);
 		deleteAction.setEnabled(rowCount > 0);
-		mergeAction.setEnabled(rowCount > 1);
+		mergeAction .setEnabled(rowCount > 1);
+		createAction.setEnabled(rowCount > 0);
 	}
 	
 	
@@ -74,7 +81,7 @@ class ClusterTableMenuActions {
 		public void actionPerformed(ActionEvent e) {
 			Cluster cluster = getSelectedClusters().get(0);
 			JFrame frame = (JFrame) SwingUtilities.getRoot(table);
-			Object result = JOptionPane.showInputDialog(frame, "Cluster Label:", "Rename Cluster", JOptionPane.PLAIN_MESSAGE, null, null, cluster.getLabel());
+			Object result = JOptionPane.showInputDialog(frame, "Cluster Label", "Rename Cluster", JOptionPane.PLAIN_MESSAGE, null, null, cluster.getLabel());
 			if(result == null)
 				return;
 			String label = result.toString().trim();
@@ -145,11 +152,45 @@ class ClusterTableMenuActions {
 	
 	private class CreateAction extends AbstractAction {
 		public CreateAction() {
-			super("New Annotation Set");
+			super("New Annotation Set...");
 		}
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			List<Cluster> clusters = getSelectedClusters();
+			AnnotationSet currentAnnotationSet = clusters.get(0).getParent();
+			NetworkViewSet networkViewSet = currentAnnotationSet.getParent();
+			
+			String suggestedName = suggestName(networkViewSet);
+			
+			JFrame frame = (JFrame) SwingUtilities.getRoot(table);
+			Object result = JOptionPane.showInputDialog(frame, "Annotation Set Name", "New Annotation Set", JOptionPane.PLAIN_MESSAGE, null, null, suggestedName);
+			if(result == null)
+				return;
+			
+			String name = result.toString().trim();
+			
+			AnnotationSetBuilder builder = networkViewSet.getAnnotationSetBuilder(name, currentAnnotationSet.getLabelColumn());
+			for(Cluster cluster : clusters) {
+				builder.addCluster(cluster.getNodes(), cluster.getLabel());
+			}
+			
+			AnnotationSet newAnnotationSet = builder.build();
+			networkViewSet.select(newAnnotationSet);
+		}
+		
+		private String suggestName(NetworkViewSet networkViewSet) {
+			String originalName = networkViewSet.getActiveAnnotationSet().map(a->a.getName()).orElse("Annotation Set");
+			originalName = originalName.replaceFirst("\\s*\\d+$", "");
+			
+			Collection<AnnotationSet> sets = networkViewSet.getAnnotationSets();
+			
+			String name[] = {originalName};
+			int suffix = 2;
+			while(sets.stream().anyMatch(a -> a.getName().equals(name[0]))) {
+				name[0] = originalName + " " + (suffix++);
+			}
+			return name[0];
 		}
 	}
 }

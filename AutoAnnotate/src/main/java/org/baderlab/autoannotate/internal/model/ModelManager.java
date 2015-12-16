@@ -138,6 +138,8 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 		}
 	}
 
+	
+	
 
 	@Override
 	public void handleEvent(AboutToRemoveNodesEvent e) {

@@ -4,7 +4,7 @@ import java.awt.Component;
 import java.util.Properties;
 
 import org.baderlab.autoannotate.internal.model.ModelEvents;
-import org.baderlab.autoannotate.internal.ui.view.AnnotationSetPanel;
+import org.baderlab.autoannotate.internal.ui.view.ClusterPanel;
 import org.baderlab.autoannotate.internal.ui.view.DisplayOptionsPanel;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanel;
@@ -21,12 +21,12 @@ import com.google.inject.Singleton;
 @Singleton
 public class PanelManager {
 
-	@Inject private Provider<AnnotationSetPanel> mainPanelProvider;
+	@Inject private Provider<ClusterPanel> mainPanelProvider;
 	@Inject private Provider<DisplayOptionsPanel> optionsPanelProvider;
 	@Inject private CySwingApplication swingApplication;
 	@Inject private CyServiceRegistrar registrar;
 	
-	private AnnotationSetPanel mainPanel;
+	private ClusterPanel mainPanel;
 	private DisplayOptionsPanel optionsPanel;
 	
 	
@@ -36,17 +36,17 @@ public class PanelManager {
 	}
 	
 	@Subscribe
-	public void handleAnnotationSetSelected(ModelEvents.AnnotationSetSelected event) {
+	public void handle(ModelEvents.AnnotationSetSelected event) {
 		if(mainPanel == null) {
 			mainPanel = mainPanelProvider.get();
 			registrar.registerService(mainPanel, CytoPanelComponent.class, new Properties());
-			mainPanel.handleAnnotationSetSelected(event);
+			mainPanel.handle(event);
 		}
 		
 		if(optionsPanel == null) {
 			optionsPanel = optionsPanelProvider.get();
 			registrar.registerService(optionsPanel, CytoPanelComponent.class, new Properties());
-			optionsPanel.annotationSetSelected(event);
+			optionsPanel.handle(event);
 		}
 		
 		bringToFront(mainPanel);

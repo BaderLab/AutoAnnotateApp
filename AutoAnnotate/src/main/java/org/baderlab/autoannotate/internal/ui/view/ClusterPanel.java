@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -46,14 +47,15 @@ import com.google.inject.Provider;
 
 
 @SuppressWarnings("serial")
-public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
+public class ClusterPanel extends JPanel implements CytoPanelComponent {
 	
 	@Inject private ModelManager modelManager;
 	@Inject private Provider<IconManager> iconManagerProvider;
-	@Inject private Provider<ShowCreateDialogAction> showDialogActionProvider;
-	@Inject private Provider<DeleteAnnotationSetAction> deleteSetActionProvider;
-	@Inject private Provider<ClusterTableSelectionListener> clusterTableSelectionListenerProvider;
-	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
+	@Inject private Provider<ShowCreateDialogAction> showActionProvider;
+	@Inject private Provider<AnnotationSetDeleteAction> deleteActionProvider;
+	@Inject private Provider<AnnotationSetRenameAction> renameActionProvider;
+	@Inject private Provider<ClusterTableSelectionListener> selectionListenerProvider;
+	@Inject private Provider<WordCloudAdapter> wordCloudProvider;
 	
 	private ActionListener selectListener;
 	private JComboBox<ComboItem<AnnotationSet>> annotationSetCombo;
@@ -61,12 +63,12 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 	
 	
 	@Inject
-	public void listenToModelEvents(EventBus eventBus) {
+	public void registerForEvents(EventBus eventBus) {
 		eventBus.register(this);
 	}
 	
 	@Subscribe
-	public void handleAnnotationSetAdded(ModelEvents.AnnotationSetAdded event) {
+	public void handle(ModelEvents.AnnotationSetAdded event) {
 		AnnotationSet aset = event.getAnnotationSet();
 		if(aset.getParent().isSelected()) {
 			annotationSetCombo.addItem(new ComboItem<>(aset, aset.getName()));
@@ -74,12 +76,12 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 	}
 	
 	@Subscribe
-	public void handleAnnotationSetDeleted(ModelEvents.AnnotationSetDeleted event) {
+	public void handle(ModelEvents.AnnotationSetDeleted event) {
 		annotationSetCombo.removeItem(new ComboItem<>(event.getAnnotationSet()));
 	}
 	
 	@Subscribe
-	public void handleAnnotationSetSelected(ModelEvents.AnnotationSetSelected event) {
+	public void handle(ModelEvents.AnnotationSetSelected event) {
 		Optional<AnnotationSet> annotationSet = event.getAnnotationSet();
 		if(!annotationSet.isPresent() || annotationSet.get().getParent().isSelected()) {
 			annotationSetCombo.removeActionListener(selectListener);
@@ -90,7 +92,7 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 	}
 	
 	@Subscribe
-	public void handleNetworkViewSetSelected(ModelEvents.NetworkViewSetSelected event) {
+	public void handle(ModelEvents.NetworkViewSetSelected event) {
 		annotationSetCombo.removeActionListener(selectListener);
 		annotationSetCombo.removeAllItems();
 		annotationSetCombo.addItem(new ComboItem<>(null, "(none)"));
@@ -107,21 +109,40 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 	}
 	
 	@Subscribe
-	public void handleClusterChanged(ModelEvents.ClusterChanged event) {
+	public void handle(ModelEvents.AnnotationSetChanged event) {
+		AnnotationSet as = event.getAnnotationSet();
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		DefaultComboBoxModel<ComboItem<AnnotationSet>> model = (DefaultComboBoxModel) annotationSetCombo.getModel();
+		int index = model.getIndexOf(new ComboItem<>(as));
+		
+		annotationSetCombo.removeActionListener(selectListener);
+		model.removeElementAt(index);
+		ComboItem<AnnotationSet> item = new ComboItem<>(as,as.getName());
+		model.insertElementAt(item, index);
+		model.setSelectedItem(item);
+		annotationSetCombo.addActionListener(selectListener);
+		
+//		ComboItem<AnnotationSet> item = model.getElementAt(index);
+//		item.setLabel(as.getName());
+//		annotationSetCombo.repaint();
+	}
+	
+	@Subscribe
+	public void handle(ModelEvents.ClusterChanged event) {
 		Cluster cluster = event.getCluster();
 		ClusterTableModel model = (ClusterTableModel) clusterTable.getModel();
 		model.updateCluster(cluster);
 	}
 	
 	@Subscribe
-	public void handleClusterAdded(ModelEvents.ClusterAdded event) {
+	public void handle(ModelEvents.ClusterAdded event) {
 		Cluster cluster = event.getCluster();
 		ClusterTableModel model = (ClusterTableModel) clusterTable.getModel();
 		model.addCluster(cluster);
 	}
 	
 	@Subscribe
-	public void handleClusterRemoved(ModelEvents.ClusterRemoved event) {
+	public void handle(ModelEvents.ClusterRemoved event) {
 		Cluster cluster = event.getCluster();
 		ClusterTableModel model = (ClusterTableModel) clusterTable.getModel();
 		model.removeCluster(cluster);
@@ -223,12 +244,12 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 		table.getColumnModel().getColumn(0).setPreferredWidth(200);
 		table.getColumnModel().getColumn(1).setPreferredWidth(10);
 		table.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-		ClusterTableSelectionListener selectionListener = clusterTableSelectionListenerProvider.get().init(table);
+		ClusterTableSelectionListener selectionListener = selectionListenerProvider.get().init(table);
 		table.getSelectionModel().addListSelectionListener(selectionListener);
 		table.setAutoCreateRowSorter(true);
 		
 		JPopupMenu popupMenu = new JPopupMenu();
-		ClusterTableMenuActions actions = new ClusterTableMenuActions(table, wordCloudAdapterProvider.get());
+		ClusterTableMenuActions actions = new ClusterTableMenuActions(table, wordCloudProvider.get());
 		actions.addTo(popupMenu);
 		
 		table.addMouseListener(new MouseAdapter() {
@@ -266,8 +287,9 @@ public class AnnotationSetPanel extends JPanel implements CytoPanelComponent {
 		menu.add(renameMenuItem);
 		menu.add(deleteMenuItem);
 		
-		createMenuItem.addActionListener(showDialogActionProvider.get());
-		deleteMenuItem.addActionListener(deleteSetActionProvider.get());
+		createMenuItem.addActionListener(showActionProvider.get());
+		renameMenuItem.addActionListener(renameActionProvider.get());
+		deleteMenuItem.addActionListener(deleteActionProvider.get());
 		
 		Component c = (Component)event.getSource();
 		menu.show(c, 0, c.getHeight());
