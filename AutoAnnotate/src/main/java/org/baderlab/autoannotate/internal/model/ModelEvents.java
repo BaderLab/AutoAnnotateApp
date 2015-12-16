@@ -1,5 +1,6 @@
 package org.baderlab.autoannotate.internal.model;
 
+import java.util.Collection;
 import java.util.Optional;
 
 public class ModelEvents {
@@ -85,6 +86,20 @@ public class ModelEvents {
 		}
 	}
 	
+	public static class ClustersSelected {
+		private final Collection<Cluster> clusters;
+		private final AnnotationSet annotationSet;
+		ClustersSelected(AnnotationSet annotationSet, Collection<Cluster> clusters) {
+			this.annotationSet = annotationSet;
+			this.clusters = clusters;
+		}
+		public Collection<Cluster> getClusters() {
+			return clusters;
+		}
+		public AnnotationSet getAnnotationSet() {
+			return annotationSet;
+		}
+	}
 	
 	public static class NetworkViewSetSelected {
 		private final NetworkViewSet networkViewSet;

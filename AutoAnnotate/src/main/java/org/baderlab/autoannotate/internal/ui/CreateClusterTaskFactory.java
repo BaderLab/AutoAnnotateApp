@@ -43,7 +43,7 @@ public class CreateClusterTaskFactory implements NetworkViewTaskFactory, NodeVie
 				Optional<AnnotationSet> active = modelManager.getActiveNetworkViewSet().flatMap(NetworkViewSet::getActiveAnnotationSet);
 				if(active.isPresent()) {
 					AnnotationSet annotationSet = active.get();
-					List<CyNode> nodes = CyTableUtil.getNodesInState(networkView.getModel(), "selected", true);
+					List<CyNode> nodes = CyTableUtil.getNodesInState(networkView.getModel(), CyNetwork.SELECTED, true);
 					CyNetwork network = networkView.getModel();
 					
 					String label = wordCloudAdapter.getLabel(nodes, network, annotationSet.getLabelColumn());
@@ -60,7 +60,7 @@ public class CreateClusterTaskFactory implements NetworkViewTaskFactory, NodeVie
 
 	@Override
 	public boolean isReady(CyNetworkView networkView) {
-		List<CyNode> nodes = CyTableUtil.getNodesInState(networkView.getModel(), "selected", true);
+		List<CyNode> nodes = CyTableUtil.getNodesInState(networkView.getModel(), CyNetwork.SELECTED, true);
 		return !nodes.isEmpty();
 	}
 

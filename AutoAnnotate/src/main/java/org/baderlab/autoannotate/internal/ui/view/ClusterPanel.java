@@ -57,9 +57,10 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent {
 	@Inject private Provider<ClusterTableSelectionListener> selectionListenerProvider;
 	@Inject private Provider<WordCloudAdapter> wordCloudProvider;
 	
-	private ActionListener selectListener;
 	private JComboBox<ComboItem<AnnotationSet>> annotationSetCombo;
 	private JTable clusterTable;
+	private ActionListener annotationSetSelectionListener;
+	private ClusterTableSelectionListener clusterSelectionListener;
 	
 	
 	@Inject
@@ -84,16 +85,16 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent {
 	public void handle(ModelEvents.AnnotationSetSelected event) {
 		Optional<AnnotationSet> annotationSet = event.getAnnotationSet();
 		if(!annotationSet.isPresent() || annotationSet.get().getParent().isSelected()) {
-			annotationSetCombo.removeActionListener(selectListener);
+			annotationSetCombo.removeActionListener(annotationSetSelectionListener);
 			annotationSetCombo.setSelectedItem(new ComboItem<>(annotationSet.orElse(null)));
-			annotationSetCombo.addActionListener(selectListener);
+			annotationSetCombo.addActionListener(annotationSetSelectionListener);
 			updateClusterTable();
 		}
 	}
 	
 	@Subscribe
 	public void handle(ModelEvents.NetworkViewSetSelected event) {
-		annotationSetCombo.removeActionListener(selectListener);
+		annotationSetCombo.removeActionListener(annotationSetSelectionListener);
 		annotationSetCombo.removeAllItems();
 		annotationSetCombo.addItem(new ComboItem<>(null, "(none)"));
 		NetworkViewSet nvs = event.getNetworkViewSet();
@@ -104,7 +105,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent {
 			Optional<AnnotationSet> as = nvs.getActiveAnnotationSet();
 			annotationSetCombo.setSelectedItem(new ComboItem<>(as.orElse(null)));
 		}
-		annotationSetCombo.addActionListener(selectListener);
+		annotationSetCombo.addActionListener(annotationSetSelectionListener);
 		updateClusterTable();
 	}
 	
@@ -115,16 +116,12 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent {
 		DefaultComboBoxModel<ComboItem<AnnotationSet>> model = (DefaultComboBoxModel) annotationSetCombo.getModel();
 		int index = model.getIndexOf(new ComboItem<>(as));
 		
-		annotationSetCombo.removeActionListener(selectListener);
+		annotationSetCombo.removeActionListener(annotationSetSelectionListener);
 		model.removeElementAt(index);
 		ComboItem<AnnotationSet> item = new ComboItem<>(as,as.getName());
 		model.insertElementAt(item, index);
 		model.setSelectedItem(item);
-		annotationSetCombo.addActionListener(selectListener);
-		
-//		ComboItem<AnnotationSet> item = model.getElementAt(index);
-//		item.setLabel(as.getName());
-//		annotationSetCombo.repaint();
+		annotationSetCombo.addActionListener(annotationSetSelectionListener);
 	}
 	
 	@Subscribe
@@ -146,6 +143,23 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent {
 		Cluster cluster = event.getCluster();
 		ClusterTableModel model = (ClusterTableModel) clusterTable.getModel();
 		model.removeCluster(cluster);
+	}
+	
+	@Subscribe
+	public void handle(ModelEvents.ClustersSelected event) {
+		ListSelectionModel selectionModel = clusterTable.getSelectionModel();
+		ClusterTableModel tableModel = (ClusterTableModel)clusterTable.getModel();
+		
+		selectionModel.removeListSelectionListener(clusterSelectionListener);
+		selectionModel.clearSelection();
+		for(Cluster cluster : event.getClusters()) {
+			int modelIndex = tableModel.rowIndexOf(cluster);
+			if(modelIndex > 0) {
+				int viewIndex = clusterTable.convertRowIndexToView(modelIndex);
+				selectionModel.addSelectionInterval(viewIndex, viewIndex);
+			}
+		}
+		selectionModel.addListSelectionListener(clusterSelectionListener);
 	}
 	
 	
@@ -201,7 +215,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent {
 		JPanel panel = new JPanel(new BorderLayout());
 		
 		annotationSetCombo = createAnnotationSetCombo();
-		annotationSetCombo.addActionListener(selectListener = e -> selectAnnotationSet());
+		annotationSetCombo.addActionListener(annotationSetSelectionListener = e -> selectAnnotationSet());
 		
 		JButton actionButton = new JButton();
 		actionButton.setFont(iconManagerProvider.get().getIconFont(12));
@@ -230,40 +244,31 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent {
 	private JPanel createTablePanel() {
 		JPanel panel = new JPanel(new BorderLayout());
 		
-		clusterTable = createClusterTable();
-		JScrollPane clusterTableScroll = new JScrollPane(clusterTable);
-		clusterTableScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		
-		panel.add(clusterTableScroll, BorderLayout.CENTER);
-		return panel;
-	}
-	
-	
-	private JTable createClusterTable() {
-		JTable table = new JTable(new ClusterTableModel()); // create with dummy model
-		table.getColumnModel().getColumn(0).setPreferredWidth(200);
-		table.getColumnModel().getColumn(1).setPreferredWidth(10);
-		table.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-		ClusterTableSelectionListener selectionListener = selectionListenerProvider.get().init(table);
-		table.getSelectionModel().addListSelectionListener(selectionListener);
-		table.setAutoCreateRowSorter(true);
+		clusterTable = new JTable(new ClusterTableModel()); // create with dummy model
+		clusterTable.getColumnModel().getColumn(0).setPreferredWidth(200);
+		clusterTable.getColumnModel().getColumn(1).setPreferredWidth(10);
+		clusterTable.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		clusterSelectionListener = selectionListenerProvider.get().init(clusterTable);
+		clusterTable.getSelectionModel().addListSelectionListener(clusterSelectionListener);
+		clusterTable.setAutoCreateRowSorter(true);
 		
 		JPopupMenu popupMenu = new JPopupMenu();
-		ClusterTableMenuActions actions = new ClusterTableMenuActions(table, wordCloudProvider.get());
+		ClusterTableMenuActions actions = new ClusterTableMenuActions(clusterTable, wordCloudProvider.get());
 		actions.addTo(popupMenu);
 		
-		table.addMouseListener(new MouseAdapter() {
+		// Add the row that was right clicked to the selection.
+		clusterTable.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				if(!e.isPopupTrigger())
 					return;
 				
 				Point point = e.getPoint();
-				int rowIndex = table.rowAtPoint(point);
+				int rowIndex = clusterTable.rowAtPoint(point);
 				if(rowIndex < 0) 
 					return;
 				
-				ListSelectionModel model = table.getSelectionModel();
+				ListSelectionModel model = clusterTable.getSelectionModel();
 				if(!model.isSelectedIndex(rowIndex)) {
 					model.setSelectionInterval(rowIndex, rowIndex);
 				}
@@ -273,7 +278,11 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent {
 			}
 		});
 		
-		return table;
+		JScrollPane clusterTableScroll = new JScrollPane(clusterTable);
+		clusterTableScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		
+		panel.add(clusterTableScroll, BorderLayout.CENTER);
+		return panel;
 	}
 
 	

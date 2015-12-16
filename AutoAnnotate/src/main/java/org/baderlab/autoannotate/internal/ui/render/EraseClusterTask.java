@@ -25,7 +25,6 @@ public class EraseClusterTask extends AbstractTask {
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		ShapeAnnotation shape = annotationRenderer.removeShapeAnnoation(cluster);
 		TextAnnotation text = annotationRenderer.removeTextAnnotation(cluster);
-		annotationRenderer.setSelected(cluster, false);
 		
 		// invokeAndWait forces the shape to update on the current thread
 		if(shape != null) {

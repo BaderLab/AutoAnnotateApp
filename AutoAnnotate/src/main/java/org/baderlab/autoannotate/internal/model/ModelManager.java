@@ -1,9 +1,11 @@
 package org.baderlab.autoannotate.internal.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -11,9 +13,13 @@ import java.util.Set;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.events.SetSelectedNetworkViewsEvent;
 import org.cytoscape.application.events.SetSelectedNetworkViewsListener;
+import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.model.CyTableUtil;
 import org.cytoscape.model.events.AboutToRemoveNodesEvent;
 import org.cytoscape.model.events.AboutToRemoveNodesListener;
+import org.cytoscape.model.events.RowsSetEvent;
+import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
 import org.cytoscape.view.model.VisualProperty;
@@ -30,7 +36,7 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class ModelManager implements SetSelectedNetworkViewsListener, NetworkViewAboutToBeDestroyedListener, 
-                                     ViewChangedListener, AboutToRemoveNodesListener {
+                                     ViewChangedListener, AboutToRemoveNodesListener, RowsSetListener {
 	
 	@Inject private CyApplicationManager applicationManager;
 	@Inject private EventBus eventBus;
@@ -138,8 +144,6 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 		}
 	}
 
-	
-	
 
 	@Override
 	public void handleEvent(AboutToRemoveNodesEvent e) {
@@ -150,5 +154,32 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 	}
 	
 	
+	@Override
+	public void handleEvent(RowsSetEvent e) {
+		if(!e.containsColumn(CyNetwork.SELECTED))
+			return;
+		
+		Optional<AnnotationSet> active = getActiveNetworkViewSet().flatMap(NetworkViewSet::getActiveAnnotationSet);
+		
+		if(active.isPresent()) {
+			AnnotationSet annotationSet = active.get();
+			CyNetwork network = annotationSet.getParent().getNetwork();
+			
+			if(network.getDefaultNodeTable().equals(e.getSource())) {
+				List<Cluster> selectedClusters = new ArrayList<>();
+				List<CyNode> selectedNodes = CyTableUtil.getNodesInState(network, CyNetwork.SELECTED, true);
+				
+				for(Cluster cluster : annotationSet.getClusters()) {
+					if(selectedNodes.containsAll(cluster.getNodes())) {
+						selectedClusters.add(cluster);
+					}
+				}
+				
+				// Fire event even when selectedClusters is empty
+				postEvent(new ModelEvents.ClustersSelected(annotationSet, selectedClusters));
+			}
+		}
+	}
+
 	
 }

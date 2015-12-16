@@ -1,7 +1,7 @@
 package org.baderlab.autoannotate.internal.ui.view;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.swing.JTable;
@@ -9,15 +9,12 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
-import org.baderlab.autoannotate.internal.model.Cluster;
-import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
-
-import com.google.inject.Inject;
+import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNode;
+import org.cytoscape.model.CyRow;
 
 public class ClusterTableSelectionListener implements ListSelectionListener {
 
-	@Inject private AnnotationRenderer annotationRenderer;
-	
 	
 	private JTable table;
 	
@@ -37,13 +34,20 @@ public class ClusterTableSelectionListener implements ListSelectionListener {
 		if(annotationSet == null)
 			return;
 		
-		List<Cluster> clusters = 
+		Set<CyNode> nodesToSelect = 
 			Arrays.stream(table.getSelectedRows())
 			.map(table::convertRowIndexToModel)
 			.mapToObj(model::getCluster)
-			.collect(Collectors.toList());
+			.flatMap(c -> c.getNodes().stream())
+			.collect(Collectors.toSet());
 		
-		annotationRenderer.selectClusters(annotationSet, clusters);
+		
+		CyNetwork network = annotationSet.getParent().getNetwork();
+		for(CyNode node : network.getNodeList()) {
+			CyRow row = network.getRow(node);
+			row.set(CyNetwork.SELECTED, nodesToSelect.contains(node));
+		}
+		
 	}
 
 }

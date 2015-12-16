@@ -43,6 +43,9 @@ public class ClusterTableModel extends AbstractTableModel {
 		return clusters.get(index);
 	}
 	
+	public int rowIndexOf(Cluster cluster) {
+		return clusters.indexOf(cluster);
+	}
 	
 	public void removeCluster(Cluster cluster) {
 		int index = clusters.indexOf(cluster);

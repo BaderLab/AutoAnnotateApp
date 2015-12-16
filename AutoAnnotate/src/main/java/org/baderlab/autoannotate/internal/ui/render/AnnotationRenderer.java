@@ -40,7 +40,6 @@ public class AnnotationRenderer {
 	
 	private Map<Cluster,TextAnnotation> textAnnotations = new HashMap<>();
 	private Map<Cluster,ShapeAnnotation> shapeAnnotations = new HashMap<>();
-	private Set<Cluster> selectedClusters = new HashSet<>();
 	
 	
 	@Inject
@@ -50,12 +49,14 @@ public class AnnotationRenderer {
 	
 	@Subscribe
 	public void handle(ModelEvents.AnnotationSetSelected event) {
-		Optional<AnnotationSet> selected = event.getAnnotationSet();
-		NetworkViewSet networkViewSet = event.getNetworkViewSet();
-		
 		TaskIterator tasks = new TaskIterator();
-		tasks.append(getRemoveExistingAnnotationsTasks(networkViewSet));
 		
+		NetworkViewSet networkViewSet = event.getNetworkViewSet();
+		RemoveAllAnnotationsTask removeTask = removeAllTaskProvider.get();
+		removeTask.setNetworkViewSet(networkViewSet);
+		tasks.append(removeTask);
+		
+		Optional<AnnotationSet> selected = event.getAnnotationSet();
 		if(selected.isPresent()) {
 			for(Cluster cluster : selected.get().getClusters()) {
 				// The shape task must go first because the label task needs to know the location/size of the shape.
@@ -64,16 +65,7 @@ public class AnnotationRenderer {
 			}
 		}
 		
-		if(tasks.getNumTasks() > 0) {
-			dialogTaskManager.execute(tasks);
-		}
-	}
-	
-	
-	private TaskIterator getRemoveExistingAnnotationsTasks(NetworkViewSet networkViewSet) {
-		RemoveAllAnnotationsTask task = removeAllTaskProvider.get();
-		task.setNetworkViewSet(networkViewSet);
-		return new TaskIterator(task);
+		dialogTaskManager.execute(tasks);
 	}
 	
 	
@@ -104,32 +96,6 @@ public class AnnotationRenderer {
 		tasks.append(shapeTaskProvider.get().setCluster(cluster));
 		tasks.append(labelTaskProvier.get().setCluster(cluster));
 		syncTaskManager.execute(tasks);
-	}
-	
-	
-	/**
-	 * Assumes all the clusters are from the same annotation set.
-	 */
-	public void selectClusters(AnnotationSet annotationSet, Collection<Cluster> select) {
-		// Its defensive programming to deselect all the clusters that are not being selected.
-		Set<Cluster> deselect = new HashSet<>(annotationSet.getClusters());
-		deselect.removeAll(select);
-		
-		TaskIterator tasks = new TaskIterator();
-		
-		for(Cluster cluster : deselect) {
-			SelectClusterTask deselectTask = selectTaskProvider.get();
-			deselectTask.setCluster(cluster);
-			deselectTask.setSelect(false);
-			tasks.append(deselectTask);
-		}
-		for(Cluster cluster : select) {
-			SelectClusterTask selectTask = selectTaskProvider.get();
-			selectTask.setCluster(cluster);
-			tasks.append(selectTask);
-		}
-		
-		dialogTaskManager.execute(tasks);
 	}
 	
 	
@@ -178,8 +144,31 @@ public class AnnotationRenderer {
 		
 	}
 	
+	@Subscribe
+	public void handle(ModelEvents.ClustersSelected event) {
+		AnnotationSet annotationSet = event.getAnnotationSet();
+		Collection<Cluster> select = event.getClusters();
+		Set<Cluster> deselect = new HashSet<>(annotationSet.getClusters());
+		deselect.removeAll(select);
+		
+		TaskIterator tasks = new TaskIterator();
+		
+		for(Cluster cluster : deselect) {
+			SelectClusterTask deselectTask = selectTaskProvider.get();
+			deselectTask.setCluster(cluster);
+			deselectTask.setSelect(false);
+			tasks.append(deselectTask);
+		}
+		for(Cluster cluster : select) {
+			SelectClusterTask selectTask = selectTaskProvider.get();
+			selectTask.setCluster(cluster);
+			tasks.append(selectTask);
+		}
+		
+		syncTaskManager.execute(tasks);
+	}
 	
-	// MKTODO should I be using a TaskObserver to get the results instead?
+
 	
 	ShapeAnnotation getShapeAnnotation(Cluster cluster) {
 		return shapeAnnotations.get(cluster);
@@ -205,15 +194,5 @@ public class AnnotationRenderer {
 		return shapeAnnotations.remove(cluster);
 	}
 	
-	boolean isSelected(Cluster cluster) {
-		return selectedClusters.contains(cluster);
-	}
-	
-	void setSelected(Cluster cluster, boolean select) {
-		if(select)
-			selectedClusters.add(cluster);
-		else
-			selectedClusters.remove(cluster);
-	}
 
 }

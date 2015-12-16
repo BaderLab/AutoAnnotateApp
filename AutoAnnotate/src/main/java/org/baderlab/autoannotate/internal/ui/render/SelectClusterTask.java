@@ -5,8 +5,6 @@ import java.awt.Color;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
-import org.cytoscape.model.CyNetwork;
-import org.cytoscape.model.CyNode;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
 import org.cytoscape.work.AbstractTask;
@@ -17,7 +15,6 @@ import com.google.inject.Inject;
 public class SelectClusterTask extends AbstractTask {
 
 	@Inject private AnnotationRenderer annotationRenderer;
-	
 	
 	private Cluster cluster;
 	private boolean select = true;
@@ -39,41 +36,26 @@ public class SelectClusterTask extends AbstractTask {
 		ShapeAnnotation shape = annotationRenderer.getShapeAnnotation(cluster);
 		TextAnnotation text = annotationRenderer.getTextAnnotation(cluster);
 		
-		if(select) {
-			// Make annotations look selected
-			if(shape != null) {
+		
+		if(shape != null) {
+			if(select) {
 				shape.setBorderColor(Color.YELLOW);
 				shape.setBorderWidth(3 * displayOptions.getBorderWidth());
-			}
-			if(text != null) {
-				text.setTextColor(Color.YELLOW);
-			}
-		}
-		else {
-			if(shape != null) {
+			} else {
 				shape.setBorderColor(DrawClusterShapeTask.DEFAULT_BORDER_COLOR);
 				shape.setBorderWidth(displayOptions.getBorderWidth());
 			}
-			if(text != null) {
-				text.setTextColor(DrawClusterLabelTask.DEFAULT_TEXT_COLOR);
-			}
-		}
-		
-		annotationRenderer.setSelected(cluster, select);
-		
-		CyNetwork network = annotationSet.getParent().getNetwork();
-		for(CyNode node : cluster.getNodes()) {
-			network.getRow(node).set(CyNetwork.SELECTED, select);
-		}
-		
-		if(shape != null) {
 			shape.update();
 		}
+		
 		if(text != null) {
+			if(select) {
+				text.setTextColor(Color.YELLOW);
+			} else {
+				text.setTextColor(DrawClusterLabelTask.DEFAULT_TEXT_COLOR);
+			}
 			text.update();
 		}
 	}
-
-	
 
 }
