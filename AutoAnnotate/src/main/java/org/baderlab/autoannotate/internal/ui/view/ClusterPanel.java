@@ -38,6 +38,7 @@ import org.baderlab.autoannotate.internal.task.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.ui.ComboItem;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
+import org.cytoscape.model.CyDisposable;
 import org.cytoscape.util.swing.IconManager;
 
 import com.google.common.eventbus.EventBus;
@@ -47,7 +48,7 @@ import com.google.inject.Provider;
 
 
 @SuppressWarnings("serial")
-public class ClusterPanel extends JPanel implements CytoPanelComponent {
+public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDisposable {
 	
 	@Inject private ModelManager modelManager;
 	@Inject private Provider<IconManager> iconManagerProvider;
@@ -62,10 +63,18 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent {
 	private ActionListener annotationSetSelectionListener;
 	private ClusterTableSelectionListener clusterSelectionListener;
 	
+	private EventBus eventBus;
 	
 	@Inject
 	public void registerForEvents(EventBus eventBus) {
+		this.eventBus = eventBus;
 		eventBus.register(this);
+	}
+	
+	@Override
+	public void dispose() {
+		eventBus.unregister(this);
+		eventBus = null;
 	}
 	
 	@Subscribe
@@ -94,19 +103,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent {
 	
 	@Subscribe
 	public void handle(ModelEvents.NetworkViewSetSelected event) {
-		annotationSetCombo.removeActionListener(annotationSetSelectionListener);
-		annotationSetCombo.removeAllItems();
-		annotationSetCombo.addItem(new ComboItem<>(null, "(none)"));
-		NetworkViewSet nvs = event.getNetworkViewSet();
-		if(nvs != null) {
-			for(AnnotationSet as : nvs.getAnnotationSets()) {
-				annotationSetCombo.addItem(new ComboItem<>(as, as.getName()));
-			}
-			Optional<AnnotationSet> as = nvs.getActiveAnnotationSet();
-			annotationSetCombo.setSelectedItem(new ComboItem<>(as.orElse(null)));
-		}
-		annotationSetCombo.addActionListener(annotationSetSelectionListener);
-		updateClusterTable();
+		setNetworkViewSet(event.getNetworkViewSet());
 	}
 	
 	@Subscribe
@@ -162,6 +159,32 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent {
 		selectionModel.addListSelectionListener(clusterSelectionListener);
 	}
 	
+	@AfterInjection
+	private void createContents() {
+		setLayout(new BorderLayout());
+		
+		JPanel comboPanel = createComboPanel();
+		JPanel tablePanel = createTablePanel();
+		
+		add(comboPanel, BorderLayout.NORTH);
+		add(tablePanel, BorderLayout.CENTER);
+	}
+
+	
+	public void setNetworkViewSet(Optional<NetworkViewSet> nvs) {
+		annotationSetCombo.removeActionListener(annotationSetSelectionListener);
+		annotationSetCombo.removeAllItems();
+		annotationSetCombo.addItem(new ComboItem<>(null, "(none)"));
+		if(nvs.isPresent()) {
+			for(AnnotationSet as : nvs.get().getAnnotationSets()) {
+				annotationSetCombo.addItem(new ComboItem<>(as, as.getName()));
+			}
+			Optional<AnnotationSet> as = nvs.get().getActiveAnnotationSet();
+			annotationSetCombo.setSelectedItem(new ComboItem<>(as.orElse(null)));
+		}
+		annotationSetCombo.addActionListener(annotationSetSelectionListener);
+		updateClusterTable();
+	}
 	
 	private void selectAnnotationSet() {
 		int index = annotationSetCombo.getSelectedIndex();
@@ -198,18 +221,6 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent {
 		sorter.sort();
 	}
 	
-	
-	@AfterInjection
-	private void createContents() {
-		setLayout(new BorderLayout());
-		
-		JPanel comboPanel = createComboPanel();
-		JPanel tablePanel = createTablePanel();
-		
-		add(comboPanel, BorderLayout.NORTH);
-		add(tablePanel, BorderLayout.CENTER);
-	}
-
 	
 	private JPanel createComboPanel() {
 		JPanel panel = new JPanel(new BorderLayout());

@@ -108,10 +108,10 @@ public class NetworkViewSet {
 
 	void delete(AnnotationSet annotationSet) {
 		if(annotationSets.remove(annotationSet)) {
-			activeSet.ifPresent(as -> {
-				activeSet = null;
-				parent.postEvent(new ModelEvents.AnnotationSetSelected(this, null));
-			});
+			if(activeSet.isPresent()) {
+				activeSet = Optional.empty();
+				parent.postEvent(new ModelEvents.AnnotationSetSelected(this, Optional.empty()));
+			}
 			parent.postEvent(new ModelEvents.AnnotationSetDeleted(annotationSet));
 		}
 	}

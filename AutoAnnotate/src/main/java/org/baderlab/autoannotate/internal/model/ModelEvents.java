@@ -102,11 +102,11 @@ public class ModelEvents {
 	}
 	
 	public static class NetworkViewSetSelected {
-		private final NetworkViewSet networkViewSet;
-		public NetworkViewSetSelected(NetworkViewSet networkViewSet) {
+		private final Optional<NetworkViewSet> networkViewSet;
+		NetworkViewSetSelected(Optional<NetworkViewSet> networkViewSet) {
 			this.networkViewSet = networkViewSet;
 		}
-		public NetworkViewSet getNetworkViewSet() {
+		public Optional<NetworkViewSet> getNetworkViewSet() {
 			return networkViewSet;
 		}
 	}
@@ -114,7 +114,7 @@ public class ModelEvents {
 	
 	public static class NetworkViewSetDeleted {
 		private final NetworkViewSet networkViewSet;
-		public NetworkViewSetDeleted(NetworkViewSet networkViewSet) {
+		NetworkViewSetDeleted(NetworkViewSet networkViewSet) {
 			this.networkViewSet = networkViewSet;
 		}
 		public NetworkViewSet getNetworkViewSet() {

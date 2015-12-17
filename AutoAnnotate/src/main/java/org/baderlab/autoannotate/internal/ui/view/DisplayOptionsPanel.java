@@ -24,6 +24,7 @@ import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.ui.GBCFactory;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
+import org.cytoscape.model.CyDisposable;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 
 import com.google.common.eventbus.EventBus;
@@ -31,7 +32,7 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 
 @SuppressWarnings("serial")
-public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent {
+public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, CyDisposable {
 
 	private volatile DisplayOptions displayOptions;
 	
@@ -43,16 +44,27 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent {
 	private JCheckBox fontByClusterCheckbox;
 	private JRadioButton ellipseRadio;
 	
+	private EventBus eventBus;
+	
 	@Inject
 	public void registerForEvents(EventBus eventBus) {
+		this.eventBus = eventBus;
 		eventBus.register(this);
+	}
+	
+	@Override
+	public void dispose() {
+		eventBus.unregister(this);
+		eventBus = null;
 	}
 	
 	@Subscribe
 	public void handle(ModelEvents.AnnotationSetSelected event) {
-		Optional<AnnotationSet> annotationSet = event.getAnnotationSet();
+		setAnnotationSet(event.getAnnotationSet());
+	}
+	
+	public void setAnnotationSet(Optional<AnnotationSet> annotationSet) {
 		recursiveEnable(this, annotationSet.isPresent());
-		
 		annotationSet.ifPresent(as -> {
 			displayOptions = as.getDisplayOptions();
 			borderWidthSlider.setValue(displayOptions.getBorderWidth());

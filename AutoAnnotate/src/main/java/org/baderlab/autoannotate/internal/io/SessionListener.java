@@ -8,7 +8,6 @@ import java.util.List;
 
 import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.ModelManager;
-import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.cytoscape.application.CyUserLog;
 import org.cytoscape.session.CySession;
 import org.cytoscape.session.events.SessionAboutToBeSavedEvent;
@@ -34,8 +33,6 @@ public class SessionListener implements SessionAboutToBeSavedListener, SessionLo
 	
 	@Override
 	public void handleEvent(SessionAboutToBeSavedEvent event) {
-		System.out.println("SessionListener.handleEvent(SessionAboutToBeSavedEvent)");
-		
 		String tempDir = System.getProperty("java.io.tmpdir");
 		File file = new File(tempDir, JSON_FILE_NAME);
 		
@@ -48,27 +45,12 @@ public class SessionListener implements SessionAboutToBeSavedListener, SessionLo
 			Logger log = LoggerFactory.getLogger(CyUserLog.NAME);
 			log.error(CyActivator.APP_NAME + ": Failed to save data to session.", e);
 		}
-		
-		// Destroying all the network views will clear the model no?
-//		// clear the model
-//		for(NetworkViewSet nvs : modelManager.getNetworkViewSets()) {
-//			for(AnnotationSet as : nvs.getAnnotationSets()) {
-//				as.delete();
-//			}
-//		}
 	}
 	
 	
 	@Override
 	public void handleEvent(SessionLoadedEvent event) {
-		System.out.println("SessionListener.handleEvent(SessionLoadedEvent)");
-		
 		CySession session = event.getLoadedSession();
-		
-		
-		// MKTODO I don't think I want to silence events
-		
-		//modelManager.silenceEvents(true);
 		
 		List<File> fileList = session.getAppFileListMap().get(CyActivator.APP_ID);
 		for(File file : fileList) {
@@ -87,9 +69,7 @@ public class SessionListener implements SessionAboutToBeSavedListener, SessionLo
 		}
 		
 		// Remove all annotations
-		for(NetworkViewSet nvs : modelManager.getNetworkViewSets()) {
-			nvs.select(null);
-		}
+		modelManager.deselectAll();
 		
 		// print to console
 		StringBuilder sb = new StringBuilder();

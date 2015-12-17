@@ -16,6 +16,8 @@ import org.baderlab.autoannotate.internal.ui.PanelManager;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.baderlab.autoannotate.internal.ui.view.ShowCreateDialogAction;
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.application.swing.AbstractCyAction;
+import org.cytoscape.application.swing.CyAction;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.command.AvailableCommands;
 import org.cytoscape.command.CommandExecutorTaskFactory;
@@ -60,15 +62,18 @@ public class CyActivator extends AbstractCyActivator {
 	public void start(BundleContext context) throws Exception {
 		Injector injector = Guice.createInjector(osgiModule(context), new MainModule());
 		
-		// Eagerly create singleton managers to wire up event bus
 		ModelManager modelManager = injector.getInstance(ModelManager.class);
 		registerAllServices(context, modelManager, new Properties());
-		injector.getInstance(PanelManager.class);
+		PanelManager panelManager = injector.getInstance(PanelManager.class);
 		injector.getInstance(AnnotationRenderer.class);
 		
-		ShowCreateDialogAction showDialogAction = injector.getInstance(ShowCreateDialogAction.class);
+		AbstractCyAction showDialogAction = injector.getInstance(ShowCreateDialogAction.class);
 		showDialogAction.setPreferredMenu("Apps." + APP_NAME);
-		registerAllServices(context, showDialogAction, new Properties());
+		registerService(context, showDialogAction, CyAction.class, new Properties());
+		
+		AbstractCyAction showHideAction = panelManager.getShowHideAction();
+		showHideAction.setPreferredMenu("Apps." + APP_NAME);
+		registerService(context, showHideAction, CyAction.class, new Properties());
 		
 		CreateClusterTaskFactory createClusterTaskFactory = injector.getInstance(CreateClusterTaskFactory.class);
 		Properties createClusterProps = new Properties();
@@ -80,11 +85,6 @@ public class CyActivator extends AbstractCyActivator {
 		SessionListener sessionListener = injector.getInstance(SessionListener.class);
 		registerAllServices(context, sessionListener, new Properties());
 		
-		// TEMPORARY
-		TestGsonAction gsonAction = injector.getInstance(TestGsonAction.class);
-		gsonAction.setPreferredMenu("Apps."+APP_NAME);
-		registerAllServices(context, gsonAction, new Properties());
-		
 		// Configuration properties
 		CyProperty<Properties> configProps = injector.getInstance(Key.get(new TypeLiteral<CyProperty<Properties>>(){}));
 		Properties propsReaderServiceProps = new Properties();
@@ -92,13 +92,10 @@ public class CyActivator extends AbstractCyActivator {
 		registerAllServices(context, configProps, propsReaderServiceProps);
 		
 		
-//		// print all events to console
-//		EventBus eventBus = injector.getInstance(EventBus.class);
-//		eventBus.register(new Object() {
-//			@Subscribe public void log(Object event) {
-//				System.out.println("Event: " + event.getClass().getSimpleName());
-//			}
-//		});
+		// TEMPORARY
+		TestGsonAction gsonAction = injector.getInstance(TestGsonAction.class);
+		gsonAction.setPreferredMenu("Apps."+APP_NAME);
+		registerAllServices(context, gsonAction, new Properties());
 	}
 	
 	

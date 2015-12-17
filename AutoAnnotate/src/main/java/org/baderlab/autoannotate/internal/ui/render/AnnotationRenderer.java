@@ -47,6 +47,7 @@ public class AnnotationRenderer {
 		eventBus.register(this);
 	}
 	
+	
 	@Subscribe
 	public void handle(ModelEvents.AnnotationSetSelected event) {
 		TaskIterator tasks = new TaskIterator();

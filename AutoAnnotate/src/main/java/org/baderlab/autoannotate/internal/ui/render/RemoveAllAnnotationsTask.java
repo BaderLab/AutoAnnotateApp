@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.swing.SwingUtilities;
 
+import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.cytoscape.view.model.CyNetworkView;
@@ -27,6 +28,9 @@ public class RemoveAllAnnotationsTask extends AbstractTask {
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) {
+		taskMonitor.setTitle(CyActivator.APP_NAME);
+		taskMonitor.setStatusMessage("Removing Annotations");
+		
 		CyNetworkView networkView = networkViewSet.getNetworkView();
 		List<Annotation> annotations = annotationManager.getAnnotations(networkView);
 		if(annotations != null) { // seriously?

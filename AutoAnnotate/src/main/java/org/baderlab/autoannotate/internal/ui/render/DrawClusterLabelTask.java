@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
@@ -108,6 +109,9 @@ public class DrawClusterLabelTask extends AbstractTask {
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) {
+		taskMonitor.setTitle(CyActivator.APP_NAME);
+		taskMonitor.setStatusMessage("Drawing Annotations");
+		
 		AnnotationSet annotationSet = cluster.getParent();
 		CyNetworkView view = annotationSet.getParent().getNetworkView();
 		DisplayOptions displayOptions = annotationSet.getDisplayOptions();

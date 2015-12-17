@@ -74,13 +74,27 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 		this.silenceEvents = silence;
 	}
 
+	public boolean isNetworkViewSetSelected(NetworkViewSet networkViewSet) {
+		CyNetworkView view = applicationManager.getCurrentNetworkView();
+		if(view == null)
+			return networkViewSet == null;
+		return view.equals(networkViewSet.getNetworkView());
+	}
+	
+	public void deselectAll() {
+		for(NetworkViewSet nvs : getNetworkViewSets()) {
+			nvs.select(null);
+		}
+	}
+	
+	
 	@Override
 	public void handleEvent(SetSelectedNetworkViewsEvent e) {
 		Optional<NetworkViewSet> nvs = getActiveNetworkViewSet();
-		if(nvs.isPresent())
-			postEvent(new ModelEvents.NetworkViewSetSelected(nvs.get()));
+		postEvent(new ModelEvents.NetworkViewSetSelected(nvs));
 	}
 
+	
 	@Override
 	public void handleEvent(NetworkViewAboutToBeDestroyedEvent e) {
 		CyNetworkView networkView = e.getNetworkView();
@@ -90,13 +104,6 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 		}
 	}
 
-	public boolean isNetworkViewSetSelected(NetworkViewSet networkViewSet) {
-		CyNetworkView view = applicationManager.getCurrentNetworkView();
-		if(view == null)
-			return networkViewSet == null;
-		return view.equals(networkViewSet.getNetworkView());
-	}
-	
 	
 	/**
 	 * Handle nodes being moved around.

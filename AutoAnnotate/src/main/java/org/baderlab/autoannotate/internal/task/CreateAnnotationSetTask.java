@@ -48,8 +48,8 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		taskMonitor.setTitle(CyActivator.APP_NAME);
-		
 		taskMonitor.setStatusMessage("Generating Clusters");
+		
 		Map<String,Collection<CyNode>> clusters;
 		if(params.isUseClusterMaker())
 			clusters = runClusterMaker();
@@ -59,15 +59,11 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		if(clusters == null || clusters.isEmpty())
 			return;
 		
-		taskMonitor.setStatusMessage("Generating Labels");
 		Map<String,Collection<WordInfo>> wordInfos = runWordCloud(clusters);
 		
 		if(params.isLayoutClusters()) {
-			taskMonitor.setStatusMessage("Laying out clusters");
 			layoutNodes(clusters, params.getNetworkView());
 		}
-		
-		// MKTODO create groups
 		
 		String weightAttribute = "";
 		if(params.isUseClusterMaker() && params.getClusterAlgorithm().isAttributeRequired())
