@@ -40,7 +40,10 @@ public class ModelExporter {
 			.create();
 		
 		Collection<NetworkViewSet> viewSets = modelManager.getNetworkViewSets();
-		gson.toJson(viewSets, writer);
+		
+		SessionContext sessionContext = new SessionContext(viewSets);
+		
+		gson.toJson(sessionContext, writer);
 	}
 	
 }

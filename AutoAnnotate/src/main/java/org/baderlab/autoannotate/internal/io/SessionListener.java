@@ -68,17 +68,10 @@ public class SessionListener implements SessionAboutToBeSavedListener, SessionLo
 			}
 		}
 		
-		// Remove all annotations
+		// Remove all annotations.
+		// We have to do this because the AnnotationManager doesn't provide a way to
+		// identify individual annotations so we have to remove them all and recreate them.
 		modelManager.deselectAll();
-		
-		// print to console
-		StringBuilder sb = new StringBuilder();
-		exporterProvider.get().exportJSON(sb);
-		System.out.println("Resulting Model:");
-		System.out.println(sb.toString());
 	}
-
-	
-	
 
 }

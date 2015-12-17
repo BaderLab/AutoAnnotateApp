@@ -61,15 +61,20 @@ public class ModelImporter {
 		}
 		
 		try {
-			for(JsonElement element : root.getAsJsonArray()) {
-				restoreNetworkViewSet(mapper, element.getAsJsonObject());
-			}
+			restoreSessionContext(mapper, root.getAsJsonObject());
 		} catch(Exception e) {
 			log.error(CyActivator.APP_NAME + ": Error restoring model from JSON", e);
 			return;
 		} 
 	}
 	
+	
+	private void restoreSessionContext(ObjectMapper mapper, JsonObject object) {
+		JsonArray networkViewSets = object.get("networkViewSets").getAsJsonArray();
+		for(JsonElement element : networkViewSets) {
+			restoreNetworkViewSet(mapper, element.getAsJsonObject());
+		}
+	}
 	
 	private void restoreNetworkViewSet(ObjectMapper mapper, JsonObject object) {
 		long networkId = object.get("networkView").getAsLong();
