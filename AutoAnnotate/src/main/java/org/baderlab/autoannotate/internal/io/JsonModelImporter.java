@@ -33,7 +33,7 @@ import com.google.inject.Inject;
  * 
  * MKTODO add error logging for bad networks
  */
-public class ModelImporter {
+public class JsonModelImporter {
 	
 	@Inject private ModelManager modelManager;
 

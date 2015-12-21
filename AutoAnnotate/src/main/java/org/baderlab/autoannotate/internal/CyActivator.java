@@ -9,7 +9,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Properties;
 
-import org.baderlab.autoannotate.internal.io.SessionListener;
+import org.baderlab.autoannotate.internal.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.ui.CreateClusterTaskFactory;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
@@ -25,10 +25,14 @@ import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
+import org.cytoscape.model.CyNetworkTableManager;
+import org.cytoscape.model.CyTableFactory;
+import org.cytoscape.model.CyTableManager;
 import org.cytoscape.property.AbstractConfigDirPropsReader;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.session.CySessionManager;
 import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.view.layout.CyLayoutAlgorithmManager;
 import org.cytoscape.view.model.CyNetworkViewFactory;
@@ -58,9 +62,11 @@ public class CyActivator extends AbstractCyActivator {
 	public static final String APP_NAME = "AutoAnnotate";  // Suitable for display in the UI
 	public static final String APP_ID = "autoannotate";  // Suitable as an ID for the App
 	
+	private Injector injector;
+	
 	@Override
-	public void start(BundleContext context) throws Exception {
-		Injector injector = Guice.createInjector(osgiModule(context), new MainModule());
+	public void start(BundleContext context) {
+		injector = Guice.createInjector(osgiModule(context), new MainModule());
 		
 		ModelManager modelManager = injector.getInstance(ModelManager.class);
 		registerAllServices(context, modelManager, new Properties());
@@ -82,7 +88,7 @@ public class CyActivator extends AbstractCyActivator {
 		createClusterProps.setProperty(TITLE, "Create Cluster");
 		registerAllServices(context, createClusterTaskFactory, createClusterProps);
 		
-		SessionListener sessionListener = injector.getInstance(SessionListener.class);
+		ModelTablePersistor sessionListener = injector.getInstance(ModelTablePersistor.class);
 		registerAllServices(context, sessionListener, new Properties());
 		
 		// Configuration properties
@@ -91,11 +97,18 @@ public class CyActivator extends AbstractCyActivator {
 		propsReaderServiceProps.setProperty("cyPropertyName", APP_ID+".props");
 		registerAllServices(context, configProps, propsReaderServiceProps);
 		
-		
-		// TEMPORARY
-		TestGsonAction gsonAction = injector.getInstance(TestGsonAction.class);
-		gsonAction.setPreferredMenu("Apps."+APP_NAME);
-		registerAllServices(context, gsonAction, new Properties());
+		// If no session is loaded then this won't do anything, but if there is a session loaded 
+		// then we want to load the model immediately.
+		ModelTablePersistor persistor = injector.getInstance(ModelTablePersistor.class);
+		persistor.importModel();
+	}
+	
+	
+	@Override
+	public void shutDown() {
+		ModelTablePersistor tableSerializer = injector.getInstance(ModelTablePersistor.class);
+		tableSerializer.exportModel();
+		// MKTODO also dispose the panels?
 	}
 	
 	
@@ -116,9 +129,16 @@ public class CyActivator extends AbstractCyActivator {
 			bind(CyGroupFactory.class).toProvider(service(CyGroupFactory.class).single());
 			bind(AvailableCommands.class).toProvider(service(AvailableCommands.class).single());
 			bind(CommandExecutorTaskFactory.class).toProvider(service(CommandExecutorTaskFactory.class).single());
+			bind(CySessionManager.class).toProvider(service(CySessionManager.class).single());
+			
+			bind(CyNetworkTableManager.class).toProvider(service(CyNetworkTableManager.class).single());
+			bind(CyTableManager.class).toProvider(service(CyTableManager.class).single());
+			bind(CyTableFactory.class).toProvider(service(CyTableFactory.class).single());
+			
 			bind(DialogTaskManager.class).toProvider(service(DialogTaskManager.class).single());
 			TypeLiteral<SynchronousTaskManager<?>> synchronousManager = new TypeLiteral<SynchronousTaskManager<?>>(){};
 			bind(synchronousManager).toProvider(service(synchronousManager).single());
+			
 			bind(AnnotationManager.class).toProvider(service(AnnotationManager.class).single());
 			TypeLiteral<AnnotationFactory<ShapeAnnotation>> shapeFactory = new TypeLiteral<AnnotationFactory<ShapeAnnotation>>(){};
 			bind(shapeFactory).toProvider(service(shapeFactory).filter(ldap("(type=ShapeAnnotation.class)")).single());

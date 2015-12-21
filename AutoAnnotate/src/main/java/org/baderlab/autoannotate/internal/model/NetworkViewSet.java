@@ -3,7 +3,6 @@ package org.baderlab.autoannotate.internal.model;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -32,19 +31,9 @@ public class NetworkViewSet {
 	}
 	
 	AnnotationSet build(AnnotationSetBuilder builder) {
-		AnnotationSet as = new AnnotationSet(this, builder.getName(), builder.getLabelColumn());
+		System.out.println("NetworkViewSet.build()");
+		AnnotationSet as = new AnnotationSet(this, builder);
 		annotationSets.add(as);
-		
-		List<Collection<CyNode>> clusterNodes = builder.getClusterNodes();
-		List<String> clusterLabels = builder.clusterLabels();
-		
-		int n = clusterNodes.size();
-		for(int i = 0; i < n; i++) {
-			Collection<CyNode> nodes = clusterNodes.get(i);
-			String label = clusterLabels.get(i);
-			as.createClusterNoEvent(nodes, label);
-		}
-		
 		parent.postEvent(new ModelEvents.AnnotationSetAdded(as));
 		return as;
 	}

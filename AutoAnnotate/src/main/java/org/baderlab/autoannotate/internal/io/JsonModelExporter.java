@@ -19,7 +19,7 @@ import com.google.inject.Inject;
  * Model Exporting is simple serialization to Json.
  * Note: Fields in the model with the 'transient' keyword are not exported.
  */
-public class ModelExporter {
+public class JsonModelExporter {
 
 	@Inject private ModelManager modelManager;
 	
@@ -41,7 +41,7 @@ public class ModelExporter {
 		
 		Collection<NetworkViewSet> viewSets = modelManager.getNetworkViewSets();
 		
-		SessionContext sessionContext = new SessionContext(viewSets);
+		JsonRoot sessionContext = new JsonRoot(viewSets);
 		
 		gson.toJson(sessionContext, writer);
 	}

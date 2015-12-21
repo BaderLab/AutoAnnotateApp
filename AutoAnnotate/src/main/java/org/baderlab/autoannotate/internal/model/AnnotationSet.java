@@ -3,6 +3,7 @@ package org.baderlab.autoannotate.internal.model;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.cytoscape.model.CyNode;
@@ -17,6 +18,9 @@ public class AnnotationSet {
 	private Set<Cluster> clusters = new HashSet<>();
 	
 	
+	/**
+	 * Create an empty AnnotationSet with default DisplayOptions.
+	 */
 	AnnotationSet(NetworkViewSet parent, String name, String labelColumn) {
 		this.parent = parent;
 		this.name = name;
@@ -24,6 +28,29 @@ public class AnnotationSet {
 		this.displayOptions = new DisplayOptions(this);
 	}
 	
+	/**
+	 * Create an AnnotationSet with the DisplayOptions and Clusters
+	 * specified by the AnnotationSetBuilder.
+	 * Does not fire creation events.
+	 */
+	AnnotationSet(NetworkViewSet parent, AnnotationSetBuilder builder) {
+		this.parent = parent;
+		this.name = builder.getName();
+		this.labelColumn = builder.getLabelColumn();
+		
+		this.displayOptions = new DisplayOptions(this, builder);
+		
+		List<Collection<CyNode>> clusterNodes = builder.getClusterNodes();
+		List<String> clusterLabels = builder.clusterLabels();
+		
+		int n = clusterNodes.size();
+		for(int i = 0; i < n; i++) {
+			Collection<CyNode> nodes = clusterNodes.get(i);
+			String label = clusterLabels.get(i);
+			Cluster cluster = new Cluster(this, nodes, label);
+			clusters.add(cluster);
+		}
+	}
 	
 	public Cluster createCluster(Collection<CyNode> nodes, String label) {
 		Cluster cluster = new Cluster(this, nodes, label);
@@ -31,13 +58,6 @@ public class AnnotationSet {
 		parent.getParent().postEvent(new ModelEvents.ClusterAdded(cluster));
 		return cluster;
 	}
-	
-	Cluster createClusterNoEvent(Collection<CyNode> nodes, String label) {
-		Cluster cluster = new Cluster(this, nodes, label);
-		clusters.add(cluster);
-		return cluster;
-	}
-	
 	
 	public String getName() {
 		return name;

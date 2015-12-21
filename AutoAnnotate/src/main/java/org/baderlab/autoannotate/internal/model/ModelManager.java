@@ -55,6 +55,10 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 		return set;
 	}
 	
+	public Optional<NetworkViewSet> getExistingNetworkViewSet(CyNetworkView networkView) {
+		return Optional.ofNullable(networkViews.get(networkView));
+	}
+	
 	public Optional<NetworkViewSet> getActiveNetworkViewSet() {
 		CyNetworkView activeView = applicationManager.getCurrentNetworkView();
 		return Optional.ofNullable(networkViews.get(activeView));

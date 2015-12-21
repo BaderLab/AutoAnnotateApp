@@ -34,6 +34,17 @@ public class DisplayOptions {
 		this.parent = parent;
 	}
 	
+	DisplayOptions(AnnotationSet parent, AnnotationSetBuilder builder) {
+		this.parent = parent;
+		this.shapeType = builder.getShapeType();
+		this.showClusters = builder.isShowClusters();
+		this.showLabels = builder.isShowLabels();
+		this.useConstantFontSize = builder.isUseConstantFontSize();
+		this.fontScale = builder.getFontScale();
+		this.opacity = builder.getOpacity();
+		this.borderWidth = builder.getBorderWidth();
+	}
+	
 	public AnnotationSet getParent() {
 		return parent;
 	}

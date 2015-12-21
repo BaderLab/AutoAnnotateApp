@@ -21,22 +21,24 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
+@Deprecated
 @Singleton
-public class SessionListener implements SessionAboutToBeSavedListener, SessionLoadedListener{
+public class JsonSessionListener implements SessionAboutToBeSavedListener, SessionLoadedListener {
 
 	private static final String JSON_FILE_NAME = CyActivator.APP_ID + "_model.json";
 	
-	@Inject private Provider<ModelExporter> exporterProvider;
-	@Inject private Provider<ModelImporter> importerProvider;
+	@Inject private Provider<JsonModelExporter> exporterProvider;
+	@Inject private Provider<JsonModelImporter> importerProvider;
 	@Inject private ModelManager modelManager;
 	
 	
 	@Override
 	public void handleEvent(SessionAboutToBeSavedEvent event) {
+		System.out.println("SessionListener.handleEvent(SessionAboutToBeSavedEvent)");
 		String tempDir = System.getProperty("java.io.tmpdir");
 		File file = new File(tempDir, JSON_FILE_NAME);
 		
-		ModelExporter exporter = exporterProvider.get();
+		JsonModelExporter exporter = exporterProvider.get();
 		
 		try(FileWriter writer = new FileWriter(file)) {
 			exporter.exportJSON(writer);
@@ -50,13 +52,14 @@ public class SessionListener implements SessionAboutToBeSavedListener, SessionLo
 	
 	@Override
 	public void handleEvent(SessionLoadedEvent event) {
+		System.out.println("SessionListener.handleEvent(SessionLoadedEvent)");
 		CySession session = event.getLoadedSession();
 		
 		List<File> fileList = session.getAppFileListMap().get(CyActivator.APP_ID);
 		for(File file : fileList) {
 			if(JSON_FILE_NAME.equals(file.getName())) {
 				
-				ModelImporter importer = importerProvider.get();
+				JsonModelImporter importer = importerProvider.get();
 				
 				try(FileReader reader = new FileReader(file)) {
 					importer.importJSON(session::getObject, reader);
