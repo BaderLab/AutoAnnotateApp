@@ -9,7 +9,7 @@ import org.cytoscape.model.CyNode;
 
 public class Cluster {
 
-	private final transient AnnotationSet parent;
+	private final AnnotationSet parent;
 	
 	private String label;
 	private final Set<CyNode> nodes;

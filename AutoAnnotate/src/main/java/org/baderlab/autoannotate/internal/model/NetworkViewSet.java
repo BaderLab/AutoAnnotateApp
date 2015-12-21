@@ -12,11 +12,11 @@ import org.cytoscape.view.model.CyNetworkView;
 
 public class NetworkViewSet {
 
-	private final transient ModelManager parent;
+	private final ModelManager parent;
 	
 	private final CyNetworkView networkView;
 	private final Set<AnnotationSet> annotationSets;
-	private transient Optional<AnnotationSet> activeSet = Optional.empty();
+	private Optional<AnnotationSet> activeSet = Optional.empty();
 	
 	
 	NetworkViewSet(ModelManager parent, CyNetworkView networkView) {

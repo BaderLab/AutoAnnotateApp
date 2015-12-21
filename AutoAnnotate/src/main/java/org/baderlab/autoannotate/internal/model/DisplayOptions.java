@@ -19,7 +19,7 @@ public class DisplayOptions {
 	public static final int FONT_SCALE_MAX = 100;
 	
 	
-	private final transient AnnotationSet parent;
+	private final AnnotationSet parent;
 	
 	private ShapeType shapeType = ShapeType.ELLIPSE;
 	private boolean showClusters = true;

@@ -10,7 +10,7 @@ import org.cytoscape.model.CyNode;
 
 public class AnnotationSet {
 
-	private final transient NetworkViewSet parent;
+	private final NetworkViewSet parent;
 	
 	private String name;
 	private final DisplayOptions displayOptions;

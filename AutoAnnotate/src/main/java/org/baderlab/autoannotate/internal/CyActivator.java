@@ -88,8 +88,8 @@ public class CyActivator extends AbstractCyActivator {
 		createClusterProps.setProperty(TITLE, "Create Cluster");
 		registerAllServices(context, createClusterTaskFactory, createClusterProps);
 		
-		ModelTablePersistor sessionListener = injector.getInstance(ModelTablePersistor.class);
-		registerAllServices(context, sessionListener, new Properties());
+		ModelTablePersistor persistor = injector.getInstance(ModelTablePersistor.class);
+		registerAllServices(context, persistor, new Properties());
 		
 		// Configuration properties
 		CyProperty<Properties> configProps = injector.getInstance(Key.get(new TypeLiteral<CyProperty<Properties>>(){}));
@@ -99,15 +99,14 @@ public class CyActivator extends AbstractCyActivator {
 		
 		// If no session is loaded then this won't do anything, but if there is a session loaded 
 		// then we want to load the model immediately.
-		ModelTablePersistor persistor = injector.getInstance(ModelTablePersistor.class);
 		persistor.importModel();
 	}
 	
 	
 	@Override
 	public void shutDown() {
-		ModelTablePersistor tableSerializer = injector.getInstance(ModelTablePersistor.class);
-		tableSerializer.exportModel();
+		ModelTablePersistor persistor = injector.getInstance(ModelTablePersistor.class);
+		persistor.exportModel();
 		// MKTODO also dispose the panels?
 	}
 	
