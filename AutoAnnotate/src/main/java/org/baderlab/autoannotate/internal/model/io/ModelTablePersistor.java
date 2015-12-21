@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.io;
+package org.baderlab.autoannotate.internal.model.io;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -115,7 +115,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			List<String> labels = asRow.getList(LABEL_COLUMN, String.class);
 			String label = labels.get(0);
 			
-			System.out.println("Importing annotationSet: " + name);
 			AnnotationSetBuilder builder = nvs.getAnnotationSetBuilder(name, label);
 			
 			// DisplayOptions
@@ -133,7 +132,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		for(CyRow clusterRow : clusterTable.getAllRows()) {
 			long asId = clusterRow.get(ANNOTATION_SET_ID, Long.class);
 			String label = clusterRow.get(LABEL, String.class);
-			System.out.println("Importing cluster: " + label);
 			List<Long> nodeSUIDS = clusterRow.getList(NODES_SUID, Long.class);
 			List<CyNode> nodes = nodeSUIDS.stream().map(network::getNode).collect(Collectors.toList());
 			
@@ -175,7 +173,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	
 	
 	private void exportModel(NetworkViewSet nvs, CyTable asTable, CyTable clusterTable) {
-		System.out.println("TableSessionListener.export()");
 		clearTable(asTable);
 		clearTable(clusterTable);
 		
@@ -183,7 +180,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		long clusterId = 0;
 		
 		for(AnnotationSet as : nvs.getAnnotationSets()) {
-			System.out.println("Exporting annotationSet: " + as.getName());
 			CyRow asRow = asTable.getRow(asId);
 			asRow.set(NAME, as.getName());
 			asRow.set(LABEL_COLUMN, Arrays.asList(as.getLabelColumn())); // will want to support multiple label columns in the future
@@ -197,7 +193,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(BORDER_WIDTH, disp.getBorderWidth());
 			
 			for(Cluster cluster : as.getClusters()) {
-				System.out.println("Exporting cluster: " + cluster.getLabel());
 				CyRow clusterRow = clusterTable.getRow(clusterId);
 				clusterRow.set(LABEL, cluster.getLabel());
 				clusterRow.set(NODES_SUID, cluster.getNodes().stream().map(CyNode::getSUID).collect(Collectors.toList()));

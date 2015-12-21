@@ -9,8 +9,8 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Properties;
 
-import org.baderlab.autoannotate.internal.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.model.ModelManager;
+import org.baderlab.autoannotate.internal.model.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.ui.CreateClusterTaskFactory;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
