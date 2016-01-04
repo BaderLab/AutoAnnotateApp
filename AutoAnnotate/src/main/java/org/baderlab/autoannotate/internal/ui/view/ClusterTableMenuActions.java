@@ -26,10 +26,13 @@ import org.cytoscape.model.CyNode;
 class ClusterTableMenuActions {
 
 	private final JTable table;
+	
 	private final Action renameAction;
 	private final Action deleteAction;
 	private final Action mergeAction;
 	private final Action createAction;
+	private final Action collapseAction;
+	private final Action uncollapseAction;
 	
 	private final WordCloudAdapter wordCloudAdapter;
 	
@@ -41,6 +44,8 @@ class ClusterTableMenuActions {
 		this.deleteAction = new DeleteAction();
 		this.mergeAction = new MergeAction();
 		this.createAction = new CreateAction();
+		this.collapseAction = new CollapseAction(true);
+		this.uncollapseAction = new CollapseAction(false);
 	}
 	
 	public void addTo(JPopupMenu menu) {
@@ -48,14 +53,18 @@ class ClusterTableMenuActions {
 		menu.add(mergeAction);
 		menu.add(deleteAction);
 		menu.add(createAction);
+		menu.add(collapseAction);
+		menu.add(uncollapseAction);
 	}
 	
 	public void updateEnablement() {
 		int rowCount = table.getSelectedRowCount();
 		renameAction.setEnabled(rowCount == 1);
 		deleteAction.setEnabled(rowCount > 0);
-		mergeAction .setEnabled(rowCount > 1);
+		mergeAction.setEnabled(rowCount > 1);
 		createAction.setEnabled(rowCount > 0);
+		collapseAction.setEnabled(rowCount > 0);
+		uncollapseAction.setEnabled(rowCount > 0);
 	}
 	
 	
@@ -191,6 +200,22 @@ class ClusterTableMenuActions {
 				name[0] = originalName + " " + (suffix++);
 			}
 			return name[0];
+		}
+	}
+	
+	
+	private class CollapseAction extends AbstractAction {
+
+		private final boolean collapse;
+		
+		public CollapseAction(boolean collapse) {
+			super(collapse ? "Collapse" : "Expand");
+			this.collapse = collapse;
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			getSelectedClusters().forEach(c -> c.setCollapsed(collapse));
 		}
 	}
 }

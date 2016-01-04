@@ -45,6 +45,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private JCheckBox hideLabelsCheckBox;
 	private JCheckBox fontByClusterCheckbox;
 	private JRadioButton ellipseRadio;
+	private JRadioButton rectangleRadio;
 	
 	private ChangeListener borderWidthListener;
 	private ChangeListener opacityListener;
@@ -194,9 +195,9 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		panel.add(ellipseRadio, GBCFactory.grid(0,1).get());
 		ellipseRadio.addActionListener(ellipseListener);
 		
-		JRadioButton rectangleRadio = new JRadioButton("Rectangle");
+		rectangleRadio = new JRadioButton("Rectangle");
 		panel.add(rectangleRadio, GBCFactory.grid(0,2).get());
-//		rectangleRadio.addActionListener(ellipseListener);
+		rectangleRadio.addActionListener(ellipseListener);
 		
 		ButtonGroup buttonGroup = new ButtonGroup();
 		buttonGroup.add(ellipseRadio);

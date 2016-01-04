@@ -13,7 +13,8 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
-import org.baderlab.autoannotate.internal.ui.render.DrawClusterLabelTask.LabelArgs;
+import org.baderlab.autoannotate.internal.ui.render.DrawClusterTask.LabelArgs;
+import org.cytoscape.group.CyGroup;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
 import org.cytoscape.work.SynchronousTaskManager;
@@ -32,14 +33,14 @@ public class AnnotationRenderer {
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	
-	@Inject private Provider<DrawClusterShapeTask> shapeTaskProvider;
-	@Inject private Provider<DrawClusterLabelTask> labelTaskProvier;
+	@Inject private Provider<DrawClusterTask> drawTaskProvider;
 	@Inject private Provider<EraseClusterTask> eraseTaskProvider;
 	@Inject private Provider<RemoveAllAnnotationsTask> removeAllTaskProvider;
 	@Inject private Provider<SelectClusterTask> selectTaskProvider;
 	
 	private Map<Cluster,TextAnnotation> textAnnotations = new HashMap<>();
 	private Map<Cluster,ShapeAnnotation> shapeAnnotations = new HashMap<>();
+	private Map<Cluster,CyGroup> groups = new HashMap<>();
 	
 	
 	@Inject
@@ -60,9 +61,7 @@ public class AnnotationRenderer {
 		Optional<AnnotationSet> selected = event.getAnnotationSet();
 		if(selected.isPresent()) {
 			for(Cluster cluster : selected.get().getClusters()) {
-				// The shape task must go first because the label task needs to know the location/size of the shape.
-				tasks.append(shapeTaskProvider.get().setCluster(cluster));
-				tasks.append(labelTaskProvier.get().setCluster(cluster));
+				tasks.append(drawTaskProvider.get().setCluster(cluster));
 			}
 		}
 		
@@ -72,11 +71,11 @@ public class AnnotationRenderer {
 	
 	@Subscribe
 	public void handle(ModelEvents.ClusterChanged event) {
+		System.out.println("AnnotationRenderer.handle(ClusterChanged)");
 		Cluster cluster = event.getCluster();
 		TaskIterator tasks = new TaskIterator();
 		tasks.append(eraseTaskProvider.get().setCluster(cluster));
-		tasks.append(shapeTaskProvider.get().setCluster(cluster));
-		tasks.append(labelTaskProvier.get().setCluster(cluster));
+		tasks.append(drawTaskProvider.get().setCluster(cluster));
 		syncTaskManager.execute(tasks);
 	}
 	
@@ -93,9 +92,7 @@ public class AnnotationRenderer {
 	@Subscribe
 	public void handle(ModelEvents.ClusterAdded event) {
 		Cluster cluster = event.getCluster();
-		TaskIterator tasks = new TaskIterator();
-		tasks.append(shapeTaskProvider.get().setCluster(cluster));
-		tasks.append(labelTaskProvier.get().setCluster(cluster));
+		TaskIterator tasks = new TaskIterator(drawTaskProvider.get().setCluster(cluster));
 		syncTaskManager.execute(tasks);
 	}
 	
@@ -125,7 +122,7 @@ public class AnnotationRenderer {
 		case SHOW_LABELS:
 		case USE_CONSTANT_FONT_SIZE:
 			for(Cluster cluster : options.getParent().getClusters()) {
-				LabelArgs labelArgs = DrawClusterLabelTask.computeLabelArgs(this,cluster);
+				LabelArgs labelArgs = DrawClusterTask.computeLabelArgs(this,cluster);
 				double fontSize = options.isShowLabels() ? labelArgs.fontSize : 0;
 				TextAnnotation text = textAnnotations.get(cluster);
 				text.setFontSize(fontSize);
@@ -179,6 +176,11 @@ public class AnnotationRenderer {
 		shapeAnnotations.put(cluster, shapeAnnotation);
 	}
 	
+	ShapeAnnotation removeShapeAnnoation(Cluster cluster) {
+		return shapeAnnotations.remove(cluster);
+	}
+	
+	
 	TextAnnotation getTextAnnotation(Cluster cluster) {
 		return textAnnotations.get(cluster);
 	}
@@ -191,9 +193,16 @@ public class AnnotationRenderer {
 		return textAnnotations.remove(cluster);
 	}
 	
-	ShapeAnnotation removeShapeAnnoation(Cluster cluster) {
-		return shapeAnnotations.remove(cluster);
+	
+	CyGroup getGroup(Cluster cluster) {
+		return groups.get(cluster);
 	}
 	
-
+	void setGroup(Cluster cluster, CyGroup group) {
+		groups.put(cluster, group);
+	}
+	
+	CyGroup removeGroup(Cluster cluster) {
+		return groups.remove(cluster);
+	}
 }

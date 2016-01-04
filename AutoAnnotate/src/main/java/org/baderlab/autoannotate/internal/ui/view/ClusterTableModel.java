@@ -1,6 +1,7 @@
 package org.baderlab.autoannotate.internal.ui.view;
 
 import java.util.ArrayList;
+import java.util.function.Function;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -12,11 +13,17 @@ public class ClusterTableModel extends AbstractTableModel {
 	
 	public static final int CLUSTER_COLUMN_INDEX = 0;
 	public static final int NODES_COLUMN_INDEX = 1;
+	public static final int COLLAPSED_COLUMN_INDEX = 2;
 	
-	private final String[] columnNames = {"Cluster", "Nodes"};
+	private Column[] columns = {
+		new Column("Cluster", String.class, Cluster::getLabel),
+		new Column("Nodes", Integer.class, Cluster::getNodeCount),
+		new Column("Collapsed", Boolean.class, Cluster::isCollapsed)
+	};
 	
 	private final AnnotationSet annotationSet;
 	private final ArrayList<Cluster> clusters;
+	
 	
 	public ClusterTableModel() {
 		this(null);
@@ -28,15 +35,6 @@ public class ClusterTableModel extends AbstractTableModel {
 			this.clusters = new ArrayList<>(0);
 		else
 			this.clusters = new ArrayList<>(annotationSet.getClusters());
-	}
-	
-	@Override
-	public Object getValueAt(int rowIndex, int columnIndex) {
-		Cluster cluster = clusters.get(rowIndex);
-		if(columnIndex == 0)
-			return cluster.getLabel();
-		else
-			return cluster.getNodeCount();
 	}
 	
 	public Cluster getCluster(int index) {
@@ -68,14 +66,35 @@ public class ClusterTableModel extends AbstractTableModel {
 		fireTableRowsInserted(index, index);
 	}
 	
-	
 	public AnnotationSet getAnnotationSet() {
 		return annotationSet;
 	}
 	
+	
 	@Override
-	public Class<?> getColumnClass(int columnIndex) {
-		return (columnIndex == CLUSTER_COLUMN_INDEX) ? String.class : Integer.class;
+	public Object getValueAt(int row, int col) {
+		Cluster cluster = clusters.get(row);
+		return columns[col].getter.apply(cluster);
+	}
+	
+	@Override
+	public String getColumnName(int col) {
+        return columns[col].name;
+    }
+	
+	@Override
+	public Class<?> getColumnClass(int col) {
+		return columns[col].type;
+	}
+
+	@Override
+	public int getColumnCount() {
+		return columns.length;
+	}
+	
+	@Override
+	public int getRowCount() {
+		return clusters.size();
 	}
 	
 	@Override
@@ -83,19 +102,17 @@ public class ClusterTableModel extends AbstractTableModel {
 		return false;
 	}
 	
-	@Override
-	public String getColumnName(int col) {
-        return columnNames[col];
-    }
 	
-	@Override
-	public int getRowCount() {
-		return clusters.size();
-	}
-
-	@Override
-	public int getColumnCount() {
-		return columnNames.length;
+	private static class Column {
+		public final String name;
+		public final Class<?> type;
+		public final Function<Cluster,Object> getter;
+		
+		public Column(String name, Class<?> type, Function<Cluster,Object> getter) {
+			this.name = name;
+			this.type = type;
+			this.getter = getter;
+		}
 	}
 	
 }

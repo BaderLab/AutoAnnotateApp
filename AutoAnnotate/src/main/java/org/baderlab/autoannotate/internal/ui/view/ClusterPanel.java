@@ -151,7 +151,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		selectionModel.clearSelection();
 		for(Cluster cluster : event.getClusters()) {
 			int modelIndex = tableModel.rowIndexOf(cluster);
-			if(modelIndex > 0) {
+			if(modelIndex >= 0) {
 				int viewIndex = clusterTable.convertRowIndexToView(modelIndex);
 				selectionModel.addSelectionInterval(viewIndex, viewIndex);
 			}
@@ -205,11 +205,10 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		int index = annotationSetCombo.getSelectedIndex();
 		AnnotationSet annotationSet = annotationSetCombo.getItemAt(index).getValue();
 		ClusterTableModel clusterModel = new ClusterTableModel(annotationSet);
-		int widthCol0 = clusterTable.getColumnModel().getColumn(0).getPreferredWidth();
-		int widthCol1 = clusterTable.getColumnModel().getColumn(1).getPreferredWidth();
+		
+		int widths[] = getColumnWidths(clusterTable);
 		clusterTable.setModel(clusterModel);
-		clusterTable.getColumnModel().getColumn(0).setPreferredWidth(widthCol0);
-		clusterTable.getColumnModel().getColumn(1).setPreferredWidth(widthCol1);
+		setColumnWidths(clusterTable, widths);
 		
 		// sort
 		TableRowSorter<TableModel> sorter = new TableRowSorter<>(clusterTable.getModel());
@@ -220,6 +219,25 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		sorter.setSortKeys(sortKeys);
 		sorter.sort();
 	}
+	
+	
+	private static int[] getColumnWidths(JTable table) {
+		int n = table.getColumnModel().getColumnCount();
+		int[] widths = new int[n];
+		for(int i = 0; i < n; i++) {
+			widths[i] = table.getColumnModel().getColumn(i).getPreferredWidth();
+		}
+		return widths;
+	}
+	
+	
+	private static void setColumnWidths(JTable table, int... widths) {
+		int n = table.getColumnModel().getColumnCount();
+		for(int i = 0; i < n; i++) {
+			table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+		}
+	}
+	
 	
 	
 	private JPanel createComboPanel() {
@@ -256,8 +274,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		JPanel panel = new JPanel(new BorderLayout());
 		
 		clusterTable = new JTable(new ClusterTableModel()); // create with dummy model
-		clusterTable.getColumnModel().getColumn(0).setPreferredWidth(200);
-		clusterTable.getColumnModel().getColumn(1).setPreferredWidth(10);
+		setColumnWidths(clusterTable, 200, 15, 15);
 		clusterTable.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		clusterSelectionListener = selectionListenerProvider.get().init(clusterTable);
 		clusterTable.getSelectionModel().addListSelectionListener(clusterSelectionListener);

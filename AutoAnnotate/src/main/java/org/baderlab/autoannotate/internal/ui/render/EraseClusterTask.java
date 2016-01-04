@@ -4,6 +4,9 @@ import javax.swing.SwingUtilities;
 
 import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.Cluster;
+import org.baderlab.autoannotate.internal.model.ModelManager;
+import org.cytoscape.group.CyGroup;
+import org.cytoscape.model.CyNetwork;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
 import org.cytoscape.work.AbstractTask;
@@ -13,6 +16,7 @@ import com.google.inject.Inject;
 
 public class EraseClusterTask extends AbstractTask {
 
+	@Inject private ModelManager modelManager;
 	@Inject private AnnotationRenderer annotationRenderer;
 	
 	private Cluster cluster;
@@ -29,6 +33,7 @@ public class EraseClusterTask extends AbstractTask {
 		
 		ShapeAnnotation shape = annotationRenderer.removeShapeAnnoation(cluster);
 		TextAnnotation text = annotationRenderer.removeTextAnnotation(cluster);
+		CyGroup group = annotationRenderer.removeGroup(cluster);
 		
 		// invokeAndWait forces the shape to update on the current thread
 		if(shape != null) {
@@ -45,7 +50,13 @@ public class EraseClusterTask extends AbstractTask {
 				SwingUtilities.invokeAndWait(text::removeAnnotation);
 			}
 		}
-		
+		if(group != null) {
+			modelManager.invokeSafe(() -> {
+				CyNetwork network = cluster.getNetwork();
+				group.expand(network);
+				group.removeGroupFromNetwork(network);
+			});
+		}
 	}
 
 }

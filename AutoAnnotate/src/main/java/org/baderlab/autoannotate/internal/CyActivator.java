@@ -21,6 +21,7 @@ import org.cytoscape.application.swing.CyAction;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.command.AvailableCommands;
 import org.cytoscape.command.CommandExecutorTaskFactory;
+import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.model.CyNetworkFactory;
@@ -129,6 +130,7 @@ public class CyActivator extends AbstractCyActivator {
 			bind(AvailableCommands.class).toProvider(service(AvailableCommands.class).single());
 			bind(CommandExecutorTaskFactory.class).toProvider(service(CommandExecutorTaskFactory.class).single());
 			bind(CySessionManager.class).toProvider(service(CySessionManager.class).single());
+			bind(CyEventHelper.class).toProvider(service(CyEventHelper.class).single());
 			
 			bind(CyNetworkTableManager.class).toProvider(service(CyNetworkTableManager.class).single());
 			bind(CyTableManager.class).toProvider(service(CyTableManager.class).single());

@@ -5,7 +5,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.view.model.CyNetworkView;
 
 public class Cluster {
 
@@ -13,6 +15,7 @@ public class Cluster {
 	
 	private String label;
 	private final Set<CyNode> nodes;
+	private boolean collapsed = false;
 	
 	Cluster(AnnotationSet parent, Collection<CyNode> nodes, String label) {
 		this.parent = parent;
@@ -48,6 +51,17 @@ public class Cluster {
 		return Collections.unmodifiableSet(nodes);
 	}
 	
+	public boolean isCollapsed() {
+		return collapsed;
+	}
+	
+	public void setCollapsed(boolean collapsed) {
+		if(this.collapsed != collapsed) {
+			this.collapsed = collapsed;
+			postEvent(new ModelEvents.ClusterChanged(this));
+		}
+	}
+	
 	@Override
 	public String toString() {
 		return label;
@@ -72,6 +86,14 @@ public class Cluster {
 			label = newLabel;
 			postEvent(new ModelEvents.ClusterChanged(this));
 		}
+	}
+
+	public CyNetwork getNetwork() {
+		return getParent().getParent().getNetwork();
+	}
+
+	public CyNetworkView getNetworkView() {
+		return getParent().getParent().getNetworkView();
 	}
 	
 }

@@ -15,7 +15,6 @@ import org.cytoscape.model.CyRow;
 
 public class ClusterTableSelectionListener implements ListSelectionListener {
 
-	
 	private JTable table;
 	
 	public ClusterTableSelectionListener init(JTable table) {
@@ -41,13 +40,12 @@ public class ClusterTableSelectionListener implements ListSelectionListener {
 			.flatMap(c -> c.getNodes().stream())
 			.collect(Collectors.toSet());
 		
-		
 		CyNetwork network = annotationSet.getParent().getNetwork();
+		
 		for(CyNode node : network.getNodeList()) {
 			CyRow row = network.getRow(node);
 			row.set(CyNetwork.SELECTED, nodesToSelect.contains(node));
 		}
-		
 	}
 
 }

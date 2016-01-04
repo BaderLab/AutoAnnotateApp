@@ -13,6 +13,9 @@ import java.util.Set;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.events.SetSelectedNetworkViewsEvent;
 import org.cytoscape.application.events.SetSelectedNetworkViewsListener;
+import org.cytoscape.group.CyGroup;
+import org.cytoscape.group.events.GroupAboutToCollapseEvent;
+import org.cytoscape.group.events.GroupAboutToCollapseListener;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTableUtil;
@@ -36,7 +39,7 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class ModelManager implements SetSelectedNetworkViewsListener, NetworkViewAboutToBeDestroyedListener, 
-                                     ViewChangedListener, AboutToRemoveNodesListener, RowsSetListener {
+                                     ViewChangedListener, AboutToRemoveNodesListener, RowsSetListener, GroupAboutToCollapseListener {
 	
 	@Inject private CyApplicationManager applicationManager;
 	@Inject private EventBus eventBus;
@@ -109,12 +112,33 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 	}
 
 	
+	private boolean ignoreViewChangedEvents = false;
+	/**
+	 * Invokes the code inside the runnable and handles any resulting
+	 * events fired by cytoscape. Use this to avoid infinite chains
+	 * of events firing.
+	 */
+	public synchronized void invokeSafe(Runnable runnable) {
+		ignoreViewChangedEvents = true;
+		try {
+			runnable.run();
+		} catch(Exception e) {
+			e.printStackTrace();
+		} finally {
+			ignoreViewChangedEvents = false;
+		}
+	}
+	
+	
 	/**
 	 * Handle nodes being moved around.
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void handleEvent(ViewChangedEvent<?> e) {
+		if(ignoreViewChangedEvents)
+			return;
+		
 		CyNetworkView networkView = e.getSource();
 		Optional<NetworkViewSet> optional = getActiveNetworkViewSet();
 		if(optional.isPresent()) {
@@ -189,6 +213,19 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 				// Fire event even when selectedClusters is empty
 				postEvent(new ModelEvents.ClustersSelected(annotationSet, selectedClusters));
 			}
+		}
+	}
+
+	
+	@Override
+	public void handleEvent(GroupAboutToCollapseEvent e) {
+		if(e.collapsing()) {
+			CyGroup group = e.getSource();
+			Collection<CyNode> groupNodes = group.getNodeList();
+			System.out.println("Nodes collapsed: " + groupNodes.size());
+			System.out.println("Nodes collapsed: " + groupNodes);
+			
+//			CyNetwork network = e.getNetwork();
 		}
 	}
 

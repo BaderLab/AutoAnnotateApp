@@ -31,7 +31,6 @@ public class NetworkViewSet {
 	}
 	
 	AnnotationSet build(AnnotationSetBuilder builder) {
-		System.out.println("NetworkViewSet.build()");
 		AnnotationSet as = new AnnotationSet(this, builder);
 		annotationSets.add(as);
 		parent.postEvent(new ModelEvents.AnnotationSetAdded(as));
