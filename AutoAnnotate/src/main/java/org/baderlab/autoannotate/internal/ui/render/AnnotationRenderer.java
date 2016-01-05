@@ -49,14 +49,16 @@ public class AnnotationRenderer {
 	
 	@Subscribe
 	public void handle(ModelEvents.AnnotationSetSelected event) {
+		redrawAnnotations(event.getNetworkViewSet(), event.getAnnotationSet());
+	}
+	
+	public void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selected) {
 		TaskIterator tasks = new TaskIterator();
 		
-		NetworkViewSet networkViewSet = event.getNetworkViewSet();
 		RemoveAllAnnotationsTask removeTask = removeAllTaskProvider.get();
 		removeTask.setNetworkViewSet(networkViewSet);
 		tasks.append(removeTask);
 		
-		Optional<AnnotationSet> selected = event.getAnnotationSet();
 		if(selected.isPresent()) {
 			for(Cluster cluster : selected.get().getClusters()) {
 				tasks.append(drawTaskProvider.get().setCluster(cluster));
