@@ -14,7 +14,7 @@ public class Cluster {
 	private final AnnotationSet parent;
 	
 	private String label;
-	private final Set<CyNode> nodes;
+	private Set<CyNode> nodes;
 	private boolean collapsed = false;
 	
 	Cluster(AnnotationSet parent, Collection<CyNode> nodes, String label) {
@@ -32,6 +32,7 @@ public class Cluster {
 	}
 	
 	public CoordinateData getCoordinateData() {
+		
 		return CoordinateData.forNodes(parent.getParent().getNetworkView(), nodes);
 	}
 
@@ -47,7 +48,7 @@ public class Cluster {
 		return nodes.size();
 	}
 	
-	public Collection<CyNode> getNodes() {
+	public Set<CyNode> getNodes() {
 		return Collections.unmodifiableSet(nodes);
 	}
 	
@@ -55,12 +56,24 @@ public class Cluster {
 		return collapsed;
 	}
 	
-	public void setCollapsed(boolean collapsed) {
-		if(this.collapsed != collapsed) {
-			this.collapsed = collapsed;
-			postEvent(new ModelEvents.ClusterChanged(this));
-		}
+	void collapse(CyNode groupNode) {
+		if(collapsed)
+			throw new IllegalStateException("Already collapsed");
+		this.nodes.clear();
+		this.nodes.add(groupNode);
+		collapsed = true;
+		postEvent(new ModelEvents.ClusterChanged(this));
 	}
+	
+	void expand(Set<CyNode> nodes) {
+		if(!collapsed)
+			throw new IllegalStateException("Already expanded");
+		this.nodes.clear();
+		this.nodes.addAll(nodes);
+		collapsed = false;
+		postEvent(new ModelEvents.ClusterChanged(this));
+	}
+	
 	
 	@Override
 	public String toString() {

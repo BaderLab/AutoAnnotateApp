@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.ui.view;
+package org.baderlab.autoannotate.internal.ui.view.action;
 
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
@@ -19,13 +19,25 @@ import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.task.CollapseTask;
 import org.baderlab.autoannotate.internal.task.WordCloudAdapter;
+import org.baderlab.autoannotate.internal.ui.view.ClusterTableModel;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.work.SynchronousTaskManager;
+import org.cytoscape.work.TaskIterator;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 @SuppressWarnings("serial")
-class ClusterTableMenuActions {
+public class ClusterTableMenuActions {
 
-	private final JTable table;
+	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
+	@Inject private Provider<CollapseTask> collapseTaskProvider;
+	@Inject private SynchronousTaskManager<?> taskManager;
+	
+	
+	private JTable table;
 	
 	private final Action renameAction;
 	private final Action deleteAction;
@@ -34,12 +46,13 @@ class ClusterTableMenuActions {
 	private final Action collapseAction;
 	private final Action uncollapseAction;
 	
-	private final WordCloudAdapter wordCloudAdapter;
 	
-	
-	public ClusterTableMenuActions(JTable table, WordCloudAdapter wordCloudAdapter) {
+	public ClusterTableMenuActions setTable(JTable table) {
 		this.table = table;
-		this.wordCloudAdapter = wordCloudAdapter;
+		return this;
+	}
+	
+	public ClusterTableMenuActions() {
 		this.renameAction = new RenameAction();
 		this.deleteAction = new DeleteAction();
 		this.mergeAction = new MergeAction();
@@ -140,6 +153,9 @@ class ClusterTableMenuActions {
 			
 			if(result != JOptionPane.OK_OPTION)
 				return;
+			
+			WordCloudAdapter wordCloudAdapter = wordCloudAdapterProvider.get();
+			
 			if(!wordCloudAdapter.isWordcloudRequiredVersionInstalled())
 				return;
 				
@@ -205,7 +221,6 @@ class ClusterTableMenuActions {
 	
 	
 	private class CollapseAction extends AbstractAction {
-
 		private final boolean collapse;
 		
 		public CollapseAction(boolean collapse) {
@@ -215,7 +230,16 @@ class ClusterTableMenuActions {
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			getSelectedClusters().forEach(c -> c.setCollapsed(collapse));
+			TaskIterator tasks = new TaskIterator();
+			
+			getSelectedClusters()
+				.stream()
+				.map(cluster -> collapseTaskProvider.get().init(cluster, collapse))
+				.forEach(tasks::append);
+			
+			if(tasks.getNumTasks() > 0)
+				taskManager.execute(tasks);
 		}
+		
 	}
 }

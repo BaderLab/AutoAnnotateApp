@@ -1,25 +1,15 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.CoordinateData;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
-import org.baderlab.autoannotate.internal.model.ModelManager;
-import org.cytoscape.group.CyGroup;
-import org.cytoscape.group.CyGroupFactory;
-import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
-import org.cytoscape.model.CyRow;
-import org.cytoscape.model.subnetwork.CyRootNetwork;
-import org.cytoscape.model.subnetwork.CySubNetwork;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
 import org.cytoscape.view.presentation.annotations.AnnotationFactory;
@@ -41,13 +31,10 @@ import com.google.inject.Inject;
  */
 public class DrawClusterTask extends AbstractTask {
 
-	@Inject private ModelManager modelManager;
 	@Inject private AnnotationFactory<TextAnnotation> textFactory;
 	@Inject private AnnotationFactory<ShapeAnnotation> shapeFactory;
 	@Inject private AnnotationManager annotationManager;
 	@Inject private AnnotationRenderer annotationRenderer;
-	
-	@Inject private CyGroupFactory groupFactory;
 	
 	
 	public static final Color DEFAULT_TEXT_COLOR = Color.BLACK;
@@ -70,9 +57,7 @@ public class DrawClusterTask extends AbstractTask {
 		taskMonitor.setStatusMessage("Drawing Annotations");
 		
 		try {
-			if(cluster.isCollapsed())
-				createGroup();
-			else
+			if(!cluster.isCollapsed())
 				drawShape();
 			
 			drawLabel();
@@ -82,21 +67,7 @@ public class DrawClusterTask extends AbstractTask {
 	}
 	
 	
-	private void createGroup() {
-		// For some reason creating a group results in ViewChangedEvents, which
-		// result in more ClusterChangedEvents. Using invokeSafe avoids that.
-		modelManager.invokeSafe(() -> {
-			CyNetwork network = cluster.getNetwork();
-			List<CyNode> nodes = new ArrayList<>(cluster.getNodes());
-			CyGroup group = groupFactory.createGroup(network, nodes, null, true);
-			CyRow groupRow = ((CySubNetwork)network).getRootNetwork().getRow(group.getGroupNode(), CyRootNetwork.SHARED_ATTRS);
-	 		groupRow.set(CyRootNetwork.SHARED_NAME, UUID.randomUUID().toString());
-			
-			annotationRenderer.setGroup(cluster, group);
-			group.collapse(network);
-			System.out.println("collapsed");
-		});
-	}
+	
 	
 	public static class LabelArgs {
 		public final double x;
@@ -162,9 +133,8 @@ public class DrawClusterTask extends AbstractTask {
 			width = Double.parseDouble(shapeArgs.get("width"));
 			height = Double.parseDouble(shapeArgs.get("height"));
 		}
-		else if(annotationRenderer.getGroup(cluster) != null) {
-			CyGroup group = annotationRenderer.getGroup(cluster);
-			CyNode groupNode = group.getGroupNode();
+		else if(cluster.isCollapsed()) {
+			CyNode groupNode = cluster.getNodes().iterator().next();
 			CyNetworkView networkView = cluster.getNetworkView();
 			View<CyNode> nv = networkView.getNodeView(groupNode);
 			xPos = nv.getVisualProperty(BasicVisualLexicon.NODE_X_LOCATION);

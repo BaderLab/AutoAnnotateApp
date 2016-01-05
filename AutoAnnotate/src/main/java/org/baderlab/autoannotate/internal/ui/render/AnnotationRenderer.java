@@ -14,7 +14,6 @@ import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.render.DrawClusterTask.LabelArgs;
-import org.cytoscape.group.CyGroup;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
 import org.cytoscape.work.SynchronousTaskManager;
@@ -40,7 +39,6 @@ public class AnnotationRenderer {
 	
 	private Map<Cluster,TextAnnotation> textAnnotations = new HashMap<>();
 	private Map<Cluster,ShapeAnnotation> shapeAnnotations = new HashMap<>();
-	private Map<Cluster,CyGroup> groups = new HashMap<>();
 	
 	
 	@Inject
@@ -71,7 +69,6 @@ public class AnnotationRenderer {
 	
 	@Subscribe
 	public void handle(ModelEvents.ClusterChanged event) {
-		System.out.println("AnnotationRenderer.handle(ClusterChanged)");
 		Cluster cluster = event.getCluster();
 		TaskIterator tasks = new TaskIterator();
 		tasks.append(eraseTaskProvider.get().setCluster(cluster));
@@ -193,16 +190,4 @@ public class AnnotationRenderer {
 		return textAnnotations.remove(cluster);
 	}
 	
-	
-	CyGroup getGroup(Cluster cluster) {
-		return groups.get(cluster);
-	}
-	
-	void setGroup(Cluster cluster, CyGroup group) {
-		groups.put(cluster, group);
-	}
-	
-	CyGroup removeGroup(Cluster cluster) {
-		return groups.remove(cluster);
-	}
 }

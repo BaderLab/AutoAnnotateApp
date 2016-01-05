@@ -16,6 +16,8 @@ import org.cytoscape.application.events.SetSelectedNetworkViewsListener;
 import org.cytoscape.group.CyGroup;
 import org.cytoscape.group.events.GroupAboutToCollapseEvent;
 import org.cytoscape.group.events.GroupAboutToCollapseListener;
+import org.cytoscape.group.events.GroupCollapsedEvent;
+import org.cytoscape.group.events.GroupCollapsedListener;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTableUtil;
@@ -39,7 +41,8 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class ModelManager implements SetSelectedNetworkViewsListener, NetworkViewAboutToBeDestroyedListener, 
-                                     ViewChangedListener, AboutToRemoveNodesListener, RowsSetListener, GroupAboutToCollapseListener {
+                                     ViewChangedListener, AboutToRemoveNodesListener, RowsSetListener, 
+                                     GroupAboutToCollapseListener, GroupCollapsedListener {
 	
 	@Inject private CyApplicationManager applicationManager;
 	@Inject private EventBus eventBus;
@@ -182,10 +185,11 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 
 	@Override
 	public void handleEvent(AboutToRemoveNodesEvent e) {
-		Collection<CyNode> nodes = e.getNodes();
-		for(NetworkViewSet nvs : getNetworkViewSets()) {
-			nvs.removeNodes(nodes);
-		}
+		getNetworkViewSets().stream()
+			.filter(nvs -> nvs.getNetwork().equals(e.getSource()))
+			.flatMap(nvs -> nvs.getAnnotationSets().stream())
+			.flatMap(as -> as.getClusters().stream())
+			.forEach(cluster -> cluster.removeNodes(e.getNodes()));
 	}
 	
 	
@@ -195,7 +199,6 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 			return;
 		
 		Optional<AnnotationSet> active = getActiveNetworkViewSet().flatMap(NetworkViewSet::getActiveAnnotationSet);
-		
 		if(active.isPresent()) {
 			AnnotationSet annotationSet = active.get();
 			CyNetwork network = annotationSet.getParent().getNetwork();
@@ -219,13 +222,48 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 	
 	@Override
 	public void handleEvent(GroupAboutToCollapseEvent e) {
+		// Handle collapse before the nodes are removed from the network.
+		// The subsequent AboutToRemoveNodesEvent should have no effect because we 
+		// remove the nodes from the cluster here.
 		if(e.collapsing()) {
-			CyGroup group = e.getSource();
-			Collection<CyNode> groupNodes = group.getNodeList();
-			System.out.println("Nodes collapsed: " + groupNodes.size());
-			System.out.println("Nodes collapsed: " + groupNodes);
-			
-//			CyNetwork network = e.getNetwork();
+			handleCollapse(e.getSource(), e.getNetwork(), true);
+		}
+	}
+
+	@Override
+	public void handleEvent(GroupCollapsedEvent e) {
+		// Handle expand after the nodes have been added back to the network.
+		if(!e.collapsed()) { // expanded
+			handleCollapse(e.getSource(), e.getNetwork(), false);
+		}
+	}
+	
+	
+	private void handleCollapse(CyGroup group, CyNetwork network, boolean collapse) {
+		Set<CyNode> groupNodes = new HashSet<>(group.getNodeList());
+		
+		for(NetworkViewSet nvs : getNetworkViewSets()) {
+			if(nvs.getNetwork().equals(network)) {
+				for(AnnotationSet as : nvs.getAnnotationSets()) {
+					for(Cluster cluster : as.getClusters()) {
+						Set<CyNode> clusterNodes = cluster.getNodes();
+						
+						if(collapse) {
+							if(clusterNodes.equals(groupNodes)) {
+								cluster.collapse(group.getGroupNode());
+							}
+							else {
+								cluster.removeNodes(groupNodes);
+							}
+						}
+						else { // expanding
+							if(clusterNodes.equals(Collections.singleton(group.getGroupNode()))) {
+								cluster.expand(groupNodes);
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 

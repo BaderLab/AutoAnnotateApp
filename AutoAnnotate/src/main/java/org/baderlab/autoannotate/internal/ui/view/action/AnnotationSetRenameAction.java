@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.ui.view;
+package org.baderlab.autoannotate.internal.ui.view.action;
 
 import java.awt.event.ActionEvent;
 import java.util.Optional;

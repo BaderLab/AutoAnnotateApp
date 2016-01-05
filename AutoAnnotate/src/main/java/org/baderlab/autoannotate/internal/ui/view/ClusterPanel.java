@@ -34,8 +34,12 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
-import org.baderlab.autoannotate.internal.task.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.ui.ComboItem;
+import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetDeleteAction;
+import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetRenameAction;
+import org.baderlab.autoannotate.internal.ui.view.action.ClusterTableMenuActions;
+import org.baderlab.autoannotate.internal.ui.view.action.CollapseAllAction;
+import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.model.CyDisposable;
@@ -52,11 +56,14 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	
 	@Inject private ModelManager modelManager;
 	@Inject private Provider<IconManager> iconManagerProvider;
+	
 	@Inject private Provider<ShowCreateDialogAction> showActionProvider;
 	@Inject private Provider<AnnotationSetDeleteAction> deleteActionProvider;
 	@Inject private Provider<AnnotationSetRenameAction> renameActionProvider;
+	@Inject private Provider<CollapseAllAction> collapseActionProvider;
+	
 	@Inject private Provider<ClusterTableSelectionListener> selectionListenerProvider;
-	@Inject private Provider<WordCloudAdapter> wordCloudProvider;
+	@Inject private Provider<ClusterTableMenuActions> menuActionsProvider;
 	
 	private JComboBox<ComboItem<AnnotationSet>> annotationSetCombo;
 	private JTable clusterTable;
@@ -281,7 +288,8 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		clusterTable.setAutoCreateRowSorter(true);
 		
 		JPopupMenu popupMenu = new JPopupMenu();
-		ClusterTableMenuActions actions = new ClusterTableMenuActions(clusterTable, wordCloudProvider.get());
+		ClusterTableMenuActions actions = menuActionsProvider.get();
+		actions.setTable(clusterTable);
 		actions.addTo(popupMenu);
 		
 		// Add the row that was right clicked to the selection.
@@ -316,17 +324,27 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	
 	private void showAnnotationSetPopupMenu(ActionEvent event) {
 		JMenuItem createMenuItem = new JMenuItem("Create...");
+		createMenuItem.addActionListener(showActionProvider.get());
+		
 		JMenuItem renameMenuItem = new JMenuItem("Rename");
+		renameMenuItem.addActionListener(renameActionProvider.get());
+		
 		JMenuItem deleteMenuItem = new JMenuItem("Delete");
+		deleteMenuItem.addActionListener(deleteActionProvider.get());
+		
+		JMenuItem collapseMenuItem = new JMenuItem("Collapse All Clusters");
+		collapseMenuItem.addActionListener(collapseActionProvider.get().setCollapse(true));
+		
+		JMenuItem expandMenuItem = new JMenuItem("Expand All Clusters");
+		expandMenuItem.addActionListener(collapseActionProvider.get().setCollapse(false));
 		
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(createMenuItem);
 		menu.add(renameMenuItem);
 		menu.add(deleteMenuItem);
-		
-		createMenuItem.addActionListener(showActionProvider.get());
-		renameMenuItem.addActionListener(renameActionProvider.get());
-		deleteMenuItem.addActionListener(deleteActionProvider.get());
+		menu.addSeparator();
+		menu.add(collapseMenuItem);
+		menu.add(expandMenuItem);
 		
 		Component c = (Component)event.getSource();
 		menu.show(c, 0, c.getHeight());
