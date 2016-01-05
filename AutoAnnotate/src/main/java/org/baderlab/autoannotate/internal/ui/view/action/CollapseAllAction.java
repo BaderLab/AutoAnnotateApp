@@ -10,8 +10,8 @@ import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.CollapseTask;
 import org.cytoscape.application.swing.AbstractCyAction;
-import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.swing.DialogTaskManager;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -20,7 +20,7 @@ import com.google.inject.Provider;
 public class CollapseAllAction extends AbstractCyAction {
 	
 	@Inject private ModelManager modelManager;
-	@Inject private SynchronousTaskManager<?> taskManager;
+	@Inject private DialogTaskManager taskManager;
 	@Inject private Provider<CollapseTask> taskProvider;
 
 	

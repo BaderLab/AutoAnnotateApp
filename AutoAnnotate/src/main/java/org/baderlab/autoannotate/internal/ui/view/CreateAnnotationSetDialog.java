@@ -68,7 +68,6 @@ public class CreateAnnotationSetDialog extends JDialog {
 	private JComboBox<String> clusterIdColumnCombo;
 	private JRadioButton useClusterMakerRadio;
 	private JCheckBox layoutCheckbox;
-	private JCheckBox groupCheckbox;
 	private JButton createButton;
 	
 	private boolean isClusterMakerInstalled;
@@ -276,10 +275,8 @@ public class CreateAnnotationSetDialog extends JDialog {
 		panel.setLayout(layout);
 		
 		layoutCheckbox = new JCheckBox("Layout nodes by cluster");
-		groupCheckbox = new JCheckBox("Create groups for clusters");
 		
 		panel.add(layoutCheckbox);
-		panel.add(groupCheckbox);
 		return panel;
 	}
 	
@@ -327,7 +324,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 			.setClusterMakerAttribute(edgeWeightColumnCombo.getSelectedItem().toString())
 			.setClusterDataColumn(clusterIdColumnCombo.getSelectedItem().toString())
 			.setLayoutClusters(layoutCheckbox.isSelected())
-			.setCreateGroups(groupCheckbox.isSelected())
+			.setCreateGroups(false)
 			.build();
 
 		CreateAnnotationSetTask task = taskProvider.get();

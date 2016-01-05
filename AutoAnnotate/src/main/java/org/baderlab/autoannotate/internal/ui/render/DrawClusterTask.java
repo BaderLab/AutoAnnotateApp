@@ -87,6 +87,13 @@ public class DrawClusterTask extends AbstractTask {
 			this.zoom = zoom;
 			this.fontSize = fontSize;
 		}
+
+		@Override
+		public String toString() {
+			return "LabelArgs [x=" + x + ", y=" + y + ", width=" + width + ", height=" + height + ", label=" + label + ", zoom=" + zoom + ", fontSize=" + fontSize + "]";
+		}
+		
+		
 	}
 	
 	
@@ -141,7 +148,11 @@ public class DrawClusterTask extends AbstractTask {
 			yPos = nv.getVisualProperty(BasicVisualLexicon.NODE_Y_LOCATION);
 			width = nv.getVisualProperty(BasicVisualLexicon.NODE_WIDTH);
 			height = nv.getVisualProperty(BasicVisualLexicon.NODE_HEIGHT);
+//			// Cytoscape reports x,y as center of node
+			xPos -= width/2.0;
+			yPos -= height/2.0;
 		}
+		
 		
 		int baseFontSize;
 		if(displayOptions.isUseConstantFontSize())
@@ -161,7 +172,6 @@ public class DrawClusterTask extends AbstractTask {
 		// MKTODO Default to above-centered for now
 		double xOffset = 0.5;
 		double yOffset = 0.0;
-		
 		// Set the position of the label relative to the ellipse
 		if (yOffset == 0.5 && xOffset != 0.5) {
 			// If vertically centered, label should go outside of cluster (to the right or left)

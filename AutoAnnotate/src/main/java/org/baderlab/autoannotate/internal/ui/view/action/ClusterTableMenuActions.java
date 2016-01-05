@@ -23,8 +23,8 @@ import org.baderlab.autoannotate.internal.task.CollapseTask;
 import org.baderlab.autoannotate.internal.task.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.ui.view.ClusterTableModel;
 import org.cytoscape.model.CyNode;
-import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.swing.DialogTaskManager;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -34,7 +34,7 @@ public class ClusterTableMenuActions {
 
 	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
 	@Inject private Provider<CollapseTask> collapseTaskProvider;
-	@Inject private SynchronousTaskManager<?> taskManager;
+	@Inject private DialogTaskManager taskManager;
 	
 	
 	private JTable table;

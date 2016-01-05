@@ -102,37 +102,45 @@ public class AnnotationRenderer {
 		case BORDER_WIDTH:
 			for(Cluster cluster : options.getParent().getClusters()) {
 				ShapeAnnotation shape = shapeAnnotations.get(cluster);
-				shape.setBorderWidth(options.getBorderWidth());
-				shape.update();
+				if(shape != null) {
+					shape.setBorderWidth(options.getBorderWidth());
+					shape.update();
+				}
 			}
 			break;
 		case OPACITY:
 		case SHOW_CLUSTERS:
 			for(Cluster cluster : options.getParent().getClusters()) {
 				ShapeAnnotation shape = shapeAnnotations.get(cluster);
-				shape.setFillOpacity(options.isShowClusters() ? options.getOpacity() : 0);
-				shape.setBorderOpacity(options.isShowClusters() ? 100 : 0);
-				shape.update();
+				if(shape != null) {
+					shape.setFillOpacity(options.isShowClusters() ? options.getOpacity() : 0);
+					shape.setBorderOpacity(options.isShowClusters() ? 100 : 0);
+					shape.update();
+				}
 			}
 			break;
 		case FONT_SCALE:
 		case SHOW_LABELS:
 		case USE_CONSTANT_FONT_SIZE:
 			for(Cluster cluster : options.getParent().getClusters()) {
-				LabelArgs labelArgs = DrawClusterTask.computeLabelArgs(this,cluster);
-				double fontSize = options.isShowLabels() ? labelArgs.fontSize : 0;
 				TextAnnotation text = textAnnotations.get(cluster);
-				text.setFontSize(fontSize);
-				text.setSpecificZoom(labelArgs.zoom);
-				text.moveAnnotation(new Point2D.Double(labelArgs.x, labelArgs.y));
-				text.update();
+				if(text != null) {
+					LabelArgs labelArgs = DrawClusterTask.computeLabelArgs(this,cluster);
+					double fontSize = options.isShowLabels() ? labelArgs.fontSize : 0;
+					text.setFontSize(fontSize);
+					text.setSpecificZoom(labelArgs.zoom);
+					text.moveAnnotation(new Point2D.Double(labelArgs.x, labelArgs.y));
+					text.update();
+				}
 			}
 			break;
 		case SHAPE_TYPE:
-			for(Cluster cluster: options.getParent().getClusters()) {
+			for(Cluster cluster : options.getParent().getClusters()) {
 				ShapeAnnotation shape = shapeAnnotations.get(cluster);
-				shape.setShapeType(options.getShapeType().shapeName());
-				shape.update();
+				if(shape != null) {
+					shape.setShapeType(options.getShapeType().shapeName());
+					shape.update();
+				}
 			}
 			break;
 		}
