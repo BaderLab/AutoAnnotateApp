@@ -185,11 +185,14 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 
 	@Override
 	public void handleEvent(AboutToRemoveNodesEvent e) {
-		getNetworkViewSets().stream()
-			.filter(nvs -> nvs.getNetwork().equals(e.getSource()))
-			.flatMap(nvs -> nvs.getAnnotationSets().stream())
-			.flatMap(as -> as.getClusters().stream())
-			.forEach(cluster -> cluster.removeNodes(e.getNodes()));
+		// only remove nodes from the active annotation set
+		getActiveNetworkViewSet()
+		.filter(nvs -> nvs.getNetwork().equals(e.getSource()))
+		.flatMap(NetworkViewSet::getActiveAnnotationSet)
+		.map(AnnotationSet::getClusters)
+		.orElse(Collections.emptySet())
+		.stream()
+		.forEach(cluster -> cluster.removeNodes(e.getNodes()));
 	}
 	
 	
@@ -239,22 +242,27 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 	}
 	
 	
+	/**
+	 * Only collapses clusters in the currently active AnnotationSet
+	 * The UI must expand all clusters before switching AnnotationSets.
+	 */
 	private void handleCollapse(CyGroup group, CyNetwork network, boolean collapse) {
 		Set<CyNode> groupNodes = new HashSet<>(group.getNodeList());
 		
 		for(NetworkViewSet nvs : getNetworkViewSets()) {
 			if(nvs.getNetwork().equals(network)) {
-				for(AnnotationSet as : nvs.getAnnotationSets()) {
+				Optional<AnnotationSet> active = nvs.getActiveAnnotationSet();
+				if(active.isPresent()) {
+					AnnotationSet as = active.get();
 					for(Cluster cluster : as.getClusters()) {
 						Set<CyNode> clusterNodes = cluster.getNodes();
-						
 						if(collapse) {
 							if(clusterNodes.equals(groupNodes)) {
 								cluster.collapse(group.getGroupNode());
 							}
-							else {
-								cluster.removeNodes(groupNodes);
-							}
+//							else {
+//								cluster.removeNodes(groupNodes);
+//							}
 						}
 						else { // expanding
 							if(clusterNodes.equals(Collections.singleton(group.getGroupNode()))) {

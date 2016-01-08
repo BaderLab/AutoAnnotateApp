@@ -26,20 +26,20 @@ public class CollapseTask extends AbstractTask {
 	@Inject private CyGroupManager groupManager;
 	
 	private Cluster cluster;
-	private boolean collapse = true;
+	private Grouping action = Grouping.COLLAPSE;
 	
-	public CollapseTask init(Cluster cluster, boolean collapse) {
+	public CollapseTask init(Cluster cluster, Grouping action) {
 		this.cluster = cluster;
-		this.collapse = collapse;
+		this.action = action;
 		return this;
 	}
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		taskMonitor.setTitle(CyActivator.APP_NAME);
-		taskMonitor.setStatusMessage((collapse ? "Collapse Cluster: " : "Expand Cluster: ") + cluster.getLabel());
+		taskMonitor.setStatusMessage((action == Grouping.COLLAPSE ? "Collapse Cluster: " : "Expand Cluster: ") + cluster.getLabel());
 		
-		if(collapse)
+		if(action == Grouping.COLLAPSE)
 			collapse();
 		else
 			expand();

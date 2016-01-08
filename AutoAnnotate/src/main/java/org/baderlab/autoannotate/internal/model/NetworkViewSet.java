@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
@@ -45,9 +46,50 @@ public class NetworkViewSet {
 		return as;
 	}
 	
+	
+	/**
+	 * Sets the given AnnotationSet as the "selected" one. 
+	 * If null is passed then all AnnotationSets will be unselected.
+	 * 
+	 * Note: Currently switching selection is not supported when the currently
+	 * selected AnnotationSet has collapsed clusters. It is the responsibility of the UI to 
+	 * expand all the clusters before switching the AnnotationSet.
+	 * 
+	 * MKTODO: It would be better for the model to handle expanding the clusters, but for now we will force the UI to do it.
+	 * 
+	 * @throws IllegalStateException If the currently active AnnotationSet has collapsed clusters.
+	 */
 	public void select(AnnotationSet annotationSet) {
 		if(annotationSet == null || annotationSets.contains(annotationSet)) {
+			
+			if(Optional.ofNullable(annotationSet).equals(activeSet)) {
+				return;
+			}
+			
+			if(activeSet.map(AnnotationSet::hasCollapsedCluster).orElse(false)) {
+				throw new IllegalStateException("Current AnnotationSet has collapsed clusters");
+			}
+			
+			CyNetwork network = networkView.getModel();
 			activeSet = Optional.ofNullable(annotationSet);
+			
+			// ModelManager.handle(AboutToRemoveNodesEvent) only removes nodes from the active annotation set.
+			// When switching to a new annotation set we need to "fix" the clusters to remove any nodes that 
+			// were deleted previously.
+			// MKTODO: probably need to test for deleted nodes when serializing the model
+			
+			if(annotationSet != null) {
+				for(Cluster cluster : annotationSet.getClusters()) {
+					Set<CyNode> nodesToRemove = 
+							cluster.getNodes().stream()
+							.filter(node -> !network.containsNode(node))
+							.collect(Collectors.toSet());
+					
+					// Fires ClusterChangedEvent, UI listeners should test if the cluster is part of the active annotation set.
+					cluster.removeNodes(nodesToRemove);
+				}
+			}
+			
 			parent.postEvent(new ModelEvents.AnnotationSetSelected(this, activeSet));
 		}
 	}

@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.cytoscape.model.CyNode;
@@ -90,6 +91,10 @@ public class AnnotationSet {
 		return parent;
 	}
 
+	public boolean hasCollapsedCluster() {
+		return clusters.stream().anyMatch(Cluster::isCollapsed);
+	}
+	
 	/**
 	 * Deleting an annotation set also clears the active annotation set if this was the active one.
 	 */
@@ -107,6 +112,12 @@ public class AnnotationSet {
 		if(clusters.remove(cluster)) {
 			parent.getParent().postEvent(new ModelEvents.ClusterRemoved(cluster));
 		}
+	}
+	
+	public boolean isActive() {
+		// MKTODO should I also test if the NetworkViewSet is active?
+		Optional<AnnotationSet> active = getParent().getActiveAnnotationSet();
+		return active.isPresent() && active.get() == this;
 	}
 	
 }

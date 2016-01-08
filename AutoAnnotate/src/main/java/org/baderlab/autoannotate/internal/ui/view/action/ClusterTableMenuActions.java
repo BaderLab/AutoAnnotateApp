@@ -20,6 +20,7 @@ import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.CollapseTask;
+import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.task.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.ui.view.ClusterTableModel;
 import org.cytoscape.model.CyNode;
@@ -44,7 +45,7 @@ public class ClusterTableMenuActions {
 	private final Action mergeAction;
 	private final Action createAction;
 	private final Action collapseAction;
-	private final Action uncollapseAction;
+	private final Action expandAction;
 	
 	
 	public ClusterTableMenuActions setTable(JTable table) {
@@ -57,8 +58,8 @@ public class ClusterTableMenuActions {
 		this.deleteAction = new DeleteAction();
 		this.mergeAction = new MergeAction();
 		this.createAction = new CreateAction();
-		this.collapseAction = new CollapseAction(true);
-		this.uncollapseAction = new CollapseAction(false);
+		this.collapseAction = new CollapseAction(Grouping.COLLAPSE);
+		this.expandAction = new CollapseAction(Grouping.EXPAND);
 	}
 	
 	public void addTo(JPopupMenu menu) {
@@ -67,7 +68,7 @@ public class ClusterTableMenuActions {
 		menu.add(deleteAction);
 		menu.add(createAction);
 		menu.add(collapseAction);
-		menu.add(uncollapseAction);
+		menu.add(expandAction);
 	}
 	
 	public void updateEnablement() {
@@ -77,7 +78,7 @@ public class ClusterTableMenuActions {
 		mergeAction.setEnabled(rowCount > 1);
 		createAction.setEnabled(rowCount > 0);
 		collapseAction.setEnabled(rowCount > 0);
-		uncollapseAction.setEnabled(rowCount > 0);
+		expandAction.setEnabled(rowCount > 0);
 	}
 	
 	
@@ -221,11 +222,11 @@ public class ClusterTableMenuActions {
 	
 	
 	private class CollapseAction extends AbstractAction {
-		private final boolean collapse;
+		private final Grouping action;
 		
-		public CollapseAction(boolean collapse) {
-			super(collapse ? "Collapse" : "Expand");
-			this.collapse = collapse;
+		public CollapseAction(Grouping action) {
+			super(action == Grouping.COLLAPSE ? "Collapse" : "Expand");
+			this.action = action;
 		}
 		
 		@Override
@@ -234,7 +235,7 @@ public class ClusterTableMenuActions {
 			
 			getSelectedClusters()
 				.stream()
-				.map(cluster -> collapseTaskProvider.get().init(cluster, collapse))
+				.map(cluster -> collapseTaskProvider.get().init(cluster, action))
 				.forEach(tasks::append);
 			
 			if(tasks.getNumTasks() > 0)

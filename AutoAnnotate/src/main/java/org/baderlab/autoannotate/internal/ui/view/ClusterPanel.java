@@ -1,5 +1,7 @@
 package org.baderlab.autoannotate.internal.ui.view;
 
+import static org.baderlab.autoannotate.internal.util.StreamTools.*;
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Point;
@@ -34,6 +36,7 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.ComboItem;
 import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetDeleteAction;
 import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetRenameAction;
@@ -45,6 +48,9 @@ import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.model.CyDisposable;
 import org.cytoscape.util.swing.IconManager;
+import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.TaskObserver;
+import org.cytoscape.work.swing.DialogTaskManager;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -56,6 +62,7 @@ import com.google.inject.Provider;
 public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDisposable {
 	
 	@Inject private ModelManager modelManager;
+	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private Provider<IconManager> iconManagerProvider;
 	
 	@Inject private Provider<ShowCreateDialogAction> showActionProvider;
@@ -134,7 +141,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	public void handle(ModelEvents.ClusterChanged event) {
 		Cluster cluster = event.getCluster();
 		ClusterTableModel model = (ClusterTableModel) clusterTable.getModel();
-		model.updateCluster(cluster);
+		model.updateCluster(cluster); // does nothing if the cluster isn't in the table
 	}
 	
 	@Subscribe
@@ -201,14 +208,35 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 			AnnotationSet annotationSet = annotationSetCombo.getItemAt(index).getValue(); // may be null
 			if(annotationSet != null) {
 				NetworkViewSet networkViewSet = annotationSet.getParent();
-				networkViewSet.select(annotationSet);
+				runSelectAnnotationSetTasks(networkViewSet, annotationSet);
 			} else if(annotationSetCombo.getItemCount() > 1) {
-				annotationSet = annotationSetCombo.getItemAt(1).getValue();
-				NetworkViewSet networkViewSet = annotationSet.getParent();
-				networkViewSet.select(null);
+				NetworkViewSet networkViewSet = annotationSetCombo.getItemAt(1).getValue().getParent();
+				runSelectAnnotationSetTasks(networkViewSet, null);
 			}
 		}
 	}
+	
+	
+	private void runSelectAnnotationSetTasks(NetworkViewSet networkViewSet, AnnotationSet toSelect) {
+		// Disable the combo so the user can't somehow start a new task while this one is still running
+		annotationSetCombo.setEnabled(false);
+		
+		TaskIterator tasks = new TaskIterator();
+		
+		// Expand all the groups
+		CollapseAllAction collapseAllAction = collapseActionProvider.get();
+		collapseAllAction.setAction(Grouping.EXPAND);
+		tasks.append(collapseAllAction.createTaskIterator());
+		
+		// Select the annotation set (fires event that redraws annotations)
+		tasks.append(taskOf(() -> networkViewSet.select(toSelect)));
+		
+		// Enable the combo box
+		TaskObserver observer = observerOf(() -> annotationSetCombo.setEnabled(true));
+		
+		dialogTaskManager.execute(tasks, observer);
+	}
+	
 	
 	private void updateClusterTable() {
 		int index = annotationSetCombo.getSelectedIndex();
@@ -269,12 +297,13 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		JComboBox<ComboItem<AnnotationSet>> combo = new JComboBox<>();
 		combo.addItem(new ComboItem<>(null, "(none)"));
 		combo.setSelectedIndex(0);
-		Optional<NetworkViewSet> nvs = modelManager.getActiveNetworkViewSet();
-		if(nvs.isPresent()) {
-			for(AnnotationSet annotationSet : nvs.get().getAnnotationSets()) {
+		
+		modelManager.getActiveNetworkViewSet().ifPresent(nvs -> {
+			for(AnnotationSet annotationSet : nvs.getAnnotationSets()) {
 				combo.addItem(new ComboItem<>(annotationSet, annotationSet.getName()));
 			}
-		}
+		});
+		
 		return combo;
 	}
 	
@@ -334,14 +363,14 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		JMenuItem deleteMenuItem = new JMenuItem("Delete");
 		deleteMenuItem.addActionListener(deleteActionProvider.get());
 		
-		JMenuItem redrawMenuItem = new JMenuItem("Redraw Annotations");
-		redrawMenuItem.addActionListener(redrawActionProvider.get());
-		
 		JMenuItem collapseMenuItem = new JMenuItem("Collapse All Clusters");
-		collapseMenuItem.addActionListener(collapseActionProvider.get().setCollapse(true));
+		collapseMenuItem.addActionListener(collapseActionProvider.get().setAction(Grouping.COLLAPSE));
 		
 		JMenuItem expandMenuItem = new JMenuItem("Expand All Clusters");
-		expandMenuItem.addActionListener(collapseActionProvider.get().setCollapse(false));
+		expandMenuItem.addActionListener(collapseActionProvider.get().setAction(Grouping.EXPAND));
+		
+		JMenuItem redrawMenuItem = new JMenuItem("Redraw Annotations");
+		redrawMenuItem.addActionListener(redrawActionProvider.get());
 		
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(createMenuItem);

@@ -72,10 +72,12 @@ public class AnnotationRenderer {
 	@Subscribe
 	public void handle(ModelEvents.ClusterChanged event) {
 		Cluster cluster = event.getCluster();
-		TaskIterator tasks = new TaskIterator();
-		tasks.append(eraseTaskProvider.get().setCluster(cluster));
-		tasks.append(drawTaskProvider.get().setCluster(cluster));
-		syncTaskManager.execute(tasks);
+		if(cluster.getParent().isActive()) {
+			TaskIterator tasks = new TaskIterator();
+			tasks.append(eraseTaskProvider.get().setCluster(cluster));
+			tasks.append(drawTaskProvider.get().setCluster(cluster));
+			syncTaskManager.execute(tasks);
+		}
 	}
 	
 	
