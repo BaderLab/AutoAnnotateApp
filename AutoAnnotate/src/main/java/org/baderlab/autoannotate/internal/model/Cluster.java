@@ -15,12 +15,13 @@ public class Cluster {
 	
 	private String label;
 	private Set<CyNode> nodes;
-	private boolean collapsed = false;
+	private boolean collapsed;
 	
-	Cluster(AnnotationSet parent, Collection<CyNode> nodes, String label) {
+	Cluster(AnnotationSet parent, Collection<CyNode> nodes, String label, boolean collapsed) {
 		this.parent = parent;
 		this.nodes = new HashSet<>(nodes);
 		this.label = label;
+		this.collapsed = collapsed;
 	}
 	
 	private void postEvent(Object event) {
@@ -32,7 +33,6 @@ public class Cluster {
 	}
 	
 	public CoordinateData getCoordinateData() {
-		
 		return CoordinateData.forNodes(parent.getParent().getNetworkView(), nodes);
 	}
 

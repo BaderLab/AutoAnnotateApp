@@ -3,7 +3,6 @@ package org.baderlab.autoannotate.internal.model;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -41,20 +40,14 @@ public class AnnotationSet {
 		
 		this.displayOptions = new DisplayOptions(this, builder);
 		
-		List<Collection<CyNode>> clusterNodes = builder.getClusterNodes();
-		List<String> clusterLabels = builder.clusterLabels();
-		
-		int n = clusterNodes.size();
-		for(int i = 0; i < n; i++) {
-			Collection<CyNode> nodes = clusterNodes.get(i);
-			String label = clusterLabels.get(i);
-			Cluster cluster = new Cluster(this, nodes, label);
+		for(AnnotationSetBuilder.ClusterBuilder cb : builder.getClusters()) {
+			Cluster cluster = new Cluster(this, cb.nodes, cb.label, cb.collapsed);
 			clusters.add(cluster);
 		}
 	}
 	
-	public Cluster createCluster(Collection<CyNode> nodes, String label) {
-		Cluster cluster = new Cluster(this, nodes, label);
+	public Cluster createCluster(Collection<CyNode> nodes, String label, boolean collapsed) {
+		Cluster cluster = new Cluster(this, nodes, label, collapsed);
 		clusters.add(cluster);
 		parent.getParent().postEvent(new ModelEvents.ClusterAdded(cluster));
 		return cluster;

@@ -27,10 +27,10 @@ import javax.swing.SwingConstants;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.internal.task.CreationParameters;
-import org.baderlab.autoannotate.internal.task.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.ui.GBCFactory;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
@@ -304,8 +304,9 @@ public class CreateAnnotationSetDialog extends JDialog {
 		WarnDialog warnDialog = warnDialogProvider.get();
 		warnDialog.setPropertyName(CyActivator.CY_PROPERTY_WARN_CREATE);
 		warnDialog.setMessages(
-			"Any existing annotations will be removed from the network view.",
-			"To keep existing annotations please duplicate the network view first.",
+			"AutoAnnotate will manage all annotations and groups in this network view.",
+			"Any annotations or groups not created by AutoAnnotate will be removed.",
+			"To manually create annotations and groups you may duplicate the network view at any time.",
 			"Would you like to continue?"
 		);
 		

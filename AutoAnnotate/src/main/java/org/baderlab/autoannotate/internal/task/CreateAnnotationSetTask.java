@@ -9,13 +9,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.labels.LabelMaker;
+import org.baderlab.autoannotate.internal.labels.LabelOptions;
+import org.baderlab.autoannotate.internal.labels.WordInfo;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
-import org.baderlab.autoannotate.internal.model.LabelMaker;
-import org.baderlab.autoannotate.internal.model.LabelOptions;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
-import org.baderlab.autoannotate.internal.model.WordInfo;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.layout.CyLayoutAlgorithm;
@@ -80,7 +80,7 @@ public class CreateAnnotationSetTask extends AbstractTask {
 			Collection<CyNode> nodes = clusters.get(clusterKey);
 			Collection<WordInfo> words = wordInfos.get(clusterKey);
 			String label = labelMaker.makeLabel(nodes, words);
-			builder.addCluster(nodes, label);
+			builder.addCluster(nodes, label, false);
 		}
 		
 		AnnotationSet annotationSet = builder.build(); // fires ModelEvent.AnnotationSetAdded

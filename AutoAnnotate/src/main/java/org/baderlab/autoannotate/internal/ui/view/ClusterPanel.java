@@ -1,6 +1,6 @@
 package org.baderlab.autoannotate.internal.ui.view;
 
-import static org.baderlab.autoannotate.internal.util.StreamTools.*;
+import static org.baderlab.autoannotate.internal.util.TaskTools.*;
 
 import java.awt.BorderLayout;
 import java.awt.Component;

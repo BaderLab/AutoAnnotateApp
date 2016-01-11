@@ -1,12 +1,11 @@
-package org.baderlab.autoannotate.internal.task;
+package org.baderlab.autoannotate.internal.labels;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.baderlab.autoannotate.internal.model.LabelMaker;
-import org.baderlab.autoannotate.internal.model.LabelOptions;
-import org.baderlab.autoannotate.internal.model.WordInfo;
+import org.baderlab.autoannotate.internal.task.RunWordCloudResultObserver;
+import org.baderlab.autoannotate.internal.task.RunWordCloudTaskFactory;
 import org.cytoscape.command.AvailableCommands;
 import org.cytoscape.command.CommandExecutorTaskFactory;
 import org.cytoscape.model.CyNetwork;
@@ -22,7 +21,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 /**
- * Provides a simplified interface for components that just need to get
+ * Provides a simplified interface for components that need to get
  * a single label from wordcloud.
  */
 public class WordCloudAdapter {

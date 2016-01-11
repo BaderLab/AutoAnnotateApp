@@ -15,15 +15,15 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
+import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.CollapseTask;
 import org.baderlab.autoannotate.internal.task.Grouping;
-import org.baderlab.autoannotate.internal.task.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.ui.view.ClusterTableModel;
-import org.baderlab.autoannotate.internal.util.StreamTools;
+import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.swing.DialogTaskManager;
@@ -172,7 +172,7 @@ public class ClusterTableMenuActions {
 			for(Cluster cluster : clusters) {
 				cluster.delete();
 			}
-			annotationSet.createCluster(nodes, label);
+			annotationSet.createCluster(nodes, label, false);
 		}
 	}
 
@@ -199,7 +199,7 @@ public class ClusterTableMenuActions {
 			
 			AnnotationSetBuilder builder = networkViewSet.getAnnotationSetBuilder(name, currentAnnotationSet.getLabelColumn());
 			for(Cluster cluster : clusters) {
-				builder.addCluster(cluster.getNodes(), cluster.getLabel());
+				builder.addCluster(cluster.getNodes(), cluster.getLabel(), cluster.isCollapsed());
 			}
 			
 			AnnotationSet newAnnotationSet = builder.build();
@@ -236,7 +236,7 @@ public class ClusterTableMenuActions {
 				getSelectedClusters()
 				.stream()
 				.map(cluster -> collapseTaskProvider.get().init(cluster, action))
-				.collect(StreamTools.taskIterator());
+				.collect(TaskTools.taskIterator());
 			
 			if(tasks.getNumTasks() > 0) {
 				taskManager.execute(tasks);

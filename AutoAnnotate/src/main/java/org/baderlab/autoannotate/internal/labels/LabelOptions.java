@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.model;
+package org.baderlab.autoannotate.internal.labels;
 
 import java.util.Arrays;
 import java.util.Collections;

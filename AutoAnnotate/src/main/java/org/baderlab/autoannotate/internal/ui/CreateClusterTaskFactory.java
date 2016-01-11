@@ -3,10 +3,10 @@ package org.baderlab.autoannotate.internal.ui;
 import java.util.List;
 import java.util.Optional;
 
+import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
-import org.baderlab.autoannotate.internal.task.WordCloudAdapter;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTableUtil;
@@ -47,7 +47,7 @@ public class CreateClusterTaskFactory implements NetworkViewTaskFactory, NodeVie
 					CyNetwork network = networkView.getModel();
 					
 					String label = wordCloudAdapter.getLabel(nodes, network, annotationSet.getLabelColumn());
-					annotationSet.createCluster(nodes, label);
+					annotationSet.createCluster(nodes, label, false);
 				}
 			}
 		});

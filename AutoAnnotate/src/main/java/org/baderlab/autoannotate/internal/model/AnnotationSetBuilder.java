@@ -22,8 +22,7 @@ public class AnnotationSetBuilder {
 	private final String name;
 	private final String labelColumn;
 	
-	private final List<Collection<CyNode>> clusterNodes = new ArrayList<>();
-	private final List<String> clusterLabels = new ArrayList<>();
+	private final List<ClusterBuilder> clusters = new ArrayList<>();
 	
 	private ShapeType shapeType = ShapeType.ELLIPSE;
 	private boolean showClusters = true;
@@ -32,6 +31,19 @@ public class AnnotationSetBuilder {
 	private int	fontScale = DisplayOptions.FONT_SCALE_DEFAULT; 
 	private int opacity = DisplayOptions.OPACITY_DEFAULT;
 	private int borderWidth = DisplayOptions.WIDTH_DEFAULT;
+	
+	
+	class ClusterBuilder {
+		final Collection<CyNode> nodes;
+		final String label;
+		final boolean collapsed;
+		
+		public ClusterBuilder(Collection<CyNode> nodes, String label, boolean collapsed) {
+			this.nodes = nodes;
+			this.label = label;
+			this.collapsed = collapsed;
+		}
+	}
 	
 	
 	AnnotationSetBuilder(NetworkViewSet nvs, String name, String labelColumn) {
@@ -93,9 +105,12 @@ public class AnnotationSetBuilder {
 		this.borderWidth = borderWidth;
 	}
 
-	public void addCluster(Collection<CyNode> nodes, String label) {
-		clusterNodes.add(nodes);
-		clusterLabels.add(label);
+	public void addCluster(Collection<CyNode> nodes, String label, boolean collapsed) {
+		clusters.add(new ClusterBuilder(nodes, label, collapsed));
+	}
+	
+	public Collection<ClusterBuilder> getClusters() {
+		return clusters;
 	}
 	
 	String getName() {
@@ -106,13 +121,6 @@ public class AnnotationSetBuilder {
 		return labelColumn;
 	}
 	
-	List<Collection<CyNode>> getClusterNodes() {
-		return clusterNodes;
-	}
-	
-	List<String> clusterLabels() {
-		return clusterLabels;
-	}
 
 	public ShapeType getShapeType() {
 		return shapeType;

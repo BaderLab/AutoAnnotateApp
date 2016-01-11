@@ -10,8 +10,9 @@ import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.CollapseTask;
 import org.baderlab.autoannotate.internal.task.Grouping;
-import org.baderlab.autoannotate.internal.util.StreamTools;
+import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.application.swing.AbstractCyAction;
+import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.swing.DialogTaskManager;
@@ -57,7 +58,17 @@ public class CollapseAllAction extends AbstractCyAction {
 			.orElse(Collections.emptySet())
 			.stream()
 			.map(cluster -> taskProvider.get().init(cluster, action))
-			.collect(StreamTools.taskIterator());
+			.collect(TaskTools.taskIterator());
+	}
+	
+	public TaskIterator createTaskIterator(CyNetworkView networkView) {
+		return 
+			modelManager
+			.getNetworkViewSet(networkView)
+			.getAllClusters()
+			.stream()
+			.map(cluster -> taskProvider.get().init(cluster, action))
+			.collect(TaskTools.taskIterator());
 	}
 
 }

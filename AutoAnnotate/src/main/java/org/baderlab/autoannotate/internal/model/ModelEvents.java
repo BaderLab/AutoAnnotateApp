@@ -3,6 +3,9 @@ package org.baderlab.autoannotate.internal.model;
 import java.util.Collection;
 import java.util.Optional;
 
+/**
+ * Events that are fired over the EventBus.
+ */
 public class ModelEvents {
 
 	

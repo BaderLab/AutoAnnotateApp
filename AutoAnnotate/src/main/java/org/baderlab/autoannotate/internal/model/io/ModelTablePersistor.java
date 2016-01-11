@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.baderlab.autoannotate.internal.CyActivator;
@@ -16,7 +18,10 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
+import org.baderlab.autoannotate.internal.ui.view.action.CollapseAllAction;
+import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
@@ -33,6 +38,8 @@ import org.cytoscape.session.events.SessionLoadedListener;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
+import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.swing.DialogTaskManager;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -44,6 +51,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	private static final String CLUSTER_TABLE = CyActivator.APP_ID + ".annotationSet";
 	private static final String ANNOTATION_SET_TABLE = CyActivator.APP_ID + ".cluster";
 	
+	// AnnotationSet and DisplayOptions properties 
 	private static final String 
 		ANNOTATION_SET_ID = "annotationSetID",
 		NAME = "name",
@@ -56,14 +64,19 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		SHOW_CLUSTERS = "showClusters",
 		SHAPE_TYPE = "shapeType";
 	
+	// Cluster properties
 	private static final String 
 		CLUSTER_ID = "clusterID",
 		LABEL = "label",
-		NODES_SUID = "nodes.SUID";
+		COLLAPSED = "collapsed",
+		NODES_SUID = "nodes.SUID"; // .SUID suffix has special meaning to Cytoscape
 	
 	
 	@Inject private Provider<ModelManager> modelManagerProvider;
 	@Inject private Provider<PanelManager> panelManagerProvider;
+	@Inject private Provider<CollapseAllAction> collapseActionProvider;
+	@Inject private DialogTaskManager dialogTaskManager;
+	
 	@Inject private CyNetworkTableManager networkTableManager;
 	@Inject private CyNetworkManager networkManager;
 	@Inject private CyNetworkViewManager networkViewManager;
@@ -79,6 +92,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	public void importModel() {
 		boolean imported = false;
 		
+		Set<CyNetworkView> groupNetworksToCollapse = new HashSet<>();
+		
 		for(CyNetwork network: networkManager.getNetworkSet()) {
 			Collection<CyNetworkView> networkViews = networkViewManager.getNetworkViews(network);
 			if(!networkViews.isEmpty()) {
@@ -88,6 +103,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				
 				if(asTable != null && clusterTable != null) {
 					try {
+						groupNetworksToCollapse.add(networkView);
 						importModel(networkView, asTable, clusterTable);
 						imported = true;
 					} catch(Exception ex) {
@@ -96,12 +112,29 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				}
 			}
 		}
-		// important to clear out existing annotations from the network views
-		modelManagerProvider.get().deselectAll();
 		
 		if(imported) {
-			panelManagerProvider.get().show();
+			runResetAutoannotateTask(groupNetworksToCollapse);
 		}
+	}
+	
+	
+	private void runResetAutoannotateTask(Collection<CyNetworkView> networkViewsToCollapse) {
+		TaskIterator tasks = new TaskIterator();
+		tasks.append(TaskTools.taskMessage("Collapsing all Annotations"));
+		
+		// Right here, expand and remove all groups in networks managed by AutoAnnotate
+		CollapseAllAction collapseAction = collapseActionProvider.get();
+		collapseAction.setAction(Grouping.EXPAND);
+		for(CyNetworkView networkView : networkViewsToCollapse) {
+			tasks.append(collapseAction.createTaskIterator(networkView));
+		}
+		
+		// important to clear out existing annotations from the network views
+		tasks.append(TaskTools.taskOf(() -> modelManagerProvider.get().deselectAll()));
+		tasks.append(TaskTools.taskOf(() -> panelManagerProvider.get().show()));
+		
+		dialogTaskManager.execute(tasks);
 	}
 
 	private void importModel(CyNetworkView networkView, CyTable asTable, CyTable clusterTable) {
@@ -132,11 +165,12 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		for(CyRow clusterRow : clusterTable.getAllRows()) {
 			long asId = clusterRow.get(ANNOTATION_SET_ID, Long.class);
 			String label = clusterRow.get(LABEL, String.class);
+			boolean collapsed = clusterRow.get(COLLAPSED, Boolean.class);
 			List<Long> nodeSUIDS = clusterRow.getList(NODES_SUID, Long.class);
 			List<CyNode> nodes = nodeSUIDS.stream().map(network::getNode).collect(Collectors.toList());
 			
 			AnnotationSetBuilder builder = builders.get(asId);
-			builder.addCluster(nodes, label);
+			builder.addCluster(nodes, label, collapsed);
 		}
 		
 		builders.values().forEach(b -> b.build());
@@ -156,7 +190,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				CyNetworkView networkView = networkViews.iterator().next(); // MKTODO what to do about multiple network views?
 				Optional<NetworkViewSet> nvs = modelManagerProvider.get().getExistingNetworkViewSet(networkView);
 				if(nvs.isPresent()) {
-					CyTable asTable = getASTable(network);
+					CyTable asTable = getAnnotationSetTable(network);
 					CyTable clusterTable = getClusterTable(network);
 					
 					try {
@@ -195,6 +229,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			for(Cluster cluster : as.getClusters()) {
 				CyRow clusterRow = clusterTable.getRow(clusterId);
 				clusterRow.set(LABEL, cluster.getLabel());
+				clusterRow.set(COLLAPSED, cluster.isCollapsed());
 				clusterRow.set(NODES_SUID, cluster.getNodes().stream().map(CyNode::getSUID).collect(Collectors.toList()));
 				clusterRow.set(ANNOTATION_SET_ID, asId);
 				clusterId++;
@@ -203,7 +238,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		}
 	}
 	
-	private CyTable getASTable(CyNetwork network) {
+	private CyTable getAnnotationSetTable(CyNetwork network) {
 		CyTable table = networkTableManager.getTable(network, CyNetwork.class, ANNOTATION_SET_TABLE);
 		if(table == null) {
 			table = tableFactory.createTable(ANNOTATION_SET_TABLE, ANNOTATION_SET_ID, Long.class, true, true);
@@ -227,6 +262,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		if(table == null) {
 			table = tableFactory.createTable(CLUSTER_TABLE, CLUSTER_ID, Long.class, true, true);
 			table.createColumn(LABEL, String.class, true);
+			table.createColumn(COLLAPSED, Boolean.class, true);
 			table.createListColumn(NODES_SUID, Long.class, true);
 			table.createColumn(ANNOTATION_SET_ID, Long.class, true);
 			networkTableManager.setTable(network, CyNetwork.class, CLUSTER_TABLE, table);
