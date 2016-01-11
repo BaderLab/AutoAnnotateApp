@@ -23,6 +23,7 @@ import org.baderlab.autoannotate.internal.task.CollapseTask;
 import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.task.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.ui.view.ClusterTableModel;
+import org.baderlab.autoannotate.internal.util.StreamTools;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.swing.DialogTaskManager;
@@ -231,15 +232,15 @@ public class ClusterTableMenuActions {
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			TaskIterator tasks = new TaskIterator();
-			
-			getSelectedClusters()
+			TaskIterator tasks =
+				getSelectedClusters()
 				.stream()
 				.map(cluster -> collapseTaskProvider.get().init(cluster, action))
-				.forEach(tasks::append);
+				.collect(StreamTools.taskIterator());
 			
-			if(tasks.getNumTasks() > 0)
+			if(tasks.getNumTasks() > 0) {
 				taskManager.execute(tasks);
+			}
 		}
 		
 	}

@@ -3,6 +3,7 @@ package org.baderlab.autoannotate.internal.ui.view;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.GridBagLayout;
+import java.util.Optional;
 import java.util.Properties;
 
 import javax.swing.BorderFactory;
@@ -19,9 +20,10 @@ import com.google.inject.Inject;
 
 public class WarnDialog {
 	
-	private static final String PROPERTY_NAME = "warnDialog.dontShowAgain";
-	
 	@Inject private CyProperty<Properties> cyProperty;
+	
+	private String[] messages = {};
+	private Optional<String> propertyName = Optional.empty();
 	
 	
 	@SuppressWarnings("serial")
@@ -30,30 +32,37 @@ public class WarnDialog {
 		private JCheckBox dontShowAgainBox;
 		
 		public WarnPanel() {
-			setLayout(new BorderLayout());
-			
 			JPanel messagePanel = new JPanel(new GridBagLayout());
-			JLabel message1 = new JLabel("Any existing annotations will be removed from the network view.");
-			JLabel message2 = new JLabel("To keep existing annotations please duplicate the network view first.");
-			JLabel message3 = new JLabel("Would you like to continue?");
 			
-//			message1.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-			message2.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-			message3.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+			int y = 0;
+			for(String message : messages ) {
+				JLabel label = new JLabel(message);
+				label.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+				messagePanel.add(label, GBCFactory.grid(0,y++).weightx(1.0).get());
+			}
 			
-			messagePanel.add(message1, GBCFactory.grid(0,0).weightx(1.0).get());
-			messagePanel.add(message2, GBCFactory.grid(0,1).get());
-			messagePanel.add(message3, GBCFactory.grid(0,3).get());
+			if(propertyName.isPresent()) {
+				dontShowAgainBox = new JCheckBox("Don't ask me again");
+			}
 			
-			dontShowAgainBox = new JCheckBox("Don't ask me again");
-			
+			setLayout(new BorderLayout());
 			add(messagePanel, BorderLayout.CENTER);
-			add(dontShowAgainBox, BorderLayout.SOUTH);
+			if(propertyName.isPresent()) {
+				add(dontShowAgainBox, BorderLayout.SOUTH);
+			}
 		}
 		
 		public boolean dontShowAgain() {
-			return dontShowAgainBox.isSelected();
+			return propertyName.map(x -> dontShowAgainBox.isSelected()).orElse(false);
 		}
+	}
+	
+	public void setMessages(String... messages) {
+		this.messages = messages;
+	}
+	
+	public void setPropertyName(String propertyName) {
+		this.propertyName = Optional.ofNullable(propertyName);
 	}
 	
 	
@@ -61,18 +70,21 @@ public class WarnDialog {
 	 * Returns true if the user clicked OK.
 	 */
 	public boolean warnUser(Component parent) {
-		boolean dontShow = Boolean.valueOf(cyProperty.getProperties().getProperty(PROPERTY_NAME));
-		if(dontShow)
-			return true;
+		if(propertyName.isPresent()) {
+			boolean dontShow = Boolean.valueOf(cyProperty.getProperties().getProperty(propertyName.get()));
+			if(dontShow)
+				return true;
+		}
 		
 		WarnPanel warnPanel = new WarnPanel();
 		int result = JOptionPane.showConfirmDialog(parent, warnPanel, CyActivator.APP_NAME, JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
-		
 		if(result == JOptionPane.CANCEL_OPTION)
 			return false;
 		
-		dontShow = warnPanel.dontShowAgain();
-		cyProperty.getProperties().setProperty(PROPERTY_NAME, String.valueOf(dontShow));
+		if(propertyName.isPresent()) {
+			boolean dontShow = warnPanel.dontShowAgain();
+			cyProperty.getProperties().setProperty(propertyName.get(), String.valueOf(dontShow));
+		}
 		
 		return true;
 	}

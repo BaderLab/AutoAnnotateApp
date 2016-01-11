@@ -26,6 +26,7 @@ import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
+import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.internal.task.CreationParameters;
@@ -53,7 +54,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	private static final String NONE = "(none)";
 	
-	@Inject private Provider<CreateAnnotationSetTask> taskProvider;
+	@Inject private Provider<CreateAnnotationSetTask> createTaskProvider;
 	@Inject private Provider<WarnDialog> warnDialogProvider;
 	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
 	@Inject private DialogTaskManager dialogTaskManager;
@@ -241,7 +242,6 @@ public class CreateAnnotationSetDialog extends JDialog {
 		useClusterMakerRadio.setSelected(true);
 		enableListener.actionPerformed(null);
 		
-		// MKTODO do I need to add the listener to both radio buttons?
 		useClusterMakerRadio.addActionListener(enableListener);
 		columnRadio.addActionListener(enableListener);
 		algorithmNameCombo.addActionListener(enableListener);
@@ -302,6 +302,13 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	private void createButtonPressed() {
 		WarnDialog warnDialog = warnDialogProvider.get();
+		warnDialog.setPropertyName(CyActivator.CY_PROPERTY_WARN_CREATE);
+		warnDialog.setMessages(
+			"Any existing annotations will be removed from the network view.",
+			"To keep existing annotations please duplicate the network view first.",
+			"Would you like to continue?"
+		);
+		
 		boolean doIt = warnDialog.warnUser(this);
 		if(doIt) {
 			try {
@@ -327,10 +334,10 @@ public class CreateAnnotationSetDialog extends JDialog {
 			.setCreateGroups(false)
 			.build();
 
-		CreateAnnotationSetTask task = taskProvider.get();
-		task.setParameters(params);
+		CreateAnnotationSetTask createTask = createTaskProvider.get();
+		createTask.setParameters(params);
 		
-		dialogTaskManager.execute(new TaskIterator(task));
+		dialogTaskManager.execute(new TaskIterator(createTask));
 	}
 	
 	private List<String> getColumnsOfType(Class<?> type, boolean node, boolean addNone) {

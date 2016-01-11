@@ -63,6 +63,8 @@ public class CyActivator extends AbstractCyActivator {
 	public static final String APP_NAME = "AutoAnnotate";  // Suitable for display in the UI
 	public static final String APP_ID = "autoannotate";  // Suitable as an ID for the App
 	
+	public static final String CY_PROPERTY_WARN_CREATE   = "warnDialog.dontShowAgain.create";
+	
 	private Injector injector;
 	
 	@Override
