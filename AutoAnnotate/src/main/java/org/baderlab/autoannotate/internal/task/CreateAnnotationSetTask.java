@@ -92,7 +92,8 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		RunClusterMakerTaskFactory clusterMakerTaskFactory = clusterMakerProvider.get();
 		clusterMakerTaskFactory.setParameters(params);
 		RunClusterMakerResultObserver clusterResultObserver = new RunClusterMakerResultObserver();
-		syncTaskManager.execute(clusterMakerTaskFactory.createTaskIterator(clusterResultObserver));
+		TaskIterator tasks = clusterMakerTaskFactory.createTaskIterator(clusterResultObserver);
+		syncTaskManager.execute(tasks);
 		return clusterResultObserver.getResult();
 	}
 	
