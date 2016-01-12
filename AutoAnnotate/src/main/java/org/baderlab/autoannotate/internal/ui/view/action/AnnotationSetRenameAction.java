@@ -10,14 +10,14 @@ import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.cytoscape.application.swing.AbstractCyAction;
-import org.cytoscape.application.swing.CySwingApplication;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 @SuppressWarnings("serial")
 public class AnnotationSetRenameAction extends AbstractCyAction {
 
-	@Inject private CySwingApplication swingApplication;
+	@Inject private Provider<JFrame> jFrameProvider;
 	@Inject private ModelManager modelManager;
 	
 	
@@ -32,7 +32,7 @@ public class AnnotationSetRenameAction extends AbstractCyAction {
 			AnnotationSet annotationSet = active.get();
 			
 			String current = annotationSet.getName();
-			JFrame frame = swingApplication.getJFrame();
+			JFrame frame = jFrameProvider.get();
 			Object result = JOptionPane.showInputDialog(frame, "Annotation Set Name", "Rename", JOptionPane.PLAIN_MESSAGE, null, null, current);
 			if(result == null)
 				return;

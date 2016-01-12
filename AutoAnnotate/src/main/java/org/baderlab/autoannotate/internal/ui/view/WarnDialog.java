@@ -20,11 +20,16 @@ import com.google.inject.Inject;
 
 public class WarnDialog {
 	
-	@Inject private CyProperty<Properties> cyProperty;
+	private CyProperty<Properties> cyProperty;
 	
 	private String[] messages = {};
 	private Optional<String> propertyName = Optional.empty();
 	
+	
+	@Inject
+	public WarnDialog(CyProperty<Properties> cyProperty) {
+		this.cyProperty = cyProperty;
+	}
 	
 	@SuppressWarnings("serial")
 	private class WarnPanel extends JPanel {
@@ -40,6 +45,10 @@ public class WarnDialog {
 				label.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 				messagePanel.add(label, GBCFactory.grid(0,y++).weightx(1.0).get());
 			}
+			
+			JLabel label = new JLabel("Would you like to continue?");
+			label.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+			messagePanel.add(label, GBCFactory.grid(0,y++).weightx(1.0).get());
 			
 			if(propertyName.isPresent()) {
 				dontShowAgainBox = new JCheckBox("Don't ask me again");

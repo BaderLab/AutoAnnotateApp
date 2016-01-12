@@ -19,6 +19,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -26,14 +27,12 @@ import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
-import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.internal.task.CreationParameters;
 import org.baderlab.autoannotate.internal.ui.GBCFactory;
 import org.cytoscape.application.CyApplicationManager;
-import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.command.AvailableCommands;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
@@ -46,16 +45,14 @@ import org.cytoscape.work.swing.DialogTaskManager;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-/**
- * 
- */
+
 @SuppressWarnings("serial")
 public class CreateAnnotationSetDialog extends JDialog {
 	
 	private static final String NONE = "(none)";
 	
+	@Inject private @WarnDialogModule.Create Provider<WarnDialog> warnDialogProvider;
 	@Inject private Provider<CreateAnnotationSetTask> createTaskProvider;
-	@Inject private Provider<WarnDialog> warnDialogProvider;
 	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private IconManager iconManager;
@@ -76,8 +73,8 @@ public class CreateAnnotationSetDialog extends JDialog {
 
 	
 	@Inject
-	public CreateAnnotationSetDialog(CySwingApplication application, CyApplicationManager appManager) {
-		super(application.getJFrame(), true);
+	public CreateAnnotationSetDialog(JFrame jFrame, CyApplicationManager appManager) {
+		super(jFrame, true);
 		setTitle("AutoAnnotate: Create Annotation Set");
 		this.networkView = appManager.getCurrentNetworkView();
 	}
@@ -302,15 +299,8 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	private void createButtonPressed() {
 		WarnDialog warnDialog = warnDialogProvider.get();
-		warnDialog.setPropertyName(CyActivator.CY_PROPERTY_WARN_CREATE);
-		warnDialog.setMessages(
-			"AutoAnnotate will manage all annotations and groups in this network view.",
-			"Any annotations or groups not created by AutoAnnotate will be removed.",
-			"To manually create annotations and groups you may duplicate the network view at any time.",
-			"Would you like to continue?"
-		);
-		
 		boolean doIt = warnDialog.warnUser(this);
+		
 		if(doIt) {
 			try {
 				createAnnotations();

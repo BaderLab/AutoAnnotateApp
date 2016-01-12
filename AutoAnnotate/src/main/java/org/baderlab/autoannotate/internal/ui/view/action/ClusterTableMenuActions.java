@@ -23,6 +23,8 @@ import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.CollapseTask;
 import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.view.ClusterTableModel;
+import org.baderlab.autoannotate.internal.ui.view.WarnDialog;
+import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.work.TaskIterator;
@@ -34,6 +36,7 @@ import com.google.inject.Provider;
 @SuppressWarnings("serial")
 public class ClusterTableMenuActions {
 
+	@Inject private @WarnDialogModule.Collapse Provider<WarnDialog> warnDialogProvider;
 	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
 	@Inject private Provider<CollapseTask> collapseTaskProvider;
 	@Inject private DialogTaskManager taskManager;
@@ -232,14 +235,20 @@ public class ClusterTableMenuActions {
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			TaskIterator tasks =
-				getSelectedClusters()
-				.stream()
-				.map(cluster -> collapseTaskProvider.get().init(cluster, action))
-				.collect(TaskTools.taskIterator());
+			WarnDialog warnDialog = warnDialogProvider.get();
+			JFrame frame = (JFrame) SwingUtilities.getRoot(table);
+			boolean doIt = warnDialog.warnUser(frame);
 			
-			if(tasks.getNumTasks() > 0) {
-				taskManager.execute(tasks);
+			if(doIt) {
+				TaskIterator tasks =
+					getSelectedClusters()
+					.stream()
+					.map(cluster -> collapseTaskProvider.get().init(cluster, action))
+					.collect(TaskTools.taskIterator());
+				
+				if(tasks.getNumTasks() > 0) {
+					taskManager.execute(tasks);
+				}
 			}
 		}
 		

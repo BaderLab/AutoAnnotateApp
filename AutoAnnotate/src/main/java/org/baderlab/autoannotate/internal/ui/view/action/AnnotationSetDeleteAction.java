@@ -1,18 +1,18 @@
 package org.baderlab.autoannotate.internal.ui.view.action;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.util.Optional;
 
 import javax.swing.AbstractAction;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
-import org.cytoscape.application.swing.CySwingApplication;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * Deletes the currently active annotation set.
@@ -20,7 +20,7 @@ import com.google.inject.Inject;
 @SuppressWarnings("serial")
 public class AnnotationSetDeleteAction extends AbstractAction {
 
-	@Inject private CySwingApplication swingApplication;
+	@Inject private Provider<JFrame> jFrameProvider;
 	@Inject private ModelManager modelManager;
 	
 	public AnnotationSetDeleteAction() {
@@ -44,8 +44,7 @@ public class AnnotationSetDeleteAction extends AbstractAction {
 		String networkName = annotationSet.getParent().getNetworkName();
 		String message = String.format("Delete '%s' from network '%s'?", name, networkName);
 		
-		Component parent = swingApplication.getJFrame();
-		int value = JOptionPane.showConfirmDialog(parent, message, "Delete Annotation Set", JOptionPane.YES_NO_OPTION);
+		int value = JOptionPane.showConfirmDialog(jFrameProvider.get(), message, "Delete Annotation Set", JOptionPane.YES_NO_OPTION);
 		return value == JOptionPane.YES_OPTION;
 	}
 

@@ -4,12 +4,15 @@ import java.awt.event.ActionEvent;
 import java.util.Collections;
 
 import javax.swing.Action;
+import javax.swing.JFrame;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.CollapseTask;
 import org.baderlab.autoannotate.internal.task.Grouping;
+import org.baderlab.autoannotate.internal.ui.view.WarnDialog;
+import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.view.model.CyNetworkView;
@@ -23,9 +26,12 @@ import com.google.inject.Provider;
 @SuppressWarnings("serial")
 public class CollapseAllAction extends AbstractCyAction {
 	
+	@Inject private @WarnDialogModule.Collapse Provider<WarnDialog> warnDialogProvider;
 	@Inject private ModelManager modelManager;
+	@Inject private Provider<JFrame> jFrameProvider;
 	@Inject private Provider<DialogTaskManager> taskManagerProvider;
 	@Inject private Provider<CollapseTask> taskProvider;
+	
 
 	
 	private Grouping action = Grouping.COLLAPSE;
@@ -42,10 +48,15 @@ public class CollapseAllAction extends AbstractCyAction {
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		TaskIterator tasks = createTaskIterator();
-		if(tasks.getNumTasks() > 0) {
-			TaskManager<?,?> taskManager = taskManagerProvider.get();
-			taskManager.execute(tasks);
+		WarnDialog warnDialog = warnDialogProvider.get();
+		boolean doIt = warnDialog.warnUser(jFrameProvider.get());
+		
+		if(doIt) {
+			TaskIterator tasks = createTaskIterator();
+			if(tasks.getNumTasks() > 0) {
+				TaskManager<?,?> taskManager = taskManagerProvider.get();
+				taskManager.execute(tasks);
+			}
 		}
 	}
 	

@@ -9,11 +9,14 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Properties;
 
+import javax.swing.JFrame;
+
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.ui.CreateClusterTaskFactory;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
+import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.AbstractCyAction;
@@ -51,6 +54,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
+import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.spi.InjectionListener;
@@ -63,13 +67,11 @@ public class CyActivator extends AbstractCyActivator {
 	public static final String APP_NAME = "AutoAnnotate";  // Suitable for display in the UI
 	public static final String APP_ID = "autoannotate";  // Suitable as an ID for the App
 	
-	public static final String CY_PROPERTY_WARN_CREATE   = "warnDialog.dontShowAgain.create";
-	
 	private Injector injector;
 	
 	@Override
 	public void start(BundleContext context) {
-		injector = Guice.createInjector(osgiModule(context), new MainModule());
+		injector = Guice.createInjector(osgiModule(context), new MainModule(), new WarnDialogModule());
 		
 		ModelManager modelManager = injector.getInstance(ModelManager.class);
 		registerAllServices(context, modelManager, new Properties());
@@ -151,7 +153,7 @@ public class CyActivator extends AbstractCyActivator {
 			// Create a single EventBus
 			bind(EventBus.class).toInstance(new EventBus((e,c) -> e.printStackTrace()));
 			
-			// Set up the properties
+			// Set up CyProperty
 			bind(new TypeLiteral<CyProperty<Properties>>(){}).toInstance(new PropsReader(APP_ID, APP_ID+".props"));
 			
 			// Call methods annotated with @AfterInjection after injection, mainly used to create UIs
@@ -161,6 +163,11 @@ public class CyActivator extends AbstractCyActivator {
 					encounter.register(invoker);
 				}
 			});
+		}
+		
+		@Provides
+		public JFrame getJFrame(CySwingApplication swingApplication) {
+			return swingApplication.getJFrame();
 		}
 	}
 	
