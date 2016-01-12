@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.baderlab.autoannotate.internal.model.ModelEvents.ModelEvent;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
@@ -24,7 +25,7 @@ public class Cluster {
 		this.collapsed = collapsed;
 	}
 	
-	private void postEvent(Object event) {
+	private void postEvent(ModelEvent event) {
 		parent.getParent().getParent().postEvent(event);
 	}
 	
@@ -62,7 +63,7 @@ public class Cluster {
 		this.nodes.clear();
 		this.nodes.add(groupNode);
 		collapsed = true;
-		postEvent(new ModelEvents.ClusterChanged(this));
+		parent.getParent().getParent().addPendingGroupEvent(new ModelEvents.ClusterChanged(this));
 	}
 	
 	void expand(Set<CyNode> nodes) {
@@ -71,7 +72,7 @@ public class Cluster {
 		this.nodes.clear();
 		this.nodes.addAll(nodes);
 		collapsed = false;
-		postEvent(new ModelEvents.ClusterChanged(this));
+		parent.getParent().getParent().addPendingGroupEvent(new ModelEvents.ClusterChanged(this));
 	}
 	
 	

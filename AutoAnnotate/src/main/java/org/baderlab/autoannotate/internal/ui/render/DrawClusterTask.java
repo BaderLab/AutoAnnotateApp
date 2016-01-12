@@ -11,7 +11,6 @@ import org.baderlab.autoannotate.internal.model.CoordinateData;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
-import org.cytoscape.view.model.View;
 import org.cytoscape.view.presentation.annotations.AnnotationFactory;
 import org.cytoscape.view.presentation.annotations.AnnotationManager;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
@@ -57,16 +56,16 @@ public class DrawClusterTask extends AbstractTask {
 		taskMonitor.setStatusMessage("Drawing Annotations");
 		
 		try {
-			if(!cluster.isCollapsed())
+			// So basically the task does nothing if the cluster is collapsed.
+			// This just saves us from having to put an if-statement in the renderer.
+			if(!cluster.isCollapsed()) {
 				drawShape();
-			
-			drawLabel();
+				drawLabel();
+			}
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-	
 	
 	
 	public static class LabelArgs {
@@ -140,18 +139,20 @@ public class DrawClusterTask extends AbstractTask {
 			width = Double.parseDouble(shapeArgs.get("width"));
 			height = Double.parseDouble(shapeArgs.get("height"));
 		}
-		else if(cluster.isCollapsed()) {
-			CyNode groupNode = cluster.getNodes().iterator().next();
-			CyNetworkView networkView = cluster.getNetworkView();
-			View<CyNode> nv = networkView.getNodeView(groupNode);
-			xPos = nv.getVisualProperty(BasicVisualLexicon.NODE_X_LOCATION);
-			yPos = nv.getVisualProperty(BasicVisualLexicon.NODE_Y_LOCATION);
-			width = nv.getVisualProperty(BasicVisualLexicon.NODE_WIDTH);
-			height = nv.getVisualProperty(BasicVisualLexicon.NODE_HEIGHT);
+		
+		// This code doesn't work properly. 1) The label position is wrong. 2) Sometimes getNodeView() returns null.
+//		else if(cluster.isCollapsed()) {
+//			CyNode groupNode = cluster.getNodes().iterator().next();
+//			CyNetworkView networkView = cluster.getNetworkView();
+//			View<CyNode> nv = networkView.getNodeView(groupNode);
+//			xPos = nv.getVisualProperty(BasicVisualLexicon.NODE_X_LOCATION);
+//			yPos = nv.getVisualProperty(BasicVisualLexicon.NODE_Y_LOCATION);
+//			width = nv.getVisualProperty(BasicVisualLexicon.NODE_WIDTH);
+//			height = nv.getVisualProperty(BasicVisualLexicon.NODE_HEIGHT);
 //			// Cytoscape reports x,y as center of node
-			xPos -= width/2.0;
-			yPos -= height/2.0;
-		}
+//			xPos -= width/2.0;
+//			yPos -= height/2.0;
+//		}
 		
 		
 		int baseFontSize;

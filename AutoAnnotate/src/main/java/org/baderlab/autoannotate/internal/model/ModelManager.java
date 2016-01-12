@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.baderlab.autoannotate.internal.model.ModelEvents.ModelEvent;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.events.SetSelectedNetworkViewsEvent;
 import org.cytoscape.application.events.SetSelectedNetworkViewsListener;
@@ -74,7 +75,7 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 		return Collections.unmodifiableCollection(networkViews.values());
 	}
 	
-	synchronized void postEvent(Object event) {
+	synchronized void postEvent(ModelEvent event) {
 		if(!silenceEvents) {
 			eventBus.post(event);
 		}
@@ -223,22 +224,25 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 	}
 
 	
+	/**
+	 * There will probably be only one pending ClusterChangedEvent, but
+	 * this code is more general in case more events are needed later.
+	 */
+	private List<ModelEvent> pendingGroupEvents = new ArrayList<>(2);
+	
+	synchronized void addPendingGroupEvent(ModelEvent event) {
+		pendingGroupEvents.add(event);
+	}
+	
 	@Override
 	public void handleEvent(GroupAboutToCollapseEvent e) {
-		// Handle collapse before the nodes are removed from the network.
-		// The subsequent AboutToRemoveNodesEvent should have no effect because we 
-		// remove the nodes from the cluster here.
-		if(e.collapsing()) {
-			handleCollapse(e.getSource(), e.getNetwork(), true);
-		}
+		handleCollapse(e.getSource(), e.getNetwork(), e.collapsing());
 	}
 
 	@Override
-	public void handleEvent(GroupCollapsedEvent e) {
-		// Handle expand after the nodes have been added back to the network.
-		if(!e.collapsed()) { // expanded
-			handleCollapse(e.getSource(), e.getNetwork(), false);
-		}
+	public synchronized void handleEvent(GroupCollapsedEvent e) {
+		pendingGroupEvents.forEach(this::postEvent);
+		pendingGroupEvents = new ArrayList<>(2);
 	}
 	
 	

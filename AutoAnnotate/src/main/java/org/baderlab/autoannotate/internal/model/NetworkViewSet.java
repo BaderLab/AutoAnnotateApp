@@ -86,7 +86,9 @@ public class NetworkViewSet {
 							.collect(Collectors.toSet());
 					
 					// Fires ClusterChangedEvent, UI listeners should test if the cluster is part of the active annotation set.
-					cluster.removeNodes(nodesToRemove);
+					if(!nodesToRemove.isEmpty()) {
+						cluster.removeNodes(nodesToRemove);
+					}
 				}
 			}
 			

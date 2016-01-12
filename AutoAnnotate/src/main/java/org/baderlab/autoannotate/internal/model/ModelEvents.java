@@ -9,7 +9,11 @@ import java.util.Optional;
 public class ModelEvents {
 
 	
-	public static class AnnotationSetAdded {
+	public interface ModelEvent {
+	}
+	
+	
+	public static class AnnotationSetAdded implements ModelEvent {
 		private final AnnotationSet annotationSet;
 		AnnotationSetAdded(AnnotationSet annotationSet) {
 			this.annotationSet = annotationSet;
@@ -20,7 +24,7 @@ public class ModelEvents {
 	}
 	
 	
-	public static class AnnotationSetSelected {
+	public static class AnnotationSetSelected implements ModelEvent {
 		private final Optional<AnnotationSet> annotationSet;
 		private final NetworkViewSet networkViewSet; // because annotationSet may be null
 		AnnotationSetSelected(NetworkViewSet networkViewSet, Optional<AnnotationSet> annotationSet) {
@@ -36,7 +40,7 @@ public class ModelEvents {
 	}
 	
 	
-	public static class AnnotationSetDeleted {
+	public static class AnnotationSetDeleted implements ModelEvent {
 		private final AnnotationSet annotationSet;
 		AnnotationSetDeleted(AnnotationSet annotationSet) {
 			this.annotationSet = annotationSet;
@@ -47,7 +51,7 @@ public class ModelEvents {
 	}
 	
 	
-	public static class AnnotationSetChanged {
+	public static class AnnotationSetChanged implements ModelEvent {
 		private final AnnotationSet annotationSet;
 		AnnotationSetChanged(AnnotationSet annotationSet) {
 			this.annotationSet = annotationSet;
@@ -58,7 +62,7 @@ public class ModelEvents {
 	}
 	
 	
-	public static class ClusterAdded {
+	public static class ClusterAdded implements ModelEvent {
 		private final Cluster cluster;
 		ClusterAdded(Cluster cluster) {
 			this.cluster = cluster;
@@ -69,7 +73,7 @@ public class ModelEvents {
 	}
 	
 	
-	public static class ClusterChanged {
+	public static class ClusterChanged implements ModelEvent {
 		private final Cluster cluster;
 		ClusterChanged(Cluster cluster) {
 			this.cluster = cluster;
@@ -79,7 +83,7 @@ public class ModelEvents {
 		}
 	}
 	
-	public static class ClusterRemoved {
+	public static class ClusterRemoved implements ModelEvent {
 		private final Cluster cluster;
 		ClusterRemoved(Cluster cluster) {
 			this.cluster = cluster;
@@ -89,7 +93,7 @@ public class ModelEvents {
 		}
 	}
 	
-	public static class ClustersSelected {
+	public static class ClustersSelected implements ModelEvent {
 		private final Collection<Cluster> clusters;
 		private final AnnotationSet annotationSet;
 		ClustersSelected(AnnotationSet annotationSet, Collection<Cluster> clusters) {
@@ -104,7 +108,7 @@ public class ModelEvents {
 		}
 	}
 	
-	public static class NetworkViewSetSelected {
+	public static class NetworkViewSetSelected implements ModelEvent {
 		private final Optional<NetworkViewSet> networkViewSet;
 		NetworkViewSetSelected(Optional<NetworkViewSet> networkViewSet) {
 			this.networkViewSet = networkViewSet;
@@ -115,7 +119,7 @@ public class ModelEvents {
 	}
 	
 	
-	public static class NetworkViewSetDeleted {
+	public static class NetworkViewSetDeleted implements ModelEvent {
 		private final NetworkViewSet networkViewSet;
 		NetworkViewSetDeleted(NetworkViewSet networkViewSet) {
 			this.networkViewSet = networkViewSet;
@@ -126,7 +130,7 @@ public class ModelEvents {
 	}
 	
 	
-	public static class DisplayOptionChanged {
+	public static class DisplayOptionChanged implements ModelEvent {
 		
 		public static enum Option {
 			SHAPE_TYPE, 
