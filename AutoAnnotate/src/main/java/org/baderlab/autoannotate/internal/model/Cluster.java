@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.baderlab.autoannotate.internal.model.ModelEvents.ModelEvent;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
@@ -25,8 +24,8 @@ public class Cluster {
 		this.collapsed = collapsed;
 	}
 	
-	private void postEvent(ModelEvent event) {
-		parent.getParent().getParent().postEvent(event);
+	private ModelManager getRoot() {
+		return parent.getParent().getParent();
 	}
 	
 	public AnnotationSet getParent() {
@@ -49,6 +48,10 @@ public class Cluster {
 		return nodes.size();
 	}
 	
+	public int getExpandedNodeCount() {
+		return getRoot().getExpandedNodeCount(this);
+	}
+	
 	public Set<CyNode> getNodes() {
 		return Collections.unmodifiableSet(nodes);
 	}
@@ -63,7 +66,7 @@ public class Cluster {
 		this.nodes.clear();
 		this.nodes.add(groupNode);
 		collapsed = true;
-		parent.getParent().getParent().addPendingGroupEvent(new ModelEvents.ClusterChanged(this));
+		getRoot().addPendingGroupEvent(new ModelEvents.ClusterChanged(this));
 	}
 	
 	void expand(Set<CyNode> nodes) {
@@ -72,7 +75,7 @@ public class Cluster {
 		this.nodes.clear();
 		this.nodes.addAll(nodes);
 		collapsed = false;
-		parent.getParent().getParent().addPendingGroupEvent(new ModelEvents.ClusterChanged(this));
+		getRoot().addPendingGroupEvent(new ModelEvents.ClusterChanged(this));
 	}
 	
 	
@@ -91,14 +94,14 @@ public class Cluster {
 			if(nodes.isEmpty())
 				delete();
 			else 
-				postEvent(new ModelEvents.ClusterChanged(this));
+				getRoot().postEvent(new ModelEvents.ClusterChanged(this));
 		}
 	}
 	
 	public void setLabel(String newLabel) {
 		if(!newLabel.equals(label)) {
 			label = newLabel;
-			postEvent(new ModelEvents.ClusterChanged(this));
+			getRoot().postEvent(new ModelEvents.ClusterChanged(this));
 		}
 	}
 

@@ -15,6 +15,7 @@ import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.events.SetSelectedNetworkViewsEvent;
 import org.cytoscape.application.events.SetSelectedNetworkViewsListener;
 import org.cytoscape.group.CyGroup;
+import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.group.events.GroupAboutToCollapseEvent;
 import org.cytoscape.group.events.GroupAboutToCollapseListener;
 import org.cytoscape.group.events.GroupCollapsedEvent;
@@ -46,6 +47,7 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
                                      GroupAboutToCollapseListener, GroupCollapsedListener {
 	
 	@Inject private CyApplicationManager applicationManager;
+	@Inject private CyGroupManager groupManager;
 	@Inject private EventBus eventBus;
 	
 	private boolean silenceEvents = false;
@@ -276,6 +278,25 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 					}
 				}
 			}
+		}
+	}
+
+	int getExpandedNodeCount(Cluster cluster) {
+		Set<CyNode> nodes = cluster.getNodes();
+		if(cluster.isCollapsed()) {
+			if(nodes.isEmpty())
+				return 0;
+			CyNode groupNode = nodes.iterator().next();
+			CyGroup group = groupManager.getGroup(groupNode, cluster.getNetwork());
+			if(group == null)
+				return 0;
+			List<CyNode> groupNodes = group.getNodeList();
+			if(groupNodes == null)
+				return 0;
+			return groupNodes.size();
+		}
+		else {
+			return nodes.size();
 		}
 	}
 

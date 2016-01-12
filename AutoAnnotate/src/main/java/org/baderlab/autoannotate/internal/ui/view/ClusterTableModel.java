@@ -16,8 +16,8 @@ public class ClusterTableModel extends AbstractTableModel {
 	public static final int COLLAPSED_COLUMN_INDEX = 2;
 	
 	private Column[] columns = {
-		new Column("Cluster", String.class, Cluster::getLabel),
-		new Column("Nodes", Integer.class, Cluster::getNodeCount),
+		new Column("Cluster",   String.class,  Cluster::getLabel),
+		new Column("Nodes",     Integer.class, Cluster::getExpandedNodeCount),
 		new Column("Collapsed", Boolean.class, Cluster::isCollapsed)
 	};
 	
