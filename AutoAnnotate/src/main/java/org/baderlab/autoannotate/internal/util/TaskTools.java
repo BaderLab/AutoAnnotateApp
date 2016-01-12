@@ -46,7 +46,7 @@ public class TaskTools {
 	}
 	
 	
-	public static TaskObserver observerOf(Runnable runnable) {
+	public static TaskObserver allFinishedObserver(Runnable runnable) {
 		return new TaskObserver() {
 			@Override
 			public void taskFinished(ObservableTask task) {

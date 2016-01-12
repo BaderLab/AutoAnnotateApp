@@ -4,11 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
 import org.baderlab.autoannotate.internal.CyActivator;
@@ -92,8 +91,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	public void importModel() {
 		boolean imported = false;
 		
-		Set<CyNetworkView> groupNetworksToCollapse = new HashSet<>();
-		
 		for(CyNetwork network: networkManager.getNetworkSet()) {
 			Collection<CyNetworkView> networkViews = networkViewManager.getNetworkViews(network);
 			if(!networkViews.isEmpty()) {
@@ -103,7 +100,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				
 				if(asTable != null && clusterTable != null) {
 					try {
-						groupNetworksToCollapse.add(networkView);
 						importModel(networkView, asTable, clusterTable);
 						imported = true;
 					} catch(Exception ex) {
@@ -113,30 +109,14 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			}
 		}
 		
-		if(imported) {
-			runResetAutoannotateTask(groupNetworksToCollapse);
-		}
-	}
-	
-	
-	private void runResetAutoannotateTask(Collection<CyNetworkView> networkViewsToCollapse) {
-		TaskIterator tasks = new TaskIterator();
-		tasks.append(TaskTools.taskMessage("Collapsing all Annotations"));
-		
-		// Right here, expand and remove all groups in networks managed by AutoAnnotate
-		CollapseAllAction collapseAction = collapseActionProvider.get();
-		collapseAction.setAction(Grouping.EXPAND);
-		for(CyNetworkView networkView : networkViewsToCollapse) {
-			tasks.append(collapseAction.createTaskIterator(networkView));
-		}
-		
 		// important to clear out existing annotations from the network views
-		tasks.append(TaskTools.taskOf(() -> modelManagerProvider.get().deselectAll()));
-		tasks.append(TaskTools.taskOf(() -> panelManagerProvider.get().show()));
+		modelManagerProvider.get().deselectAll();
 		
-		dialogTaskManager.execute(tasks);
+		if(imported) {
+			panelManagerProvider.get().show();
+		}
 	}
-
+	
 	private void importModel(CyNetworkView networkView, CyTable asTable, CyTable clusterTable) {
 		CyNetwork network = networkView.getModel();
 		Map<Long,AnnotationSetBuilder> builders = new HashMap<>();
@@ -179,9 +159,47 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	
 	@Override
 	public void handleEvent(SessionAboutToBeSavedEvent e) {
+		expandAllClusters();
 		// Note, when a new session is loaded the NetworkViewAboutToBeDestroyedListener will clear out the model.
 		exportModel();
 	}
+	
+	/**
+	 * This is a huge hack to get around a bug in cytoscape.
+	 * All groups must be expanded before the session is saved.
+	 */
+	private void expandAllClusters() {
+		Collection<CyNetworkView> networkViews = 
+			modelManagerProvider.get()
+			.getNetworkViewSets()
+			.stream()
+			.map(NetworkViewSet::getNetworkView)
+			.collect(Collectors.toSet());
+		
+		TaskIterator tasks = getExpandTasks(networkViews);
+		
+		Semaphore semaphore = new Semaphore(0);
+		dialogTaskManager.execute(tasks, TaskTools.allFinishedObserver(() -> semaphore.release()));
+		
+		// We need to block while the groups are expanding because this must happen before the session is saved.
+		semaphore.acquireUninterruptibly();
+	}
+	
+	
+	private TaskIterator getExpandTasks(Collection<CyNetworkView> networkViewsToCollapse) {
+		TaskIterator tasks = new TaskIterator();
+		tasks.append(TaskTools.taskMessage("Expanding all clusters"));
+		
+		// Right here, expand and remove all groups in networks managed by AutoAnnotate
+		CollapseAllAction collapseAction = collapseActionProvider.get();
+		collapseAction.setAction(Grouping.EXPAND);
+		for(CyNetworkView networkView : networkViewsToCollapse) {
+			tasks.append(collapseAction.createTaskIterator(networkView));
+		}
+		
+		return tasks;
+	}
+	
 	
 	public void exportModel() {
 		for(CyNetwork network: networkManager.getNetworkSet()) {
@@ -201,7 +219,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 					continue;
 				}
 			}
-			// delete any existing tables
+			// MKTODO: delete any existing tables
 		}
 	}
 	

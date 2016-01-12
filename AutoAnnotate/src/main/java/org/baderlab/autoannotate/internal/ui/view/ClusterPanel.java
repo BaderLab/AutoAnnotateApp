@@ -232,7 +232,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		tasks.append(taskOf(() -> networkViewSet.select(toSelect)));
 		
 		// Enable the combo box
-		TaskObserver observer = observerOf(() -> annotationSetCombo.setEnabled(true));
+		TaskObserver observer = allFinishedObserver(() -> annotationSetCombo.setEnabled(true));
 		
 		dialogTaskManager.execute(tasks, observer);
 	}
