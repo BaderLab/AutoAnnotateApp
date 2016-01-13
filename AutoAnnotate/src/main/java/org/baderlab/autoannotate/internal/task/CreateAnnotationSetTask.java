@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
@@ -18,10 +17,7 @@ import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
-import org.cytoscape.view.layout.CyLayoutAlgorithm;
-import org.cytoscape.view.layout.CyLayoutAlgorithmManager;
 import org.cytoscape.view.model.CyNetworkView;
-import org.cytoscape.view.model.View;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
@@ -34,16 +30,18 @@ public class CreateAnnotationSetTask extends AbstractTask {
 
 	@Inject private Provider<RunClusterMakerTaskFactory> clusterMakerProvider;
 	@Inject private Provider<RunWordCloudTaskFactory> wordCloudProvider;
-	@Inject private SynchronousTaskManager<?> syncTaskManager;
-	@Inject private CyLayoutAlgorithmManager layoutManager;
+	@Inject private Provider<LayoutClustersTaskFactory> layoutProvider;
 	
+	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	@Inject private ModelManager modelManager;
+	
 	
 	private CreationParameters params;
 	
 	public void setParameters(CreationParameters params) {
 		this.params = params;
 	}
+	
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
@@ -87,7 +85,7 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		networkViewSet.select(annotationSet); // fires ModelEvent.AnnotationSetSelected
 	}
 	
-	
+
 	private Map<String,Collection<CyNode>> runClusterMaker() {
 		RunClusterMakerTaskFactory clusterMakerTaskFactory = clusterMakerProvider.get();
 		clusterMakerTaskFactory.setParameters(params);
@@ -107,6 +105,14 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		return cloudResultObserver.getResults();
 	}
 	
+	
+	private void layoutNodes(Map<?,Collection<CyNode>> clusters, CyNetworkView networkView, String columnName) {
+		LayoutClustersTaskFactory layoutTaskFactory = layoutProvider.get();
+		layoutTaskFactory.init(clusters.values(), networkView, columnName);
+		TaskIterator tasks = layoutTaskFactory.createTaskIterator();
+		syncTaskManager.execute(tasks);
+	}
+
 	
 	private String createName(NetworkViewSet networkViewSet) {
 		String originalName;
@@ -159,26 +165,5 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		
 		return clusters;
 	}
-	
-	
-	private void layoutNodes(Map<?,Collection<CyNode>> clusters, CyNetworkView view, String layoutAttribute) {
-		CyLayoutAlgorithm attributeCircle = layoutManager.getLayout("attributes-layout");
-		TaskIterator iterator = attributeCircle.createTaskIterator(view, attributeCircle.createLayoutContext(), CyLayoutAlgorithm.ALL_NODE_VIEWS, layoutAttribute);
-		syncTaskManager.execute(iterator);
-		CyLayoutAlgorithm force_directed = layoutManager.getLayout("force-directed");
-		
-		for(Collection<CyNode> cluster : clusters.values()) {
-			Set<View<CyNode>> nodeViewSet = new HashSet<View<CyNode>>();
-			for(CyNode node : cluster) {
-				nodeViewSet.add(view.getNodeView(node));
-			}
-			// Only apply layout to nodes of size greater than 4
-			if (nodeViewSet.size() > 4) {
-				iterator = force_directed.createTaskIterator(view, force_directed.createLayoutContext(), nodeViewSet, null);
-				syncTaskManager.execute(iterator);
-			}
-		}
-	}
-	
 
 }

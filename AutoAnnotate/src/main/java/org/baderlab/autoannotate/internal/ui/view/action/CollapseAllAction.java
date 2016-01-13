@@ -16,6 +16,7 @@ import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.swing.DialogTaskManager;
@@ -24,7 +25,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 @SuppressWarnings("serial")
-public class CollapseAllAction extends AbstractCyAction {
+public class CollapseAllAction extends AbstractCyAction implements TaskFactory {
 	
 	@Inject private @WarnDialogModule.Collapse Provider<WarnDialog> warnDialogProvider;
 	@Inject private ModelManager modelManager;
@@ -60,6 +61,7 @@ public class CollapseAllAction extends AbstractCyAction {
 		}
 	}
 	
+	@Override
 	public TaskIterator createTaskIterator() {
 		return 
 			modelManager
@@ -80,6 +82,11 @@ public class CollapseAllAction extends AbstractCyAction {
 			.stream()
 			.map(cluster -> taskProvider.get().init(cluster, action))
 			.collect(TaskTools.taskIterator());
+	}
+
+	@Override
+	public boolean isReady() {
+		return true;
 	}
 
 }

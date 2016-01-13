@@ -1,2 +1,3 @@
 warnDialog.dontShowAgain.create=false
 warnDialog.dontShowAgain.collapse=false
+warnDialog.dontShowAgain.layout=false

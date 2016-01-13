@@ -18,6 +18,7 @@ public class WarnDialogModule extends AbstractModule {
 	
 	public static final String CY_PROPERTY_WARN_CREATE   = "warnDialog.dontShowAgain.create";
 	public static final String CY_PROPERTY_WARN_COLLAPSE = "warnDialog.dontShowAgain.collapse";
+	public static final String CY_PROPERTY_WARN_LAYOUT   = "warnDialog.dontShowAgain.layout";
 
 	
 	@BindingAnnotation @Retention(RUNTIME)
@@ -26,6 +27,8 @@ public class WarnDialogModule extends AbstractModule {
 	@BindingAnnotation @Retention(RUNTIME)
 	public @interface Collapse { }
 	
+	@BindingAnnotation @Retention(RUNTIME)
+	public @interface Layout { }
 	
 	
 	@Override
@@ -57,4 +60,14 @@ public class WarnDialogModule extends AbstractModule {
 		return warnDialog;
 	}
 	
+	
+	@Provides @Layout
+	public WarnDialog createWarnDialogLayout(CyProperty<Properties> cyProperty) {
+		WarnDialog warnDialog = new WarnDialog(cyProperty);
+		warnDialog.setPropertyName(CY_PROPERTY_WARN_LAYOUT);
+		warnDialog.setMessages(
+			"Layout clusters cannot be undone."
+		);
+		return warnDialog;
+	}
 }

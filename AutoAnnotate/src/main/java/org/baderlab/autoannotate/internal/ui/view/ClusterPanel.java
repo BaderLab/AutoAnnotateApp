@@ -42,6 +42,7 @@ import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetDeleteActi
 import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetRenameAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ClusterTableMenuActions;
 import org.baderlab.autoannotate.internal.ui.view.action.CollapseAllAction;
+import org.baderlab.autoannotate.internal.ui.view.action.LayoutClustersAction;
 import org.baderlab.autoannotate.internal.ui.view.action.RedrawAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.cytoscape.application.swing.CytoPanelComponent;
@@ -70,6 +71,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	@Inject private Provider<AnnotationSetRenameAction> renameActionProvider;
 	@Inject private Provider<CollapseAllAction> collapseActionProvider;
 	@Inject private Provider<RedrawAction> redrawActionProvider;
+	@Inject private Provider<LayoutClustersAction> layoutActionProvider;
 	
 	@Inject private Provider<ClusterTableSelectionListener> selectionListenerProvider;
 	@Inject private Provider<ClusterTableMenuActions> menuActionsProvider;
@@ -369,6 +371,9 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		JMenuItem expandMenuItem = new JMenuItem("Expand All Clusters");
 		expandMenuItem.addActionListener(collapseActionProvider.get().setAction(Grouping.EXPAND));
 		
+		JMenuItem layoutMenuItem = new JMenuItem("Layout Clusters");
+		layoutMenuItem.addActionListener(layoutActionProvider.get());
+		
 		JMenuItem redrawMenuItem = new JMenuItem("Redraw Annotations");
 		redrawMenuItem.addActionListener(redrawActionProvider.get());
 		
@@ -380,6 +385,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		menu.add(collapseMenuItem);
 		menu.add(expandMenuItem);
 		menu.addSeparator();
+		menu.add(layoutMenuItem);
 		menu.add(redrawMenuItem);
 		
 		Component c = (Component)event.getSource();
