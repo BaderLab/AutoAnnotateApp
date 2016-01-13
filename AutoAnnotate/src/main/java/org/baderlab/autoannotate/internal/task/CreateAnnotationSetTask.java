@@ -62,7 +62,7 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		Map<String,Collection<WordInfo>> wordInfos = runWordCloud(clusters);
 		
 		if(params.isLayoutClusters()) {
-			layoutNodes(clusters, params.getNetworkView());
+			layoutNodes(clusters, params.getNetworkView(), params.getClusterAlgorithm().getColumnName());
 		}
 		
 		String weightAttribute = "";
@@ -161,9 +161,9 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	}
 	
 	
-	private void layoutNodes(Map<?,Collection<CyNode>> clusters, CyNetworkView view) {
+	private void layoutNodes(Map<?,Collection<CyNode>> clusters, CyNetworkView view, String layoutAttribute) {
 		CyLayoutAlgorithm attributeCircle = layoutManager.getLayout("attributes-layout");
-		TaskIterator iterator = attributeCircle.createTaskIterator(view, attributeCircle.createLayoutContext(), CyLayoutAlgorithm.ALL_NODE_VIEWS, null);
+		TaskIterator iterator = attributeCircle.createTaskIterator(view, attributeCircle.createLayoutContext(), CyLayoutAlgorithm.ALL_NODE_VIEWS, layoutAttribute);
 		syncTaskManager.execute(iterator);
 		CyLayoutAlgorithm force_directed = layoutManager.getLayout("force-directed");
 		
