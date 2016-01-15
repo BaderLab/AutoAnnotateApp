@@ -5,7 +5,8 @@ import static org.baderlab.autoannotate.internal.util.TaskTools.*;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -64,7 +65,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	
 	private JComboBox<ComboItem<AnnotationSet>> annotationSetCombo;
 	private JTable clusterTable;
-	private ActionListener annotationSetSelectionListener;
+	private ItemListener itemListener;
 	private ClusterTableSelectionListener clusterSelectionListener;
 	
 	private EventBus eventBus;
@@ -98,9 +99,9 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	public void handle(ModelEvents.AnnotationSetSelected event) {
 		Optional<AnnotationSet> annotationSet = event.getAnnotationSet();
 		if(!annotationSet.isPresent() || annotationSet.get().getParent().isSelected()) {
-			annotationSetCombo.removeActionListener(annotationSetSelectionListener);
+			annotationSetCombo.removeItemListener(itemListener);
 			annotationSetCombo.setSelectedItem(new ComboItem<>(annotationSet.orElse(null)));
-			annotationSetCombo.addActionListener(annotationSetSelectionListener);
+			annotationSetCombo.addItemListener(itemListener);
 			updateClusterTable();
 		}
 	}
@@ -117,12 +118,12 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		DefaultComboBoxModel<ComboItem<AnnotationSet>> model = (DefaultComboBoxModel) annotationSetCombo.getModel();
 		int index = model.getIndexOf(new ComboItem<>(as));
 		
-		annotationSetCombo.removeActionListener(annotationSetSelectionListener);
+		annotationSetCombo.removeItemListener(itemListener);
 		model.removeElementAt(index);
 		ComboItem<AnnotationSet> item = new ComboItem<>(as,as.getName());
 		model.insertElementAt(item, index);
 		model.setSelectedItem(item);
-		annotationSetCombo.addActionListener(annotationSetSelectionListener);
+		annotationSetCombo.addItemListener(itemListener);
 	}
 	
 	@Subscribe
@@ -176,7 +177,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 
 	
 	public void setNetworkViewSet(Optional<NetworkViewSet> nvs) {
-		annotationSetCombo.removeActionListener(annotationSetSelectionListener);
+		annotationSetCombo.removeItemListener(itemListener);
 		annotationSetCombo.removeAllItems();
 		annotationSetCombo.addItem(new ComboItem<>(null, "(none)"));
 		if(nvs.isPresent()) {
@@ -186,7 +187,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 			Optional<AnnotationSet> as = nvs.get().getActiveAnnotationSet();
 			annotationSetCombo.setSelectedItem(new ComboItem<>(as.orElse(null)));
 		}
-		annotationSetCombo.addActionListener(annotationSetSelectionListener);
+		annotationSetCombo.addItemListener(itemListener);
 		updateClusterTable();
 	}
 	
@@ -269,7 +270,11 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		JPanel panel = new JPanel(new BorderLayout());
 		
 		annotationSetCombo = createAnnotationSetCombo();
-		annotationSetCombo.addActionListener(annotationSetSelectionListener = e -> selectAnnotationSet());
+		annotationSetCombo.addItemListener(itemListener = e -> {
+			if(e.getStateChange() == ItemEvent.SELECTED) {
+				selectAnnotationSet();
+			}
+		});
 		
 		JButton actionButton = new JButton();
 		actionButton.setFont(iconManagerProvider.get().getIconFont(12));
