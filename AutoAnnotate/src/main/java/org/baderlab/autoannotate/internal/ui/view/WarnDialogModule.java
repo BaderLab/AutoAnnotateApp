@@ -19,25 +19,19 @@ public class WarnDialogModule extends AbstractModule {
 	public static final String CY_PROPERTY_WARN_CREATE   = "warnDialog.dontShowAgain.create";
 	public static final String CY_PROPERTY_WARN_COLLAPSE = "warnDialog.dontShowAgain.collapse";
 	public static final String CY_PROPERTY_WARN_LAYOUT   = "warnDialog.dontShowAgain.layout";
+	public static final String CY_PROPERTY_WARN_LABEL    = "warnDialog.dontShowAgain.label";
 
-	
-	@BindingAnnotation @Retention(RUNTIME)
-	public @interface Create { }
-	
-	@BindingAnnotation @Retention(RUNTIME)
-	public @interface Collapse { }
-	
-	@BindingAnnotation @Retention(RUNTIME)
-	public @interface Layout { }
-	
+	@BindingAnnotation @Retention(RUNTIME) public @interface Create {}
+	@BindingAnnotation @Retention(RUNTIME) public @interface Collapse {}
+	@BindingAnnotation @Retention(RUNTIME) public @interface Layout {}
+	@BindingAnnotation @Retention(RUNTIME) public @interface Label {}
 	
 	@Override
-	protected void configure() {
-	}
+	protected void configure() { }
 
 	
 	@Provides @Create
-	public WarnDialog createWarnDialogCreate(CyProperty<Properties> cyProperty) {
+	public WarnDialog warnCreate(CyProperty<Properties> cyProperty) {
 		WarnDialog warnDialog = new WarnDialog(cyProperty);
 		warnDialog.setPropertyName(CY_PROPERTY_WARN_CREATE);
 		warnDialog.setMessages(
@@ -50,7 +44,7 @@ public class WarnDialogModule extends AbstractModule {
 	
 	
 	@Provides @Collapse
-	public WarnDialog createWarnDialogCollapse(CyProperty<Properties> cyProperty) {
+	public WarnDialog warnCollapse(CyProperty<Properties> cyProperty) {
 		WarnDialog warnDialog = new WarnDialog(cyProperty);
 		warnDialog.setPropertyName(CY_PROPERTY_WARN_COLLAPSE);
 		warnDialog.setMessages(
@@ -62,11 +56,22 @@ public class WarnDialogModule extends AbstractModule {
 	
 	
 	@Provides @Layout
-	public WarnDialog createWarnDialogLayout(CyProperty<Properties> cyProperty) {
+	public WarnDialog warnLayout(CyProperty<Properties> cyProperty) {
 		WarnDialog warnDialog = new WarnDialog(cyProperty);
 		warnDialog.setPropertyName(CY_PROPERTY_WARN_LAYOUT);
 		warnDialog.setMessages(
 			"Layout clusters cannot be undone."
+		);
+		return warnDialog;
+	}
+	
+	
+	@Provides @Label
+	public WarnDialog warnLabel(CyProperty<Properties> cyProperty) {
+		WarnDialog warnDialog = new WarnDialog(cyProperty);
+		warnDialog.setPropertyName(CY_PROPERTY_WARN_LAYOUT);
+		warnDialog.setMessages(
+			"Recalculating labels for selected clusters cannot be undone."
 		);
 		return warnDialog;
 	}

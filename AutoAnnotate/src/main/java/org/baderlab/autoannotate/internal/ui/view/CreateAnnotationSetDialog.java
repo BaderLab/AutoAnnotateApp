@@ -29,11 +29,11 @@ import javax.swing.SwingConstants;
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
+import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.internal.task.CreationParameters;
 import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.GBCFactory;
-import org.baderlab.autoannotate.internal.ui.view.action.CollapseAllAction;
 import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.command.AvailableCommands;
@@ -56,7 +56,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	@Inject private @WarnDialogModule.Create Provider<WarnDialog> warnDialogProvider;
 	@Inject private Provider<CreateAnnotationSetTask> createTaskProvider;
-	@Inject private Provider<CollapseAllAction> collapseActionProvider;
+	@Inject private Provider<CollapseAllTaskFactory> collapseTaskFactoryProvider;
 	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private IconManager iconManager;
@@ -333,9 +333,9 @@ public class CreateAnnotationSetDialog extends JDialog {
 		tasks.append(TaskTools.taskMessage("Generating Clusters"));
 		
 		// clusterMaker does not like it when there are collapsed groups
-		CollapseAllAction collapseAllAction = collapseActionProvider.get();
-		collapseAllAction.setAction(Grouping.EXPAND);
-		tasks.append(collapseAllAction.createTaskIterator());
+		CollapseAllTaskFactory collapseAllTaskFactory = collapseTaskFactoryProvider.get();
+		collapseAllTaskFactory.setAction(Grouping.EXPAND);
+		tasks.append(collapseAllTaskFactory.createTaskIterator());
 		
 		CreateAnnotationSetTask createTask = createTaskProvider.get();
 		createTask.setParameters(params);

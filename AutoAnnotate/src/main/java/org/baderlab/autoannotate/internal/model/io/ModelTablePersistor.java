@@ -17,9 +17,9 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
 import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
-import org.baderlab.autoannotate.internal.ui.view.action.CollapseAllAction;
 import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
@@ -73,7 +73,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	
 	@Inject private Provider<ModelManager> modelManagerProvider;
 	@Inject private Provider<PanelManager> panelManagerProvider;
-	@Inject private Provider<CollapseAllAction> collapseActionProvider;
+	@Inject private Provider<CollapseAllTaskFactory> collapseActionProvider;
 	@Inject private DialogTaskManager dialogTaskManager;
 	
 	@Inject private CyNetworkTableManager networkTableManager;
@@ -191,7 +191,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		tasks.append(TaskTools.taskMessage("Expanding all clusters"));
 		
 		// Right here, expand and remove all groups in networks managed by AutoAnnotate
-		CollapseAllAction collapseAction = collapseActionProvider.get();
+		CollapseAllTaskFactory collapseAction = collapseActionProvider.get();
 		collapseAction.setAction(Grouping.EXPAND);
 		for(CyNetworkView networkView : networkViewsToCollapse) {
 			tasks.append(collapseAction.createTaskIterator(networkView));

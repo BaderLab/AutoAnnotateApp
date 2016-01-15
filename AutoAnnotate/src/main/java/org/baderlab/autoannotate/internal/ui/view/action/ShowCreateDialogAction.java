@@ -22,7 +22,7 @@ public class ShowCreateDialogAction extends AbstractCyAction {
 	@Inject private Provider<CreateAnnotationSetDialog> dialogProvider;
 	
 	public ShowCreateDialogAction() {
-		super("Create Annotation Set...");
+		super("New Annotation Set...");
 	}
 	
 	@Override

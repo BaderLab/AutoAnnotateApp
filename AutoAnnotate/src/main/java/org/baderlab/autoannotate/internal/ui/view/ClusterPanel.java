@@ -4,7 +4,6 @@ import static org.baderlab.autoannotate.internal.util.TaskTools.*;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -17,9 +16,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -36,15 +33,9 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
 import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.ComboItem;
-import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetDeleteAction;
-import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetRenameAction;
-import org.baderlab.autoannotate.internal.ui.view.action.ClusterTableMenuActions;
-import org.baderlab.autoannotate.internal.ui.view.action.CollapseAllAction;
-import org.baderlab.autoannotate.internal.ui.view.action.LayoutClustersAction;
-import org.baderlab.autoannotate.internal.ui.view.action.RedrawAction;
-import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.model.CyDisposable;
@@ -66,15 +57,10 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private Provider<IconManager> iconManagerProvider;
 	
-	@Inject private Provider<ShowCreateDialogAction> showActionProvider;
-	@Inject private Provider<AnnotationSetDeleteAction> deleteActionProvider;
-	@Inject private Provider<AnnotationSetRenameAction> renameActionProvider;
-	@Inject private Provider<CollapseAllAction> collapseActionProvider;
-	@Inject private Provider<RedrawAction> redrawActionProvider;
-	@Inject private Provider<LayoutClustersAction> layoutActionProvider;
-	
+	@Inject private Provider<CollapseAllTaskFactory> collapseTaskFactoryProvider;
 	@Inject private Provider<ClusterTableSelectionListener> selectionListenerProvider;
-	@Inject private Provider<ClusterTableMenuActions> menuActionsProvider;
+	@Inject private Provider<AnnotationSetMenu> annotationSetMenuProvider;
+	@Inject private Provider<ClusterMenu> clusterMenuProvider;
 	
 	private JComboBox<ComboItem<AnnotationSet>> annotationSetCombo;
 	private JTable clusterTable;
@@ -226,9 +212,9 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		TaskIterator tasks = new TaskIterator();
 		
 		// Expand all the groups
-		CollapseAllAction collapseAllAction = collapseActionProvider.get();
-		collapseAllAction.setAction(Grouping.EXPAND);
-		tasks.append(collapseAllAction.createTaskIterator());
+		CollapseAllTaskFactory collapseAllTaskFactory = collapseTaskFactoryProvider.get();
+		collapseAllTaskFactory.setAction(Grouping.EXPAND);
+		tasks.append(collapseAllTaskFactory.createTaskIterator());
 		
 		// Select the annotation set (fires event that redraws annotations)
 		tasks.append(taskOf(() -> networkViewSet.select(toSelect)));
@@ -320,30 +306,22 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		clusterTable.getSelectionModel().addListSelectionListener(clusterSelectionListener);
 		clusterTable.setAutoCreateRowSorter(true);
 		
-		JPopupMenu popupMenu = new JPopupMenu();
-		ClusterTableMenuActions actions = menuActionsProvider.get();
-		actions.setTable(clusterTable);
-		actions.addTo(popupMenu);
-		
-		// Add the row that was right clicked to the selection.
 		clusterTable.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				if(!e.isPopupTrigger())
 					return;
 				
-				Point point = e.getPoint();
-				int rowIndex = clusterTable.rowAtPoint(point);
+				// Add the row that was right clicked to the selection.
+				int rowIndex = clusterTable.rowAtPoint(e.getPoint());
 				if(rowIndex < 0) 
 					return;
-				
 				ListSelectionModel model = clusterTable.getSelectionModel();
 				if(!model.isSelectedIndex(rowIndex)) {
 					model.setSelectionInterval(rowIndex, rowIndex);
 				}
 				
-				actions.updateEnablement();
-				popupMenu.show(e.getComponent(), e.getX(), e.getY());
+				showClusterPopupMenu(e.getComponent(), e.getX(), e.getY());
 			}
 		});
 		
@@ -355,43 +333,30 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	}
 
 	
+	private List<Cluster> getSelectedClusters() {
+		ClusterTableModel model = (ClusterTableModel) clusterTable.getModel();
+		int[] rows = clusterTable.getSelectedRows();
+		List<Cluster> clusters = new ArrayList<>(rows.length);
+		for(int i : rows) {
+			int modelIndex = clusterTable.convertRowIndexToModel(i);
+			Cluster cluster = model.getCluster(modelIndex);
+			clusters.add(cluster);
+		}
+		return clusters;
+	}
+	
+	
 	private void showAnnotationSetPopupMenu(ActionEvent event) {
-		JMenuItem createMenuItem = new JMenuItem("Create...");
-		createMenuItem.addActionListener(showActionProvider.get());
-		
-		JMenuItem renameMenuItem = new JMenuItem("Rename");
-		renameMenuItem.addActionListener(renameActionProvider.get());
-		
-		JMenuItem deleteMenuItem = new JMenuItem("Delete");
-		deleteMenuItem.addActionListener(deleteActionProvider.get());
-		
-		JMenuItem collapseMenuItem = new JMenuItem("Collapse All Clusters");
-		collapseMenuItem.addActionListener(collapseActionProvider.get().setAction(Grouping.COLLAPSE));
-		
-		JMenuItem expandMenuItem = new JMenuItem("Expand All Clusters");
-		expandMenuItem.addActionListener(collapseActionProvider.get().setAction(Grouping.EXPAND));
-		
-		JMenuItem layoutMenuItem = new JMenuItem("Layout Clusters");
-		layoutMenuItem.addActionListener(layoutActionProvider.get());
-		
-		JMenuItem redrawMenuItem = new JMenuItem("Redraw Annotations");
-		redrawMenuItem.addActionListener(redrawActionProvider.get());
-		
-		JPopupMenu menu = new JPopupMenu();
-		menu.add(createMenuItem);
-		menu.add(renameMenuItem);
-		menu.add(deleteMenuItem);
-		menu.addSeparator();
-		menu.add(collapseMenuItem);
-		menu.add(expandMenuItem);
-		menu.addSeparator();
-		menu.add(layoutMenuItem);
-		menu.add(redrawMenuItem);
-		
+		AnnotationSetMenu menu = annotationSetMenuProvider.get();
 		Component c = (Component)event.getSource();
 		menu.show(c, 0, c.getHeight());
 	}
 	
+	private void showClusterPopupMenu(Component component, int x, int y) {
+		List<Cluster> clusters = getSelectedClusters();
+		ClusterMenu menu = clusterMenuProvider.get();
+		menu.show(clusters, component, x, y);
+	}
 	
 	@Override
 	public Component getComponent() {
