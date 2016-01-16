@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -52,7 +53,7 @@ import com.google.inject.Provider;
 @SuppressWarnings("serial")
 public class CreateAnnotationSetDialog extends JDialog {
 	
-	private static final String NONE = "(none)";
+	private static final String NONE = "--None--"; // "--None--" is a value accepted by clusterMaker
 	
 	@Inject private @WarnDialogModule.Create Provider<WarnDialog> warnDialogProvider;
 	@Inject private Provider<CreateAnnotationSetTask> createTaskProvider;
@@ -167,7 +168,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	private JPanel createParametersPanel_LabelPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
-		labelColumnNameCombo = createComboBox(getColumnsOfType(String.class, true, true));
+		labelColumnNameCombo = createComboBox(getColumnsOfType(String.class, true, false));
 		for(int i = 0; i < labelColumnNameCombo.getItemCount(); i++) {
 			if(labelColumnNameCombo.getItemAt(i).endsWith("GS_DESCR")) {
 				labelColumnNameCombo.setSelectedIndex(i);
@@ -212,8 +213,6 @@ public class CreateAnnotationSetDialog extends JDialog {
 		columns.addAll(getColumnsOfType(Integer.class, true, false));
 		columns.addAll(getColumnsOfType(Long.class, true, false));
 		columns.addAll(getColumnsOfType(String.class, true, false));
-		if(columns.isEmpty())
-			columns.add(NONE);
 		columns.sort(Comparator.naturalOrder());
 		clusterIdColumnCombo = createComboBox(columns);
 		panel.add(clusterIdColumnCombo, GBCFactory.grid(1,5).weightx(1.0).get());
@@ -235,9 +234,9 @@ public class CreateAnnotationSetDialog extends JDialog {
 			algLabel.setEnabled(useAlg);
 			algorithmNameCombo.setEnabled(useAlg);
 			edgeWeightLabel.setEnabled(useAlg && alg.isAttributeRequired());
-			edgeWeightColumnCombo.setEnabled(useAlg && alg.isAttributeRequired() && !edgeWeightColumnCombo.getItemAt(0).equals(NONE));
+			edgeWeightColumnCombo.setEnabled(useAlg && alg.isAttributeRequired() && edgeWeightColumnCombo.getItemCount() != 0);
 			clusterIdLabel.setEnabled(!useAlg);
-			clusterIdColumnCombo.setEnabled(!useAlg && !clusterIdColumnCombo.getItemAt(0).equals(NONE));
+			clusterIdColumnCombo.setEnabled(!useAlg && clusterIdColumnCombo.getItemCount() != 0);
 		};
 		
 		useClusterMakerRadio.setSelected(true);
@@ -255,17 +254,21 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	private void okButtonEnablementListener(ActionEvent e) {
 		createButton.setEnabled(true);
+		
 		if(!isWordCloudInstalled) {
+			createButton.setEnabled(false);
+		}
+		else if(labelColumnNameCombo.getSelectedIndex() == -1) {
 			createButton.setEnabled(false);
 		}
 		else if(useClusterMakerRadio.isSelected() && !isClusterMakerInstalled) {
 			createButton.setEnabled(false);
 		}
 		// handle empty combo boxes
-		else if(useClusterMakerRadio.isSelected() && ((ClusterAlgorithm)algorithmNameCombo.getSelectedItem()).isAttributeRequired() && edgeWeightColumnCombo.getSelectedItem().equals(NONE)) {
+		else if(useClusterMakerRadio.isSelected() && ((ClusterAlgorithm)algorithmNameCombo.getSelectedItem()).isAttributeRequired() && edgeWeightColumnCombo.getSelectedIndex() == -1) {
 			createButton.setEnabled(false);
 		}
-		else if(!useClusterMakerRadio.isSelected() && clusterIdColumnCombo.getSelectedItem().equals(NONE)) {
+		else if(!useClusterMakerRadio.isSelected() && clusterIdColumnCombo.getSelectedIndex() == -1) {
 			createButton.setEnabled(false);
 		}
 	}
@@ -345,7 +348,8 @@ public class CreateAnnotationSetDialog extends JDialog {
 	}
 	
 	private List<String> getColumnsOfType(Class<?> type, boolean node, boolean addNone) {
-		List<String> columns = new ArrayList<String>();
+		List<String> columns = new LinkedList<String>();
+		
 		CyTable table;
 		if(node)
 			table = networkView.getModel().getDefaultNodeTable();
@@ -365,9 +369,8 @@ public class CreateAnnotationSetDialog extends JDialog {
 		}
 		
 		columns.sort(Comparator.naturalOrder());
-		
-		if(addNone && columns.isEmpty()) {
-			columns.add(NONE);
+		if(addNone) {
+			columns.add(0, NONE);
 		}
 		return columns;
 	}

@@ -22,6 +22,8 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 		ClusterAlgorithm algorithm = params.getClusterAlgorithm();
 		String clusterCommand = algorithm.getClusterCommand(params.getClusterMakerAttribute());
 		String networkCommand = algorithm.getNetworkCommand();
+		
+		// System.out.println("clusterCommand: " + clusterCommand);
 		return commandTaskFactory.createTaskIterator(taskObserver, clusterCommand, networkCommand);
 	}
 	
