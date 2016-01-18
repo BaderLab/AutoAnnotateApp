@@ -312,8 +312,10 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		clusterTable.setAutoCreateRowSorter(true);
 		
 		clusterTable.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
+			@Override public void mousePressed(MouseEvent e) { showPopup(e); }
+			@Override public void mouseReleased(MouseEvent e) { showPopup(e); }
+			
+			private void showPopup(MouseEvent e) {
 				if(!e.isPopupTrigger())
 					return;
 				
