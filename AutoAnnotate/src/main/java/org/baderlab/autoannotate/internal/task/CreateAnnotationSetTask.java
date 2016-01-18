@@ -177,7 +177,12 @@ public class CreateAnnotationSetTask extends AbstractTask {
 				list = Collections.singletonList(network.getRow(node).get(attribute, type));
 
 			for(Object o : list) {
-				String key = String.valueOf(o);
+				if(o == null)
+					continue;
+				String key = String.valueOf(o).trim();
+				if(key.isEmpty())
+					continue;
+				
 				Collection<CyNode> cluster = clusters.get(key);
 				if(cluster == null) {
 					cluster = new HashSet<>();
@@ -186,7 +191,6 @@ public class CreateAnnotationSetTask extends AbstractTask {
 				cluster.add(node);
 			}
 		}
-		
 		return clusters;
 	}
 
