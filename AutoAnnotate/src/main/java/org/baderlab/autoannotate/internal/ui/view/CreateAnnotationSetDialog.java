@@ -168,7 +168,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	private JPanel createParametersPanel_LabelPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
-		labelColumnNameCombo = createComboBox(getColumnsOfType(String.class, true, false));
+		labelColumnNameCombo = createComboBox(getColumnsOfType(String.class, true, false, true));
 		for(int i = 0; i < labelColumnNameCombo.getItemCount(); i++) {
 			if(labelColumnNameCombo.getItemAt(i).endsWith("GS_DESCR")) {
 				labelColumnNameCombo.setSelectedIndex(i);
@@ -200,7 +200,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 		JLabel edgeWeightLabel = new JLabel("       Edge weight column:");
 		panel.add(edgeWeightLabel, GBCFactory.grid(0,3).get());
 		
-		edgeWeightColumnCombo = createComboBox(getColumnsOfType(Number.class, false, true));
+		edgeWeightColumnCombo = createComboBox(getColumnsOfType(Number.class, false, true, false));
 		panel.add(edgeWeightColumnCombo, GBCFactory.grid(1,3).weightx(1.0).get());
 		
 		JRadioButton columnRadio = new JRadioButton("Use existing clusters");
@@ -210,9 +210,9 @@ public class CreateAnnotationSetDialog extends JDialog {
 		panel.add(clusterIdLabel, GBCFactory.grid(0,5).get());
 		
 		List<String> columns = new ArrayList<>();
-		columns.addAll(getColumnsOfType(Integer.class, true, false));
-		columns.addAll(getColumnsOfType(Long.class, true, false));
-		columns.addAll(getColumnsOfType(String.class, true, false));
+		columns.addAll(getColumnsOfType(Integer.class, true, false, true));
+		columns.addAll(getColumnsOfType(Long.class, true, false, true));
+		columns.addAll(getColumnsOfType(String.class, true, false, true));
 		columns.sort(Comparator.naturalOrder());
 		clusterIdColumnCombo = createComboBox(columns);
 		panel.add(clusterIdColumnCombo, GBCFactory.grid(1,5).weightx(1.0).get());
@@ -233,8 +233,8 @@ public class CreateAnnotationSetDialog extends JDialog {
 			ClusterAlgorithm alg = (ClusterAlgorithm) algorithmNameCombo.getSelectedItem();
 			algLabel.setEnabled(useAlg);
 			algorithmNameCombo.setEnabled(useAlg);
-			edgeWeightLabel.setEnabled(useAlg && alg.isAttributeRequired());
-			edgeWeightColumnCombo.setEnabled(useAlg && alg.isAttributeRequired() && edgeWeightColumnCombo.getItemCount() != 0);
+			edgeWeightLabel.setEnabled(useAlg && alg.isEdgeAttributeRequired());
+			edgeWeightColumnCombo.setEnabled(useAlg && alg.isEdgeAttributeRequired() && edgeWeightColumnCombo.getItemCount() != 0);
 			clusterIdLabel.setEnabled(!useAlg);
 			clusterIdColumnCombo.setEnabled(!useAlg && clusterIdColumnCombo.getItemCount() != 0);
 		};
@@ -265,7 +265,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 			createButton.setEnabled(false);
 		}
 		// handle empty combo boxes
-		else if(useClusterMakerRadio.isSelected() && ((ClusterAlgorithm)algorithmNameCombo.getSelectedItem()).isAttributeRequired() && edgeWeightColumnCombo.getSelectedIndex() == -1) {
+		else if(useClusterMakerRadio.isSelected() && ((ClusterAlgorithm)algorithmNameCombo.getSelectedItem()).isEdgeAttributeRequired() && edgeWeightColumnCombo.getSelectedIndex() == -1) {
 			createButton.setEnabled(false);
 		}
 		else if(!useClusterMakerRadio.isSelected() && clusterIdColumnCombo.getSelectedIndex() == -1) {
@@ -326,7 +326,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 			.setLabelColumn(labelColumnNameCombo.getSelectedItem().toString())
 			.setUseClusterMaker(useClusterMakerRadio.isSelected())
 			.setClusterAlgorithm((ClusterAlgorithm)algorithmNameCombo.getSelectedItem())
-			.setClusterMakerAttribute(edgeWeightColumnCombo.getSelectedItem().toString())
+			.setClusterMakerEdgeAttribute(edgeWeightColumnCombo.getSelectedItem().toString())
 			.setClusterDataColumn(clusterIdColumnCombo.getSelectedItem().toString())
 			.setLayoutClusters(layoutCheckbox.isSelected())
 			.setCreateGroups(false)
@@ -347,7 +347,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 		dialogTaskManager.execute(tasks);
 	}
 	
-	private List<String> getColumnsOfType(Class<?> type, boolean node, boolean addNone) {
+	private List<String> getColumnsOfType(Class<?> type, boolean node, boolean addNone, boolean allowList) {
 		List<String> columns = new LinkedList<String>();
 		
 		CyTable table;
@@ -360,10 +360,11 @@ public class CreateAnnotationSetDialog extends JDialog {
 			if(column.getName().equalsIgnoreCase("suid")) {
 				continue;
 			}
+			
 			if(type.isAssignableFrom(column.getType())) {
 				columns.add(column.getName());
 			}
-			else if(List.class.equals(column.getType()) && type.isAssignableFrom(column.getListElementType())) {
+			else if(allowList && List.class.equals(column.getType()) && type.isAssignableFrom(column.getListElementType())) {
 				columns.add(column.getName());
 			}
 		}

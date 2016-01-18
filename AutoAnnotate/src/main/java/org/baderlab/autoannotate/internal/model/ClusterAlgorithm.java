@@ -40,7 +40,7 @@ public enum ClusterAlgorithm {
 		return displayName;
 	}
 
-	public boolean isAttributeRequired() {
+	public boolean isEdgeAttributeRequired() {
 		return attributeRequired;
 	}
 	
@@ -48,17 +48,5 @@ public enum ClusterAlgorithm {
 	public String toString() {
 		return displayName;
 	}
-
-	public String getClusterCommand(String edgeAttribute) {
-		// clusterAttribute - the column that clusterMaker creates
-		return attributeRequired
-			? String.format("cluster %s clusterAttribute=\"%s\" attribute=\"%s\"", commandName, columnName, edgeAttribute)
-			: String.format("cluster %s clusterAttribute=\"%s\"", commandName, columnName);
-	}
-	
-	public String getNetworkCommand() {
-		return "cluster getnetworkcluster algorithm=" + commandName;
-	}
-	
 	
 }

@@ -9,7 +9,7 @@ public class CreationParameters {
 	private final String labelColumn;
 	private final boolean useClusterMaker;
 	private final ClusterAlgorithm clusterMakerAlgorithm;
-	private final String clusterMakerAttribute;
+	private final String clusterMakerEdgeAttribute;
 	private final String clusterDataColumn; // existing cluster IDs
 	private final boolean layoutClusters;
 	private final boolean createGroups;
@@ -19,7 +19,7 @@ public class CreationParameters {
 		this.labelColumn = builder.labelColumn;
 		this.useClusterMaker = builder.useClusterMaker;
 		this.clusterMakerAlgorithm = builder.clusterMakerAlgorithm;
-		this.clusterMakerAttribute = builder.clusterMakerAttribute;
+		this.clusterMakerEdgeAttribute = builder.clusterMakerEdgeAttribute;
 		this.clusterDataColumn = builder.clusterDataColumn;
 		this.layoutClusters = builder.layoutClusters;
 		this.createGroups = builder.createGroups;
@@ -30,7 +30,7 @@ public class CreationParameters {
 		private String labelColumn = "name";
 		private boolean useClusterMaker = true;
 		private ClusterAlgorithm clusterMakerAlgorithm = ClusterAlgorithm.values()[0];
-		private String clusterMakerAttribute;
+		private String clusterMakerEdgeAttribute;
 		private String clusterDataColumn;
 		private boolean layoutClusters = false;
 		private boolean createGroups = false;
@@ -63,8 +63,8 @@ public class CreationParameters {
 			this.createGroups = createGroups;
 			return this;
 		}
-		public Builder setClusterMakerAttribute(String name) {
-			this.clusterMakerAttribute = name;
+		public Builder setClusterMakerEdgeAttribute(String name) {
+			this.clusterMakerEdgeAttribute = name;
 			return this;
 		}
 		
@@ -101,8 +101,8 @@ public class CreationParameters {
 		return createGroups;
 	}
 	
-	public String getClusterMakerAttribute() {
-		return clusterMakerAttribute;
+	public String getClusterMakerEdgeAttribute() {
+		return clusterMakerEdgeAttribute;
 	}
 	
 	

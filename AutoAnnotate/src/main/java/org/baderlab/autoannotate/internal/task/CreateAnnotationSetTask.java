@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
@@ -15,6 +16,7 @@ import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.util.ResultObserver;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
@@ -30,6 +32,7 @@ public class CreateAnnotationSetTask extends AbstractTask {
 
 	@Inject private Provider<RunClusterMakerTaskFactory> clusterMakerProvider;
 	@Inject private Provider<RunWordCloudTaskFactory> wordCloudProvider;
+	@Inject private Provider<CutoffTask> cutoffTaskProvider;
 	@Inject private Provider<LayoutClustersTaskFactory> layoutProvider;
 	
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
@@ -48,9 +51,15 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		taskMonitor.setTitle(CyActivator.APP_NAME);
 		taskMonitor.setStatusMessage("Generating Clusters");
 		
+		Optional<Double> cutoff = Optional.empty();
+		if(needClusterEdgeAttribute()) {
+			String edgeAttribute = params.getClusterMakerEdgeAttribute();
+			cutoff = runCutoffTask(edgeAttribute);
+		}
+		
 		Map<String,Collection<CyNode>> clusters;
 		if(params.isUseClusterMaker())
-			clusters = runClusterMaker();
+			clusters = runClusterMaker(cutoff);
 		else
 			clusters = computeClustersFromColumn();
 		
@@ -63,10 +72,7 @@ public class CreateAnnotationSetTask extends AbstractTask {
 			layoutNodes(clusters, params.getNetworkView(), params.getClusterAlgorithm().getColumnName());
 		}
 		
-		String weightAttribute = "";
-		if(params.isUseClusterMaker() && params.getClusterAlgorithm().isAttributeRequired())
-			weightAttribute = params.getClusterMakerAttribute();
-			
+		String weightAttribute = needClusterEdgeAttribute() ? params.getClusterMakerEdgeAttribute() : "";
 		LabelMaker labelMaker = new LabelMaker(params.getNetworkView().getModel(), weightAttribute, LabelOptions.defaults());
 		
 		// Build the AnnotationSet
@@ -85,10 +91,17 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		networkViewSet.select(annotationSet); // fires ModelEvent.AnnotationSetSelected
 	}
 	
-
-	private Map<String,Collection<CyNode>> runClusterMaker() {
+	
+	private boolean needClusterEdgeAttribute() {
+		return params.isUseClusterMaker() && params.getClusterAlgorithm().isEdgeAttributeRequired();
+	}
+	
+	
+	private Map<String,Collection<CyNode>> runClusterMaker(Optional<Double> cutoff) {
 		RunClusterMakerTaskFactory clusterMakerTaskFactory = clusterMakerProvider.get();
 		clusterMakerTaskFactory.setParameters(params);
+		if(cutoff.isPresent())
+			clusterMakerTaskFactory.setCutoff(cutoff.get());
 		RunClusterMakerResultObserver clusterResultObserver = new RunClusterMakerResultObserver();
 		TaskIterator tasks = clusterMakerTaskFactory.createTaskIterator(clusterResultObserver);
 		syncTaskManager.execute(tasks);
@@ -112,7 +125,18 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		TaskIterator tasks = layoutTaskFactory.createTaskIterator();
 		syncTaskManager.execute(tasks);
 	}
+	
 
+	private Optional<Double> runCutoffTask(String edgeAttribute) {
+		if(edgeAttribute == null || edgeAttribute.isEmpty())
+			return Optional.empty();
+		CutoffTask task = cutoffTaskProvider.get();
+		task.setEdgeAttribute(edgeAttribute);
+		ResultObserver<Double> observer = new ResultObserver<>(task, Double.class);
+		syncTaskManager.execute(new TaskIterator(task), observer);
+		return observer.getResults();
+	}
+	
 	
 	private String createName(NetworkViewSet networkViewSet) {
 		String originalName;

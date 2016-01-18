@@ -10,22 +10,51 @@ import com.google.inject.Inject;
 
 public class RunClusterMakerTaskFactory implements TaskFactory {
 	
-	@Inject CommandExecutorTaskFactory commandTaskFactory;
+	@Inject private CommandExecutorTaskFactory commandTaskFactory;
 	
 	private CreationParameters params;
+	private Double cutoff = null;
 	
 	public void setParameters(CreationParameters params) {
 		this.params = params;
 	}
 	
+	public void setCutoff(Double cutoff) {
+		this.cutoff = cutoff;
+	}
+	
 	public TaskIterator createTaskIterator(TaskObserver taskObserver) {
-		ClusterAlgorithm algorithm = params.getClusterAlgorithm();
-		String clusterCommand = algorithm.getClusterCommand(params.getClusterMakerAttribute());
-		String networkCommand = algorithm.getNetworkCommand();
+		String clusterCommand = getClusterCommand();
+		String networkCommand = getNetworkCommand();
 		
-		// System.out.println("clusterCommand: " + clusterCommand);
+//		System.out.println("clusterCommand: " + clusterCommand);
 		return commandTaskFactory.createTaskIterator(taskObserver, clusterCommand, networkCommand);
 	}
+	
+	
+	/*
+	 * MKTODO if the command gets any more complex then create a ClusterMakerCommandBuilder
+	 */
+	public String getClusterCommand() {
+		// clusterAttribute - the column that clusterMaker creates
+		ClusterAlgorithm alg = params.getClusterAlgorithm();
+		
+		if(alg.isEdgeAttributeRequired() && cutoff != null) {
+			return String.format("cluster %s clusterAttribute=\"%s\" attribute=\"%s\" edgeCutOff=\"%s\"", alg.getCommandName(), alg.getColumnName(), params.getClusterMakerEdgeAttribute(), cutoff);
+		}
+		else if(alg.isEdgeAttributeRequired()) {
+			return String.format("cluster %s clusterAttribute=\"%s\" attribute=\"%s\"", alg.getCommandName(), alg.getColumnName(), params.getClusterMakerEdgeAttribute());
+		}
+		else {
+			return String.format("cluster %s clusterAttribute=\"%s\"", alg.getCommandName(), alg.getColumnName());
+		}
+	}
+	
+	
+	public String getNetworkCommand() {
+		return "cluster getnetworkcluster algorithm=" + params.getClusterAlgorithm().getCommandName();
+	}
+	
 	
 	@Override
 	public TaskIterator createTaskIterator() {
@@ -37,4 +66,5 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 		return true;
 	}
 
+	
 }
