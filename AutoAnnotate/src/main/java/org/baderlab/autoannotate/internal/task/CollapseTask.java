@@ -48,7 +48,7 @@ public class CollapseTask extends AbstractTask {
 	
 	private void collapse() {
 		if(!cluster.isCollapsed()) {
-			modelManager.invokeSafe(() -> {
+			modelManager.ignoreViewChangeWhile(() -> {
 				CyNetwork network = cluster.getNetwork();
 				List<CyNode> nodes = new ArrayList<>(cluster.getNodes());
 				
@@ -65,7 +65,7 @@ public class CollapseTask extends AbstractTask {
 	
 	private void expand() {
 		if(cluster.isCollapsed()) {
-			modelManager.invokeSafe(() -> {
+			modelManager.ignoreViewChangeWhile(() -> {
 				CyNode groupNode = cluster.getNodes().iterator().next();
 				CyGroup group = groupManager.getGroup(groupNode, cluster.getNetwork());
 				group.expand(cluster.getNetwork());

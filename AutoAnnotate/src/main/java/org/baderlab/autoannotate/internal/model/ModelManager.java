@@ -50,18 +50,18 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 	@Inject private CyGroupManager groupManager;
 	@Inject private EventBus eventBus;
 	
-	private boolean silenceEvents = false;
-	
 	private Map<CyNetworkView, NetworkViewSet> networkViews = new HashMap<>();
 	
 	
-	public synchronized NetworkViewSet getNetworkViewSet(CyNetworkView networkView) {
-		NetworkViewSet set = networkViews.get(networkView);
-		if(set == null) {
-			set = new NetworkViewSet(this, networkView);
-			networkViews.put(networkView, set);
+	public NetworkViewSet getNetworkViewSet(CyNetworkView networkView) {
+		synchronized (networkViews) {
+			NetworkViewSet set = networkViews.get(networkView);
+			if(set == null) {
+				set = new NetworkViewSet(this, networkView);
+				networkViews.put(networkView, set);
+			}
+			return set;
 		}
-		return set;
 	}
 	
 	public Optional<NetworkViewSet> getExistingNetworkViewSet(CyNetworkView networkView) {
@@ -77,16 +77,10 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 		return Collections.unmodifiableCollection(networkViews.values());
 	}
 	
-	synchronized void postEvent(ModelEvent event) {
-		if(!silenceEvents) {
-			eventBus.post(event);
-		}
+	void postEvent(ModelEvent event) {
+		eventBus.post(event);
 	}
 	
-	public synchronized void silenceEvents(boolean silence) {
-		this.silenceEvents = silence;
-	}
-
 	public boolean isNetworkViewSetSelected(NetworkViewSet networkViewSet) {
 		CyNetworkView view = applicationManager.getCurrentNetworkView();
 		if(view == null)
@@ -118,23 +112,20 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 	}
 
 	
-	private boolean ignoreViewChangedEvents = false;
+	private volatile int ignoreViewChangeEventsCounter = 0;
+	
 	/**
-	 * Invokes the code inside the runnable and handles any resulting
-	 * events fired by cytoscape. Use this to avoid infinite chains
-	 * of events firing.
+	 * Invokes the code inside the runnable and ignores any
+	 * ViewChangeEvents that are fired while the code is running.
 	 */
-	public synchronized void invokeSafe(Runnable runnable) {
-		ignoreViewChangedEvents = true;
+	public void ignoreViewChangeWhile(Runnable runnable) {
+		ignoreViewChangeEventsCounter++;
 		try {
 			runnable.run();
-		} catch(Exception e) {
-			e.printStackTrace();
 		} finally {
-			ignoreViewChangedEvents = false;
+			ignoreViewChangeEventsCounter--;
 		}
 	}
-	
 	
 	/**
 	 * Handle nodes being moved around.
@@ -142,7 +133,7 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void handleEvent(ViewChangedEvent<?> e) {
-		if(ignoreViewChangedEvents)
+		if(ignoreViewChangeEventsCounter > 0)
 			return;
 		
 		CyNetworkView networkView = e.getSource();
@@ -232,8 +223,10 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 	 */
 	private List<ModelEvent> pendingGroupEvents = new ArrayList<>(2);
 	
-	synchronized void addPendingGroupEvent(ModelEvent event) {
-		pendingGroupEvents.add(event);
+	void addPendingGroupEvent(ModelEvent event) {
+		synchronized (pendingGroupEvents) {
+			pendingGroupEvents.add(event);
+		}
 	}
 	
 	@Override
@@ -241,10 +234,13 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 		handleCollapse(e.getSource(), e.getNetwork(), e.collapsing());
 	}
 
+	
 	@Override
-	public synchronized void handleEvent(GroupCollapsedEvent e) {
-		pendingGroupEvents.forEach(this::postEvent);
-		pendingGroupEvents = new ArrayList<>(2);
+	public void handleEvent(GroupCollapsedEvent e) {
+		synchronized (pendingGroupEvents) {
+			pendingGroupEvents.forEach(this::postEvent);
+			pendingGroupEvents = new ArrayList<>(2);
+		}
 	}
 	
 	
