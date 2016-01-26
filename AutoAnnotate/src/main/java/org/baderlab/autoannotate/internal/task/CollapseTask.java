@@ -3,7 +3,7 @@ package org.baderlab.autoannotate.internal.task;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.cytoscape.group.CyGroup;
@@ -36,7 +36,7 @@ public class CollapseTask extends AbstractTask {
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		taskMonitor.setTitle(CyActivator.APP_NAME);
+		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage((action == Grouping.COLLAPSE ? "Collapse Cluster: " : "Expand Cluster: ") + cluster.getLabel());
 		
 		if(action == Grouping.COLLAPSE)

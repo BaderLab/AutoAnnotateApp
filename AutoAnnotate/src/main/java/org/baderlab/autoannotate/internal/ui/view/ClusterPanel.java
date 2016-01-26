@@ -28,7 +28,7 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
-import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
@@ -377,7 +377,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 
 	@Override
 	public String getTitle() {
-		return CyActivator.APP_NAME;
+		return BuildProperties.APP_NAME;
 	}
 
 	@Override

@@ -2,7 +2,7 @@ package org.baderlab.autoannotate.internal.task;
 
 import java.util.Collection;
 
-import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
@@ -28,7 +28,7 @@ public class RecalculateLabelTask extends AbstractTask {
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) {
-		taskMonitor.setTitle(CyActivator.APP_NAME);
+		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Calculating Cluster Label");
 		
 		AnnotationSet annotationSet = cluster.getParent();

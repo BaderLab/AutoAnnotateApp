@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.CoordinateData;
@@ -52,7 +52,7 @@ public class DrawClusterTask extends AbstractTask {
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) {
-		taskMonitor.setTitle(CyActivator.APP_NAME);
+		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Drawing Annotations");
 		
 		try {

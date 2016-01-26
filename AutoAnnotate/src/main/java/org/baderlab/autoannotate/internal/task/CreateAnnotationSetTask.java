@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
 import org.baderlab.autoannotate.internal.labels.LabelOptions;
 import org.baderlab.autoannotate.internal.labels.WordInfo;
@@ -48,7 +48,7 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		taskMonitor.setTitle(CyActivator.APP_NAME);
+		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Generating Clusters");
 		
 		Optional<Double> cutoff = Optional.empty();

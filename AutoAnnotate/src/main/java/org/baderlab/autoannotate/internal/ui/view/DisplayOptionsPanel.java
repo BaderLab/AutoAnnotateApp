@@ -19,7 +19,7 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeListener;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
-import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
@@ -232,7 +232,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 
 	@Override
 	public String getTitle() {
-		return CyActivator.APP_NAME + " Display";
+		return BuildProperties.APP_NAME + " Display";
 	}
 
 	@Override

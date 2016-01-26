@@ -2,9 +2,8 @@ package org.baderlab.autoannotate.internal.ui.render;
 
 import javax.swing.SwingUtilities;
 
-import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.Cluster;
-import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
 import org.cytoscape.work.AbstractTask;
@@ -14,7 +13,6 @@ import com.google.inject.Inject;
 
 public class EraseClusterTask extends AbstractTask {
 
-	@Inject private ModelManager modelManager;
 	@Inject private AnnotationRenderer annotationRenderer;
 	
 	private Cluster cluster;
@@ -26,7 +24,7 @@ public class EraseClusterTask extends AbstractTask {
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		taskMonitor.setTitle(CyActivator.APP_NAME);
+		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Removing Clusters");
 		
 		ShapeAnnotation shape = annotationRenderer.removeShapeAnnoation(cluster);

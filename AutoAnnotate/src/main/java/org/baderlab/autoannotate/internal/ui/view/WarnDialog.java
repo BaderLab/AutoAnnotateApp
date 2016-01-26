@@ -12,7 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.ui.GBCFactory;
 import org.cytoscape.property.CyProperty;
 
@@ -86,7 +86,7 @@ public class WarnDialog {
 		}
 		
 		WarnPanel warnPanel = new WarnPanel();
-		int result = JOptionPane.showConfirmDialog(parent, warnPanel, CyActivator.APP_NAME, JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+		int result = JOptionPane.showConfirmDialog(parent, warnPanel, BuildProperties.APP_NAME, JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
 		if(result == JOptionPane.CANCEL_OPTION)
 			return false;
 		

@@ -17,6 +17,7 @@ import org.baderlab.autoannotate.internal.ui.CreateClusterTaskFactory;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
+import org.baderlab.autoannotate.internal.ui.view.action.ShowAboutDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.AbstractCyAction;
@@ -38,6 +39,7 @@ import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.session.CySessionManager;
 import org.cytoscape.util.swing.IconManager;
+import org.cytoscape.util.swing.OpenBrowser;
 import org.cytoscape.view.layout.CyLayoutAlgorithmManager;
 import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.view.model.CyNetworkViewManager;
@@ -64,9 +66,6 @@ import com.google.inject.spi.TypeListener;
 
 public class CyActivator extends AbstractCyActivator {
 	
-	public static final String APP_NAME = "AutoAnnotate";  // Suitable for display in the UI
-	public static final String APP_ID = "autoannotate";  // Suitable as an ID for the App
-	
 	private Injector injector;
 	
 	@Override
@@ -79,17 +78,17 @@ public class CyActivator extends AbstractCyActivator {
 		injector.getInstance(AnnotationRenderer.class);
 		
 		AbstractCyAction showDialogAction = injector.getInstance(ShowCreateDialogAction.class);
-		showDialogAction.setPreferredMenu("Apps." + APP_NAME);
-		registerService(context, showDialogAction, CyAction.class, new Properties());
-		
 		AbstractCyAction showHideAction = panelManager.getShowHideAction();
-		showHideAction.setPreferredMenu("Apps." + APP_NAME);
-		registerService(context, showHideAction, CyAction.class, new Properties());
+		AbstractCyAction showAboutAction = injector.getInstance(ShowAboutDialogAction.class);
+		
+		registerAction(context, showDialogAction);
+		registerAction(context, showHideAction);
+		registerAction(context, showAboutAction);
 		
 		CreateClusterTaskFactory createClusterTaskFactory = injector.getInstance(CreateClusterTaskFactory.class);
 		Properties createClusterProps = new Properties();
 		createClusterProps.setProperty(IN_MENU_BAR, "false");
-		createClusterProps.setProperty(PREFERRED_MENU, APPS_MENU+".AutoAnnotate");
+		createClusterProps.setProperty(PREFERRED_MENU, APPS_MENU + "." + BuildProperties.APP_NAME);
 		createClusterProps.setProperty(TITLE, "Create Cluster");
 		registerAllServices(context, createClusterTaskFactory, createClusterProps);
 		
@@ -99,7 +98,7 @@ public class CyActivator extends AbstractCyActivator {
 		// Configuration properties
 		CyProperty<Properties> configProps = injector.getInstance(Key.get(new TypeLiteral<CyProperty<Properties>>(){}));
 		Properties propsReaderServiceProps = new Properties();
-		propsReaderServiceProps.setProperty("cyPropertyName", APP_ID+".props");
+		propsReaderServiceProps.setProperty("cyPropertyName", "autoannotate.props");
 		registerAllServices(context, configProps, propsReaderServiceProps);
 		
 		// If no session is loaded then this won't do anything, but if there is a session loaded 
@@ -107,12 +106,16 @@ public class CyActivator extends AbstractCyActivator {
 		persistor.importModel();
 	}
 	
+	private void registerAction(BundleContext context, AbstractCyAction action) {
+		action.setPreferredMenu("Apps." + BuildProperties.APP_NAME);
+		registerService(context, action, CyAction.class, new Properties());
+	}
+	
 	
 	@Override
 	public void shutDown() {
 		ModelTablePersistor persistor = injector.getInstance(ModelTablePersistor.class);
 		persistor.exportModel();
-		// MKTODO also dispose the panels?
 	}
 	
 	
@@ -135,6 +138,7 @@ public class CyActivator extends AbstractCyActivator {
 			bind(CommandExecutorTaskFactory.class).toProvider(service(CommandExecutorTaskFactory.class).single());
 			bind(CySessionManager.class).toProvider(service(CySessionManager.class).single());
 			bind(CyEventHelper.class).toProvider(service(CyEventHelper.class).single());
+			bind(OpenBrowser.class).toProvider(service(OpenBrowser.class).single());
 			
 			bind(CyNetworkTableManager.class).toProvider(service(CyNetworkTableManager.class).single());
 			bind(CyTableManager.class).toProvider(service(CyTableManager.class).single());
@@ -154,7 +158,7 @@ public class CyActivator extends AbstractCyActivator {
 			bind(EventBus.class).toInstance(new EventBus((e,c) -> e.printStackTrace()));
 			
 			// Set up CyProperty
-			bind(new TypeLiteral<CyProperty<Properties>>(){}).toInstance(new PropsReader(APP_ID, APP_ID+".props"));
+			bind(new TypeLiteral<CyProperty<Properties>>(){}).toInstance(new PropsReader(BuildProperties.APP_ID, "autoannotate.props"));
 			
 			// Call methods annotated with @AfterInjection after injection, mainly used to create UIs
 			bindListener(new AfterInjectionMatcher(), new TypeListener() {

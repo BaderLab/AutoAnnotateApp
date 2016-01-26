@@ -136,12 +136,18 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	private JPanel createMessage(String message, boolean error) {
 		JPanel panel = new JPanel(new BorderLayout());
+		
 		JLabel icon = new JLabel(error ? IconManager.ICON_TIMES_CIRCLE : IconManager.ICON_EXCLAMATION_CIRCLE);
-		icon.setFont(iconManager.getIconFont(14));
+		icon.setFont(iconManager.getIconFont(16));
 		icon.setForeground(error ? Color.RED.darker() : Color.YELLOW.darker());
 		icon.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
-		panel.add(icon, BorderLayout.WEST);
+		
+		JPanel messagePanel = new JPanel(new GridBagLayout());
 		JLabel messageLabel = new JLabel(message);
+		
+		
+		
+		panel.add(icon, BorderLayout.WEST);
 		panel.add(messageLabel, BorderLayout.CENTER);
 		return panel;
 	}

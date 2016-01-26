@@ -2,7 +2,7 @@ package org.baderlab.autoannotate.internal.util;
 
 import java.util.stream.Collector;
 
-import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.BuildProperties;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.FinishStatus;
 import org.cytoscape.work.ObservableTask;
@@ -29,7 +29,7 @@ public class TaskTools {
 		return new AbstractTask() {
 			@Override
 			public void run(TaskMonitor taskMonitor)  {
-				taskMonitor.setTitle(CyActivator.APP_NAME);
+				taskMonitor.setTitle(BuildProperties.APP_NAME);
 				taskMonitor.setStatusMessage(message);
 			}
 		};

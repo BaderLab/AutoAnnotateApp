@@ -1,6 +1,6 @@
 package org.baderlab.autoannotate.internal.task;
 
-import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.BuildProperties;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyRow;
@@ -36,7 +36,7 @@ public class CutoffTask extends AbstractTask implements ObservableTask {
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) {
-		taskMonitor.setTitle(CyActivator.APP_NAME);
+		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Calculating clusterMaker edgeCutOff attribute.");
 		
 		CyTable table = applicationManager.getCurrentNetwork().getDefaultEdgeTable();

@@ -2,7 +2,7 @@ package org.baderlab.autoannotate.internal.ui.render;
 
 import java.awt.Color;
 
-import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
@@ -31,7 +31,7 @@ public class SelectClusterTask extends AbstractTask {
 	
 	@Override
 	public void run(TaskMonitor taskMonitor)  {
-		taskMonitor.setTitle(CyActivator.APP_NAME);
+		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Selecting Clusters");
 		
 		AnnotationSet annotationSet = cluster.getParent();

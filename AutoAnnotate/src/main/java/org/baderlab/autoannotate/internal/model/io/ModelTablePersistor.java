@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
-import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
 import org.baderlab.autoannotate.internal.model.Cluster;
@@ -47,8 +47,8 @@ import com.google.inject.Singleton;
 @Singleton
 public class ModelTablePersistor implements SessionAboutToBeSavedListener, SessionLoadedListener {
 
-	private static final String CLUSTER_TABLE = CyActivator.APP_ID + ".annotationSet";
-	private static final String ANNOTATION_SET_TABLE = CyActivator.APP_ID + ".cluster";
+	private static final String CLUSTER_TABLE = BuildProperties.APP_ID + ".annotationSet";
+	private static final String ANNOTATION_SET_TABLE = BuildProperties.APP_ID + ".cluster";
 	
 	// AnnotationSet and DisplayOptions properties 
 	private static final String 

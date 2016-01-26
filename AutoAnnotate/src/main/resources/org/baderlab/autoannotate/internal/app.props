@@ -1,0 +1,16 @@
+app.url = http://www.baderlab.org/Software/EnrichmentMap
+app.url.manual = http://www.baderlab.org/Software/EnrichmentMap/UserManual
+
+project.name=${project.name}
+project.version=${project.version}
+bundle.namespace=${bundle.namespace}
+git.branch=${git.branch}
+git.commit.id.describe=${git.commit.id.describe}
+git.build.user.name=${git.build.user.name}
+git.build.user.email=${git.build.user.email}
+git.build.time=${git.build.time}
+git.commit.id=${git.commit.id}
+git.commit.id.abbrev=${git.commit.id.abbrev}
+build.user=${user.name}
+build.os=${os.name}
+build.java.version=${java.version}
