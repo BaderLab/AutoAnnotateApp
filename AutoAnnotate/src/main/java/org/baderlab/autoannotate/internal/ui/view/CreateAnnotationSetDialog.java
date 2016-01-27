@@ -2,10 +2,13 @@ package org.baderlab.autoannotate.internal.ui.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,6 +45,7 @@ import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.util.swing.IconManager;
+import org.cytoscape.util.swing.OpenBrowser;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.swing.DialogTaskManager;
@@ -59,6 +63,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 	@Inject private Provider<CreateAnnotationSetTask> createTaskProvider;
 	@Inject private Provider<CollapseAllTaskFactory> collapseTaskFactoryProvider;
 	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
+	@Inject private Provider<OpenBrowser> browserProvider;
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private IconManager iconManager;
 	@Inject private AvailableCommands availableCommands;
@@ -120,11 +125,17 @@ public class CreateAnnotationSetDialog extends JDialog {
 		
 		int y = 1;
 		if(!isClusterMakerInstalled) {
-			JPanel warnPanel = createMessage("ClusterMaker app is not installed (optional)", false);
+			String message = "clusterMaker2 app is not installed (optional)";
+			String app = "clusterMaker2";
+			String url = "http://apps.cytoscape.org/apps/clustermaker2";
+			JPanel warnPanel = createMessage(message, app, url, false);
 			messagePanel.add(warnPanel, GBCFactory.grid(0,y++).weightx(1.0).get());
 		}
-		if(!isWordCloudInstalled) {
-			JPanel warnPanel = createMessage("WordCloud app is not installed (required, please install version " + WordCloudAdapter.WORDCLOUD_MINIMUM + " or above)", true);
+		if(!isWordCloudInstalled)  {
+			String message = "WordCloud app is not installed (minimum "+ WordCloudAdapter.WORDCLOUD_MINIMUM + ")";
+			String app = "WordCloud";
+			String url = "http://apps.cytoscape.org/apps/wordcloud";
+			JPanel warnPanel = createMessage(message, app, url, true);
 			messagePanel.add(warnPanel, GBCFactory.grid(0,y++).weightx(1.0).get());
 		}
 		
@@ -134,7 +145,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 	}
 	
 	
-	private JPanel createMessage(String message, boolean error) {
+	private JPanel createMessage(String message, String appName, String appUrl, boolean error) {
 		JPanel panel = new JPanel(new BorderLayout());
 		
 		JLabel icon = new JLabel(error ? IconManager.ICON_TIMES_CIRCLE : IconManager.ICON_EXCLAMATION_CIRCLE);
@@ -142,13 +153,19 @@ public class CreateAnnotationSetDialog extends JDialog {
 		icon.setForeground(error ? Color.RED.darker() : Color.YELLOW.darker());
 		icon.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
 		
-		JPanel messagePanel = new JPanel(new GridBagLayout());
-		JLabel messageLabel = new JLabel(message);
+		JLabel messageLabel = new JLabel(message + "  ");
 		
-		
+		JLabel link = new JLabel("<HTML><FONT color=\"#000099\"><U>install " + appName + "</U></FONT></HTML>");
+		link.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		link.addMouseListener(new MouseAdapter() {
+			@Override public void mouseClicked(MouseEvent e) {
+				browserProvider.get().openURL(appUrl);
+			}
+		});
 		
 		panel.add(icon, BorderLayout.WEST);
 		panel.add(messageLabel, BorderLayout.CENTER);
+		panel.add(link, BorderLayout.EAST);
 		return panel;
 	}
 	
