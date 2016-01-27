@@ -1,5 +1,5 @@
-app.url = http://www.baderlab.org/Software/EnrichmentMap
-app.url.manual = http://www.baderlab.org/Software/EnrichmentMap/UserManual
+app.url = http://www.baderlab.org/Software/AutoAnnotate
+app.url.manual = http://www.baderlab.org/Software/AutoAnnotate/UserManual
 
 project.name=${project.name}
 project.version=${project.version}

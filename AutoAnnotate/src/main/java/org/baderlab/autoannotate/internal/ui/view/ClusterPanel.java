@@ -9,12 +9,14 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
@@ -29,6 +31,7 @@ import javax.swing.table.TableRowSorter;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.BuildProperties;
+import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
@@ -382,8 +385,8 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 
 	@Override
 	public Icon getIcon() {
-		// MKTODO
-		return null;
+		URL url = CyActivator.class.getResource("auto_annotate_logo_16by16_v5.png");
+		return url == null ? null : new ImageIcon(url);
 	}
 
 }

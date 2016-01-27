@@ -6,11 +6,13 @@ import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
+import java.net.URL;
 import java.util.Optional;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -20,6 +22,7 @@ import javax.swing.event.ChangeListener;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.BuildProperties;
+import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
@@ -237,7 +240,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 
 	@Override
 	public Icon getIcon() {
-		return null;
+		URL url = CyActivator.class.getResource("auto_annotate_logo_16by16_v5.png");
+		return url == null ? null : new ImageIcon(url);
 	}
 
 }

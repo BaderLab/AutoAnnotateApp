@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" width="64" height="64" viewBox="0, 0, 64, 64">
+  <defs>
+    <clipPath id="Clip_1">
+      <path d="M-2.141,29.028 L-2.141,51.698 L64.562,51.698 L64.562,29.028 z"/>
+    </clipPath>
+    <clipPath id="Clip_2">
+      <path d="M15.667,9.631 L15.667,31.614 L56.538,31.614 L56.538,9.631 z"/>
+    </clipPath>
+  </defs>
+  <g id="Layer_1">
+    <g>
+      <g>
+        <path d="M1.079,34.276 C0.944,22.97 14.738,13.633 31.888,13.422 C49.039,13.212 63.051,22.206 63.187,33.512 C63.322,44.818 49.528,54.155 32.377,54.366 C15.227,54.576 1.214,45.582 1.079,34.276 z" fill="#FFFFC4"/>
+        <path d="M1.579,34.776 C1.444,23.47 15.238,14.133 32.388,13.922 C49.539,13.712 63.551,22.706 63.687,34.012 C63.822,45.318 50.028,54.655 32.877,54.866 C15.727,55.076 1.714,46.082 1.579,34.776 z" fill-opacity="0" stroke="#404040" stroke-width="2.03" stroke-linecap="square" stroke-miterlimit="10"/>
+      </g>
+      <path d="M9.364,34.284 L34.431,40.034" fill-opacity="0" stroke="#64C800" stroke-width="1.741" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"/>
+      <path d="M9.364,33.709 L46.506,23.072" fill-opacity="0" stroke="#64C800" stroke-width="2.636" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"/>
+      <path d="M46.506,24.222 L35.006,39.315" fill-opacity="0" stroke="#64C800" stroke-width="2.343" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"/>
+      <g>
+        <path d="M41.859,26.528 C40.454,24.784 40.728,22.231 42.472,20.825 C44.216,19.419 46.769,19.693 48.175,21.437 C49.581,23.181 49.307,25.735 47.563,27.14 C45.819,28.546 43.265,28.272 41.859,26.528 z" fill-opacity="0" stroke="#BEBEBE" stroke-width="1.178" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"/>
+        <path d="M41.359,26.028 C39.954,24.284 40.228,21.731 41.972,20.325 C43.716,18.919 46.269,19.193 47.675,20.937 C49.081,22.681 48.807,25.235 47.063,26.64 C45.319,28.046 42.765,27.772 41.359,26.028 z" fill="#FF0000"/>
+      </g>
+      <g>
+        <path d="M30.455,41.778 C29.119,40.121 29.38,37.696 31.036,36.36 C32.693,35.025 35.119,35.285 36.454,36.942 C37.79,38.599 37.529,41.024 35.873,42.36 C34.216,43.696 31.79,43.435 30.455,41.778 z" fill-opacity="0" stroke="#BEBEBE" stroke-width="1.119" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"/>
+        <path d="M29.955,41.278 C28.619,39.621 28.88,37.196 30.536,35.86 C32.193,34.525 34.619,34.785 35.954,36.442 C37.29,38.099 37.029,40.524 35.373,41.86 C33.716,43.196 31.29,42.935 29.955,41.278 z" fill="#FF0000"/>
+      </g>
+      <g>
+        <path d="M6.094,36.639 C4.277,34.385 4.631,31.085 6.885,29.269 C9.139,27.452 12.439,27.806 14.256,30.06 C16.073,32.314 15.718,35.614 13.464,37.431 C11.211,39.247 7.911,38.893 6.094,36.639 z" fill-opacity="0" stroke="#BEBEBE" stroke-width="1.523" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10"/>
+        <path d="M5.594,36.139 C3.777,33.885 4.131,30.585 6.385,28.769 C8.639,26.952 11.939,27.306 13.756,29.56 C15.573,31.814 15.218,35.114 12.964,36.931 C10.711,38.747 7.411,38.393 5.594,36.139 z" fill="#FF0000"/>
+      </g>
+      <g clip-path="url(#Clip_1)">
+        <text transform="matrix(1, 0, 0, 1, 51.019, 40.981)">
+          <tspan x="-47.782" y="2.278" font-family="MicrosoftSansSerif" font-size="16.1" kerning="-1.15" fill="#000000">Annotate</tspan>
+        </text>
+      </g>
+      <g clip-path="url(#Clip_2)">
+        <text transform="matrix(1, 0, 0, 1, 58.102, 40.011)">
+          <tspan x="-38.435" y="-12.15" font-family="MicrosoftSansSerif" font-size="16.1" kerning="-1.15" fill="#000000">Auto</tspan>
+        </text>
+      </g>
+    </g>
+  </g>
+</svg>

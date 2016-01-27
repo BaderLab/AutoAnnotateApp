@@ -33,10 +33,9 @@ public class BuildProperties {
 		APP_URL     = props.getProperty("app.url", "");
 		MANUAL_URL  = props.getProperty("app.url.manual", "");
 		
-		String buildNumber = props.getProperty("build.number", "0");
 		String buildUser   = props.getProperty("build.user", "user");
 		String gitCommitId = props.getProperty("git.commit.id", "0");
-		BUILD_ID = String.format("Build: %s from GIT: %s by: %s", buildNumber, buildUser, gitCommitId);
+		BUILD_ID = String.format("Build from GIT: %s by: %s", gitCommitId, buildUser);
 	}
 	
 
@@ -56,6 +55,9 @@ public class BuildProperties {
 	}
 	
 
+	/**
+	 * Debug output.
+	 */
 	public static void print() {
 		Properties props;
 		try {
