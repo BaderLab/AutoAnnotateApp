@@ -281,7 +281,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		
 		JButton actionButton = new JButton();
 		actionButton.setFont(iconManagerProvider.get().getIconFont(12));
-		actionButton.setText(IconManager.ICON_CARET_DOWN);
+		actionButton.setText(IconManager.ICON_BARS);
 		actionButton.addActionListener(this::showAnnotationSetPopupMenu);
 		
 		panel.add(annotationSetCombo, BorderLayout.CENTER);
