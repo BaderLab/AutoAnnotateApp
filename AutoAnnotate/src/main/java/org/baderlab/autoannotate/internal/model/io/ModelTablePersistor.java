@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,6 +55,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	private static final String 
 		ANNOTATION_SET_ID = "annotationSetID",
 		NAME = "name",
+		ACTIVE = "active",
 		LABEL_COLUMN = "labelColumn",
 		BORDER_WIDTH = "borderWidth",
 		OPACITY = "opacity",
@@ -74,8 +76,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	@Inject private Provider<ModelManager> modelManagerProvider;
 	@Inject private Provider<PanelManager> panelManagerProvider;
 	@Inject private Provider<CollapseAllTaskFactory> collapseActionProvider;
-	@Inject private DialogTaskManager dialogTaskManager;
 	
+	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private CyNetworkTableManager networkTableManager;
 	@Inject private CyNetworkManager networkManager;
 	@Inject private CyNetworkViewManager networkViewManager;
@@ -91,6 +93,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	public void importModel() {
 		boolean imported = false;
 		
+		List<Optional<AnnotationSet>> activeAnnotationSets = new LinkedList<>();
+		
 		for(CyNetwork network: networkManager.getNetworkSet()) {
 			Collection<CyNetworkView> networkViews = networkViewManager.getNetworkViews(network);
 			if(!networkViews.isEmpty()) {
@@ -100,7 +104,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				
 				if(asTable != null && clusterTable != null) {
 					try {
-						importModel(networkView, asTable, clusterTable);
+						Optional<AnnotationSet> active = importModel(networkView, asTable, clusterTable);
+						activeAnnotationSets.add(active);
 						imported = true;
 					} catch(Exception ex) {
 						ex.printStackTrace();
@@ -110,50 +115,99 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		}
 		
 		// important to clear out existing annotations from the network views
-		modelManagerProvider.get().deselectAll();
+		ModelManager modelManager = modelManagerProvider.get();
+		modelManager.deselectAll(); // erases all annotations
+		
+		for(Optional<AnnotationSet> active : activeAnnotationSets) {
+			if(active.isPresent()) {
+				AnnotationSet as = active.get();
+				NetworkViewSet nvs = as.getParent();
+				nvs.select(as); // redraws annotations
+			}
+		}
 		
 		if(imported) {
-			panelManagerProvider.get().show();
+			PanelManager panelManager = panelManagerProvider.get();
+			panelManager.show();
 		}
 	}
 	
-	private void importModel(CyNetworkView networkView, CyTable asTable, CyTable clusterTable) {
+	private Optional<AnnotationSet> importModel(CyNetworkView networkView, CyTable asTable, CyTable clusterTable) {
 		CyNetwork network = networkView.getModel();
 		Map<Long,AnnotationSetBuilder> builders = new HashMap<>();
-		NetworkViewSet nvs = modelManagerProvider.get().getNetworkViewSet(networkView);
+		ModelManager modelManager = modelManagerProvider.get();
+		NetworkViewSet nvs = modelManager.getNetworkViewSet(networkView);
 		
+		AnnotationSetBuilder activeBuilder = null;
+		
+		// Load AnnotationSets
 		for(CyRow asRow : asTable.getAllRows()) {
-			long id = asRow.get(ANNOTATION_SET_ID, Long.class);
+			Long id = asRow.get(ANNOTATION_SET_ID, Long.class);
 			String name = asRow.get(NAME, String.class);
 			List<String> labels = asRow.getList(LABEL_COLUMN, String.class);
-			String label = labels.get(0);
 			
+			if(id == null || name == null || labels == null || labels.isEmpty()) {
+				System.err.printf("AutoAnnotate.importModel - Missing AnnotationSet attribute: %s:%s, %s:%s, %s:%s\n", ANNOTATION_SET_ID, id, NAME, name, LABEL_COLUMN, labels);
+				continue;
+			}
+			
+			String label = labels.get(0);
 			AnnotationSetBuilder builder = nvs.getAnnotationSetBuilder(name, label);
 			
 			// DisplayOptions
-			builder.setBorderWidth(asRow.get(BORDER_WIDTH, Integer.class));
-			builder.setOpacity(asRow.get(OPACITY, Integer.class));
-			builder.setFontScale(asRow.get(FONT_SCALE, Integer.class));
-			builder.setShapeType(ShapeType.valueOf(asRow.get(SHAPE_TYPE, String.class)));
-			builder.setShowClusters(asRow.get(SHOW_CLUSTERS, Boolean.class));
-			builder.setShowLabels(asRow.get(SHOW_LABELS, Boolean.class));
-			builder.setUseConstantFontSize(asRow.get(USE_CONSTANT_FONT_SIZE, Boolean.class));
+			try {
+				builder.setBorderWidth(asRow.get(BORDER_WIDTH, Integer.class));
+				builder.setOpacity(asRow.get(OPACITY, Integer.class));
+				builder.setFontScale(asRow.get(FONT_SCALE, Integer.class));
+				builder.setShapeType(ShapeType.valueOf(asRow.get(SHAPE_TYPE, String.class)));
+				builder.setShowClusters(asRow.get(SHOW_CLUSTERS, Boolean.class));
+				builder.setShowLabels(asRow.get(SHOW_LABELS, Boolean.class));
+				builder.setUseConstantFontSize(asRow.get(USE_CONSTANT_FONT_SIZE, Boolean.class));
+			} catch(Exception e) {
+				// use defaults for whatever woudn't load
+				System.err.println("AutoAnnotate.importModel - Error loading display options for " + name);
+				e.printStackTrace();
+			}
+			
+			Boolean active = asRow.get(ACTIVE, Boolean.class);
+			if(Boolean.TRUE.equals(active)) // null safe
+				activeBuilder = builder;
 			
 			builders.put(id, builder);
 		}
 		
+		// Load Clusters
 		for(CyRow clusterRow : clusterTable.getAllRows()) {
-			long asId = clusterRow.get(ANNOTATION_SET_ID, Long.class);
+			Long asId = clusterRow.get(ANNOTATION_SET_ID, Long.class);
+			if(asId == null || !builders.containsKey(asId)) {
+				System.err.println("AutoAnnotate.importModel - Cluster can't be imported because AnnotationSet ID is invalid: " + asId);
+				continue;
+			}
+			
 			String label = clusterRow.get(LABEL, String.class);
-			boolean collapsed = clusterRow.get(COLLAPSED, Boolean.class);
+			Boolean collapsed = clusterRow.get(COLLAPSED, Boolean.class);
 			List<Long> nodeSUIDS = clusterRow.getList(NODES_SUID, Long.class);
+			if(label == null || collapsed == null || nodeSUIDS == null) {
+				System.err.printf("AutoAnnotate.importModel - Cluster attribute not found: %s:%s, %s:%s, %s:%s\n", LABEL, label, COLLAPSED, collapsed, NODES_SUID, nodeSUIDS);
+				continue;
+			}
+			
 			List<CyNode> nodes = nodeSUIDS.stream().map(network::getNode).collect(Collectors.toList());
 			
 			AnnotationSetBuilder builder = builders.get(asId);
 			builder.addCluster(nodes, label, collapsed);
 		}
 		
-		builders.values().forEach(b -> b.build());
+		// Build Model
+		Optional<AnnotationSet> activeAnnotationSet = Optional.empty();
+		for(AnnotationSetBuilder builder : builders.values()) {
+			AnnotationSet as = builder.build(); // create the AnnotationSet in the model
+			if(builder == activeBuilder) {
+				activeAnnotationSet = Optional.of(as);
+			}
+		}
+		
+		return activeAnnotationSet;
 	}
 
 	
@@ -234,7 +288,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		for(AnnotationSet as : nvs.getAnnotationSets()) {
 			CyRow asRow = asTable.getRow(asId);
 			asRow.set(NAME, as.getName());
-			asRow.set(LABEL_COLUMN, Arrays.asList(as.getLabelColumn())); // will want to support multiple label columns in the future
+			asRow.set(LABEL_COLUMN, Arrays.asList(as.getLabelColumn())); // may want to support multiple label columns in the future
+			asRow.set(ACTIVE, as.isActive());
 			DisplayOptions disp = as.getDisplayOptions();
 			asRow.set(SHAPE_TYPE, disp.getShapeType().name());
 			asRow.set(SHOW_CLUSTERS, disp.isShowClusters());
@@ -260,21 +315,32 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		CyTable table = networkTableManager.getTable(network, CyNetwork.class, ANNOTATION_SET_TABLE);
 		if(table == null) {
 			table = tableFactory.createTable(ANNOTATION_SET_TABLE, ANNOTATION_SET_ID, Long.class, true, true);
-			table.createColumn(NAME, String.class, true);
-			table.createListColumn(LABEL_COLUMN, String.class, true);
-			table.createColumn(SHAPE_TYPE, String.class, true);
-			table.createColumn(SHOW_CLUSTERS, Boolean.class, true);
-			table.createColumn(SHOW_LABELS, Boolean.class, true);
-			table.createColumn(USE_CONSTANT_FONT_SIZE, Boolean.class, true);
-			table.createColumn(FONT_SCALE, Integer.class, true);
-			table.createColumn(OPACITY, Integer.class, true);
-			table.createColumn(BORDER_WIDTH, Integer.class, true);
 			networkTableManager.setTable(network, CyNetwork.class, ANNOTATION_SET_TABLE, table);
 			tableManager.addTable(table);
 		}
+		createColumn(table, NAME, String.class);
+		createListColumn(table, LABEL_COLUMN, String.class);
+		createColumn(table, ACTIVE, Boolean.class);
+		createColumn(table, SHAPE_TYPE, String.class);
+		createColumn(table, SHOW_CLUSTERS, Boolean.class);
+		createColumn(table, SHOW_LABELS, Boolean.class);
+		createColumn(table, USE_CONSTANT_FONT_SIZE, Boolean.class);
+		createColumn(table, FONT_SCALE, Integer.class);
+		createColumn(table, OPACITY, Integer.class);
+		createColumn(table, BORDER_WIDTH, Integer.class);
 		return table;
 	}
 	
+	private static void createColumn(CyTable table, String name, Class<?> type) {
+		if(table.getColumn(name) == null)
+			table.createColumn(name, type, true);
+	}
+	
+	private static void createListColumn(CyTable table, String name, Class<?> type) {
+		if(table.getColumn(name) == null)
+			table.createListColumn(name, type, true);
+	}
+
 	private CyTable getClusterTable(CyNetwork network) {
 		CyTable table = networkTableManager.getTable(network, CyNetwork.class, CLUSTER_TABLE);
 		if(table == null) {
