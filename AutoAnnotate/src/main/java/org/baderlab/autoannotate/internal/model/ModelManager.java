@@ -54,6 +54,9 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 	
 	
 	public NetworkViewSet getNetworkViewSet(CyNetworkView networkView) {
+		if(networkView == null)
+			throw new NullPointerException();
+		
 		synchronized (networkViews) {
 			NetworkViewSet set = networkViews.get(networkView);
 			if(set == null) {

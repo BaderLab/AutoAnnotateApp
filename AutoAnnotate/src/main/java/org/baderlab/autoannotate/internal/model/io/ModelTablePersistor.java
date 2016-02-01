@@ -48,8 +48,8 @@ import com.google.inject.Singleton;
 @Singleton
 public class ModelTablePersistor implements SessionAboutToBeSavedListener, SessionLoadedListener {
 
-	private static final String CLUSTER_TABLE = BuildProperties.APP_ID + ".annotationSet";
-	private static final String ANNOTATION_SET_TABLE = BuildProperties.APP_ID + ".cluster";
+	private static final String CLUSTER_TABLE = BuildProperties.APP_ID + ".cluster";
+	private static final String ANNOTATION_SET_TABLE = BuildProperties.APP_ID + ".annotationSet";
 	
 	// AnnotationSet and DisplayOptions properties 
 	private static final String 

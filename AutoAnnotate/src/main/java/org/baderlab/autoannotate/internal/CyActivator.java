@@ -15,6 +15,7 @@ import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.ui.CreateClusterTaskFactory;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
+import org.baderlab.autoannotate.internal.ui.PanelManagerImpl;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowAboutDialogAction;
@@ -70,7 +71,7 @@ public class CyActivator extends AbstractCyActivator {
 	
 	@Override
 	public void start(BundleContext context) {
-		injector = Guice.createInjector(osgiModule(context), new MainModule(), new WarnDialogModule());
+		injector = Guice.createInjector(osgiModule(context), new CytoscapeServiceModule(), new ApplicationModule(), new WarnDialogModule());
 		
 		ModelManager modelManager = injector.getInstance(ModelManager.class);
 		registerAllServices(context, modelManager, new Properties());
@@ -119,7 +120,10 @@ public class CyActivator extends AbstractCyActivator {
 	}
 	
 	
-	private class MainModule extends AbstractModule {
+	/**
+	 * Guice module that uses peaberry to bind cytoscape service interfaces from OSGi.
+	 */
+	private class CytoscapeServiceModule extends AbstractModule {
 		@Override
 		protected void configure() {
 			// Bind cytoscape OSGi services
@@ -153,6 +157,22 @@ public class CyActivator extends AbstractCyActivator {
 			bind(shapeFactory).toProvider(service(shapeFactory).filter(ldap("(type=ShapeAnnotation.class)")).single());
 			TypeLiteral<AnnotationFactory<TextAnnotation>> textFactory = new TypeLiteral<AnnotationFactory<TextAnnotation>>(){};
 			bind(textFactory).toProvider(service(textFactory).filter(ldap("(type=TextAnnotation.class)")).single());
+		}
+			
+		@Provides
+		public JFrame getJFrame(CySwingApplication swingApplication) {
+			return swingApplication.getJFrame();
+		}
+	}
+	
+	
+	/**
+	 * Guice module for application specific configuration.
+	 */
+	private class ApplicationModule extends AbstractModule {
+		@Override
+		protected void configure() {
+			bind(PanelManager.class).to(PanelManagerImpl.class);
 			
 			// Create a single EventBus
 			bind(EventBus.class).toInstance(new EventBus((e,c) -> e.printStackTrace()));
@@ -169,12 +189,8 @@ public class CyActivator extends AbstractCyActivator {
 			});
 		}
 		
-		@Provides
-		public JFrame getJFrame(CySwingApplication swingApplication) {
-			return swingApplication.getJFrame();
-		}
+		
 	}
-	
 	
 	class PropsReader extends AbstractConfigDirPropsReader {
 		public PropsReader(String name, String fileName) {

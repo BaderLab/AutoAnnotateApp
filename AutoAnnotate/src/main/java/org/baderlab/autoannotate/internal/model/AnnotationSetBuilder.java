@@ -12,6 +12,9 @@ import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
  * all its child clusters and have a single event fire. Calling
  * the createCluster() method causes an event to fire each time
  * which results in redundant rendering.
+ * 
+ * <br><br>
+ * Not thread safe.
  */
 public class AnnotationSetBuilder {
 	
@@ -24,13 +27,15 @@ public class AnnotationSetBuilder {
 	
 	private final List<ClusterBuilder> clusters = new ArrayList<>();
 	
-	private ShapeType shapeType = ShapeType.ELLIPSE;
-	private boolean showClusters = true;
-	private boolean showLabels = true;
-	private boolean useConstantFontSize = false;
+	private ShapeType shapeType = DisplayOptions.SHAPE_DEFAULT;
+	private boolean showClusters = DisplayOptions.SHOW_CLUSTERS_DEFAULT;
+	private boolean showLabels = DisplayOptions.SHOW_LABELS_DEFAULT;
+	private boolean useConstantFontSize = DisplayOptions.USE_CONSTANT_FONT_SIZE_DEFAULT;
 	private int	fontScale = DisplayOptions.FONT_SCALE_DEFAULT; 
 	private int opacity = DisplayOptions.OPACITY_DEFAULT;
 	private int borderWidth = DisplayOptions.WIDTH_DEFAULT;
+	
+	private boolean used = false;
 	
 	
 	class ClusterBuilder {
@@ -53,7 +58,14 @@ public class AnnotationSetBuilder {
 	}
 	
 	public AnnotationSet build() {
-		return nvs.build(this);
+		if(used)
+			throw new IllegalStateException("builder has already been used");
+		try {
+			return nvs.build(this);
+		}
+		finally {
+			used = true;
+		}
 	}
 	
 	

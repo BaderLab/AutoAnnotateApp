@@ -6,6 +6,11 @@ import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 
 public class DisplayOptions {
 	
+	public static final ShapeType SHAPE_DEFAULT = ShapeType.ELLIPSE;
+	public static final boolean SHOW_CLUSTERS_DEFAULT = true;
+	public static final boolean SHOW_LABELS_DEFAULT = true;
+	public static final boolean USE_CONSTANT_FONT_SIZE_DEFAULT = false;
+	
 	public static final int OPACITY_DEFAULT = 20;
 	public static final int OPACITY_MIN = 1;
 	public static final int OPACITY_MAX = 100;
@@ -21,10 +26,10 @@ public class DisplayOptions {
 	
 	private final AnnotationSet parent;
 	
-	private ShapeType shapeType = ShapeType.ELLIPSE;
-	private boolean showClusters = true;
-	private boolean showLabels = true;
-	private boolean useConstantFontSize = false;
+	private ShapeType shapeType = SHAPE_DEFAULT;
+	private boolean showClusters = SHOW_CLUSTERS_DEFAULT;
+	private boolean showLabels = SHOW_LABELS_DEFAULT;
+	private boolean useConstantFontSize = USE_CONSTANT_FONT_SIZE_DEFAULT;
 	private int	fontScale = FONT_SCALE_DEFAULT; 
 	private int opacity = OPACITY_DEFAULT;
 	private int borderWidth = WIDTH_DEFAULT;
