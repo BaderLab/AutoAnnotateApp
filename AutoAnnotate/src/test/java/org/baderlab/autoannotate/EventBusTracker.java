@@ -9,7 +9,7 @@ public class EventBusTracker {
 	private LinkedList<Object> events = new LinkedList<>();
 	
 	@Subscribe
-	public void handleAnyEvent(Object event) {
+	public void recordAnyEvent(Object event) {
 		events.add(event);
 	}
 	

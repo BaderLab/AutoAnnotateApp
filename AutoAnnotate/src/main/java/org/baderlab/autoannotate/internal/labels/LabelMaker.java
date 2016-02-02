@@ -33,7 +33,7 @@ public class LabelMaker {
 			return "";
 		
 		// Work with a copy so as to not mess up the order for comparisons
-		ArrayList<WordInfo> wordInfosCopy = new ArrayList<WordInfo>();
+		ArrayList<WordInfo> wordInfosCopy = new ArrayList<>();
 		for (WordInfo wordInfo : wordInfos) {
 			wordInfosCopy.add(new WordInfo(wordInfo));
 		}
@@ -43,7 +43,7 @@ public class LabelMaker {
 		Collections.sort(wordInfosCopy, Comparator.comparingInt(WordInfo::getSize).reversed());
 		// Gets the biggest word in the cloud
 		WordInfo biggestWord = wordInfosCopy.get(0);
-		ArrayList<WordInfo> label = new ArrayList<WordInfo>();
+		ArrayList<WordInfo> label = new ArrayList<>();
 		label.add(biggestWord);
 		int numWords = 1;
 		WordInfo nextWord = biggestWord;

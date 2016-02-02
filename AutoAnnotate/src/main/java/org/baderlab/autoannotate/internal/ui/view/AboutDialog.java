@@ -73,7 +73,8 @@ public class AboutDialog extends JDialog {
             this.pane = pane;
         }
 
-        public void hyperlinkUpdate(HyperlinkEvent event) {
+        @Override
+		public void hyperlinkUpdate(HyperlinkEvent event) {
             if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
             	openBrowserProvider.get().openURL(event.getURL().toString());
             }

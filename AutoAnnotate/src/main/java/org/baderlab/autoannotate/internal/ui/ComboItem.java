@@ -30,7 +30,7 @@ public class ComboItem<V> {
 	}
 
 	public static <V> ComboItem<V> of(V value) {
-		return new ComboItem<V>(value);
+		return new ComboItem<>(value);
 	}
 	
 	

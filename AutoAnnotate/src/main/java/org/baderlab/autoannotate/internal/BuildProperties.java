@@ -51,6 +51,7 @@ public class BuildProperties {
 
 		Properties props = new Properties();
 		props.load(inputStream);
+		inputStream.close();
 		return props;
 	}
 	

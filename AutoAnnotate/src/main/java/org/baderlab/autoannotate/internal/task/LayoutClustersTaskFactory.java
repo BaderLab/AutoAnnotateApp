@@ -46,7 +46,7 @@ public class LayoutClustersTaskFactory extends AbstractTaskFactory {
 		CyLayoutAlgorithm force_directed = layoutManager.getLayout("force-directed");
 		
 		for(Collection<CyNode> cluster : clusters) {
-			Set<View<CyNode>> nodeViewSet = new HashSet<View<CyNode>>();
+			Set<View<CyNode>> nodeViewSet = new HashSet<>();
 			for(CyNode node : cluster) {
 				nodeViewSet.add(view.getNodeView(node));
 			}

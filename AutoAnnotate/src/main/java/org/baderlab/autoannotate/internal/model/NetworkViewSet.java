@@ -80,7 +80,8 @@ public class NetworkViewSet {
 			// MKTODO: probably need to test for deleted nodes when serializing the model
 			
 			if(annotationSet != null) {
-				for(Cluster cluster : annotationSet.getClusters()) {
+				Set<Cluster> clusters = annotationSet.getClusters();
+				for(Cluster cluster : new HashSet<>(clusters)) { // avoid ConcurrentModificationException because removeNodes() can call delete()
 					Set<CyNode> nodesToRemove = 
 							cluster.getNodes().stream()
 							.filter(node -> !network.containsNode(node))

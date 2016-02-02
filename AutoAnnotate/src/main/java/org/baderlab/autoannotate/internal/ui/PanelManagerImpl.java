@@ -58,6 +58,7 @@ public class PanelManagerImpl implements PanelManager {
 	}
 	
 	
+	@Override
 	public synchronized void hide() {
 		if(showing) {
 			registrar.unregisterService(mainPanel, CytoPanelComponent.class);
@@ -80,6 +81,7 @@ public class PanelManagerImpl implements PanelManager {
 	}
 	
 	
+	@Override
 	public synchronized void show() {
 		if(!showing) {
 			ModelManager modelManager = modelManagerProvider.get();

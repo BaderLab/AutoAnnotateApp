@@ -33,6 +33,7 @@ public class CreateClusterTaskFactory implements NetworkViewTaskFactory, NodeVie
 	@Override
 	public TaskIterator createTaskIterator(CyNetworkView networkView) {
 		return new TaskIterator(new AbstractTask() {
+			@Override
 			public void run(TaskMonitor taskMonitor) {
 				WordCloudAdapter wordCloudAdapter = wordCloudAdapterProvider.get();
 				if(!wordCloudAdapter.isWordcloudRequiredVersionInstalled()) {

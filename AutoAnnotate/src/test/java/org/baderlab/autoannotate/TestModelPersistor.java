@@ -42,8 +42,8 @@ public class TestModelPersistor {
 
 	@Rule public TestRule logSilenceRule = new LogSilenceRule();
 	
-	
 	public static class TestModelPersistorModule extends JukitoModule {
+		@Override
 		protected void configureTest() {
 			NetworkTestSupport networkTestSupport = new NetworkTestSupport();
 			TableTestSupport tableTestSupport = new TableTestSupport();
@@ -101,10 +101,11 @@ public class TestModelPersistor {
 	
 	
 	@Test
-	public void testExport(CyApplicationManager appManager, ModelManager modelManager, ModelTablePersistor persistor) {
+	public void testExportThenImport(CyApplicationManager appManager, ModelManager modelManager, ModelTablePersistor persistor) {
 		CyNetworkView networkView = appManager.getCurrentNetworkView();
 		assertEquals(1, modelManager.getNetworkViewSets().size());
 		
+		// We will export the model, then import it back, and the result should be the same as what we started with.
 		persistor.exportModel();
 
 		// clear the manager

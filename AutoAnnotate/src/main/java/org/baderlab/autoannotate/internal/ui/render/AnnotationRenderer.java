@@ -16,21 +16,21 @@ import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.render.DrawClusterTask.LabelArgs;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
-import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
-import org.cytoscape.work.swing.DialogTaskManager;
+import org.cytoscape.work.TaskManager;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
 @Singleton
 public class AnnotationRenderer {
 	
-	@Inject private DialogTaskManager dialogTaskManager;
-	@Inject private SynchronousTaskManager<?> syncTaskManager;
+	@Inject private @Named("dialog") TaskManager<?,?> dialogTaskManager;
+	@Inject private @Named("sync")   TaskManager<?,?> syncTaskManager;
 	
 	@Inject private Provider<DrawClusterTask> drawTaskProvider;
 	@Inject private Provider<EraseClusterTask> eraseTaskProvider;

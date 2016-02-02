@@ -371,7 +371,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 	}
 	
 	private List<String> getColumnsOfType(Class<?> type, boolean node, boolean addNone, boolean allowList) {
-		List<String> columns = new LinkedList<String>();
+		List<String> columns = new LinkedList<>();
 		
 		CyTable table;
 		if(node)

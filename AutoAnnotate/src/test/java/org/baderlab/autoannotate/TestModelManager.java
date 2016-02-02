@@ -25,30 +25,27 @@ import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.model.CyNode;
-import org.cytoscape.model.SUIDFactory;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
-import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.google.common.eventbus.EventBus;
+import com.google.inject.Inject;
 
 @RunWith(JukitoRunner.class)
 public class TestModelManager {
-	
-	public static class Module extends JukitoModule {
-		protected void configureTest() {
-			bind(EventBus.class).toInstance(new EventBus());
-		}
-	}
+		
+	@Inject private CyApplicationManager appManager;
+	@Inject private ModelManager modelManager;
 	
 	private EventBusTracker eventTracker;
 	
+	
 	@Before
-	public void setupEventBus(EventBus eventBus) {
+	public void setupEventTracker(EventBus eventBus) {
 		eventTracker = new EventBusTracker();
 		eventBus.register(eventTracker);
 	}
@@ -58,16 +55,13 @@ public class TestModelManager {
 		when(appManager.getCurrentNetworkView()).thenReturn(mock(CyNetworkView.class));
 	}
 	
-	
-	public static List<CyNode> createNodes(int numNodes) {
-		List<CyNode> nodes = Stream.generate(()->mock(CyNode.class)).limit(numNodes).collect(Collectors.toList());
-		nodes.forEach(n -> when(n.getSUID()).thenReturn(SUIDFactory.getNextSUID()));
-		return nodes;
+	private static List<CyNode> mockNodes(int numNodes) {
+		return Stream.generate(()->mock(CyNode.class)).limit(numNodes).collect(Collectors.toList());
 	}
 	
 	
 	@Test
-	public void testGetNetworkViewSet(CyApplicationManager appManager, ModelManager modelManager) {
+	public void testGetNetworkViewSet() {
 		CyNetworkView networkView = appManager.getCurrentNetworkView();
 		assertEquals(Optional.empty(), modelManager.getExistingNetworkViewSet(networkView));
 		
@@ -84,7 +78,7 @@ public class TestModelManager {
 	
 	
 	@Test
-	public void testNetworkViewSet(CyApplicationManager appManager, ModelManager modelManager) {
+	public void testNetworkViewSet() {
 		CyNetworkView networkView = appManager.getCurrentNetworkView();
 		NetworkViewSet nvs = modelManager.getNetworkViewSet(networkView); 
 		
@@ -100,7 +94,7 @@ public class TestModelManager {
 	
 	
 	@Test
-	public void testAnnotationSetLifeCycle(CyApplicationManager appManager, ModelManager modelManager) {
+	public void testAnnotationSetLifeCycle() {
 		CyNetworkView networkView = appManager.getCurrentNetworkView();
 		NetworkViewSet nvs = modelManager.getNetworkViewSet(networkView); 
 		
@@ -166,14 +160,14 @@ public class TestModelManager {
 	
 	
 	@Test
-	public void testClusterLifeCycle(CyApplicationManager appManager, ModelManager modelManager) {
+	public void testClusterLifeCycle() {
 		CyNetworkView networkView = appManager.getCurrentNetworkView();
 		NetworkViewSet nvs = modelManager.getNetworkViewSet(networkView); 
 		AnnotationSet as = nvs.createAnnotationSet("as_name", "lab_col");
 		eventTracker.clear();
 		
-		List<CyNode> nodes1 = createNodes(10);
-		List<CyNode> nodes2 = createNodes(20);
+		List<CyNode> nodes1 = mockNodes(10);
+		List<CyNode> nodes2 = mockNodes(20);
 		
 		Cluster c1 = as.createCluster(nodes1, "nodes1", false);
 		Cluster c2 = as.createCluster(nodes2, "nodes2", false);
@@ -212,7 +206,7 @@ public class TestModelManager {
 	
 	
 	@Test
-	public void testAnnotationSetBuilder(CyApplicationManager appManager, ModelManager modelManager) {
+	public void testAnnotationSetBuilder() {
 		CyNetworkView networkView = appManager.getCurrentNetworkView();
 		NetworkViewSet nvs = modelManager.getNetworkViewSet(networkView);
 		
@@ -225,7 +219,7 @@ public class TestModelManager {
 		builder.setShowLabels(false);
 		builder.setUseConstantFontSize(true);
 		
-		List<CyNode> nodes1 = createNodes(10);
+		List<CyNode> nodes1 = mockNodes(10);
 		builder.addCluster(nodes1, "nodes1", false);
 		
 		AnnotationSet as = builder.build();
@@ -272,7 +266,7 @@ public class TestModelManager {
 	
 	
 	@Test
-	public void testDisplayOptions(CyApplicationManager appManager, ModelManager modelManager) {
+	public void testDisplayOptions() {
 		CyNetworkView networkView = appManager.getCurrentNetworkView();
 		NetworkViewSet nvs = modelManager.getNetworkViewSet(networkView); 
 		AnnotationSet as = nvs.createAnnotationSet("as_name", "lab_col");

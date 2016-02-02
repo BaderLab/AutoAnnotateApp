@@ -17,7 +17,7 @@ public class EraseClusterTask extends AbstractTask {
 	
 	private Cluster cluster;
 	
-	EraseClusterTask setCluster(Cluster cluster) {
+	public EraseClusterTask setCluster(Cluster cluster) {
 		this.cluster = cluster;
 		return this;
 	}

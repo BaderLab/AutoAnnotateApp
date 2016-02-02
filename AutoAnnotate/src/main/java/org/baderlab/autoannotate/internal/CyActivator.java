@@ -49,6 +49,7 @@ import org.cytoscape.view.presentation.annotations.AnnotationManager;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
 import org.cytoscape.work.SynchronousTaskManager;
+import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.osgi.framework.BundleContext;
 
@@ -60,6 +61,7 @@ import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.AbstractMatcher;
+import com.google.inject.name.Names;
 import com.google.inject.spi.InjectionListener;
 import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
@@ -75,8 +77,8 @@ public class CyActivator extends AbstractCyActivator {
 		
 		ModelManager modelManager = injector.getInstance(ModelManager.class);
 		registerAllServices(context, modelManager, new Properties());
+		
 		PanelManager panelManager = injector.getInstance(PanelManager.class);
-		injector.getInstance(AnnotationRenderer.class);
 		
 		AbstractCyAction showDialogAction = injector.getInstance(ShowCreateDialogAction.class);
 		AbstractCyAction showHideAction = panelManager.getShowHideAction();
@@ -152,6 +154,10 @@ public class CyActivator extends AbstractCyActivator {
 			TypeLiteral<SynchronousTaskManager<?>> synchronousManager = new TypeLiteral<SynchronousTaskManager<?>>(){};
 			bind(synchronousManager).toProvider(service(synchronousManager).single());
 			
+			TypeLiteral<TaskManager<?,?>> taskManager = new TypeLiteral<TaskManager<?,?>>(){};
+			bind(taskManager).annotatedWith(Names.named("dialog")).toProvider(service(DialogTaskManager.class).single());
+			bind(taskManager).annotatedWith(Names.named("sync")).toProvider(service(synchronousManager).single());
+			
 			bind(AnnotationManager.class).toProvider(service(AnnotationManager.class).single());
 			TypeLiteral<AnnotationFactory<ShapeAnnotation>> shapeFactory = new TypeLiteral<AnnotationFactory<ShapeAnnotation>>(){};
 			bind(shapeFactory).toProvider(service(shapeFactory).filter(ldap("(type=ShapeAnnotation.class)")).single());
@@ -172,7 +178,9 @@ public class CyActivator extends AbstractCyActivator {
 	private class ApplicationModule extends AbstractModule {
 		@Override
 		protected void configure() {
-			bind(PanelManager.class).to(PanelManagerImpl.class);
+			bind(PanelManager.class).to(PanelManagerImpl.class).asEagerSingleton();
+			bind(ModelManager.class).asEagerSingleton();
+			bind(AnnotationRenderer.class).asEagerSingleton();
 			
 			// Create a single EventBus
 			bind(EventBus.class).toInstance(new EventBus((e,c) -> e.printStackTrace()));
@@ -183,6 +191,7 @@ public class CyActivator extends AbstractCyActivator {
 			// Call methods annotated with @AfterInjection after injection, mainly used to create UIs
 			bindListener(new AfterInjectionMatcher(), new TypeListener() {
 				AfterInjectionInvoker invoker = new AfterInjectionInvoker();
+				@Override
 				public <I> void hear(TypeLiteral<I> type, TypeEncounter<I> encounter) {
 					encounter.register(invoker);
 				}
@@ -202,6 +211,7 @@ public class CyActivator extends AbstractCyActivator {
 	 * Guice matcher that matches types that have a method annotated with @AfterInjection
 	 */
 	private static class AfterInjectionMatcher extends AbstractMatcher<TypeLiteral<?>> {
+		@Override
 		public boolean matches(TypeLiteral<?> typeLiteral) {
 			Method[] methods = typeLiteral.getRawType().getDeclaredMethods();
 			return Arrays.stream(methods).anyMatch(m -> m.isAnnotationPresent(AfterInjection.class));
@@ -212,6 +222,7 @@ public class CyActivator extends AbstractCyActivator {
 	 * Invokes methods annotated with @AfterInjection
 	 */
 	static class AfterInjectionInvoker implements InjectionListener<Object> {
+		@Override
 		public void afterInjection(Object injectee) {
 			Method[] methods = injectee.getClass().getDeclaredMethods();
 			for(Method method : methods) {
