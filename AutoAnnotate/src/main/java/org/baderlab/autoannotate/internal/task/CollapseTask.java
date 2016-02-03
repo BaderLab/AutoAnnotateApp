@@ -93,7 +93,9 @@ public class CollapseTask extends AbstractTask {
 		if(labelFunction != null) {
 			if(String.class.equals(labelFunction.getMappingColumnType())) {
 				String colName = labelFunction.getMappingColumnName();
-				groupRow.set(colName, cluster.getLabel());
+				if(groupRow.getTable().getColumn(colName) != null) {
+					groupRow.set(colName, cluster.getLabel());
+				}
 			}
 		}
 	}
