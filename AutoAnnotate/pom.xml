@@ -8,6 +8,7 @@
 		<cytoscape.version>3.3.0</cytoscape.version>
 	</properties>
 
+	<name>AutoAnnotate</name>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.baderlab</groupId>
 	<artifactId>autoannotate</artifactId>
