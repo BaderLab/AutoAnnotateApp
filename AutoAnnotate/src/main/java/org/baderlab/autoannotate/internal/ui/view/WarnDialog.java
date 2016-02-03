@@ -25,10 +25,16 @@ public class WarnDialog {
 	private String[] messages = {};
 	private Optional<String> propertyName = Optional.empty();
 	
-	
 	@Inject
 	public WarnDialog(CyProperty<Properties> cyProperty) {
 		this.cyProperty = cyProperty;
+	}
+	
+	@Inject
+	public WarnDialog(CyProperty<Properties> cyProperty, String propertyName, String... messages) {
+		this.cyProperty = cyProperty;
+		setPropertyName(propertyName);
+		setMessages(messages);
 	}
 	
 	@SuppressWarnings("serial")
@@ -87,7 +93,7 @@ public class WarnDialog {
 		
 		WarnPanel warnPanel = new WarnPanel();
 		int result = JOptionPane.showConfirmDialog(parent, warnPanel, BuildProperties.APP_NAME, JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
-		if(result == JOptionPane.CANCEL_OPTION)
+		if(result == JOptionPane.CANCEL_OPTION || result == JOptionPane.NO_OPTION)
 			return false;
 		
 		if(propertyName.isPresent()) {

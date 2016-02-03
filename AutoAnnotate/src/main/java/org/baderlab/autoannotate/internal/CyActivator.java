@@ -48,6 +48,7 @@ import org.cytoscape.view.presentation.annotations.AnnotationFactory;
 import org.cytoscape.view.presentation.annotations.AnnotationManager;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
+import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.swing.DialogTaskManager;
@@ -145,6 +146,7 @@ public class CyActivator extends AbstractCyActivator {
 			bind(CySessionManager.class).toProvider(service(CySessionManager.class).single());
 			bind(CyEventHelper.class).toProvider(service(CyEventHelper.class).single());
 			bind(OpenBrowser.class).toProvider(service(OpenBrowser.class).single());
+			bind(VisualMappingManager.class).toProvider(service(VisualMappingManager.class).single());
 			
 			bind(CyNetworkTableManager.class).toProvider(service(CyNetworkTableManager.class).single());
 			bind(CyTableManager.class).toProvider(service(CyTableManager.class).single());

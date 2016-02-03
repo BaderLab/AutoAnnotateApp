@@ -47,8 +47,10 @@ public class CollapseAction extends ClusterAction {
 		
 		if(doIt) {
 			Collection<Cluster> clusters = getClusters();
-			CollapseAllTaskFactory taskFactory = taskFactoryProvider.get().setAction(action);
+			CollapseAllTaskFactory taskFactory = taskFactoryProvider.get();
+			taskFactory.setAction(action);
 			taskFactory.setClusters(clusters);
+			
 			TaskIterator tasks = taskFactory.createTaskIterator();
 			if(tasks.getNumTasks() > 0) {
 				TaskManager<?,?> taskManager = taskManagerProvider.get();
