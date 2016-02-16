@@ -3,6 +3,8 @@ package org.baderlab.autoannotate.internal.model;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
@@ -38,15 +40,22 @@ public class AnnotationSetBuilder {
 	private boolean used = false;
 	
 	
+	
 	class ClusterBuilder {
 		final Collection<CyNode> nodes;
 		final String label;
 		final boolean collapsed;
+		final Optional<Consumer<Cluster>> callback;
 		
-		public ClusterBuilder(Collection<CyNode> nodes, String label, boolean collapsed) {
+		public ClusterBuilder(Collection<CyNode> nodes, String label, boolean collapsed, Consumer<Cluster> callback) {
 			this.nodes = nodes;
 			this.label = label;
 			this.collapsed = collapsed;
+			this.callback = Optional.ofNullable(callback);
+		}
+		
+		public ClusterBuilder(Collection<CyNode> nodes, String label, boolean collapsed) {
+			this(nodes, label, collapsed, null);
 		}
 	}
 	
@@ -119,6 +128,10 @@ public class AnnotationSetBuilder {
 
 	public void addCluster(Collection<CyNode> nodes, String label, boolean collapsed) {
 		clusters.add(new ClusterBuilder(nodes, label, collapsed));
+	}
+	
+	public void addCluster(Collection<CyNode> nodes, String label, boolean collapsed, Consumer<Cluster> callback) {
+		clusters.add(new ClusterBuilder(nodes, label, collapsed, callback));
 	}
 	
 	public Collection<ClusterBuilder> getClusters() {

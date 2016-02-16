@@ -2,6 +2,7 @@ package org.baderlab.autoannotate.internal.ui.render;
 
 import java.awt.geom.Point2D;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -34,7 +35,8 @@ public class AnnotationRenderer {
 	
 	@Inject private Provider<DrawClusterTask> drawTaskProvider;
 	@Inject private Provider<EraseClusterTask> eraseTaskProvider;
-	@Inject private Provider<RemoveAllAnnotationsTask> removeAllTaskProvider;
+//	@Inject private Provider<RemoveAllAnnotationsTask> removeAllTaskProvider;
+	@Inject private Provider<RemoveCurrentAnnotationsTask> removeCurrentTaskProvider;
 	@Inject private Provider<SelectClusterTask> selectTaskProvider;
 	
 	private Map<Cluster,TextAnnotation> textAnnotations = new HashMap<>();
@@ -49,14 +51,23 @@ public class AnnotationRenderer {
 	
 	@Subscribe
 	public void handle(ModelEvents.AnnotationSetSelected event) {
+		Optional<AnnotationSet> selected = event.getAnnotationSet();
+		
+		Set<Cluster> selectedClusters = selected.map(AnnotationSet::getClusters).orElse(Collections.emptySet());
+		Set<Cluster> existingClusters = getAllClusters();
+		
+		// This happens when the session has just been restored.
+		if(selectedClusters.equals(existingClusters))
+			return;
+		
 		redrawAnnotations(event.getNetworkViewSet(), event.getAnnotationSet());
 	}
+	
 	
 	public void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selected) {
 		TaskIterator tasks = new TaskIterator();
 		
-		RemoveAllAnnotationsTask removeTask = removeAllTaskProvider.get();
-		removeTask.setNetworkViewSet(networkViewSet);
+		RemoveCurrentAnnotationsTask removeTask = removeCurrentTaskProvider.get();
 		tasks.append(removeTask);
 		
 		if(selected.isPresent()) {
@@ -175,7 +186,13 @@ public class AnnotationRenderer {
 		syncTaskManager.execute(tasks);
 	}
 	
-
+	
+	Set<Cluster> getAllClusters() {
+		Set<Cluster> clusters = new HashSet<Cluster>();
+		clusters.addAll(shapeAnnotations.keySet());
+		clusters.addAll(textAnnotations.keySet());
+		return clusters;
+	}
 	
 	ShapeAnnotation getShapeAnnotation(Cluster cluster) {
 		return shapeAnnotations.get(cluster);

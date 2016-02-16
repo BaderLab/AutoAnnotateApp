@@ -62,10 +62,9 @@ public class NetworkViewSet {
 	public void select(AnnotationSet annotationSet) {
 		if(annotationSet == null || annotationSets.contains(annotationSet)) {
 			
-			// MKTODO: Can't do this because ModelTablePersistor expects NetworkViewSet.deselectAll() to erase all annotations.
-//			if(Optional.ofNullable(annotationSet).equals(activeSet)) {
-//				return;
-//			}
+			if(Optional.ofNullable(annotationSet).equals(activeSet)) {
+				return;
+			}
 			
 			if(activeSet.map(AnnotationSet::hasCollapsedCluster).orElse(false)) {
 				throw new IllegalStateException("Current AnnotationSet has collapsed clusters");

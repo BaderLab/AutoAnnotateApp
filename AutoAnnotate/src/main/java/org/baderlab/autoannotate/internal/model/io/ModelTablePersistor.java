@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,7 @@ import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
 import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
+import org.baderlab.autoannotate.internal.ui.render.AnnotationPersistor;
 import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
@@ -70,9 +72,12 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		CLUSTER_ID = "clusterID",
 		LABEL = "label",
 		COLLAPSED = "collapsed",
-		NODES_SUID = "nodes.SUID"; // .SUID suffix has special meaning to Cytoscape
+		NODES_SUID = "nodes.SUID",
+		SHAPE_ID = "shapeID",
+		TEXT_ID = "textID"; // .SUID suffix has special meaning to Cytoscape
 	
 	
+	@Inject private Provider<AnnotationPersistor> annotationPersistorProvider;
 	@Inject private Provider<ModelManager> modelManagerProvider;
 	@Inject private Provider<PanelManager> panelManagerProvider;
 	@Inject private Provider<CollapseAllTaskFactory> collapseActionProvider;
@@ -92,6 +97,9 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	
 	public void importModel() {
 		boolean imported = false;
+		
+		AnnotationPersistor annotationPersistor = annotationPersistorProvider.get();
+		annotationPersistor.clearAnnotations();
 		
 		List<Optional<AnnotationSet>> activeAnnotationSets = new LinkedList<>();
 		
@@ -114,15 +122,18 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			}
 		}
 		
-		// important to clear out existing annotations from the network views
-		ModelManager modelManager = modelManagerProvider.get();
-		modelManager.deselectAll(); // erases all annotations
+		
+		
+		
+//		// important to clear out existing annotations from the network views
+//		ModelManager modelManager = modelManagerProvider.get();
+//		modelManager.deselectAll(); // erases all annotations
 		
 		for(Optional<AnnotationSet> active : activeAnnotationSets) {
 			if(active.isPresent()) {
 				AnnotationSet as = active.get();
 				NetworkViewSet nvs = as.getParent();
-				nvs.select(as); // redraws annotations
+				nvs.select(as);
 			}
 		}
 		
@@ -192,10 +203,16 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				continue;
 			}
 			
+			Optional<UUID> shapeID = safeUUID(clusterRow.get(SHAPE_ID, String.class));
+			Optional<UUID> textID = safeUUID(clusterRow.get(TEXT_ID, String.class));
+			
 			List<CyNode> nodes = nodeSUIDS.stream().map(network::getNode).collect(Collectors.toList());
+			AnnotationPersistor annotationPersistor = annotationPersistorProvider.get();
 			
 			AnnotationSetBuilder builder = builders.get(asId);
-			builder.addCluster(nodes, label, collapsed);
+			builder.addCluster(nodes, label, collapsed, cluster -> {
+				annotationPersistor.restoreCluster(cluster, shapeID, textID);
+			});
 		}
 		
 		// Build Model
@@ -260,6 +277,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			Collection<CyNetworkView> networkViews = networkViewManager.getNetworkViews(network);
 			if(!networkViews.isEmpty()) {
 				CyNetworkView networkView = networkViews.iterator().next(); // MKTODO what to do about multiple network views?
+
 				Optional<NetworkViewSet> nvs = modelManagerProvider.get().getExistingNetworkViewSet(networkView);
 				if(nvs.isPresent()) {
 					CyTable asTable = getAnnotationSetTable(network);
@@ -285,6 +303,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		long asId = 0;
 		long clusterId = 0;
 		
+		AnnotationPersistor annotationPersistor = annotationPersistorProvider.get();
+		
 		for(AnnotationSet as : nvs.getAnnotationSets()) {
 			CyRow asRow = asTable.getRow(asId);
 			asRow.set(NAME, as.getName());
@@ -305,6 +325,12 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				clusterRow.set(COLLAPSED, cluster.isCollapsed());
 				clusterRow.set(NODES_SUID, cluster.getNodes().stream().map(CyNode::getSUID).collect(Collectors.toList()));
 				clusterRow.set(ANNOTATION_SET_ID, asId);
+				
+				Optional<UUID> shapeID = annotationPersistor.getShapeID(cluster);
+				clusterRow.set(SHAPE_ID, shapeID.map(UUID::toString).orElse(null));
+				Optional<UUID> textID = annotationPersistor.getTextID(cluster);
+				clusterRow.set(TEXT_ID, textID.map(UUID::toString).orElse(null));
+				
 				clusterId++;
 			}
 			asId++;
@@ -331,27 +357,20 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		return table;
 	}
 	
-	private static void createColumn(CyTable table, String name, Class<?> type) {
-		if(table.getColumn(name) == null)
-			table.createColumn(name, type, true);
-	}
-	
-	private static void createListColumn(CyTable table, String name, Class<?> type) {
-		if(table.getColumn(name) == null)
-			table.createListColumn(name, type, true);
-	}
 
 	private CyTable getClusterTable(CyNetwork network) {
 		CyTable table = networkTableManager.getTable(network, CyNetwork.class, CLUSTER_TABLE);
 		if(table == null) {
 			table = tableFactory.createTable(CLUSTER_TABLE, CLUSTER_ID, Long.class, true, true);
-			table.createColumn(LABEL, String.class, true);
-			table.createColumn(COLLAPSED, Boolean.class, true);
-			table.createListColumn(NODES_SUID, Long.class, true);
-			table.createColumn(ANNOTATION_SET_ID, Long.class, true);
 			networkTableManager.setTable(network, CyNetwork.class, CLUSTER_TABLE, table);
 			tableManager.addTable(table);
 		}
+		createColumn(table, LABEL, String.class);
+		createColumn(table, COLLAPSED, Boolean.class);
+		createListColumn(table, NODES_SUID, Long.class);
+		createColumn(table, ANNOTATION_SET_ID, Long.class);
+		createColumn(table, SHAPE_ID, String.class);
+		createColumn(table, TEXT_ID, String.class);
 		return table;
 	}
 	
@@ -363,6 +382,26 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			rowKeys.add(key);
 		}
 		table.deleteRows(rowKeys);
+	}
+	
+	private static void createColumn(CyTable table, String name, Class<?> type) {
+		if(table.getColumn(name) == null)
+			table.createColumn(name, type, true);
+	}
+	
+	private static void createListColumn(CyTable table, String name, Class<?> type) {
+		if(table.getColumn(name) == null)
+			table.createListColumn(name, type, true);
+	}
+	
+	private static Optional<UUID> safeUUID(String s) {
+		if(s == null)
+			return Optional.empty();
+		try {
+			return Optional.of(UUID.fromString(s));
+		} catch(IllegalArgumentException e) {
+			return Optional.empty();
+		}
 	}
 
 }

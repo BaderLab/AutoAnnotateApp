@@ -41,12 +41,11 @@ public class WarnDialogModule extends AbstractModule {
 		); 
 	}
 	
-	@Provides @Create
+	@Provides @Create 
 	public WarnDialog warnCreate(CyProperty<Properties> cyProperty) {
 		return new WarnDialog(cyProperty, CY_PROPERTY_WARN_CREATE,
-			"AutoAnnotate will manage all annotations and groups in this network view.",
-			"Any annotations or groups not created by AutoAnnotate will be removed.",
-			"To manually create annotations and groups you may duplicate the network view at any time."
+			"AutoAnnotate will manage all groups in this network view.",
+			"To manually create groups you may duplicate the network view at any time."
 		);
 	}
 	

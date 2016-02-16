@@ -43,6 +43,8 @@ public class AnnotationSet {
 		for(AnnotationSetBuilder.ClusterBuilder cb : builder.getClusters()) {
 			Cluster cluster = new Cluster(this, cb.nodes, cb.label, cb.collapsed);
 			clusters.add(cluster);
+			
+			cb.callback.ifPresent(consumer -> consumer.accept(cluster));
 		}
 	}
 	

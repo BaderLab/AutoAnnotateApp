@@ -15,6 +15,10 @@ import org.cytoscape.work.TaskMonitor;
 
 import com.google.inject.Inject;
 
+/**
+ * Removes every single annotation from the network view, regardless if it
+ * was created by AutoAnnotate or not.
+ */
 public class RemoveAllAnnotationsTask extends AbstractTask {
 
 	@Inject private AnnotationManager annotationManager;
