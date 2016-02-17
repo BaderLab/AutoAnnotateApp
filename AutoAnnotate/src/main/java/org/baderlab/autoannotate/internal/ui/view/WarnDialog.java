@@ -24,6 +24,8 @@ public class WarnDialog {
 	
 	private String[] messages = {};
 	private Optional<String> propertyName = Optional.empty();
+	private boolean askToContinue = true;
+	
 	
 	@Inject
 	public WarnDialog(CyProperty<Properties> cyProperty) {
@@ -52,9 +54,11 @@ public class WarnDialog {
 				messagePanel.add(label, GBCFactory.grid(0,y++).weightx(1.0).get());
 			}
 			
-			JLabel label = new JLabel("Would you like to continue?");
-			label.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-			messagePanel.add(label, GBCFactory.grid(0,y++).weightx(1.0).get());
+			if(askToContinue) {
+				JLabel label = new JLabel("Would you like to continue?");
+				label.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+				messagePanel.add(label, GBCFactory.grid(0,y++).weightx(1.0).get());
+			}
 			
 			if(propertyName.isPresent()) {
 				dontShowAgainBox = new JCheckBox("Don't ask me again");
@@ -80,6 +84,9 @@ public class WarnDialog {
 		this.propertyName = Optional.ofNullable(propertyName);
 	}
 	
+	public void setAskToContinue(boolean askToContinute) {
+		this.askToContinue = askToContinute;
+	}
 	
 	/**
 	 * Returns true if the user clicked OK.

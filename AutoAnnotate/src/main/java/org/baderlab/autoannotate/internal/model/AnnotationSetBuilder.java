@@ -36,6 +36,7 @@ public class AnnotationSetBuilder {
 	private int	fontScale = DisplayOptions.FONT_SCALE_DEFAULT; 
 	private int opacity = DisplayOptions.OPACITY_DEFAULT;
 	private int borderWidth = DisplayOptions.WIDTH_DEFAULT;
+	private int maxWords = DisplayOptions.MAX_WORDS_DEFAULT;
 	
 	private boolean used = false;
 	
@@ -153,5 +154,13 @@ public class AnnotationSetBuilder {
 
 	public void setShapeType(ShapeType shapeType) {
 		this.shapeType = shapeType;
+	}
+	
+	public int getMaxWords() {
+		return maxWords;
+	}
+	
+	public void setMaxWords(int maxWords) {
+		this.maxWords = maxWords;
 	}
 }

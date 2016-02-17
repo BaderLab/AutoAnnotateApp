@@ -73,9 +73,10 @@ public class WordCloudAdapter {
 	
 	
 	
-	public String getLabel(Collection<CyNode> cluster, CyNetwork network, String labelColumn) {
+	public String getLabel(Collection<CyNode> cluster, CyNetwork network, String labelColumn, int maxWords) {
 		Collection<WordInfo> wordInfos = runWordCloud(cluster, network, labelColumn);
-		LabelMaker labelMaker = new LabelMaker(network, "", LabelOptions.defaults());
+		LabelOptions labelOptions = LabelOptions.defaults().maxWords(maxWords);
+		LabelMaker labelMaker = new LabelMaker(network, "", labelOptions);
 		String label = labelMaker.makeLabel(cluster, wordInfos);
 		return label;
 	}

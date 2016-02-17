@@ -47,7 +47,8 @@ public class CreateClusterTaskFactory implements NetworkViewTaskFactory, NodeVie
 					List<CyNode> nodes = CyTableUtil.getNodesInState(networkView.getModel(), CyNetwork.SELECTED, true);
 					CyNetwork network = networkView.getModel();
 					
-					String label = wordCloudAdapter.getLabel(nodes, network, annotationSet.getLabelColumn());
+					int maxWords = annotationSet.getDisplayOptions().getMaxWords();
+					String label = wordCloudAdapter.getLabel(nodes, network, annotationSet.getLabelColumn(), maxWords);
 					annotationSet.createCluster(nodes, label, false);
 				}
 			}

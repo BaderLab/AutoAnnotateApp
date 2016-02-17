@@ -157,8 +157,10 @@ public class AnnotationRenderer {
 				}
 			}
 			break;
+		case MAX_WORDS:
+			// Don't handle this here
+			break;
 		}
-		
 	}
 	
 	@Subscribe

@@ -48,7 +48,8 @@ public class ClusterMergeAction extends ClusterAction {
 		}
 		
 		AnnotationSet annotationSet = clusters.iterator().next().getParent();
-		String label = wordCloudAdapter.getLabel(nodes, annotationSet.getParent().getNetwork(), annotationSet.getLabelColumn());
+		int maxWords = annotationSet.getDisplayOptions().getMaxWords();
+		String label = wordCloudAdapter.getLabel(nodes, annotationSet.getParent().getNetwork(), annotationSet.getLabelColumn(), maxWords);
 		
 		for(Cluster cluster : clusters) {
 			cluster.delete();

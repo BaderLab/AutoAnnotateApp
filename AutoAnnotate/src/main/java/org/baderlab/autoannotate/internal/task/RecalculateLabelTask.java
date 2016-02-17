@@ -37,7 +37,8 @@ public class RecalculateLabelTask extends AbstractTask {
 		String labelColumn = annotationSet.getLabelColumn();
 		
 		WordCloudAdapter wordCloudAdapter = wordCloudAdapterProvider.get();
-		String label = wordCloudAdapter.getLabel(nodes, network, labelColumn);
+		int maxWords = annotationSet.getDisplayOptions().getMaxWords();
+		String label = wordCloudAdapter.getLabel(nodes, network, labelColumn, maxWords);
 		
 		cluster.setLabel(label);
 	}

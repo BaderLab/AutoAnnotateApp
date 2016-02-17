@@ -19,15 +19,17 @@ import com.google.inject.Provides;
 public class WarnDialogModule extends AbstractModule {
 	
 	public static final String 
-		CY_PROPERTY_WARN_CREATE         = "warnDialog.dontShowAgain.create",
-		CY_PROPERTY_WARN_COLLAPSE       = "warnDialog.dontShowAgain.collapse",
-		CY_PROPERTY_WARN_LAYOUT         = "warnDialog.dontShowAgain.layout",
-		CY_PROPERTY_WARN_LABEL          = "warnDialog.dontShowAgain.label";
+		CY_PROPERTY_WARN_CREATE    = "warnDialog.dontShowAgain.create",
+		CY_PROPERTY_WARN_COLLAPSE  = "warnDialog.dontShowAgain.collapse",
+		CY_PROPERTY_WARN_LAYOUT    = "warnDialog.dontShowAgain.layout",
+		CY_PROPERTY_WARN_LABEL     = "warnDialog.dontShowAgain.label",
+		CY_PROPERTY_WARN_MAX_WORDS = "warnDialog.dontShowAgain.maxWords";
 
 	@BindingAnnotation @Retention(RUNTIME) public @interface Create {}
 	@BindingAnnotation @Retention(RUNTIME) public @interface Collapse {}
 	@BindingAnnotation @Retention(RUNTIME) public @interface Layout {}
 	@BindingAnnotation @Retention(RUNTIME) public @interface Label {}
+	@BindingAnnotation @Retention(RUNTIME) public @interface MaxWords {}
 	
 	@Override
 	protected void configure() { }
@@ -37,7 +39,8 @@ public class WarnDialogModule extends AbstractModule {
 			CY_PROPERTY_WARN_COLLAPSE, 
 			CY_PROPERTY_WARN_CREATE, 
 			CY_PROPERTY_WARN_LABEL, 
-			CY_PROPERTY_WARN_LAYOUT
+			CY_PROPERTY_WARN_LAYOUT,
+			CY_PROPERTY_WARN_MAX_WORDS
 		); 
 	}
 	
@@ -69,6 +72,15 @@ public class WarnDialogModule extends AbstractModule {
 		return new WarnDialog(cyProperty, CY_PROPERTY_WARN_LABEL, 
 			"Recalculating labels for selected clusters cannot be undone."
 		);
+	}
+	
+	@Provides @MaxWords
+	public WarnDialog warnMaxWords(CyProperty<Properties> cyProperty) {
+		WarnDialog warnDialog = new WarnDialog(cyProperty, CY_PROPERTY_WARN_MAX_WORDS, 
+			"For setting to take effect please select \"Recalculate Labels\" from the AutoAnnotate panel menu."
+		);
+		warnDialog.setAskToContinue(false);
+		return warnDialog;
 	}
 	
 }

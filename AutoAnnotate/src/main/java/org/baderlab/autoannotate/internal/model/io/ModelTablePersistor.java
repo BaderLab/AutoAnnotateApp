@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
@@ -65,7 +66,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		USE_CONSTANT_FONT_SIZE = "useConstantFontSize",
 		SHOW_LABELS = "showLabels",
 		SHOW_CLUSTERS = "showClusters",
-		SHAPE_TYPE = "shapeType";
+		SHAPE_TYPE = "shapeType",
+		MAX_WORDS = "maxWords";
 	
 	// Cluster properties
 	private static final String 
@@ -143,6 +145,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		}
 	}
 	
+	
 	private Optional<AnnotationSet> importModel(CyNetworkView networkView, CyTable asTable, CyTable clusterTable) {
 		CyNetwork network = networkView.getModel();
 		Map<Long,AnnotationSetBuilder> builders = new HashMap<>();
@@ -166,20 +169,15 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			AnnotationSetBuilder builder = nvs.getAnnotationSetBuilder(name, label);
 			
 			// DisplayOptions
-			try {
-				builder.setBorderWidth(asRow.get(BORDER_WIDTH, Integer.class));
-				builder.setOpacity(asRow.get(OPACITY, Integer.class));
-				builder.setFontScale(asRow.get(FONT_SCALE, Integer.class));
-				builder.setShapeType(ShapeType.valueOf(asRow.get(SHAPE_TYPE, String.class)));
-				builder.setShowClusters(asRow.get(SHOW_CLUSTERS, Boolean.class));
-				builder.setShowLabels(asRow.get(SHOW_LABELS, Boolean.class));
-				builder.setUseConstantFontSize(asRow.get(USE_CONSTANT_FONT_SIZE, Boolean.class));
-			} catch(Exception e) {
-				// use defaults for whatever woudn't load
-				System.err.println("AutoAnnotate.importModel - Error loading display options for " + name);
-				e.printStackTrace();
-			}
-			
+			safeGet(asRow, BORDER_WIDTH, Integer.class, builder::setBorderWidth);
+			safeGet(asRow, OPACITY, Integer.class, builder::setOpacity);
+			safeGet(asRow, FONT_SCALE, Integer.class, builder::setFontScale);
+			safeGet(asRow, SHAPE_TYPE, String.class, s -> builder.setShapeType(ShapeType.valueOf(s)));
+			safeGet(asRow, SHOW_CLUSTERS, Boolean.class, builder::setShowClusters);
+			safeGet(asRow, SHOW_LABELS, Boolean.class, builder::setShowLabels);
+			safeGet(asRow, USE_CONSTANT_FONT_SIZE, Boolean.class, builder::setUseConstantFontSize);
+			safeGet(asRow, MAX_WORDS, Integer.class, builder::setMaxWords);
+
 			Boolean active = asRow.get(ACTIVE, Boolean.class);
 			if(Boolean.TRUE.equals(active)) // null safe
 				activeBuilder = builder;
@@ -310,6 +308,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(NAME, as.getName());
 			asRow.set(LABEL_COLUMN, Arrays.asList(as.getLabelColumn())); // may want to support multiple label columns in the future
 			asRow.set(ACTIVE, as.isActive());
+			
 			DisplayOptions disp = as.getDisplayOptions();
 			asRow.set(SHAPE_TYPE, disp.getShapeType().name());
 			asRow.set(SHOW_CLUSTERS, disp.isShowClusters());
@@ -318,6 +317,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(FONT_SCALE, disp.getFontScale());
 			asRow.set(OPACITY, disp.getOpacity());
 			asRow.set(BORDER_WIDTH, disp.getBorderWidth());
+			asRow.set(MAX_WORDS, disp.getMaxWords());
 			
 			for(Cluster cluster : as.getClusters()) {
 				CyRow clusterRow = clusterTable.getRow(clusterId);
@@ -354,6 +354,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, FONT_SCALE, Integer.class);
 		createColumn(table, OPACITY, Integer.class);
 		createColumn(table, BORDER_WIDTH, Integer.class);
+		createColumn(table, MAX_WORDS, Integer.class);
 		return table;
 	}
 	
@@ -404,4 +405,19 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		}
 	}
 
+	private static <T> void safeGet(CyRow row, String column, Class<T> type, Consumer<T> consumer) {
+		try {
+			T value = row.get(column, type);
+			if(value == null) {
+				System.err.println("AutoAnnotate.importModel - Error loading display options for " + column);
+			}
+			else {
+				consumer.accept(value);
+			}
+		} catch(ClassCastException e) { 
+			System.err.println("AutoAnnotate.importModel - Error loading display options for " + column);
+			e.printStackTrace();
+		}
+	}
+	
 }
