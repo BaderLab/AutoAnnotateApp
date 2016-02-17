@@ -174,22 +174,28 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		JPanel panel = new JPanel(new GridBagLayout());
 		
 		fontByClusterCheckbox = new JCheckBox("Scale font by cluster size");
-		panel.add(fontByClusterCheckbox, GBCFactory.grid(0,0).gridwidth(2).weightx(1.0).get());
+		panel.add(fontByClusterCheckbox, GBCFactory.grid(0,0).weightx(1.0).get());
 		fontByClusterCheckbox.addActionListener(
 				fontByClusterListener = e -> displayOptions.setUseConstantFontSize(!fontByClusterCheckbox.isSelected()));
 		
-		JLabel labelWordsLabel = new JLabel("Max words per label");
-		panel.add(labelWordsLabel, GBCFactory.grid(0,1).get());
+		JPanel maxWordsPanel = new JPanel(new GridBagLayout());
+		
+		JLabel labelWordsLabel = new JLabel("Max words per label ");
+		maxWordsPanel.add(labelWordsLabel, GBCFactory.grid(0,0).get());
 		
 		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(4, 1, LabelOptions.DEFAULT_WORDSIZE_THRESHOLDS.size()-1, 1);
 		maxWordsSpinner = new JSpinner(spinnerModel);
-		panel.add(maxWordsSpinner, GBCFactory.grid(1,1).get());
+		maxWordsPanel.add(maxWordsSpinner, GBCFactory.grid(1,0).get());
 		
 		spinnerModel.addChangeListener(maxWordsListener = e -> {
 			int value = spinnerModel.getNumber().intValue();
 			displayOptions.setMaxWords(value);
 			SwingUtilities.invokeLater(() -> warnDialogProvider.get().warnUser(jFrameProvider.get()));
 		});
+		
+		maxWordsPanel.add(new JLabel(), GBCFactory.grid(2,0).weightx(1.0).get());
+		
+		panel.add(maxWordsPanel, GBCFactory.grid(0,1).get());
 		
 		return panel;
 	}
