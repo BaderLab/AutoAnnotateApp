@@ -120,6 +120,9 @@ public class CyActivator extends AbstractCyActivator {
 	public void shutDown() {
 		ModelTablePersistor persistor = injector.getInstance(ModelTablePersistor.class);
 		persistor.exportModel();
+		
+		ModelManager modelManager = injector.getInstance(ModelManager.class);
+		modelManager.dispose();
 	}
 	
 	
@@ -199,8 +202,6 @@ public class CyActivator extends AbstractCyActivator {
 				}
 			});
 		}
-		
-		
 	}
 	
 	class PropsReader extends AbstractConfigDirPropsReader {

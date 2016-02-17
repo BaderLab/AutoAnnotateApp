@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import javax.swing.SwingUtilities;
 
 import org.baderlab.autoannotate.internal.model.ModelEvents.ModelEvent;
 import org.cytoscape.application.CyApplicationManager;
@@ -20,6 +24,7 @@ import org.cytoscape.group.events.GroupAboutToCollapseEvent;
 import org.cytoscape.group.events.GroupAboutToCollapseListener;
 import org.cytoscape.group.events.GroupCollapsedEvent;
 import org.cytoscape.group.events.GroupCollapsedListener;
+import org.cytoscape.model.CyDisposable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTableUtil;
@@ -42,7 +47,8 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class ModelManager implements SetSelectedNetworkViewsListener, NetworkViewAboutToBeDestroyedListener, 
+public class ModelManager implements CyDisposable,
+									 SetSelectedNetworkViewsListener, NetworkViewAboutToBeDestroyedListener, 
                                      ViewChangedListener, AboutToRemoveNodesListener, RowsSetListener, 
                                      GroupAboutToCollapseListener, GroupCollapsedListener {
 	
@@ -50,7 +56,18 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 	@Inject private CyGroupManager groupManager;
 	@Inject private EventBus eventBus;
 	
+	private ExecutorService asyncEventService;
 	private Map<CyNetworkView, NetworkViewSet> networkViews = new HashMap<>();
+	
+	
+	public ModelManager() {
+		asyncEventService = Executors.newSingleThreadExecutor();
+	}
+	
+	@Override
+	public void dispose() {
+		asyncEventService.shutdown();
+	}
 	
 	
 	public NetworkViewSet getNetworkViewSet(CyNetworkView networkView) {
@@ -82,6 +99,15 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 	
 	void postEvent(ModelEvent event) {
 		eventBus.post(event);
+	}
+	
+	private void postEventOffEDT(ModelEvent event) {
+		if(SwingUtilities.isEventDispatchThread()) {
+			asyncEventService.execute(() -> postEvent(event)); // returns immediately and fires event on a separate thread
+		}
+		else {
+			postEvent(event); // fire on current thread
+		}
 	}
 	
 	public boolean isNetworkViewSetSelected(NetworkViewSet networkViewSet) {
@@ -173,12 +199,11 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 				}
 				
 				for(Cluster cluster : affectedClusters) {
-					postEvent(new ModelEvents.ClusterChanged(cluster));
+					postEventOffEDT(new ModelEvents.ClusterChanged(cluster));
 				}
 			}
 		}
 	}
-
 
 	@Override
 	public void handleEvent(AboutToRemoveNodesEvent e) {
@@ -214,7 +239,7 @@ public class ModelManager implements SetSelectedNetworkViewsListener, NetworkVie
 				}
 				
 				// Fire event even when selectedClusters is empty
-				postEvent(new ModelEvents.ClustersSelected(annotationSet, selectedClusters));
+				postEventOffEDT(new ModelEvents.ClustersSelected(annotationSet, selectedClusters));
 			}
 		}
 	}

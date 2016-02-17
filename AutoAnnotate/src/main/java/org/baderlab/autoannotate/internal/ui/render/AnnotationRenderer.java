@@ -35,7 +35,6 @@ public class AnnotationRenderer {
 	
 	@Inject private Provider<DrawClusterTask> drawTaskProvider;
 	@Inject private Provider<EraseClusterTask> eraseTaskProvider;
-//	@Inject private Provider<RemoveAllAnnotationsTask> removeAllTaskProvider;
 	@Inject private Provider<RemoveCurrentAnnotationsTask> removeCurrentTaskProvider;
 	@Inject private Provider<SelectClusterTask> selectTaskProvider;
 	
