@@ -1,94 +1,57 @@
 package org.baderlab.autoannotate.internal;
 
 import static org.cytoscape.work.ServiceProperties.*;
-import static org.ops4j.peaberry.Peaberry.*;
-import static org.ops4j.peaberry.util.Filters.ldap;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Properties;
-
-import javax.swing.JFrame;
 
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.ui.CreateClusterTaskFactory;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
-import org.baderlab.autoannotate.internal.ui.PanelManagerImpl;
-import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowAboutDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
-import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CyAction;
-import org.cytoscape.application.swing.CySwingApplication;
-import org.cytoscape.command.AvailableCommands;
-import org.cytoscape.command.CommandExecutorTaskFactory;
-import org.cytoscape.event.CyEventHelper;
-import org.cytoscape.group.CyGroupFactory;
-import org.cytoscape.group.CyGroupManager;
-import org.cytoscape.model.CyNetworkFactory;
-import org.cytoscape.model.CyNetworkManager;
-import org.cytoscape.model.CyNetworkTableManager;
-import org.cytoscape.model.CyTableFactory;
-import org.cytoscape.model.CyTableManager;
-import org.cytoscape.property.AbstractConfigDirPropsReader;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
-import org.cytoscape.service.util.CyServiceRegistrar;
-import org.cytoscape.session.CySessionManager;
-import org.cytoscape.util.swing.IconManager;
-import org.cytoscape.util.swing.OpenBrowser;
-import org.cytoscape.view.layout.CyLayoutAlgorithmManager;
-import org.cytoscape.view.model.CyNetworkViewFactory;
-import org.cytoscape.view.model.CyNetworkViewManager;
-import org.cytoscape.view.presentation.annotations.AnnotationFactory;
-import org.cytoscape.view.presentation.annotations.AnnotationManager;
-import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
-import org.cytoscape.view.presentation.annotations.TextAnnotation;
-import org.cytoscape.view.vizmap.VisualMappingManager;
-import org.cytoscape.work.SynchronousTaskManager;
-import org.cytoscape.work.TaskManager;
-import org.cytoscape.work.swing.DialogTaskManager;
+import org.ops4j.peaberry.osgi.OSGiModule;
 import org.osgi.framework.BundleContext;
 
-import com.google.common.eventbus.EventBus;
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
-import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
-import com.google.inject.matcher.AbstractMatcher;
-import com.google.inject.name.Names;
-import com.google.inject.spi.InjectionListener;
-import com.google.inject.spi.TypeEncounter;
-import com.google.inject.spi.TypeListener;
 
 
 public class CyActivator extends AbstractCyActivator {
 	
 	private Injector injector;
 	
+	
 	@Override
 	public void start(BundleContext context) {
-		injector = Guice.createInjector(osgiModule(context), new CytoscapeServiceModule(), new ApplicationModule(), new WarnDialogModule());
+		injector = Guice.createInjector(
+						new OSGiModule(context), // Peaberry
+						new AfterInjectionModule(), 
+						new CytoscapeServiceModule(), 
+						new ApplicationModule(), 
+						new WarnDialogModule());
 		
+		// ModelManager listens to Cytoscape events
 		ModelManager modelManager = injector.getInstance(ModelManager.class);
 		registerAllServices(context, modelManager, new Properties());
 		
+		// Register menu Actions
 		PanelManager panelManager = injector.getInstance(PanelManager.class);
-		
 		AbstractCyAction showDialogAction = injector.getInstance(ShowCreateDialogAction.class);
 		AbstractCyAction showHideAction = panelManager.getShowHideAction();
 		AbstractCyAction showAboutAction = injector.getInstance(ShowAboutDialogAction.class);
-		
 		registerAction(context, showDialogAction);
 		registerAction(context, showHideAction);
 		registerAction(context, showAboutAction);
 		
+		// Context menu action in network view
 		CreateClusterTaskFactory createClusterTaskFactory = injector.getInstance(CreateClusterTaskFactory.class);
 		Properties createClusterProps = new Properties();
 		createClusterProps.setProperty(IN_MENU_BAR, "false");
@@ -96,6 +59,7 @@ public class CyActivator extends AbstractCyActivator {
 		createClusterProps.setProperty(TITLE, "Create Cluster");
 		registerAllServices(context, createClusterTaskFactory, createClusterProps);
 		
+		// ModelTablePersistor listents to session save/load events
 		ModelTablePersistor persistor = injector.getInstance(ModelTablePersistor.class);
 		registerAllServices(context, persistor, new Properties());
 		
@@ -110,135 +74,19 @@ public class CyActivator extends AbstractCyActivator {
 		persistor.importModel();
 	}
 	
-	private void registerAction(BundleContext context, AbstractCyAction action) {
-		action.setPreferredMenu("Apps." + BuildProperties.APP_NAME);
-		registerService(context, action, CyAction.class, new Properties());
-	}
-	
 	
 	@Override
 	public void shutDown() {
 		ModelTablePersistor persistor = injector.getInstance(ModelTablePersistor.class);
 		persistor.exportModel();
-		
 		ModelManager modelManager = injector.getInstance(ModelManager.class);
 		modelManager.dispose();
 	}
 	
 	
-	/**
-	 * Guice module that uses peaberry to bind cytoscape service interfaces from OSGi.
-	 */
-	private class CytoscapeServiceModule extends AbstractModule {
-		@Override
-		protected void configure() {
-			// Bind cytoscape OSGi services
-			bind(CyServiceRegistrar.class).toProvider(service(CyServiceRegistrar.class).single());
-			bind(CyApplicationManager.class).toProvider(service(CyApplicationManager.class).single());
-			bind(CySwingApplication.class).toProvider(service(CySwingApplication.class).single());
-			bind(CyNetworkManager.class).toProvider(service(CyNetworkManager.class).single());
-			bind(CyNetworkViewFactory.class).toProvider(service(CyNetworkViewFactory.class).single());
-			bind(CyNetworkViewManager.class).toProvider(service(CyNetworkViewManager.class).single());
-			bind(CyNetworkFactory.class).toProvider(service(CyNetworkFactory.class).single());
-			bind(IconManager.class).toProvider(service(IconManager.class).single());
-			bind(CyLayoutAlgorithmManager.class).toProvider(service(CyLayoutAlgorithmManager.class).single());
-			bind(CyGroupManager.class).toProvider(service(CyGroupManager.class).single());
-			bind(CyGroupFactory.class).toProvider(service(CyGroupFactory.class).single());
-			bind(AvailableCommands.class).toProvider(service(AvailableCommands.class).single());
-			bind(CommandExecutorTaskFactory.class).toProvider(service(CommandExecutorTaskFactory.class).single());
-			bind(CySessionManager.class).toProvider(service(CySessionManager.class).single());
-			bind(CyEventHelper.class).toProvider(service(CyEventHelper.class).single());
-			bind(OpenBrowser.class).toProvider(service(OpenBrowser.class).single());
-			bind(VisualMappingManager.class).toProvider(service(VisualMappingManager.class).single());
-			
-			bind(CyNetworkTableManager.class).toProvider(service(CyNetworkTableManager.class).single());
-			bind(CyTableManager.class).toProvider(service(CyTableManager.class).single());
-			bind(CyTableFactory.class).toProvider(service(CyTableFactory.class).single());
-			
-			bind(DialogTaskManager.class).toProvider(service(DialogTaskManager.class).single());
-			TypeLiteral<SynchronousTaskManager<?>> synchronousManager = new TypeLiteral<SynchronousTaskManager<?>>(){};
-			bind(synchronousManager).toProvider(service(synchronousManager).single());
-			
-			TypeLiteral<TaskManager<?,?>> taskManager = new TypeLiteral<TaskManager<?,?>>(){};
-			bind(taskManager).annotatedWith(Names.named("dialog")).toProvider(service(DialogTaskManager.class).single());
-			bind(taskManager).annotatedWith(Names.named("sync")).toProvider(service(synchronousManager).single());
-			
-			bind(AnnotationManager.class).toProvider(service(AnnotationManager.class).single());
-			TypeLiteral<AnnotationFactory<ShapeAnnotation>> shapeFactory = new TypeLiteral<AnnotationFactory<ShapeAnnotation>>(){};
-			bind(shapeFactory).toProvider(service(shapeFactory).filter(ldap("(type=ShapeAnnotation.class)")).single());
-			TypeLiteral<AnnotationFactory<TextAnnotation>> textFactory = new TypeLiteral<AnnotationFactory<TextAnnotation>>(){};
-			bind(textFactory).toProvider(service(textFactory).filter(ldap("(type=TextAnnotation.class)")).single());
-		}
-			
-		@Provides
-		public JFrame getJFrame(CySwingApplication swingApplication) {
-			return swingApplication.getJFrame();
-		}
-	}
-	
-	
-	/**
-	 * Guice module for application specific configuration.
-	 */
-	private class ApplicationModule extends AbstractModule {
-		@Override
-		protected void configure() {
-			bind(PanelManager.class).to(PanelManagerImpl.class).asEagerSingleton();
-			bind(ModelManager.class).asEagerSingleton();
-			bind(AnnotationRenderer.class).asEagerSingleton();
-			
-			// Create a single EventBus
-			bind(EventBus.class).toInstance(new EventBus((e,c) -> e.printStackTrace()));
-			
-			// Set up CyProperty
-			bind(new TypeLiteral<CyProperty<Properties>>(){}).toInstance(new PropsReader(BuildProperties.APP_ID, "autoannotate.props"));
-			
-			// Call methods annotated with @AfterInjection after injection, mainly used to create UIs
-			bindListener(new AfterInjectionMatcher(), new TypeListener() {
-				AfterInjectionInvoker invoker = new AfterInjectionInvoker();
-				@Override
-				public <I> void hear(TypeLiteral<I> type, TypeEncounter<I> encounter) {
-					encounter.register(invoker);
-				}
-			});
-		}
-	}
-	
-	class PropsReader extends AbstractConfigDirPropsReader {
-		public PropsReader(String name, String fileName) {
-			super(name, fileName, CyProperty.SavePolicy.CONFIG_DIR);
-		}
-	}
-	
-	/**
-	 * Guice matcher that matches types that have a method annotated with @AfterInjection
-	 */
-	private static class AfterInjectionMatcher extends AbstractMatcher<TypeLiteral<?>> {
-		@Override
-		public boolean matches(TypeLiteral<?> typeLiteral) {
-			Method[] methods = typeLiteral.getRawType().getDeclaredMethods();
-			return Arrays.stream(methods).anyMatch(m -> m.isAnnotationPresent(AfterInjection.class));
-		}
-	}
-	
-	/**
-	 * Invokes methods annotated with @AfterInjection
-	 */
-	static class AfterInjectionInvoker implements InjectionListener<Object> {
-		@Override
-		public void afterInjection(Object injectee) {
-			Method[] methods = injectee.getClass().getDeclaredMethods();
-			for(Method method : methods) {
-				if(method.isAnnotationPresent(AfterInjection.class)) {
-					try {
-						method.setAccessible(true);
-						method.invoke(injectee);
-					} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}
+	private void registerAction(BundleContext context, AbstractCyAction action) {
+		action.setPreferredMenu("Apps." + BuildProperties.APP_NAME);
+		registerService(context, action, CyAction.class, new Properties());
 	}
 	
 }
