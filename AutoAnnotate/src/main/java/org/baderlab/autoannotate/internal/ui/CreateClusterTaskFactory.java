@@ -3,6 +3,8 @@ package org.baderlab.autoannotate.internal.ui;
 import java.util.List;
 import java.util.Optional;
 
+import org.baderlab.autoannotate.internal.Setting;
+import org.baderlab.autoannotate.internal.SettingManager;
 import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
@@ -29,6 +31,7 @@ public class CreateClusterTaskFactory implements NetworkViewTaskFactory, NodeVie
 
 	@Inject private Provider<ModelManager> modelManagerProvider;
 	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
+	@Inject private Provider<SettingManager> settingManagerProvider;
 	
 	@Override
 	public TaskIterator createTaskIterator(CyNetworkView networkView) {
@@ -47,7 +50,9 @@ public class CreateClusterTaskFactory implements NetworkViewTaskFactory, NodeVie
 					List<CyNode> nodes = CyTableUtil.getNodesInState(networkView.getModel(), CyNetwork.SELECTED, true);
 					CyNetwork network = networkView.getModel();
 					
-					int maxWords = annotationSet.getDisplayOptions().getMaxWords();
+					SettingManager settingManager = settingManagerProvider.get();
+					int maxWords = settingManager.getValue(Setting.DEFAULT_MAX_WORDS);
+					
 					String label = wordCloudAdapter.getLabel(nodes, network, annotationSet.getLabelColumn(), maxWords);
 					annotationSet.createCluster(nodes, label, false);
 				}

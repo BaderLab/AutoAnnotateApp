@@ -8,6 +8,8 @@ import java.util.Set;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import org.baderlab.autoannotate.internal.Setting;
+import org.baderlab.autoannotate.internal.SettingManager;
 import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
@@ -20,6 +22,7 @@ import com.google.inject.Provider;
 public class ClusterMergeAction extends ClusterAction {
 	
 	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
+	@Inject private Provider<SettingManager> settingManagerProvider;
 	@Inject private Provider<JFrame> jFrameProvider;
 	
 	public ClusterMergeAction() {
@@ -48,7 +51,10 @@ public class ClusterMergeAction extends ClusterAction {
 		}
 		
 		AnnotationSet annotationSet = clusters.iterator().next().getParent();
-		int maxWords = annotationSet.getDisplayOptions().getMaxWords();
+		
+		SettingManager settingManager = settingManagerProvider.get();
+		int maxWords = settingManager.getValue(Setting.DEFAULT_MAX_WORDS);
+		
 		String label = wordCloudAdapter.getLabel(nodes, annotationSet.getParent().getNetwork(), annotationSet.getLabelColumn(), maxWords);
 		
 		for(Cluster cluster : clusters) {

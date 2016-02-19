@@ -31,7 +31,8 @@ public class ApplicationModule extends AbstractModule {
 		bind(EventBus.class).toInstance(new EventBus((e,c) -> e.printStackTrace()));
 		
 		// Set up CyProperty
-		bind(new TypeLiteral<CyProperty<Properties>>(){}).toInstance(new PropsReader(BuildProperties.APP_ID, "autoannotate.props"));
+		PropsReader propsReader = new PropsReader(BuildProperties.APP_ID, "autoannotate.props");
+		bind(new TypeLiteral<CyProperty<Properties>>(){}).toInstance(propsReader);
 	}
 }
 

@@ -139,8 +139,7 @@ public class ModelEvents {
 			USE_CONSTANT_FONT_SIZE,
 			FONT_SCALE, 
 			OPACITY, 
-			BORDER_WIDTH,
-			MAX_WORDS
+			BORDER_WIDTH
 		}
 		
 		private final Option option;

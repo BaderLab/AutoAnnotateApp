@@ -15,24 +15,18 @@ import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeListener;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.CyActivator;
-import org.baderlab.autoannotate.internal.labels.LabelOptions;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.ui.GBCFactory;
-import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule.MaxWords;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.model.CyDisposable;
@@ -41,14 +35,10 @@ import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 
 @SuppressWarnings("serial")
 public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, CyDisposable {
 
-	@Inject private @MaxWords Provider<WarnDialog> warnDialogProvider;
-	@Inject private Provider<JFrame> jFrameProvider;
-	
 	private volatile DisplayOptions displayOptions;
 	
 	private LabelSlider borderWidthSlider;
@@ -59,7 +49,6 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private JCheckBox fontByClusterCheckbox;
 	private JRadioButton ellipseRadio;
 	private JRadioButton rectangleRadio;
-	private JSpinner maxWordsSpinner;
 	
 	private ChangeListener borderWidthListener;
 	private ChangeListener opacityListener;
@@ -68,7 +57,6 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private ActionListener hideLabelsListener;
 	private ActionListener fontByClusterListener;
 	private ActionListener ellipseListener;
-	private ChangeListener maxWordsListener;
 	
 	private EventBus eventBus;
 	
@@ -103,7 +91,6 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			hideLabelsCheckBox.removeActionListener(hideLabelsListener);
 			fontByClusterCheckbox.removeActionListener(fontByClusterListener);
 			ellipseRadio.removeActionListener(ellipseListener);
-			maxWordsSpinner.getModel().removeChangeListener(maxWordsListener);
 			
 			borderWidthSlider.setValue(displayOptions.getBorderWidth());
 			opacitySlider.setValue(displayOptions.getOpacity());
@@ -112,7 +99,6 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			hideLabelsCheckBox.setSelected(!displayOptions.isShowLabels());
 			fontByClusterCheckbox.setSelected(!displayOptions.isUseConstantFontSize());
 			ellipseRadio.setSelected(displayOptions.getShapeType() == ShapeType.ELLIPSE);
-			maxWordsSpinner.setValue(displayOptions.getMaxWords());
 			
 			borderWidthSlider.getSlider().addChangeListener(borderWidthListener);
 			opacitySlider.getSlider().addChangeListener(opacityListener);
@@ -121,7 +107,6 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			hideLabelsCheckBox.addActionListener(hideLabelsListener);
 			fontByClusterCheckbox.addActionListener(fontByClusterListener);
 			ellipseRadio.addActionListener(ellipseListener);
-			maxWordsSpinner.getModel().addChangeListener(maxWordsListener);
 		}
 	}
 	
@@ -177,25 +162,6 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		panel.add(fontByClusterCheckbox, GBCFactory.grid(0,0).weightx(1.0).get());
 		fontByClusterCheckbox.addActionListener(
 				fontByClusterListener = e -> displayOptions.setUseConstantFontSize(!fontByClusterCheckbox.isSelected()));
-		
-		JPanel maxWordsPanel = new JPanel(new GridBagLayout());
-		
-		JLabel labelWordsLabel = new JLabel("Max words per label ");
-		maxWordsPanel.add(labelWordsLabel, GBCFactory.grid(0,0).get());
-		
-		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(4, 1, LabelOptions.DEFAULT_WORDSIZE_THRESHOLDS.size()-1, 1);
-		maxWordsSpinner = new JSpinner(spinnerModel);
-		maxWordsPanel.add(maxWordsSpinner, GBCFactory.grid(1,0).get());
-		
-		spinnerModel.addChangeListener(maxWordsListener = e -> {
-			int value = spinnerModel.getNumber().intValue();
-			displayOptions.setMaxWords(value);
-			SwingUtilities.invokeLater(() -> warnDialogProvider.get().warnUser(jFrameProvider.get()));
-		});
-		
-		maxWordsPanel.add(new JLabel(), GBCFactory.grid(2,0).weightx(1.0).get());
-		
-		panel.add(maxWordsPanel, GBCFactory.grid(0,1).get());
 		
 		return panel;
 	}

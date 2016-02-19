@@ -1,12 +1,12 @@
 package org.baderlab.autoannotate.internal.ui.view.action;
 
 import java.awt.event.ActionEvent;
+import java.util.Optional;
 
 import javax.swing.JFrame;
 
 import org.baderlab.autoannotate.internal.task.RecalculateLabelTask;
-import org.baderlab.autoannotate.internal.ui.view.WarnDialog;
-import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
+import org.baderlab.autoannotate.internal.ui.view.MaxWordsDialog;
 import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.swing.DialogTaskManager;
@@ -17,21 +17,21 @@ import com.google.inject.Provider;
 @SuppressWarnings("serial")
 public class RelabelAction extends ClusterAction {
 
-	@Inject private @WarnDialogModule.Label Provider<WarnDialog> warnDialogProvider;
+	@Inject private Provider<MaxWordsDialog> dialogProvider;
 	@Inject private Provider<RecalculateLabelTask> relabelTaskProvider;
 	@Inject private Provider<JFrame> jFrameProvider;
 	@Inject private DialogTaskManager dialogTaskManager;
 	
 	public RelabelAction() {
-		super("Recalculate Labels");
+		super("Recalculate Labels...");
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		WarnDialog warnDialog = warnDialogProvider.get();
-		boolean doIt = warnDialog.warnUser(jFrameProvider.get());
+		MaxWordsDialog dialog = dialogProvider.get();
+		Optional<Integer> maxWords = dialog.askForMaxWords(jFrameProvider.get());
 		
-		if(doIt) {
+		if(maxWords.isPresent()) {
 			TaskIterator tasks =
 				getClusters()
 				.stream()

@@ -66,8 +66,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		USE_CONSTANT_FONT_SIZE = "useConstantFontSize",
 		SHOW_LABELS = "showLabels",
 		SHOW_CLUSTERS = "showClusters",
-		SHAPE_TYPE = "shapeType",
-		MAX_WORDS = "maxWords";
+		SHAPE_TYPE = "shapeType";
 	
 	// Cluster properties
 	private static final String 
@@ -176,7 +175,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			safeGet(asRow, SHOW_CLUSTERS, Boolean.class, builder::setShowClusters);
 			safeGet(asRow, SHOW_LABELS, Boolean.class, builder::setShowLabels);
 			safeGet(asRow, USE_CONSTANT_FONT_SIZE, Boolean.class, builder::setUseConstantFontSize);
-			safeGet(asRow, MAX_WORDS, Integer.class, builder::setMaxWords);
 
 			Boolean active = asRow.get(ACTIVE, Boolean.class);
 			if(Boolean.TRUE.equals(active)) // null safe
@@ -317,7 +315,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(FONT_SCALE, disp.getFontScale());
 			asRow.set(OPACITY, disp.getOpacity());
 			asRow.set(BORDER_WIDTH, disp.getBorderWidth());
-			asRow.set(MAX_WORDS, disp.getMaxWords());
 			
 			for(Cluster cluster : as.getClusters()) {
 				CyRow clusterRow = clusterTable.getRow(clusterId);
@@ -354,7 +351,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, FONT_SCALE, Integer.class);
 		createColumn(table, OPACITY, Integer.class);
 		createColumn(table, BORDER_WIDTH, Integer.class);
-		createColumn(table, MAX_WORDS, Integer.class);
 		return table;
 	}
 	

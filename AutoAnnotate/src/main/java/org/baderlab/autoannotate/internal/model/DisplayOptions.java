@@ -11,8 +11,6 @@ public class DisplayOptions {
 	public static final boolean SHOW_LABELS_DEFAULT = true;
 	public static final boolean USE_CONSTANT_FONT_SIZE_DEFAULT = false;
 	
-	public static final int MAX_WORDS_DEFAULT = 4;
-	
 	public static final int OPACITY_DEFAULT = 20;
 	public static final int OPACITY_MIN = 1;
 	public static final int OPACITY_MAX = 100;
@@ -35,7 +33,6 @@ public class DisplayOptions {
 	private int	fontScale = FONT_SCALE_DEFAULT; 
 	private int opacity = OPACITY_DEFAULT;
 	private int borderWidth = WIDTH_DEFAULT;
-	private int maxWords = MAX_WORDS_DEFAULT;
 	
 	
 	DisplayOptions(AnnotationSet parent) {
@@ -51,7 +48,6 @@ public class DisplayOptions {
 		this.fontScale = builder.getFontScale();
 		this.opacity = builder.getOpacity();
 		this.borderWidth = builder.getBorderWidth();
-		this.maxWords = builder.getMaxWords();
 	}
 	
 	public AnnotationSet getParent() {
@@ -124,15 +120,6 @@ public class DisplayOptions {
 	public void setBorderWidth(int borderWidth) {
 		this.borderWidth = borderWidth;
 		postEvent(Option.BORDER_WIDTH);
-	}
-	
-	public int getMaxWords() {
-		return maxWords;
-	}
-	
-	public void setMaxWords(int maxWords) {
-		this.maxWords = maxWords;
-		postEvent(Option.MAX_WORDS);
 	}
 	
 }

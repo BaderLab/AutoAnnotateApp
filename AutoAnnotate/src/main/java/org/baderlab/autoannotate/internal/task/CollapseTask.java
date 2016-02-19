@@ -2,12 +2,12 @@ package org.baderlab.autoannotate.internal.task;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
+import org.baderlab.autoannotate.internal.Setting;
+import org.baderlab.autoannotate.internal.SettingManager;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelManager;
-import org.baderlab.autoannotate.internal.ui.view.SettingsDialog;
 import org.cytoscape.group.CyGroup;
 import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.group.CyGroupManager;
@@ -16,7 +16,6 @@ import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.subnetwork.CyRootNetwork;
 import org.cytoscape.model.subnetwork.CySubNetwork;
-import org.cytoscape.property.CyProperty;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.view.vizmap.VisualMappingFunction;
 import org.cytoscape.view.vizmap.VisualMappingManager;
@@ -33,7 +32,7 @@ public class CollapseTask extends AbstractTask {
 	@Inject private CyGroupFactory groupFactory;
 	@Inject private CyGroupManager groupManager;
 	@Inject private VisualMappingManager visualMappingManager;
-	@Inject private CyProperty<Properties> cyProperties;
+	@Inject private SettingManager settingManager;
 	
 	private Cluster cluster;
 	private Grouping action = Grouping.COLLAPSE;
@@ -43,8 +42,7 @@ public class CollapseTask extends AbstractTask {
 	public CollapseTask init(Cluster cluster, Grouping action) {
 		this.cluster = cluster;
 		this.action = action;
-		
-		this.overrideAttribute = Boolean.valueOf(cyProperties.getProperties().getProperty(SettingsDialog.CY_PROPERTY_OVERRIDE_GROUP_LABELS));
+		this.overrideAttribute = settingManager.getValue(Setting.OVERRIDE_GROUP_LABELS);
 		return this;
 	}
 	
