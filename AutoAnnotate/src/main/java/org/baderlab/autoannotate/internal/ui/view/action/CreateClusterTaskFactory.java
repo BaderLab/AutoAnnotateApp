@@ -1,5 +1,6 @@
-package org.baderlab.autoannotate.internal.ui;
+package org.baderlab.autoannotate.internal.ui.view.action;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -7,6 +8,8 @@ import org.baderlab.autoannotate.internal.Setting;
 import org.baderlab.autoannotate.internal.SettingManager;
 import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
+import org.baderlab.autoannotate.internal.model.Cluster;
+import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.cytoscape.model.CyNetwork;
@@ -20,6 +23,7 @@ import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 
+import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -32,6 +36,8 @@ public class CreateClusterTaskFactory implements NetworkViewTaskFactory, NodeVie
 	@Inject private Provider<ModelManager> modelManagerProvider;
 	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
 	@Inject private Provider<SettingManager> settingManagerProvider;
+	
+	@Inject private Provider<EventBus> eventBusProvider;
 	
 	@Override
 	public TaskIterator createTaskIterator(CyNetworkView networkView) {
@@ -54,7 +60,13 @@ public class CreateClusterTaskFactory implements NetworkViewTaskFactory, NodeVie
 					int maxWords = settingManager.getValue(Setting.DEFAULT_MAX_WORDS);
 					
 					String label = wordCloudAdapter.getLabel(nodes, network, annotationSet.getLabelColumn(), maxWords);
-					annotationSet.createCluster(nodes, label, false);
+					Cluster cluster = annotationSet.createCluster(nodes, label, false);
+					
+					// It was the intention to only allow ModelEvents to be fired from inside the model package.
+					// But the cluster is already selected and firing the event here is much simpler than 
+					// re-selecting the nodes to get the event to fire.
+					EventBus eventBus = eventBusProvider.get();
+					eventBus.post(new ModelEvents.ClustersSelected(annotationSet, Collections.singleton(cluster)));
 				}
 			}
 		});

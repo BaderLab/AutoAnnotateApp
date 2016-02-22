@@ -6,9 +6,9 @@ import java.util.Properties;
 
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.io.ModelTablePersistor;
-import org.baderlab.autoannotate.internal.ui.CreateClusterTaskFactory;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
 import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
+import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTaskFactory;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowAboutDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.cytoscape.application.swing.AbstractCyAction;

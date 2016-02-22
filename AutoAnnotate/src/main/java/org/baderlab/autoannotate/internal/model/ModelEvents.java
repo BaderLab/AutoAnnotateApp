@@ -96,7 +96,7 @@ public class ModelEvents {
 	public static class ClustersSelected implements ModelEvent {
 		private final Collection<Cluster> clusters;
 		private final AnnotationSet annotationSet;
-		ClustersSelected(AnnotationSet annotationSet, Collection<Cluster> clusters) {
+		public ClustersSelected(AnnotationSet annotationSet, Collection<Cluster> clusters) {
 			this.annotationSet = annotationSet;
 			this.clusters = clusters;
 		}
