@@ -111,10 +111,11 @@ public class AnnotationRenderer {
 	@Subscribe
 	public void handle(ModelEvents.DisplayOptionChanged event) {
 		DisplayOptions options = event.getDisplayOptions();
+		AnnotationSet annotationSet = options.getParent();
 		
 		switch(event.getOption()) {
 		case BORDER_WIDTH:
-			for(Cluster cluster : options.getParent().getClusters()) {
+			for(Cluster cluster : annotationSet.getClusters()) {
 				ShapeAnnotation shape = shapeAnnotations.get(cluster);
 				if(shape != null) {
 					shape.setBorderWidth(options.getBorderWidth());
@@ -124,7 +125,7 @@ public class AnnotationRenderer {
 			break;
 		case OPACITY:
 		case SHOW_CLUSTERS:
-			for(Cluster cluster : options.getParent().getClusters()) {
+			for(Cluster cluster : annotationSet.getClusters()) {
 				ShapeAnnotation shape = shapeAnnotations.get(cluster);
 				if(shape != null) {
 					shape.setFillOpacity(options.isShowClusters() ? options.getOpacity() : 0);
@@ -134,12 +135,13 @@ public class AnnotationRenderer {
 			}
 			break;
 		case FONT_SCALE:
+		case FONT_SIZE:
 		case SHOW_LABELS:
 		case USE_CONSTANT_FONT_SIZE:
-			for(Cluster cluster : options.getParent().getClusters()) {
+			for(Cluster cluster : annotationSet.getClusters()) {
 				TextAnnotation text = textAnnotations.get(cluster);
 				if(text != null) {
-					LabelArgs labelArgs = DrawClusterTask.computeLabelArgs(this,cluster);
+					LabelArgs labelArgs = DrawClusterTask.computeLabelArgs(this, cluster);
 					double fontSize = options.isShowLabels() ? labelArgs.fontSize : 0;
 					text.setFontSize(fontSize);
 					text.setSpecificZoom(labelArgs.zoom);
@@ -149,7 +151,7 @@ public class AnnotationRenderer {
 			}
 			break;
 		case SHAPE_TYPE:
-			for(Cluster cluster : options.getParent().getClusters()) {
+			for(Cluster cluster : annotationSet.getClusters()) {
 				ShapeAnnotation shape = shapeAnnotations.get(cluster);
 				if(shape != null) {
 					shape.setShapeType(options.getShapeType().shapeName());

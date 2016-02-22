@@ -89,10 +89,8 @@ public class DrawClusterTask extends AbstractTask {
 
 		@Override
 		public String toString() {
-			return "LabelArgs [x=" + x + ", y=" + y + ", width=" + width + ", height=" + height + ", label=" + label + ", zoom=" + zoom + ", fontSize=" + fontSize + "]";
+			return "LabelArgs [fontSize=" + fontSize + ", x=" + x + ", y=" + y + ", width=" + width + ", height=" + height + ", label=" + label + ", zoom=" + zoom + "]";
 		}
-		
-		
 	}
 	
 	
@@ -155,13 +153,14 @@ public class DrawClusterTask extends AbstractTask {
 //		}
 		
 		
-		int baseFontSize;
-		if(displayOptions.isUseConstantFontSize())
-			baseFontSize = 40;
-		else
-			baseFontSize = 2 * (int) Math.round(5 * Math.pow(cluster.getNodeCount(), 0.4));
-		
-		int labelFontSize = (int) Math.round(((double)displayOptions.getFontScale()/DisplayOptions.FONT_SCALE_MAX) * baseFontSize);
+		double labelFontSize;
+		if(displayOptions.isUseConstantFontSize()) {
+			labelFontSize = displayOptions.getFontSize();
+		}
+		else {
+			int baseFontSize = 2 * (int) Math.round(5 * Math.pow(cluster.getNodeCount(), 0.4));
+			labelFontSize = (int) Math.round(((double)displayOptions.getFontScale()/DisplayOptions.FONT_SCALE_MAX) * baseFontSize);
+		}
 		
 		double labelWidth = 2.3;
 		double labelHeight = 4.8;

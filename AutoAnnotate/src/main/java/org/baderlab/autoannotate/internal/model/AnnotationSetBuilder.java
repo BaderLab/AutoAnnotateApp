@@ -34,6 +34,7 @@ public class AnnotationSetBuilder {
 	private boolean showLabels = DisplayOptions.SHOW_LABELS_DEFAULT;
 	private boolean useConstantFontSize = DisplayOptions.USE_CONSTANT_FONT_SIZE_DEFAULT;
 	private int	fontScale = DisplayOptions.FONT_SCALE_DEFAULT; 
+	private int	fontSize = DisplayOptions.FONT_SIZE_DEFAULT; 
 	private int opacity = DisplayOptions.OPACITY_DEFAULT;
 	private int borderWidth = DisplayOptions.WIDTH_DEFAULT;
 	
@@ -108,6 +109,14 @@ public class AnnotationSetBuilder {
 
 	public void setFontScale(int fontScale) {
 		this.fontScale = fontScale;
+	}
+	
+	public int getFontSize() {
+		return fontSize;
+	}
+
+	public void setFontSize(int fontSize) {
+		this.fontSize = fontSize;
 	}
 
 	public int getOpacity() {

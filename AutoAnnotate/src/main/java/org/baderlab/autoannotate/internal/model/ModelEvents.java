@@ -138,6 +138,7 @@ public class ModelEvents {
 			SHOW_LABELS, 
 			USE_CONSTANT_FONT_SIZE,
 			FONT_SCALE, 
+			FONT_SIZE,
 			OPACITY, 
 			BORDER_WIDTH
 		}

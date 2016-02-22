@@ -13,11 +13,12 @@ import org.baderlab.autoannotate.internal.ui.GBCFactory;
 public class LabelSlider extends JPanel {
  
 	private JSlider slider;
-	
-	boolean percentage;
+	private boolean percentage;
+	private String title;
 	
 	public LabelSlider(String title, boolean showPercentage, int min, int max, int defaultValue) {
 		this.percentage = showPercentage;
+		this.title = title;
 		
 		setLayout(new GridBagLayout());
 		
@@ -40,6 +41,9 @@ public class LabelSlider extends JPanel {
 		return percentage ? value + "%" : String.valueOf(value);
 	}
 	
+	public String getLabel() {
+		return title;
+	}
 	
 	public JSlider getSlider() {
 		return slider;

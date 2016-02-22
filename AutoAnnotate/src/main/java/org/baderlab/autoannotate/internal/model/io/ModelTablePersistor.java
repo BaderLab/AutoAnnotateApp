@@ -63,6 +63,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		BORDER_WIDTH = "borderWidth",
 		OPACITY = "opacity",
 		FONT_SCALE = "fontScale",
+		FONT_SIZE = "fontSize",
 		USE_CONSTANT_FONT_SIZE = "useConstantFontSize",
 		SHOW_LABELS = "showLabels",
 		SHOW_CLUSTERS = "showClusters",
@@ -171,6 +172,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			safeGet(asRow, BORDER_WIDTH, Integer.class, builder::setBorderWidth);
 			safeGet(asRow, OPACITY, Integer.class, builder::setOpacity);
 			safeGet(asRow, FONT_SCALE, Integer.class, builder::setFontScale);
+			safeGet(asRow, FONT_SIZE, Integer.class, builder::setFontSize);
 			safeGet(asRow, SHAPE_TYPE, String.class, s -> builder.setShapeType(ShapeType.valueOf(s)));
 			safeGet(asRow, SHOW_CLUSTERS, Boolean.class, builder::setShowClusters);
 			safeGet(asRow, SHOW_LABELS, Boolean.class, builder::setShowLabels);
@@ -313,6 +315,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(SHOW_LABELS, disp.isShowLabels());
 			asRow.set(USE_CONSTANT_FONT_SIZE, disp.isUseConstantFontSize());
 			asRow.set(FONT_SCALE, disp.getFontScale());
+			asRow.set(FONT_SIZE, disp.getFontSize());
 			asRow.set(OPACITY, disp.getOpacity());
 			asRow.set(BORDER_WIDTH, disp.getBorderWidth());
 			
@@ -349,6 +352,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, SHOW_LABELS, Boolean.class);
 		createColumn(table, USE_CONSTANT_FONT_SIZE, Boolean.class);
 		createColumn(table, FONT_SCALE, Integer.class);
+		createColumn(table, FONT_SIZE, Integer.class);
 		createColumn(table, OPACITY, Integer.class);
 		createColumn(table, BORDER_WIDTH, Integer.class);
 		return table;

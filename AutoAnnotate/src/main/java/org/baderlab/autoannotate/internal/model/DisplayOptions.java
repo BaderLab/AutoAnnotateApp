@@ -23,6 +23,10 @@ public class DisplayOptions {
 	public static final int FONT_SCALE_MIN = 1;
 	public static final int FONT_SCALE_MAX = 100;
 	
+	public static final int FONT_SIZE_DEFAULT = 20;
+	public static final int FONT_SIZE_MIN = 1;
+	public static final int FONT_SIZE_MAX = 40;
+	
 	
 	private final AnnotationSet parent;
 	
@@ -33,6 +37,7 @@ public class DisplayOptions {
 	private int	fontScale = FONT_SCALE_DEFAULT; 
 	private int opacity = OPACITY_DEFAULT;
 	private int borderWidth = WIDTH_DEFAULT;
+	private int fontSize = FONT_SIZE_DEFAULT;
 	
 	
 	DisplayOptions(AnnotationSet parent) {
@@ -46,6 +51,7 @@ public class DisplayOptions {
 		this.showLabels = builder.isShowLabels();
 		this.useConstantFontSize = builder.isUseConstantFontSize();
 		this.fontScale = builder.getFontScale();
+		this.fontSize = builder.getFontSize();
 		this.opacity = builder.getOpacity();
 		this.borderWidth = builder.getBorderWidth();
 	}
@@ -93,6 +99,15 @@ public class DisplayOptions {
 	public void setFontScale(int fontScale) {
 		this.fontScale = fontScale;
 		postEvent(Option.FONT_SCALE);
+	}
+	
+	public int getFontSize() {
+		return fontSize;
+	}
+
+	public void setFontSize(int fontSize) {
+		this.fontSize = fontSize;
+		postEvent(Option.FONT_SIZE);
 	}
 
 	public ShapeType getShapeType() {

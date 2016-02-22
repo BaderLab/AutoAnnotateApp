@@ -3,6 +3,7 @@ package org.baderlab.autoannotate.internal.ui.view;
 import static org.baderlab.autoannotate.internal.model.DisplayOptions.*;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.GridBagLayout;
@@ -44,15 +45,18 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private LabelSlider borderWidthSlider;
 	private LabelSlider opacitySlider;
 	private LabelSlider fontScaleSlider;
+	private LabelSlider fontSizeSlider;
 	private JCheckBox hideClustersCheckBox;
 	private JCheckBox hideLabelsCheckBox;
 	private JCheckBox fontByClusterCheckbox;
 	private JRadioButton ellipseRadio;
 	private JRadioButton rectangleRadio;
+	private JPanel fontPanel;
 	
 	private ChangeListener borderWidthListener;
 	private ChangeListener opacityListener;
 	private ChangeListener fontScaleListener;
+	private ChangeListener fontSizeListener;
 	private ActionListener hideClustersListener;
 	private ActionListener hideLabelsListener;
 	private ActionListener fontByClusterListener;
@@ -87,6 +91,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			borderWidthSlider.getSlider().removeChangeListener(borderWidthListener);
 			opacitySlider.getSlider().removeChangeListener(opacityListener);
 			fontScaleSlider.getSlider().removeChangeListener(fontScaleListener);
+			fontSizeSlider.getSlider().removeChangeListener(fontSizeListener);
 			hideClustersCheckBox.removeActionListener(hideClustersListener);
 			hideLabelsCheckBox.removeActionListener(hideLabelsListener);
 			fontByClusterCheckbox.removeActionListener(fontByClusterListener);
@@ -95,14 +100,19 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			borderWidthSlider.setValue(displayOptions.getBorderWidth());
 			opacitySlider.setValue(displayOptions.getOpacity());
 			fontScaleSlider.setValue(displayOptions.getFontScale());
+			fontSizeSlider.setValue(displayOptions.getFontSize());
 			hideClustersCheckBox.setSelected(!displayOptions.isShowClusters());
 			hideLabelsCheckBox.setSelected(!displayOptions.isShowLabels());
 			fontByClusterCheckbox.setSelected(!displayOptions.isUseConstantFontSize());
 			ellipseRadio.setSelected(displayOptions.getShapeType() == ShapeType.ELLIPSE);
 			
+			CardLayout cardLayout = (CardLayout) fontPanel.getLayout();
+			cardLayout.show(fontPanel, displayOptions.isUseConstantFontSize() ? fontSizeSlider.getLabel() : fontScaleSlider.getLabel());
+			
 			borderWidthSlider.getSlider().addChangeListener(borderWidthListener);
 			opacitySlider.getSlider().addChangeListener(opacityListener);
 			fontScaleSlider.getSlider().addChangeListener(fontScaleListener);
+			fontSizeSlider.getSlider().addChangeListener(fontSizeListener);
 			hideClustersCheckBox.addActionListener(hideClustersListener);
 			hideLabelsCheckBox.addActionListener(hideLabelsListener);
 			fontByClusterCheckbox.addActionListener(fontByClusterListener);
@@ -119,18 +129,15 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		panel.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 		
 		JPanel sliderPanel = createSliderPanel();
-		JPanel labelPanel = createLabelOptionsPanel();
 		JPanel shapePanel = createShapePanel();
 		JPanel hidePanel = createHidePanel();
 		
 		sliderPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 7, 0));
-		labelPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 7, 0));
 		shapePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 7, 0));
 		
 		panel.add(sliderPanel, GBCFactory.grid(0,0).weightx(1.0).get());
-		panel.add(labelPanel,  GBCFactory.grid(0,1).get());
-		panel.add(shapePanel,  GBCFactory.grid(0,2).get());
-		panel.add(hidePanel,   GBCFactory.grid(0,3).get());
+		panel.add(shapePanel,  GBCFactory.grid(0,1).get());
+		panel.add(hidePanel,   GBCFactory.grid(0,2).get());
 		
 		add(panel, BorderLayout.NORTH);
 	}
@@ -147,21 +154,31 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		panel.add(opacitySlider, GBCFactory.grid(0,1).weightx(1.0).get());
 		opacitySlider.getSlider().addChangeListener(opacityListener = e -> displayOptions.setOpacity(opacitySlider.getValue()));
 		
+		
+		CardLayout cardLayout = new CardLayout();
+		fontPanel = new JPanel(cardLayout);
+		
+		fontSizeSlider = new LabelSlider("Font Size", false, FONT_SIZE_MIN, FONT_SIZE_MAX, FONT_SIZE_DEFAULT);
+		fontSizeSlider.getSlider().addChangeListener(fontSizeListener = e -> displayOptions.setFontSize(fontSizeSlider.getValue()));
+		fontPanel.add(fontSizeSlider, fontSizeSlider.getLabel());
+		
 		fontScaleSlider = new LabelSlider("Font Scale", true, FONT_SCALE_MIN, FONT_SCALE_MAX, FONT_SCALE_DEFAULT);
-		panel.add(fontScaleSlider, GBCFactory.grid(0,2).weightx(1.0).get());
 		fontScaleSlider.getSlider().addChangeListener(fontScaleListener = e -> displayOptions.setFontScale(fontScaleSlider.getValue()));
+		fontPanel.add(fontScaleSlider, fontScaleSlider.getLabel());
 		
-		return panel;
-	}
-	
-	
-	private JPanel createLabelOptionsPanel() {
-		JPanel panel = new JPanel(new GridBagLayout());
+		panel.add(fontPanel, GBCFactory.grid(0,2).get());
 		
+
 		fontByClusterCheckbox = new JCheckBox("Scale font by cluster size");
-		panel.add(fontByClusterCheckbox, GBCFactory.grid(0,0).weightx(1.0).get());
-		fontByClusterCheckbox.addActionListener(
-				fontByClusterListener = e -> displayOptions.setUseConstantFontSize(!fontByClusterCheckbox.isSelected()));
+		panel.add(fontByClusterCheckbox, GBCFactory.grid(0,3).weightx(1.0).get());
+		
+		fontByClusterCheckbox.addActionListener(fontByClusterListener = e -> {
+			boolean useConstantFontSize = !fontByClusterCheckbox.isSelected();
+			// Firing event twice is a workaround for a bug in Cytoscape where the text annotations don't update properly.
+			displayOptions.setUseConstantFontSize(useConstantFontSize);
+			displayOptions.setUseConstantFontSize(useConstantFontSize);
+			cardLayout.show(fontPanel, useConstantFontSize ? fontSizeSlider.getLabel() : fontScaleSlider.getLabel());
+		});
 		
 		return panel;
 	}
