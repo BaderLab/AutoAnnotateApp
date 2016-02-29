@@ -357,9 +357,15 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	
 	
 	private void showAnnotationSetPopupMenu(ActionEvent event) {
+		Optional<AnnotationSet> as = Optional.empty();
+		int index = annotationSetCombo.getSelectedIndex();
+		if(index != -1) {
+			as = Optional.ofNullable(annotationSetCombo.getItemAt(index).getValue()); // may be null
+		}
+		
 		AnnotationSetMenu menu = annotationSetMenuProvider.get();
 		Component c = (Component)event.getSource();
-		menu.show(c, 0, c.getHeight());
+		menu.show(as, c, 0, c.getHeight());
 	}
 	
 	private void showClusterPopupMenu(Component component, int x, int y) {

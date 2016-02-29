@@ -1,10 +1,12 @@
 package org.baderlab.autoannotate.internal.ui.view;
 
 import java.awt.Component;
+import java.util.Optional;
 
 import javax.swing.Action;
 import javax.swing.JPopupMenu;
 
+import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetDeleteAction;
 import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetRenameAction;
@@ -33,7 +35,7 @@ public class AnnotationSetMenu {
 	@Inject private Provider<ShowLabelOptionsDialogAction> showLabelOptionsProvider;
 	
 	
-	public void show(Component parent, int x, int y) {
+	public void show(Optional<AnnotationSet> annotationSet, Component parent, int x, int y) {
 		Action createAction = showActionProvider.get();
 		Action renameAction = renameActionProvider.get();
 		Action deleteAction = deleteActionProvider.get();
@@ -44,6 +46,16 @@ public class AnnotationSetMenu {
 		Action relabelAction = relabelActionProvider.get();
 		Action settingsAction = showSettingsProvider.get();
 		Action showLabelOptionsAction = showLabelOptionsProvider.get();
+		
+		boolean enabled = annotationSet.isPresent();
+		renameAction.setEnabled(enabled);
+		deleteAction.setEnabled(enabled);
+		collapseAction.setEnabled(enabled);
+		expandAction.setEnabled(enabled);
+		layoutAction.setEnabled(enabled);
+		redrawAction.setEnabled(enabled);
+		relabelAction.setEnabled(enabled);
+		showLabelOptionsAction.setEnabled(enabled);
 		
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(createAction);
