@@ -6,7 +6,7 @@ public class WordInfo {
 	private final int wordCluster;
 	private final int number;
 	// MKTODO make size mutable for now
-	private int size;
+	private final int size;
 	
 	
 	public WordInfo(String word, int size, int wordCluster, int number) {
@@ -31,8 +31,8 @@ public class WordInfo {
 		return size;
 	}
 	
-	public void setSize(int size) {
-		this.size = size;
+	public WordInfo withSize(int size) {
+		return new WordInfo(word, size, wordCluster, number);
 	}
 	/**
 	 * This is an identifier for the "word cluster" as defined by WordCloud.

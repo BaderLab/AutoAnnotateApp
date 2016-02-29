@@ -11,17 +11,13 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.Setting;
 import org.baderlab.autoannotate.internal.SettingManager;
-import org.baderlab.autoannotate.internal.labels.LabelOptions;
 import org.baderlab.autoannotate.internal.ui.GBCFactory;
 import org.cytoscape.property.CyProperty;
 
@@ -69,12 +65,8 @@ public class SettingsDialog extends JDialog {
 		panel.add(overrideCheckbox, GBCFactory.grid(0,0).weightx(1.0).get());
 		overrideCheckbox.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 		
-		JPanel maxWordsSpinner = createMaxWordsSpinner();
-		panel.add(maxWordsSpinner, GBCFactory.grid(0,1).weightx(1.0).get());
-		maxWordsSpinner.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-		
 		JButton restoreButton = createWarnDialogRestoreButton();
-		panel.add(restoreButton, GBCFactory.grid(0,2).fill(GridBagConstraints.NONE).get());
+		panel.add(restoreButton, GBCFactory.grid(0,1).fill(GridBagConstraints.NONE).get());
 		
 		return panel;
 	}
@@ -87,27 +79,6 @@ public class SettingsDialog extends JDialog {
 		return overrideCheckbox;
 	}
 
-	
-	private JPanel createMaxWordsSpinner() {
-		JPanel panel = new JPanel(new GridBagLayout());
-		
-		JLabel labelWordsLabel = new JLabel("Max words per label: ");
-		panel.add(labelWordsLabel, GBCFactory.grid(0,0).get());
-		
-		int maxWords = settingManager.getValue(Setting.DEFAULT_MAX_WORDS);
-		
-		SpinnerNumberModel spinnerModel = new SpinnerNumberModel(maxWords, 1, LabelOptions.DEFAULT_WORDSIZE_THRESHOLDS.size()-1, 1);
-		JSpinner maxWordsSpinner = new JSpinner(spinnerModel);
-		panel.add(maxWordsSpinner, GBCFactory.grid(1,0).get());
-		
-		spinnerModel.addChangeListener(e -> {
-			int value = spinnerModel.getNumber().intValue();
-			settingManager.setValue(Setting.DEFAULT_MAX_WORDS, value);
-		});
-		
-		panel.add(new JLabel(), GBCFactory.grid(2,0).weightx(1.0).get());
-		return panel;
-	}
 	
 	
 	private JButton createWarnDialogRestoreButton() {

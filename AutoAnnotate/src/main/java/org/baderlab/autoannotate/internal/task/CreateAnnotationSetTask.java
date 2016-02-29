@@ -10,8 +10,8 @@ import java.util.Optional;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
-import org.baderlab.autoannotate.internal.labels.LabelOptions;
-import org.baderlab.autoannotate.internal.labels.WordInfo;
+import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
+import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
 import org.baderlab.autoannotate.internal.model.ModelManager;
@@ -34,6 +34,7 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	@Inject private Provider<RunWordCloudTaskFactory> wordCloudProvider;
 	@Inject private Provider<CutoffTask> cutoffTaskProvider;
 	@Inject private Provider<LayoutClustersTaskFactory> layoutProvider;
+	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	@Inject private ModelManager modelManager;
@@ -65,29 +66,35 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		
 		if(clusters == null || clusters.isEmpty())
 			return;
+
+//		if(params.isLayoutClusters()) {
+//			layoutNodes(clusters, params.getNetworkView(), params.getClusterAlgorithm().getColumnName());
+//		}
 		
-		Map<String,Collection<WordInfo>> wordInfos = runWordCloud(clusters);
-		
-		if(params.isLayoutClusters()) {
-			layoutNodes(clusters, params.getNetworkView(), params.getClusterAlgorithm().getColumnName());
-		}
-		
-		String weightAttribute = needClusterEdgeAttribute() ? params.getClusterMakerEdgeAttribute() : "";
-		LabelMaker labelMaker = new LabelMaker(params.getNetworkView().getModel(), weightAttribute, LabelOptions.defaults());
+		Object context = params.getLabelMakerContext();
+		LabelMakerFactory factory = params.getLabelMakerFactory();
+		LabelMaker labelMaker = factory.createLabelMaker(context);
 		
 		// Build the AnnotationSet
-		NetworkViewSet networkViewSet = modelManager.getNetworkViewSet(params.getNetworkView());
+		CyNetworkView networkView = params.getNetworkView();
+		CyNetwork network = networkView.getModel();
+		String labelColumn = params.getLabelColumn();
+		
+		NetworkViewSet networkViewSet = modelManager.getNetworkViewSet(networkView);
 		String name = createName(networkViewSet);
 		
-		AnnotationSetBuilder builder = networkViewSet.getAnnotationSetBuilder(name, params.getLabelColumn());
+		AnnotationSetBuilder builder = networkViewSet.getAnnotationSetBuilder(name, labelColumn);
 		for(String clusterKey : clusters.keySet()) {
 			Collection<CyNode> nodes = clusters.get(clusterKey);
-			Collection<WordInfo> words = wordInfos.get(clusterKey);
-			String label = labelMaker.makeLabel(nodes, words);
+			String label = labelMaker.makeLabel(network, nodes, labelColumn);
 			builder.addCluster(nodes, label, false);
 		}
 		
 		AnnotationSet annotationSet = builder.build(); // fires ModelEvent.AnnotationSetAdded
+		
+		LabelMakerManager labelManager = labelManagerProvider.get();
+		labelManager.register(annotationSet, factory, context);
+		
 		networkViewSet.select(annotationSet); // fires ModelEvent.AnnotationSetSelected
 	}
 	
@@ -109,22 +116,12 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	}
 	
 	
-	private Map<String,Collection<WordInfo>> runWordCloud(Map<String,Collection<CyNode>> clusters) {
-		RunWordCloudTaskFactory wordCloudTaskFactory = wordCloudProvider.get();
-		wordCloudTaskFactory.setClusters(clusters);
-		wordCloudTaskFactory.setParameters(params);
-		RunWordCloudResultObserver cloudResultObserver = new RunWordCloudResultObserver();
-		syncTaskManager.execute(wordCloudTaskFactory.createTaskIterator(cloudResultObserver));
-		return cloudResultObserver.getResults();
-	}
-	
-	
-	private void layoutNodes(Map<?,Collection<CyNode>> clusters, CyNetworkView networkView, String columnName) {
-		LayoutClustersTaskFactory layoutTaskFactory = layoutProvider.get();
-		layoutTaskFactory.init(clusters.values(), networkView, columnName);
-		TaskIterator tasks = layoutTaskFactory.createTaskIterator();
-		syncTaskManager.execute(tasks);
-	}
+//	private void layoutNodes(Map<?,Collection<CyNode>> clusters, CyNetworkView networkView, String columnName) {
+//		LayoutClustersTaskFactory layoutTaskFactory = layoutProvider.get();
+//		layoutTaskFactory.init(clusters.values(), networkView, columnName);
+//		TaskIterator tasks = layoutTaskFactory.createTaskIterator();
+//		syncTaskManager.execute(tasks);
+//	}
 	
 
 	private Optional<Double> runCutoffTask(String edgeAttribute) {

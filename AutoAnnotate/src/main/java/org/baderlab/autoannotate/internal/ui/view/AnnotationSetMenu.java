@@ -13,6 +13,7 @@ import org.baderlab.autoannotate.internal.ui.view.action.LayoutClustersAction;
 import org.baderlab.autoannotate.internal.ui.view.action.RedrawAction;
 import org.baderlab.autoannotate.internal.ui.view.action.RelabelAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
+import org.baderlab.autoannotate.internal.ui.view.action.ShowLabelOptionsDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowSettingsDialogAction;
 
 import com.google.inject.Inject;
@@ -29,6 +30,7 @@ public class AnnotationSetMenu {
 	@Inject private Provider<LayoutClustersAction> layoutActionProvider;
 	@Inject private Provider<RelabelAction> relabelActionProvider;
 	@Inject private Provider<ShowSettingsDialogAction> showSettingsProvider;
+	@Inject private Provider<ShowLabelOptionsDialogAction> showLabelOptionsProvider;
 	
 	
 	public void show(Component parent, int x, int y) {
@@ -41,6 +43,7 @@ public class AnnotationSetMenu {
 		Action redrawAction = redrawActionProvider.get();
 		Action relabelAction = relabelActionProvider.get();
 		Action settingsAction = showSettingsProvider.get();
+		Action showLabelOptionsAction = showLabelOptionsProvider.get();
 		
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(createAction);
@@ -53,6 +56,7 @@ public class AnnotationSetMenu {
 		menu.add(layoutAction);
 		menu.add(redrawAction);
 		menu.add(relabelAction);
+		menu.add(showLabelOptionsAction);
 		menu.addSeparator();
 		menu.add(settingsAction);
 		

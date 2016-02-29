@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.labels;
+package org.baderlab.autoannotate.internal.labels.makers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,7 +9,7 @@ import java.util.List;
  * These are the leftover label options from the old version of AutoAnnotate.
  * For now we just use the defaults.
  */
-public class LabelOptions {
+public class HeuristicLabelOptions {
 
 	public static final int DEFAULT_MAX_WORDS = 4;
 	public static final List<Integer> DEFAULT_WORDSIZE_THRESHOLDS = Arrays.asList(30, 80, 90, 90, 90, 90);
@@ -23,20 +23,20 @@ public class LabelOptions {
 	private final int centralityBonus;
 	
 
-	public LabelOptions(int maxWords, int sameClusterBonus, int centralityBonus, List<Integer> wordSizeThresholds) {
+	public HeuristicLabelOptions(int maxWords, int sameClusterBonus, int centralityBonus, List<Integer> wordSizeThresholds) {
 		this.maxWords = maxWords;
 		this.wordSizeThresholds = new ArrayList<>(wordSizeThresholds);
 		this.sameClusterBonus = sameClusterBonus;
 		this.centralityBonus = centralityBonus;
 	}
 	
-	public static LabelOptions defaults() {
-		return new LabelOptions(DEFAULT_MAX_WORDS, DEFAULT_SAME_CLUSTER_BONUS, DEFAULT_CENTRALITY_BONUS, DEFAULT_WORDSIZE_THRESHOLDS);
+	public static HeuristicLabelOptions defaults() {
+		return new HeuristicLabelOptions(DEFAULT_MAX_WORDS, DEFAULT_SAME_CLUSTER_BONUS, DEFAULT_CENTRALITY_BONUS, DEFAULT_WORDSIZE_THRESHOLDS);
 	}
 	
 	
-	public LabelOptions maxWords(int maxWords) {
-		return new LabelOptions(maxWords, this.sameClusterBonus, this.centralityBonus, this.wordSizeThresholds);
+	public HeuristicLabelOptions maxWords(int maxWords) {
+		return new HeuristicLabelOptions(maxWords, this.sameClusterBonus, this.centralityBonus, this.wordSizeThresholds);
 	}
 	
 	public int getMaxWords() {

@@ -4,6 +4,7 @@ import static org.cytoscape.work.ServiceProperties.*;
 
 import java.util.Properties;
 
+import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
@@ -36,6 +37,7 @@ public class CyActivator extends AbstractCyActivator {
 						new AfterInjectionModule(), 
 						new CytoscapeServiceModule(), 
 						new ApplicationModule(), 
+						new LabelFactoryModule(),
 						new WarnDialogModule());
 		
 		// ModelManager listens to Cytoscape events

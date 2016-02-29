@@ -1,5 +1,6 @@
 package org.baderlab.autoannotate.internal.task;
 
+import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.cytoscape.view.model.CyNetworkView;
 
@@ -11,8 +12,10 @@ public class CreationParameters {
 	private final ClusterAlgorithm clusterMakerAlgorithm;
 	private final String clusterMakerEdgeAttribute;
 	private final String clusterDataColumn; // existing cluster IDs
-	private final boolean layoutClusters;
+//	private final boolean layoutClusters;
 	private final boolean createGroups;
+	private final LabelMakerFactory<?> labelMakerFactory;
+	private final Object labelMakerContext;
 	
 	private CreationParameters(Builder builder) {
 		this.networkView = builder.networkView;
@@ -21,8 +24,10 @@ public class CreationParameters {
 		this.clusterMakerAlgorithm = builder.clusterMakerAlgorithm;
 		this.clusterMakerEdgeAttribute = builder.clusterMakerEdgeAttribute;
 		this.clusterDataColumn = builder.clusterDataColumn;
-		this.layoutClusters = builder.layoutClusters;
+//		this.layoutClusters = builder.layoutClusters;
 		this.createGroups = builder.createGroups;
+		this.labelMakerFactory = builder.labelMakerFactory;
+		this.labelMakerContext = builder.labelMakerContext;
 	}
 	
 	public static class Builder {
@@ -32,8 +37,10 @@ public class CreationParameters {
 		private ClusterAlgorithm clusterMakerAlgorithm = ClusterAlgorithm.values()[0];
 		private String clusterMakerEdgeAttribute;
 		private String clusterDataColumn;
-		private boolean layoutClusters = false;
+//		private boolean layoutClusters = false;
 		private boolean createGroups = false;
+		private LabelMakerFactory<?> labelMakerFactory;
+		private Object labelMakerContext;
 		
 		public Builder(CyNetworkView networkView) {
 			this.networkView = networkView;
@@ -55,16 +62,24 @@ public class CreationParameters {
 			this.clusterDataColumn = clusterDataColumn;
 			return this;
 		}
-		public Builder setLayoutClusters(boolean layoutClusters) {
-			this.layoutClusters = layoutClusters;
-			return this;
-		}
+//		public Builder setLayoutClusters(boolean layoutClusters) {
+//			this.layoutClusters = layoutClusters;
+//			return this;
+//		}
 		public Builder setCreateGroups(boolean createGroups) {
 			this.createGroups = createGroups;
 			return this;
 		}
 		public Builder setClusterMakerEdgeAttribute(String name) {
 			this.clusterMakerEdgeAttribute = name;
+			return this;
+		}
+		public Builder setLabelMakerFactory(LabelMakerFactory<?> factory) {
+			this.labelMakerFactory = factory;
+			return this;
+		}
+		public Builder setLabelMakerContext(Object context) {
+			this.labelMakerContext = context;
 			return this;
 		}
 		
@@ -93,9 +108,9 @@ public class CreationParameters {
 		return clusterDataColumn;
 	}
 
-	public boolean isLayoutClusters() {
-		return layoutClusters;
-	}
+//	public boolean isLayoutClusters() {
+//		return layoutClusters;
+//	}
 
 	public boolean isCreateGroups() {
 		return createGroups;
@@ -105,5 +120,12 @@ public class CreationParameters {
 		return clusterMakerEdgeAttribute;
 	}
 	
+	public LabelMakerFactory<?> getLabelMakerFactory() {
+		return labelMakerFactory;
+	}
+	
+	public Object getLabelMakerContext() {
+		return labelMakerContext;
+	}
 	
 }

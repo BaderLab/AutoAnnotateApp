@@ -4,9 +4,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import org.baderlab.autoannotate.internal.Setting;
-import org.baderlab.autoannotate.internal.SettingManager;
-import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
+import org.baderlab.autoannotate.internal.labels.LabelMaker;
+import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
@@ -34,9 +33,7 @@ import com.google.inject.Provider;
 public class CreateClusterTaskFactory implements NetworkViewTaskFactory, NodeViewTaskFactory {
 
 	@Inject private Provider<ModelManager> modelManagerProvider;
-	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
-	@Inject private Provider<SettingManager> settingManagerProvider;
-	
+	@Inject private Provider<LabelMakerManager> labelManager;
 	@Inject private Provider<EventBus> eventBusProvider;
 	
 	@Override
@@ -44,22 +41,20 @@ public class CreateClusterTaskFactory implements NetworkViewTaskFactory, NodeVie
 		return new TaskIterator(new AbstractTask() {
 			@Override
 			public void run(TaskMonitor taskMonitor) {
-				WordCloudAdapter wordCloudAdapter = wordCloudAdapterProvider.get();
-				if(!wordCloudAdapter.isWordcloudRequiredVersionInstalled()) {
-					return;
-				}
-				
 				ModelManager modelManager = modelManagerProvider.get();
 				Optional<AnnotationSet> active = modelManager.getActiveNetworkViewSet().flatMap(NetworkViewSet::getActiveAnnotationSet);
 				if(active.isPresent()) {
 					AnnotationSet annotationSet = active.get();
+					
+					LabelMaker labelMaker = labelManager.get().getLabelMaker(annotationSet);
+					if(!labelMaker.isReady()) {
+						return;
+					}
+					
 					List<CyNode> nodes = CyTableUtil.getNodesInState(networkView.getModel(), CyNetwork.SELECTED, true);
 					CyNetwork network = networkView.getModel();
 					
-					SettingManager settingManager = settingManagerProvider.get();
-					int maxWords = settingManager.getValue(Setting.DEFAULT_MAX_WORDS);
-					
-					String label = wordCloudAdapter.getLabel(nodes, network, annotationSet.getLabelColumn(), maxWords);
+					String label = labelMaker.makeLabel(network, nodes, annotationSet.getLabelColumn());
 					Cluster cluster = annotationSet.createCluster(nodes, label, false);
 					
 					// It was the intention to only allow ModelEvents to be fired from inside the model package.

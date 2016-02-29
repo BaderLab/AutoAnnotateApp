@@ -1,6 +1,7 @@
 package org.baderlab.autoannotate.internal.labels;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -73,16 +74,20 @@ public class WordCloudAdapter {
 	
 	
 	
-	public String getLabel(Collection<CyNode> cluster, CyNetwork network, String labelColumn, int maxWords) {
-		Collection<WordInfo> wordInfos = runWordCloud(cluster, network, labelColumn);
-		LabelOptions labelOptions = LabelOptions.defaults().maxWords(maxWords);
-		LabelMaker labelMaker = new LabelMaker(network, "", labelOptions);
-		String label = labelMaker.makeLabel(cluster, wordInfos);
-		return label;
-	}
+//	public String getLabel(Collection<CyNode> cluster, CyNetwork network, String labelColumn, int maxWords) {
+//		Collection<WordInfo> wordInfos = runWordCloud(cluster, network, labelColumn);
+//		HeuristicLabelOptions labelOptions = HeuristicLabelOptions.defaults().maxWords(maxWords);
+//		HeuristicLabelMaker labelMaker = new HeuristicLabelMaker(network, "", labelOptions);
+//		LabelMaker labelMaker = new MultiDebugLabelMaker(network, "");
+//		String label = labelMaker.makeLabel(cluster, wordInfos);
+//		return label;
+//		return "";
+//	}
 	
 	
-	private Collection<WordInfo> runWordCloud(Collection<CyNode> cluster, CyNetwork network, String labelColumn) {
+	
+	
+	public Collection<WordInfo> runWordCloud(Collection<CyNode> cluster, CyNetwork network, String labelColumn) {
 		RunWordCloudTaskFactory wordCloudTaskFactory = wordCloudProvider.get();
 		
 		Map<String,Collection<CyNode>> clusters = new HashMap<>();
@@ -94,6 +99,7 @@ public class WordCloudAdapter {
 		RunWordCloudResultObserver cloudResultObserver = new RunWordCloudResultObserver();
 		syncTaskManager.execute(wordCloudTaskFactory.createTaskIterator(cloudResultObserver));
 		
-		return cloudResultObserver.getResults().get("myCluster");
+		Collection<WordInfo> wordInfos = cloudResultObserver.getResults().get("myCluster");
+		return wordInfos == null ? Collections.emptyList() : wordInfos;
 	}
 }

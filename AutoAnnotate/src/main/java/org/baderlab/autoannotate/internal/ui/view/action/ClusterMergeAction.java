@@ -8,9 +8,8 @@ import java.util.Set;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-import org.baderlab.autoannotate.internal.Setting;
-import org.baderlab.autoannotate.internal.SettingManager;
-import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
+import org.baderlab.autoannotate.internal.labels.LabelMaker;
+import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.cytoscape.model.CyNode;
@@ -21,8 +20,7 @@ import com.google.inject.Provider;
 @SuppressWarnings("serial")
 public class ClusterMergeAction extends ClusterAction {
 	
-	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
-	@Inject private Provider<SettingManager> settingManagerProvider;
+	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	@Inject private Provider<JFrame> jFrameProvider;
 	
 	public ClusterMergeAction() {
@@ -40,11 +38,6 @@ public class ClusterMergeAction extends ClusterAction {
 		if(result != JOptionPane.OK_OPTION)
 			return;
 		
-		WordCloudAdapter wordCloudAdapter = wordCloudAdapterProvider.get();
-		
-		if(!wordCloudAdapter.isWordcloudRequiredVersionInstalled())
-			return;
-			
 		Set<CyNode> nodes = new HashSet<>();
 		for(Cluster cluster : clusters) {
 			nodes.addAll(cluster.getNodes());
@@ -52,10 +45,8 @@ public class ClusterMergeAction extends ClusterAction {
 		
 		AnnotationSet annotationSet = clusters.iterator().next().getParent();
 		
-		SettingManager settingManager = settingManagerProvider.get();
-		int maxWords = settingManager.getValue(Setting.DEFAULT_MAX_WORDS);
-		
-		String label = wordCloudAdapter.getLabel(nodes, annotationSet.getParent().getNetwork(), annotationSet.getLabelColumn(), maxWords);
+		LabelMaker labelMaker = labelManagerProvider.get().getLabelMaker(annotationSet);
+		String label = labelMaker.makeLabel(annotationSet.getParent().getNetwork(), nodes, annotationSet.getLabelColumn());
 		
 		for(Cluster cluster : clusters) {
 			cluster.delete();

@@ -4,7 +4,7 @@ public class Setting<T> {
 	
 	// Note: WarnDialog settings are in WarnDialogModule
 	
-	public final static Setting<Integer> DEFAULT_MAX_WORDS = new Setting<Integer>("defaultMaxWords", Integer.class, 4);
+//	public final static Setting<Integer> DEFAULT_MAX_WORDS = new Setting<Integer>("defaultMaxWords", Integer.class, 4);
 	public final static Setting<Boolean> OVERRIDE_GROUP_LABELS = new Setting<Boolean>("overrideGroupLabels", Boolean.class, true);
 		
 	private final String key;

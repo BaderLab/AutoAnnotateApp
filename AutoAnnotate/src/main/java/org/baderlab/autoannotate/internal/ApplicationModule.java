@@ -2,6 +2,7 @@ package org.baderlab.autoannotate.internal;
 
 import java.util.Properties;
 
+import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
 import org.baderlab.autoannotate.internal.ui.PanelManagerImpl;
@@ -26,6 +27,7 @@ public class ApplicationModule extends AbstractModule {
 		bind(PanelManager.class).to(PanelManagerImpl.class).asEagerSingleton();
 		bind(ModelManager.class).asEagerSingleton();
 		bind(AnnotationRenderer.class).asEagerSingleton();
+		bind(LabelFactoryModule.class).asEagerSingleton();
 		
 		// Create a single EventBus
 		bind(EventBus.class).toInstance(new EventBus((e,c) -> e.printStackTrace()));
