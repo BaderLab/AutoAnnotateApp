@@ -93,10 +93,20 @@ public class LabelOptionsPanel extends JPanel {
 		if(annotationSet != null) {
 			LabelMakerFactory<?> factory = labelMakerManager.getFactory(annotationSet);
 			if(factory != null) {
-				CardLayout cardLayout = (CardLayout) algorithmPanel.getLayout();
-				cardLayout.show(algorithmPanel, factory.getName());
-				labelMakerFactoryCombo.setSelectedItem(new ComboItem<>(factory));
+				
 			}
+		}
+		
+		{
+			LabelMakerFactory<?> factory;
+			if(annotationSet == null)
+				factory = labelMakerManager.getDefaultFactory();
+			else
+				factory = labelMakerManager.getFactory(annotationSet);
+			
+			CardLayout cardLayout = (CardLayout) algorithmPanel.getLayout();
+			cardLayout.show(algorithmPanel, factory.getName());
+			labelMakerFactoryCombo.setSelectedItem(new ComboItem<>(factory));
 		}
 		
 		labelMakerFactoryCombo.addActionListener(e -> {

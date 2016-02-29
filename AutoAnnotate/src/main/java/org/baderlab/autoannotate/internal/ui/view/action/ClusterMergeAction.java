@@ -12,7 +12,9 @@ import org.baderlab.autoannotate.internal.labels.LabelMaker;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
+import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.model.CyRow;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -32,10 +34,7 @@ public class ClusterMergeAction extends ClusterAction {
 		// assume all Clusters are from the same annotation set
 		Collection<Cluster> clusters = getClusters();
 		
-		String message = "Merge " + clusters.size() + " clusters?";
-		int result = JOptionPane.showConfirmDialog(jFrameProvider.get(), message, "Merge Clusters", JOptionPane.OK_CANCEL_OPTION);
-		
-		if(result != JOptionPane.OK_OPTION)
+		if(!warnUser(clusters))
 			return;
 		
 		Set<CyNode> nodes = new HashSet<>();
@@ -51,6 +50,22 @@ public class ClusterMergeAction extends ClusterAction {
 		for(Cluster cluster : clusters) {
 			cluster.delete();
 		}
+		
 		annotationSet.createCluster(nodes, label, false);
+		
+		// select the newly created cluster
+		CyNetwork network = annotationSet.getParent().getNetwork();
+		
+		for(CyNode node : network.getNodeList()) {
+			CyRow row = network.getRow(node);
+			row.set(CyNetwork.SELECTED, nodes.contains(node));
+		}
+	}
+
+	
+	private boolean warnUser(Collection<Cluster> clusters) {
+		String message = "Merge " + clusters.size() + " clusters?";
+		int result = JOptionPane.showConfirmDialog(jFrameProvider.get(), message, "Merge Clusters", JOptionPane.OK_CANCEL_OPTION);
+		return result== JOptionPane.OK_OPTION;
 	}
 }

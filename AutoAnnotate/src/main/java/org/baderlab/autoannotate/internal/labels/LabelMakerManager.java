@@ -1,9 +1,11 @@
 package org.baderlab.autoannotate.internal.labels;
 
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Retention;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
@@ -11,6 +13,7 @@ import org.baderlab.autoannotate.internal.model.ModelEvents;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.BindingAnnotation;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -29,7 +32,11 @@ import com.google.inject.Singleton;
 @Singleton
 public class LabelMakerManager {
 
-	@Inject private Set<LabelMakerFactory<?>> allFactories;
+	@BindingAnnotation @Retention(RUNTIME) public @interface DefaultFactory {}
+	
+	
+	@Inject private Map<String, LabelMakerFactory<?>> allFactories;
+	@Inject private @DefaultFactory String defaultFactory;
 	
 	private Map<AnnotationSet,LabelMakerFactory<?>> factories = new HashMap<>();
 	private Map<AnnotationSet, Map<LabelMakerFactory<?>, Object>> contexts = new HashMap<>();
@@ -46,7 +53,6 @@ public class LabelMakerManager {
 		contexts.remove(as);
 	}
 	
-	
 	public void register(AnnotationSet as, LabelMakerFactory<?> factory, Object context) {
 		factories.put(as, factory);
 		Map<LabelMakerFactory<?>, Object> lmfc = contexts.get(as);
@@ -60,13 +66,19 @@ public class LabelMakerManager {
 	
 	public List<LabelMakerFactory<?>> getFactories() {
 		return allFactories
+				.values()
 				.stream()
 				.sorted((f1, f2) -> f1.getName().compareToIgnoreCase(f2.getName()))
 				.collect(Collectors.toList());
 	}
 	
+	public LabelMakerFactory<?> getDefaultFactory() {
+		return allFactories.get(defaultFactory);
+	}
+	
 	public LabelMakerFactory<?> getFactory(AnnotationSet as) {
-		return factories.get(as);
+		LabelMakerFactory<?> factory = factories.get(as);
+		return factory == null ? getDefaultFactory() : factory;
 	}
 	
 	
