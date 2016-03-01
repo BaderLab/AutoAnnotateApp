@@ -10,24 +10,27 @@ import javax.swing.SpinnerNumberModel;
 import org.baderlab.autoannotate.internal.ui.GBCFactory;
 
 @SuppressWarnings("serial")
-public class MaxWordsPanel extends JPanel {
+public class NumberSpinner extends JPanel {
 
 	private SpinnerNumberModel spinnerModel;
 	
-	public MaxWordsPanel(int initalMaxWords) {
+	public NumberSpinner(String text, int initalValue, int min, int max) {
 		setLayout(new GridBagLayout());
 		
-		JLabel labelWordsLabel = new JLabel("Max words per label ");
-		add(labelWordsLabel, GBCFactory.grid(0,1).get());
+		JLabel labelWordsLabel = new JLabel(text);
+		add(labelWordsLabel, GBCFactory.grid(0,0).weighty(1.0).get());
 		
-		spinnerModel = new SpinnerNumberModel(initalMaxWords, 1, 5, 1);
+		spinnerModel = new SpinnerNumberModel(initalValue, min, max, 1);
 		JSpinner maxWordsSpinner = new JSpinner(spinnerModel);
-		add(maxWordsSpinner, GBCFactory.grid(1,1).get());
+		add(maxWordsSpinner, GBCFactory.grid(1,0).get());
 		
-		add(new JLabel(""), GBCFactory.grid(2,1).weightx(1.0).get());
+		JLabel comp = new JLabel("");
+		add(comp, GBCFactory.grid(2,0).weightx(1.0).get());
 	}
 
-	public int getMaxWords() {
+	public int getValue() {
 		return spinnerModel.getNumber().intValue();
 	}
+	
+	
 }

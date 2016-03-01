@@ -42,10 +42,10 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 
 	private volatile DisplayOptions displayOptions;
 	
-	private LabelSlider borderWidthSlider;
-	private LabelSlider opacitySlider;
-	private LabelSlider fontScaleSlider;
-	private LabelSlider fontSizeSlider;
+	private SliderWithLabel borderWidthSlider;
+	private SliderWithLabel opacitySlider;
+	private SliderWithLabel fontScaleSlider;
+	private SliderWithLabel fontSizeSlider;
 	private JCheckBox hideClustersCheckBox;
 	private JCheckBox hideLabelsCheckBox;
 	private JCheckBox fontByClusterCheckbox;
@@ -146,11 +146,11 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private JPanel createSliderPanel() {
 		JPanel panel = new JPanel(new GridBagLayout());
 		
-		borderWidthSlider = new LabelSlider("Border Width", false, WIDTH_MIN, WIDTH_MAX, WIDTH_DEFAULT);
+		borderWidthSlider = new SliderWithLabel("Border Width", false, WIDTH_MIN, WIDTH_MAX, WIDTH_DEFAULT);
 		panel.add(borderWidthSlider, GBCFactory.grid(0,0).weightx(1.0).get());
 		borderWidthSlider.getSlider().addChangeListener(borderWidthListener = e -> displayOptions.setBorderWidth(borderWidthSlider.getValue()));
 		
-		opacitySlider = new LabelSlider("Opacity", true, OPACITY_MIN, OPACITY_MAX, OPACITY_DEFAULT);
+		opacitySlider = new SliderWithLabel("Opacity", true, OPACITY_MIN, OPACITY_MAX, OPACITY_DEFAULT);
 		panel.add(opacitySlider, GBCFactory.grid(0,1).weightx(1.0).get());
 		opacitySlider.getSlider().addChangeListener(opacityListener = e -> displayOptions.setOpacity(opacitySlider.getValue()));
 		
@@ -158,11 +158,11 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		CardLayout cardLayout = new CardLayout();
 		fontPanel = new JPanel(cardLayout);
 		
-		fontSizeSlider = new LabelSlider("Font Size", false, FONT_SIZE_MIN, FONT_SIZE_MAX, FONT_SIZE_DEFAULT);
+		fontSizeSlider = new SliderWithLabel("Font Size", false, FONT_SIZE_MIN, FONT_SIZE_MAX, FONT_SIZE_DEFAULT);
 		fontSizeSlider.getSlider().addChangeListener(fontSizeListener = e -> displayOptions.setFontSize(fontSizeSlider.getValue()));
 		fontPanel.add(fontSizeSlider, fontSizeSlider.getLabel());
 		
-		fontScaleSlider = new LabelSlider("Font Scale", true, FONT_SCALE_MIN, FONT_SCALE_MAX, FONT_SCALE_DEFAULT);
+		fontScaleSlider = new SliderWithLabel("Font Scale", true, FONT_SCALE_MIN, FONT_SCALE_MAX, FONT_SCALE_DEFAULT);
 		fontScaleSlider.getSlider().addChangeListener(fontScaleListener = e -> displayOptions.setFontScale(fontScaleSlider.getValue()));
 		fontPanel.add(fontScaleSlider, fontScaleSlider.getLabel());
 		

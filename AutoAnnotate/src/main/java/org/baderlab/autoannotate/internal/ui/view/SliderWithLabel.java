@@ -10,13 +10,13 @@ import javax.swing.JSlider;
 import org.baderlab.autoannotate.internal.ui.GBCFactory;
 
 @SuppressWarnings("serial")
-public class LabelSlider extends JPanel {
+public class SliderWithLabel extends JPanel {
  
 	private JSlider slider;
 	private boolean percentage;
 	private String title;
 	
-	public LabelSlider(String title, boolean showPercentage, int min, int max, int defaultValue) {
+	public SliderWithLabel(String title, boolean showPercentage, int min, int max, int defaultValue) {
 		this.percentage = showPercentage;
 		this.title = title;
 		

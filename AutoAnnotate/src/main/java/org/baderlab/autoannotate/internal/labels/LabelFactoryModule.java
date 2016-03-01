@@ -1,7 +1,7 @@
 package org.baderlab.autoannotate.internal.labels;
 
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager.DefaultFactory;
-import org.baderlab.autoannotate.internal.labels.makers.HeuristicLabelMakerFactory;
+import org.baderlab.autoannotate.internal.labels.makers.ClusterBoostedLabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.makers.SizeSortedLabelMakerFactory;
 
 import com.google.inject.AbstractModule;
@@ -15,15 +15,21 @@ public class LabelFactoryModule extends AbstractModule {
 	 */
 	@Override
 	protected void configure() {
-		// The setBinder will inject a set of factories into LabelMakerManager
+		// The MapBinder will inject a set of factories into LabelMakerManager
+		
+		// Boilerplate
 		TypeLiteral<String> stringType = new TypeLiteral<String>() {};
 		TypeLiteral<LabelMakerFactory<?>> labelMakerFactoryType = new TypeLiteral<LabelMakerFactory<?>>() {};
 		MapBinder<String,LabelMakerFactory<?>> labelFactoryBinder = MapBinder.newMapBinder(binder(), stringType, labelMakerFactoryType);
 		
-		labelFactoryBinder.addBinding("heuristic").to(HeuristicLabelMakerFactory.class);
+		// Register factories as "plug-ins"
+		labelFactoryBinder.addBinding("clusterBoosted").to(ClusterBoostedLabelMakerFactory.class);
 		labelFactoryBinder.addBinding("sizeSorted").to(SizeSortedLabelMakerFactory.class);
+//		labelFactoryBinder.addBinding("heuristic").to(HeuristicLabelMakerFactory.class);
+//		labelFactoryBinder.addBinding("test").to(MultiDebugLabelMakerFactory.class);
 		
-		bind(String.class).annotatedWith(DefaultFactory.class).toInstance("heuristic");
+		// One factory should be the default when creating a new AnnotationSet
+		bind(String.class).annotatedWith(DefaultFactory.class).toInstance("clusterBoosted");
 	}
 
 }

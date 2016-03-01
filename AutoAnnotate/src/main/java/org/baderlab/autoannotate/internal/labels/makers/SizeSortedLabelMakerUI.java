@@ -3,14 +3,14 @@ package org.baderlab.autoannotate.internal.labels.makers;
 import javax.swing.JPanel;
 
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
-import org.baderlab.autoannotate.internal.ui.view.MaxWordsPanel;
+import org.baderlab.autoannotate.internal.ui.view.NumberSpinner;
 
 public class SizeSortedLabelMakerUI implements LabelMakerUI<SizeSortedOptions> {
 
-	private MaxWordsPanel panel;
+	private NumberSpinner panel;
 	
 	public SizeSortedLabelMakerUI(SizeSortedOptions options) {
-		this.panel = new MaxWordsPanel(options.getMaxWords());
+		this.panel = new NumberSpinner("Max words per label: ", options.getMaxWords(), 1, 5);
 	}
 	
 	@Override
@@ -20,7 +20,7 @@ public class SizeSortedLabelMakerUI implements LabelMakerUI<SizeSortedOptions> {
 
 	@Override
 	public SizeSortedOptions getContext() {
-		return new SizeSortedOptions(panel.getMaxWords());
+		return new SizeSortedOptions(panel.getValue());
 	}
 
 }

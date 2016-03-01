@@ -75,7 +75,8 @@ public class LabelOptionsPanel extends JPanel {
 		add(labelMakerFactoryCombo, GBCFactory.grid(1,y).weightx(1.0).get());
 		y++;
 		
-		JPanel algorithmPanel = new JPanel(new CardLayout());
+		CardLayout cardLayout = new CardLayout();
+		JPanel algorithmPanel = new JPanel(cardLayout);
 		
 		for(LabelMakerFactory factory : factories) {
 			Object context = null;
@@ -85,7 +86,13 @@ public class LabelOptionsPanel extends JPanel {
 				context = factory.getDefaultContext();
 			
 			LabelMakerUI<?> labelUI = factory.createUI(context);
-			JPanel labelUIPanel = labelUI.getPanel();
+			
+			JPanel labelUIPanel;
+			if(labelUI == null)
+				labelUIPanel = new JPanel();
+			else
+				labelUIPanel = labelUI.getPanel();
+			
 			algorithmPanel.add(labelUIPanel, factory.getName());
 			labelUIs.put(factory.getName(), labelUI);
 		}
@@ -97,22 +104,17 @@ public class LabelOptionsPanel extends JPanel {
 			}
 		}
 		
-		{
-			LabelMakerFactory<?> factory;
-			if(annotationSet == null)
-				factory = labelMakerManager.getDefaultFactory();
-			else
-				factory = labelMakerManager.getFactory(annotationSet);
-			
-			CardLayout cardLayout = (CardLayout) algorithmPanel.getLayout();
-			cardLayout.show(algorithmPanel, factory.getName());
-			labelMakerFactoryCombo.setSelectedItem(new ComboItem<>(factory));
-		}
+		LabelMakerFactory<?> factory;
+		if(annotationSet == null)
+			factory = labelMakerManager.getDefaultFactory();
+		else
+			factory = labelMakerManager.getFactory(annotationSet);
+		cardLayout.show(algorithmPanel, factory.getName());
+		labelMakerFactoryCombo.setSelectedItem(new ComboItem<>(factory));
+		
 		
 		labelMakerFactoryCombo.addActionListener(e -> {
-			LabelMakerFactory<?> factory = getLabelMakerFactory();
-			CardLayout cardLayout = (CardLayout) algorithmPanel.getLayout();
-			cardLayout.show(algorithmPanel, factory.getName());
+			cardLayout.show(algorithmPanel, getLabelMakerFactory().getName());
 		});
 		
 		add(algorithmPanel, GBCFactory.grid(0,y).gridwidth(2).anchor(GridBagConstraints.WEST).get());
@@ -130,6 +132,8 @@ public class LabelOptionsPanel extends JPanel {
 	public Object getLabelMakerContext() {
 		LabelMakerFactory<?> factory = getLabelMakerFactory();
 		LabelMakerUI<?> ui = labelUIs.get(factory.getName());
+		if(ui == null)
+			return null;
 		return ui.getContext();
 	}
 	

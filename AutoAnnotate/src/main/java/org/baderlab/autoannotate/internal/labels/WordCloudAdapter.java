@@ -22,8 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 
 /**
- * Provides a simplified interface for components that need to get
- * a single label from wordcloud.
+ * Provides a simplified interface for components that need to get labels from WordCloud.
  */
 public class WordCloudAdapter {
 
@@ -58,6 +57,7 @@ public class WordCloudAdapter {
 		return actual.compareTo(WORDCLOUD_MINIMUM) >= 0;
 	}	
 	
+	
 	private static class VersionTaskObserver implements TaskObserver {
 		int[] version = null;
 		@Override
@@ -71,20 +71,6 @@ public class WordCloudAdapter {
 		public void allFinished(FinishStatus finishStatus) {
 		}
 	}
-	
-	
-	
-//	public String getLabel(Collection<CyNode> cluster, CyNetwork network, String labelColumn, int maxWords) {
-//		Collection<WordInfo> wordInfos = runWordCloud(cluster, network, labelColumn);
-//		HeuristicLabelOptions labelOptions = HeuristicLabelOptions.defaults().maxWords(maxWords);
-//		HeuristicLabelMaker labelMaker = new HeuristicLabelMaker(network, "", labelOptions);
-//		LabelMaker labelMaker = new MultiDebugLabelMaker(network, "");
-//		String label = labelMaker.makeLabel(cluster, wordInfos);
-//		return label;
-//		return "";
-//	}
-	
-	
 	
 	
 	public Collection<WordInfo> runWordCloud(Collection<CyNode> cluster, CyNetwork network, String labelColumn) {

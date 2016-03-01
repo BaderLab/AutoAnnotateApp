@@ -13,6 +13,10 @@ import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 
+
+/**
+ * This is Arkady's original algorithm.
+ */
 public class HeuristicLabelMaker implements LabelMaker {
 
 	private final HeuristicLabelOptions labelOptions;
