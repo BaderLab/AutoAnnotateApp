@@ -31,13 +31,14 @@ public class AnnotationPersistor {
 		CyNetworkView networkView = cluster.getNetworkView();
 		
 		Collection<Annotation> annotations = annotationManager.getAnnotations(networkView);
-		
-		for(Annotation annotation : annotations) {
-			if(shapeID.isPresent() && shapeID.get().equals(annotation.getUUID())) {
-				renderer.setShapeAnnotation(cluster, (ShapeAnnotation) annotation);
-			}
-			if(textID.isPresent() && textID.get().equals(annotation.getUUID())) {
-				renderer.setTextAnnotation(cluster, (TextAnnotation) annotation);
+		if(annotations != null) {
+			for(Annotation annotation : annotations) {
+				if(shapeID.isPresent() && shapeID.get().equals(annotation.getUUID())) {
+					renderer.setShapeAnnotation(cluster, (ShapeAnnotation) annotation);
+				}
+				if(textID.isPresent() && textID.get().equals(annotation.getUUID())) {
+					renderer.setTextAnnotation(cluster, (TextAnnotation) annotation);
+				}
 			}
 		}
 	}

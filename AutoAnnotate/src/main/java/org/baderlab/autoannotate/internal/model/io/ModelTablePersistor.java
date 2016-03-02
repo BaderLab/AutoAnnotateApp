@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.function.Consumer;
@@ -43,7 +45,10 @@ import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.swing.DialogTaskManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -57,6 +62,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	// AnnotationSet and DisplayOptions properties 
 	private static final String 
 		ANNOTATION_SET_ID = "annotationSetID",
+		NETWORK_VIEW_SUID = "networkView.SUID",
 		NAME = "name",
 		ACTIVE = "active",
 		LABEL_COLUMN = "labelColumn",
@@ -91,6 +97,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	@Inject private CyTableManager tableManager;
 	@Inject private CyTableFactory tableFactory;
 	
+	private final Logger logger = LoggerFactory.getLogger(ModelTablePersistor.class);
+	
 	
 	@Override
 	public void handleEvent(SessionLoadedEvent e) {
@@ -103,19 +111,21 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		AnnotationPersistor annotationPersistor = annotationPersistorProvider.get();
 		annotationPersistor.clearAnnotations();
 		
-		List<Optional<AnnotationSet>> activeAnnotationSets = new LinkedList<>();
+		List<AnnotationSet> activeAnnotationSets = new LinkedList<>();
 		
 		for(CyNetwork network: networkManager.getNetworkSet()) {
 			Collection<CyNetworkView> networkViews = networkViewManager.getNetworkViews(network);
+			Map<Long,CyNetworkView> networkViewIDs = Maps.uniqueIndex(networkViews, CyNetworkView::getSUID);
+			
 			if(!networkViews.isEmpty()) {
-				CyNetworkView networkView = networkViews.iterator().next(); // MKTODO what to do about multiple network views?
+//				CyNetworkView networkView = networkViews.iterator().next(); // MKTODO what to do about multiple network views?
 				CyTable asTable = networkTableManager.getTable(network, CyNetwork.class, ANNOTATION_SET_TABLE);
 				CyTable clusterTable = networkTableManager.getTable(network, CyNetwork.class, CLUSTER_TABLE);
 				
 				if(asTable != null && clusterTable != null) {
 					try {
-						Optional<AnnotationSet> active = importModel(networkView, asTable, clusterTable);
-						activeAnnotationSets.add(active);
+						Collection<AnnotationSet> active = importModel(network, networkViewIDs, asTable, clusterTable);
+						activeAnnotationSets.addAll(active);
 						imported = true;
 					} catch(Exception ex) {
 						ex.printStackTrace();
@@ -124,19 +134,9 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			}
 		}
 		
-		
-		
-		
-//		// important to clear out existing annotations from the network views
-//		ModelManager modelManager = modelManagerProvider.get();
-//		modelManager.deselectAll(); // erases all annotations
-		
-		for(Optional<AnnotationSet> active : activeAnnotationSets) {
-			if(active.isPresent()) {
-				AnnotationSet as = active.get();
-				NetworkViewSet nvs = as.getParent();
-				nvs.select(as);
-			}
+		for(AnnotationSet as : activeAnnotationSets) {
+			NetworkViewSet nvs = as.getParent();
+			nvs.select(as);
 		}
 		
 		if(imported) {
@@ -146,13 +146,11 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	}
 	
 	
-	private Optional<AnnotationSet> importModel(CyNetworkView networkView, CyTable asTable, CyTable clusterTable) {
-		CyNetwork network = networkView.getModel();
+	private Collection<AnnotationSet> importModel(CyNetwork network, Map<Long,CyNetworkView> networkViewIDs, CyTable asTable, CyTable clusterTable) {
 		Map<Long,AnnotationSetBuilder> builders = new HashMap<>();
 		ModelManager modelManager = modelManagerProvider.get();
-		NetworkViewSet nvs = modelManager.getNetworkViewSet(networkView);
 		
-		AnnotationSetBuilder activeBuilder = null;
+		Set<AnnotationSetBuilder> activeBuilders = new HashSet<>();
 		
 		// Load AnnotationSets
 		for(CyRow asRow : asTable.getAllRows()) {
@@ -161,9 +159,28 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			List<String> labels = asRow.getList(LABEL_COLUMN, String.class);
 			
 			if(id == null || name == null || labels == null || labels.isEmpty()) {
-				System.err.printf("AutoAnnotate.importModel - Missing AnnotationSet attribute: %s:%s, %s:%s, %s:%s\n", ANNOTATION_SET_ID, id, NAME, name, LABEL_COLUMN, labels);
+				logger.error(String.format("AutoAnnotate.importModel - Missing AnnotationSet attribute: %s:%s, %s:%s, %s:%s\n", ANNOTATION_SET_ID, id, NAME, name, LABEL_COLUMN, labels));
 				continue;
 			}
+			
+			// This will be null in 3.3 because of #3473, its ok because 3.3 only supports one network view per network
+			Long networkViewID = asRow.get(NETWORK_VIEW_SUID, Long.class); 
+			
+			CyNetworkView networkView;
+			if(networkViewID == null && networkViewIDs.size() == 1) {
+				// importing from an older version of AutoAnnotation that didn't support multiple network views
+				networkView = networkViewIDs.values().iterator().next();
+				logger.warn("AutoAnnotation.importModel - networkViewID not found, assuming " + networkView.getSUID());
+			} else {
+				networkView = networkViewIDs.get(networkViewID);
+			}
+			
+			if(networkView == null) {
+				logger.error("AutoAnnotate.importModel - Missing Network View ID: " + networkViewID);
+				continue;
+			}
+			
+			NetworkViewSet nvs = modelManager.getNetworkViewSet(networkView);
 			
 			String label = labels.get(0);
 			AnnotationSetBuilder builder = nvs.getAnnotationSetBuilder(name, label);
@@ -180,7 +197,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 
 			Boolean active = asRow.get(ACTIVE, Boolean.class);
 			if(Boolean.TRUE.equals(active)) // null safe
-				activeBuilder = builder;
+				activeBuilders.add(builder);
 			
 			builders.put(id, builder);
 		}
@@ -189,7 +206,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		for(CyRow clusterRow : clusterTable.getAllRows()) {
 			Long asId = clusterRow.get(ANNOTATION_SET_ID, Long.class);
 			if(asId == null || !builders.containsKey(asId)) {
-				System.err.println("AutoAnnotate.importModel - Cluster can't be imported because AnnotationSet ID is invalid: " + asId);
+				logger.error(String.format("AutoAnnotate.importModel - Cluster can't be imported because AnnotationSet ID is invalid: " + asId));
 				continue;
 			}
 			
@@ -197,7 +214,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			Boolean collapsed = clusterRow.get(COLLAPSED, Boolean.class);
 			List<Long> nodeSUIDS = clusterRow.getList(NODES_SUID, Long.class);
 			if(label == null || collapsed == null || nodeSUIDS == null) {
-				System.err.printf("AutoAnnotate.importModel - Cluster attribute not found: %s:%s, %s:%s, %s:%s\n", LABEL, label, COLLAPSED, collapsed, NODES_SUID, nodeSUIDS);
+				logger.error(String.format("AutoAnnotate.importModel - Cluster attribute not found: %s:%s, %s:%s, %s:%s\n", LABEL, label, COLLAPSED, collapsed, NODES_SUID, nodeSUIDS));
 				continue;
 			}
 			
@@ -213,16 +230,17 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			});
 		}
 		
+		
+		List<AnnotationSet> activeSets = new ArrayList<>(activeBuilders.size());
 		// Build Model
-		Optional<AnnotationSet> activeAnnotationSet = Optional.empty();
 		for(AnnotationSetBuilder builder : builders.values()) {
 			AnnotationSet as = builder.build(); // create the AnnotationSet in the model
-			if(builder == activeBuilder) {
-				activeAnnotationSet = Optional.of(as);
+			if(activeBuilders.contains(builder)) {
+				activeSets.add(as);
 			}
 		}
 		
-		return activeAnnotationSet;
+		return activeSets;
 	}
 
 	
@@ -270,42 +288,43 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	}
 	
 	
+	private class Ids {
+		long asId = 0;
+		long clusterId = 0;
+	}
+	
 	public void exportModel() {
 		for(CyNetwork network: networkManager.getNetworkSet()) {
+			
+			CyTable asTable = getAnnotationSetTable(network);
+			CyTable clusterTable = getClusterTable(network);
+			clearTable(asTable);
+			clearTable(clusterTable);
+			Ids ids = new Ids();
+			
 			Collection<CyNetworkView> networkViews = networkViewManager.getNetworkViews(network);
-			if(!networkViews.isEmpty()) {
-				CyNetworkView networkView = networkViews.iterator().next(); // MKTODO what to do about multiple network views?
-
+			for(CyNetworkView networkView : networkViews) {
 				Optional<NetworkViewSet> nvs = modelManagerProvider.get().getExistingNetworkViewSet(networkView);
 				if(nvs.isPresent()) {
-					CyTable asTable = getAnnotationSetTable(network);
-					CyTable clusterTable = getClusterTable(network);
-					
 					try {
-						exportModel(nvs.get(), asTable, clusterTable);
+						exportModel(nvs.get(), asTable, clusterTable, ids);
 					}catch(Exception ex) {
 						ex.printStackTrace();
 					}
 					continue;
 				}
 			}
-			// MKTODO: delete any existing tables
 		}
 	}
 	
 	
-	private void exportModel(NetworkViewSet nvs, CyTable asTable, CyTable clusterTable) {
-		clearTable(asTable);
-		clearTable(clusterTable);
-		
-		long asId = 0;
-		long clusterId = 0;
-		
+	private void exportModel(NetworkViewSet nvs, CyTable asTable, CyTable clusterTable, Ids ids) {
 		AnnotationPersistor annotationPersistor = annotationPersistorProvider.get();
 		
 		for(AnnotationSet as : nvs.getAnnotationSets()) {
-			CyRow asRow = asTable.getRow(asId);
+			CyRow asRow = asTable.getRow(ids.asId);
 			asRow.set(NAME, as.getName());
+			asRow.set(NETWORK_VIEW_SUID, as.getParent().getNetworkView().getSUID());
 			asRow.set(LABEL_COLUMN, Arrays.asList(as.getLabelColumn())); // may want to support multiple label columns in the future
 			asRow.set(ACTIVE, as.isActive());
 			
@@ -320,20 +339,20 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(BORDER_WIDTH, disp.getBorderWidth());
 			
 			for(Cluster cluster : as.getClusters()) {
-				CyRow clusterRow = clusterTable.getRow(clusterId);
+				CyRow clusterRow = clusterTable.getRow(ids.clusterId);
 				clusterRow.set(LABEL, cluster.getLabel());
 				clusterRow.set(COLLAPSED, cluster.isCollapsed());
 				clusterRow.set(NODES_SUID, cluster.getNodes().stream().map(CyNode::getSUID).collect(Collectors.toList()));
-				clusterRow.set(ANNOTATION_SET_ID, asId);
+				clusterRow.set(ANNOTATION_SET_ID, ids.asId);
 				
 				Optional<UUID> shapeID = annotationPersistor.getShapeID(cluster);
 				clusterRow.set(SHAPE_ID, shapeID.map(UUID::toString).orElse(null));
 				Optional<UUID> textID = annotationPersistor.getTextID(cluster);
 				clusterRow.set(TEXT_ID, textID.map(UUID::toString).orElse(null));
 				
-				clusterId++;
+				ids.clusterId++;
 			}
-			asId++;
+			ids.asId++;
 		}
 	}
 	
@@ -345,6 +364,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			tableManager.addTable(table);
 		}
 		createColumn(table, NAME, String.class);
+		createColumn(table, NETWORK_VIEW_SUID, Long.class);
 		createListColumn(table, LABEL_COLUMN, String.class);
 		createColumn(table, ACTIVE, Boolean.class);
 		createColumn(table, SHAPE_TYPE, String.class);

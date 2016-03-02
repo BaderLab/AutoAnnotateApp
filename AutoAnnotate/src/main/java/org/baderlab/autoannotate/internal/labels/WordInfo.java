@@ -5,7 +5,6 @@ public class WordInfo {
 	private final String word;
 	private final int wordCluster;
 	private final int number;
-	// MKTODO make size mutable for now
 	private final int size;
 	
 	
