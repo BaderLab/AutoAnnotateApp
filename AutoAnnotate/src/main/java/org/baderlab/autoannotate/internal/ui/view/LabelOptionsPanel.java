@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -76,10 +77,14 @@ public class LabelOptionsPanel extends JPanel {
 		
 		int y = 0;
 		
-		if(showTitle) {
-			add(new JLabel("Label Options"), GBCFactory.grid(0,y).gridwidth(2).get());
-			y++;
-		}
+		String titleText = "Label Options";
+		if(annotationSet != null)
+			titleText += " for: " + annotationSet.getName();
+			
+		JLabel titleLabel = new JLabel(titleText);
+		titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
+		add(titleLabel, GBCFactory.grid(0,y).gridwidth(2).get());
+		y++;
 		
 		if(showColumnCombo) {
 			labelColumnNameCombo = new JComboBox<>();
