@@ -35,4 +35,11 @@ public class SizeSortedLabelMakerFactory implements LabelMakerFactory<SizeSorted
 		return new SizeSortedLabelMaker(wordCloudProvider.get(), context);
 	}
 
+	@Override
+	public String[] getDescription() {
+		return new String[] {
+			"Uses WordCloud to calculate the labels.",
+			"Words in the label are the most frequent words."
+		};
+	}
 }

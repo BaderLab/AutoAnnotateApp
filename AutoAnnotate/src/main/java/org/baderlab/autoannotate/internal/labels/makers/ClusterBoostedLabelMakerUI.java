@@ -9,15 +9,16 @@ import javax.swing.SpinnerNumberModel;
 
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
 import org.baderlab.autoannotate.internal.ui.GBCFactory;
+import org.cytoscape.util.swing.IconManager;
 
 public class ClusterBoostedLabelMakerUI implements LabelMakerUI<ClusterBoostedOptions> {
 
-	private ClusterBoostedOptionsPanel panel;
+	private final ClusterBoostedOptionsPanel panel;
 	
-	public ClusterBoostedLabelMakerUI(ClusterBoostedOptions options) {
-		panel = new ClusterBoostedOptionsPanel(options);
+	public ClusterBoostedLabelMakerUI(ClusterBoostedOptions options, IconManager iconManager) {
+		this.panel = new ClusterBoostedOptionsPanel(options, iconManager);
 	}
-	
+	 
 	
 	@Override
 	public JPanel getPanel() {
@@ -36,7 +37,7 @@ public class ClusterBoostedLabelMakerUI implements LabelMakerUI<ClusterBoostedOp
 		private SpinnerNumberModel maxWordsModel;
 		private SpinnerNumberModel boostModel;
 		
-		public ClusterBoostedOptionsPanel(ClusterBoostedOptions options) {
+		public ClusterBoostedOptionsPanel(ClusterBoostedOptions options, IconManager iconManager) {
 			setLayout(new GridBagLayout());
 			
 			JLabel labelWordsLabel = new JLabel("Max words per label: ");
@@ -48,8 +49,7 @@ public class ClusterBoostedLabelMakerUI implements LabelMakerUI<ClusterBoostedOp
 			
 			add(new JLabel(""), GBCFactory.grid(2,0).weightx(1.0).get());
 			
-			
-			labelWordsLabel = new JLabel("Same cluster bonus: ");
+			labelWordsLabel = new JLabel("Adjacent word bonus: ");
 			add(labelWordsLabel, GBCFactory.grid(0,1).get());
 			
 			boostModel = new SpinnerNumberModel(options.getClusterBonus(), 0, 20, 1);
@@ -57,9 +57,9 @@ public class ClusterBoostedLabelMakerUI implements LabelMakerUI<ClusterBoostedOp
 			add(clusterBoostSpinner, GBCFactory.grid(1,1).get());
 			
 			add(new JLabel(""), GBCFactory.grid(2,1).weightx(1.0).get());
-			
 		}
 
+		
 		public int getClusterBonus() {
 			return boostModel.getNumber().intValue();
 		}

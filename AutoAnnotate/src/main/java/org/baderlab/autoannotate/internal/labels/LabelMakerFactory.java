@@ -10,4 +10,8 @@ public interface LabelMakerFactory<C> {
 	
 	LabelMaker createLabelMaker(C context);
 	
+	
+	default String[] getDescription() {
+		return new String[0];
+	}
 }

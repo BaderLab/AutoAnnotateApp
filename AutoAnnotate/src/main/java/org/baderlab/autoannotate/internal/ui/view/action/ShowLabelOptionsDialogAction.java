@@ -25,6 +25,7 @@ public class ShowLabelOptionsDialogAction extends AbstractCyAction {
 	@Inject private ModelManager modelManager;
 	@Inject private LabelMakerManager labelManager;
 	@Inject private Provider<JFrame> jFrameProvider;
+	@Inject private LabelOptionsPanel.Factory labelOptionsPanelFactory;
 	
 	
 	public ShowLabelOptionsDialogAction() {
@@ -37,7 +38,7 @@ public class ShowLabelOptionsDialogAction extends AbstractCyAction {
 		if(aso.isPresent()) {
 			AnnotationSet annotationSet = aso.get();
 			CyNetwork network = annotationSet.getParent().getNetwork();
-			LabelOptionsPanel panel = new LabelOptionsPanel(labelManager, network, false, false, annotationSet);
+			LabelOptionsPanel panel = labelOptionsPanelFactory.create(network, false, false, annotationSet);
 			
 			String title = BuildProperties.APP_NAME + ": Label Options";
 			JFrame jframe = jFrameProvider.get();

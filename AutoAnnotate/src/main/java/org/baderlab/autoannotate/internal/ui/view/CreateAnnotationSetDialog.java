@@ -30,7 +30,6 @@ import javax.swing.SwingConstants;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
-import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
@@ -63,7 +62,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 	@Inject private Provider<CreateAnnotationSetTask> createTaskProvider;
 	@Inject private Provider<CollapseAllTaskFactory> collapseTaskFactoryProvider;
 	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
-	@Inject private Provider<LabelMakerManager> labelManagerProvider;
+	@Inject private LabelOptionsPanel.Factory labelOptionsPanelFactory;
 	
 	@Inject private Provider<OpenBrowser> browserProvider;
 	@Inject private DialogTaskManager dialogTaskManager;
@@ -193,8 +192,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	
 	private JPanel createParametersPanel_LabelPanel() {
-		LabelMakerManager manager = labelManagerProvider.get();
-		labelOptionsPanel = new LabelOptionsPanel(manager, networkView.getModel(), true, true);
+		labelOptionsPanel = labelOptionsPanelFactory.create(networkView.getModel(), true, true);
 		return labelOptionsPanel;
 	}
 	
