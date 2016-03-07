@@ -219,7 +219,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 		edgeWeightColumnCombo = createComboBox(getColumnsOfType(networkView.getModel(), Number.class, false, true, false));
 		panel.add(edgeWeightColumnCombo, GBCFactory.grid(1,3).weightx(1.0).get());
 		
-		JRadioButton columnRadio = new JRadioButton("Use existing clusters");
+		JRadioButton columnRadio = new JRadioButton("User-defined clusters");
 		panel.add(columnRadio, GBCFactory.grid(0,4).gridwidth(2).get());
 		
 		JLabel clusterIdLabel = new JLabel("       Cluster node ID column:");
@@ -229,6 +229,8 @@ public class CreateAnnotationSetDialog extends JDialog {
 		columns.addAll(getColumnsOfType(networkView.getModel(), Integer.class, true, false, true));
 		columns.addAll(getColumnsOfType(networkView.getModel(), Long.class, true, false, true));
 		columns.addAll(getColumnsOfType(networkView.getModel(), String.class, true, false, true));
+		columns.addAll(getColumnsOfType(networkView.getModel(), Boolean.class, true, false, true));
+		columns.addAll(getColumnsOfType(networkView.getModel(), Double.class, true, false, true));
 		columns.sort(Comparator.naturalOrder());
 		clusterIdColumnCombo = createComboBox(columns);
 		panel.add(clusterIdColumnCombo, GBCFactory.grid(1,5).weightx(1.0).get());
