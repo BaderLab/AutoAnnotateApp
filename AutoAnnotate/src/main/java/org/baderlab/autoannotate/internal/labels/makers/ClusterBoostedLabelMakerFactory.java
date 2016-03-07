@@ -11,9 +11,17 @@ import com.google.inject.Provider;
 
 public class ClusterBoostedLabelMakerFactory implements LabelMakerFactory<ClusterBoostedOptions> {
 
+	public static final String ID = "clusterBoosted";
+	
 	@Inject private Provider<WordCloudAdapter> wordCloudProvider; 
 	@Inject private Provider<IconManager> iconManagerProvider;
 	
+	
+	@Override
+	public String getID() {
+		return ID;
+	}
+
 	@Override
 	public String getName() {
 		return "WordCloud: Adjacent Words (default)";
@@ -41,6 +49,26 @@ public class ClusterBoostedLabelMakerFactory implements LabelMakerFactory<Cluste
 			"Words in the label are the most frequent words and their adjacent words.",
 			"The higher the \"adjacent word bonus\" is, the more likely adjacent words will be in the label."
 		};
+	}
+
+	@Override
+	public String serializeContext(ClusterBoostedOptions context) {
+		return context.getMaxWords() + "," + context.getClusterBonus();
+	}
+
+	@Override
+	public ClusterBoostedOptions deserializeContext(String s) {
+		String[] args = s.split(",");
+		if(args.length != 2)
+			return null;
+		
+		try {
+			int maxWords = Integer.parseInt(args[0]);
+			int boost = Integer.parseInt(args[1]);
+			return new ClusterBoostedOptions(maxWords, boost);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 }

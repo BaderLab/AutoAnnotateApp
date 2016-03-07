@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
+import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
@@ -36,6 +38,8 @@ import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 
 import com.google.common.eventbus.EventBus;
+import com.google.inject.TypeLiteral;
+import com.google.inject.multibindings.Multibinder;
 
 @RunWith(JukitoRunner.class)
 public class TestModelPersistor {
@@ -53,12 +57,16 @@ public class TestModelPersistor {
 			bind(CyTableFactory.class).toInstance(tableTestSupport.getTableFactory());
 			
 			bind(EventBus.class).toInstance(new EventBus());
+			
+			TypeLiteral<LabelMakerFactory<?>> labelMakerFactoryType = new TypeLiteral<LabelMakerFactory<?>>() {};
+			Multibinder<LabelMakerFactory<?>> labelFactoryBinder = Multibinder.newSetBinder(binder(), labelMakerFactoryType);
+			labelFactoryBinder.addBinding().toInstance(mock(LabelMakerFactory.class));
 		}
 	}
 	
 	@Before
 	public void setup(CyNetworkFactory networkFactory, CyNetworkManager networkManager, CyNetworkViewManager viewManager, 
-			          CyApplicationManager appManager, ModelManager modelManager) {
+			          CyApplicationManager appManager, ModelManager modelManager, Set<LabelMakerFactory<?>> factoryPlugIns) {
 		// Set up mocks
 		CyNetwork network = networkFactory.createNetwork();
 		networkManager.addNetwork(network);
@@ -67,7 +75,7 @@ public class TestModelPersistor {
 		when(networkView.getModel()).thenReturn(network);
 		when(appManager.getCurrentNetworkView()).thenReturn(networkView);
 		when(viewManager.getNetworkViews(network)).thenReturn(Collections.singleton(networkView));
-
+		when(factoryPlugIns.iterator().next().getID()).thenReturn("nullFactory");
 		
 		// Set up model
 		NetworkViewSet nvs = modelManager.getNetworkViewSet(networkView);

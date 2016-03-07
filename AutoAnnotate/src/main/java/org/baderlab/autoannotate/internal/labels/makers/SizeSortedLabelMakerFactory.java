@@ -10,10 +10,17 @@ import com.google.inject.Provider;
 
 public class SizeSortedLabelMakerFactory implements LabelMakerFactory<SizeSortedOptions> {
 
+	public static final String ID = "sizeSorted";
+	
 	@Inject private Provider<WordCloudAdapter> wordCloudProvider; 
 	
 	public static final int DEFAULT_MAX_WORDS = 4;
 	
+	
+	@Override
+	public String getID() {
+		return ID;
+	}
 	
 	@Override
 	public String getName() {
@@ -41,5 +48,20 @@ public class SizeSortedLabelMakerFactory implements LabelMakerFactory<SizeSorted
 			"Uses WordCloud to calculate the labels.",
 			"Words in the label are the most frequent words."
 		};
+	}
+
+	@Override
+	public String serializeContext(SizeSortedOptions context) {
+		return Integer.toString(context.getMaxWords());
+	}
+
+	@Override
+	public SizeSortedOptions deserializeContext(String s) {
+		try {
+			int maxWords = Integer.parseInt(s);
+			return new SizeSortedOptions(maxWords);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 }

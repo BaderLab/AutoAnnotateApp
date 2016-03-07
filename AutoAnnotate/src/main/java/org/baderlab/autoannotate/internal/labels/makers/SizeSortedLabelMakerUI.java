@@ -12,7 +12,7 @@ public class SizeSortedLabelMakerUI implements LabelMakerUI<SizeSortedOptions> {
 	private NumberSpinner spinner;
 	
 	public SizeSortedLabelMakerUI(SizeSortedOptions options) {
-		this.spinner = new NumberSpinner("Max words per label: ", options.getMaxWords(), 1, 5);
+		this.spinner = new NumberSpinner("Max words per label: ", options.getMaxWords(), 1, 10);
 	}
 	
 	@Override

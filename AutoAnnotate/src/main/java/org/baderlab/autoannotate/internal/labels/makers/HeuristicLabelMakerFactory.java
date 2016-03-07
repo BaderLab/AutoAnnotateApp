@@ -10,7 +10,15 @@ import com.google.inject.Provider;
 
 public class HeuristicLabelMakerFactory implements LabelMakerFactory<HeuristicLabelOptions> {
 
+	public static final String ID = "heuristic";
+	
 	@Inject private Provider<WordCloudAdapter> wordCloudProvider; 
+	
+	
+	@Override
+	public String getID() {
+		return ID;
+	}
 	
 	@Override
 	public String getName() {
@@ -30,6 +38,16 @@ public class HeuristicLabelMakerFactory implements LabelMakerFactory<HeuristicLa
 	@Override
 	public LabelMaker createLabelMaker(HeuristicLabelOptions context) {
 		return new HeuristicLabelMaker(wordCloudProvider.get(), context); // mktodo, get from context
+	}
+
+	@Override
+	public String serializeContext(HeuristicLabelOptions context) {
+		return null;
+	}
+
+	@Override
+	public HeuristicLabelOptions deserializeContext(String s) {
+		return null;
 	}
 
 }

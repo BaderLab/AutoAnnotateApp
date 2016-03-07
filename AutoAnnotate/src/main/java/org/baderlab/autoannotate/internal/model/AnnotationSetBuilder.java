@@ -38,21 +38,21 @@ public class AnnotationSetBuilder {
 	private int opacity = DisplayOptions.OPACITY_DEFAULT;
 	private int borderWidth = DisplayOptions.WIDTH_DEFAULT;
 	
+	private Optional<Consumer<AnnotationSet>> asCallback = Optional.empty();
+	
 	private boolean used = false;
-	
-	
 	
 	class ClusterBuilder {
 		final Collection<CyNode> nodes;
 		final String label;
 		final boolean collapsed;
-		final Optional<Consumer<Cluster>> callback;
+		final Optional<Consumer<Cluster>> clusterCallback;
 		
 		public ClusterBuilder(Collection<CyNode> nodes, String label, boolean collapsed, Consumer<Cluster> callback) {
 			this.nodes = nodes;
 			this.label = label;
 			this.collapsed = collapsed;
-			this.callback = Optional.ofNullable(callback);
+			this.clusterCallback = Optional.ofNullable(callback);
 		}
 		
 		public ClusterBuilder(Collection<CyNode> nodes, String label, boolean collapsed) {
@@ -78,6 +78,10 @@ public class AnnotationSetBuilder {
 		}
 	}
 	
+	
+	public void onCreate(Consumer<AnnotationSet> asCallback) {
+		this.asCallback = Optional.of(asCallback);
+	}
 	
 	public boolean isShowClusters() {
 		return showClusters;
@@ -162,6 +166,10 @@ public class AnnotationSetBuilder {
 
 	public void setShapeType(ShapeType shapeType) {
 		this.shapeType = shapeType;
+	}
+
+	public Optional<Consumer<AnnotationSet>> getCallback() {
+		return asCallback;
 	}
 	
 }

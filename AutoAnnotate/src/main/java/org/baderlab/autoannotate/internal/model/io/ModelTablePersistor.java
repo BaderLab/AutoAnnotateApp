@@ -16,6 +16,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
+import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
+import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
 import org.baderlab.autoannotate.internal.model.Cluster;
@@ -73,7 +75,9 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		USE_CONSTANT_FONT_SIZE = "useConstantFontSize",
 		SHOW_LABELS = "showLabels",
 		SHOW_CLUSTERS = "showClusters",
-		SHAPE_TYPE = "shapeType";
+		SHAPE_TYPE = "shapeType",
+		LABEL_MAKER_ID = "labelMakerID",
+		LABEL_MAKER_CONTEXT = "labelMakerContext";
 	
 	// Cluster properties
 	private static final String 
@@ -88,6 +92,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	@Inject private Provider<AnnotationPersistor> annotationPersistorProvider;
 	@Inject private Provider<ModelManager> modelManagerProvider;
 	@Inject private Provider<PanelManager> panelManagerProvider;
+	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	@Inject private Provider<CollapseAllTaskFactory> collapseActionProvider;
 	
 	@Inject private DialogTaskManager dialogTaskManager;
@@ -195,6 +200,20 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			safeGet(asRow, SHOW_LABELS, Boolean.class, builder::setShowLabels);
 			safeGet(asRow, USE_CONSTANT_FONT_SIZE, Boolean.class, builder::setUseConstantFontSize);
 
+			String labelMakerID = asRow.get(LABEL_MAKER_ID, String.class);
+			String serializedContext = asRow.get(LABEL_MAKER_CONTEXT, String.class);
+			
+			builder.onCreate(as -> {
+				LabelMakerManager labelMakerManager = labelManagerProvider.get();
+				LabelMakerFactory factory = labelMakerManager.getFactory(labelMakerID);
+				if(factory != null) {
+					Object context = factory.deserializeContext(serializedContext);
+					if(context != null) {
+						labelMakerManager.register(as, factory, context);
+					}
+				}
+			});
+			
 			Boolean active = asRow.get(ACTIVE, Boolean.class);
 			if(Boolean.TRUE.equals(active)) // null safe
 				activeBuilders.add(builder);
@@ -338,6 +357,17 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(OPACITY, disp.getOpacity());
 			asRow.set(BORDER_WIDTH, disp.getBorderWidth());
 			
+			LabelMakerManager labelMakerManager = labelManagerProvider.get();
+			
+			LabelMakerFactory labelFactory = labelMakerManager.getFactory(as);
+			Object context = labelMakerManager.getContext(as, labelFactory);
+			
+			if(labelFactory != null && context != null) {
+				String serializedContext = labelFactory.serializeContext(context);
+				asRow.set(LABEL_MAKER_ID, labelFactory.getID());
+				asRow.set(LABEL_MAKER_CONTEXT, serializedContext);
+			}
+			
 			for(Cluster cluster : as.getClusters()) {
 				CyRow clusterRow = clusterTable.getRow(ids.clusterId);
 				clusterRow.set(LABEL, cluster.getLabel());
@@ -375,6 +405,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, FONT_SIZE, Integer.class);
 		createColumn(table, OPACITY, Integer.class);
 		createColumn(table, BORDER_WIDTH, Integer.class);
+		createColumn(table, LABEL_MAKER_ID, String.class);
+		createColumn(table, LABEL_MAKER_CONTEXT, String.class);
 		return table;
 	}
 	

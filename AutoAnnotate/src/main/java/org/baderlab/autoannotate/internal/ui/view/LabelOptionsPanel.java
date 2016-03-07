@@ -92,9 +92,14 @@ public class LabelOptionsPanel extends JPanel {
 				labelColumnNameCombo.addItem(labelColumn);
 			}
 			
-			// Heuristic for EnrichmentMap
+			// Preselect the best choice for label column, with special case for EnrichmentMap
 			for(int i = 0; i < labelColumnNameCombo.getItemCount(); i++) {
-				if(labelColumnNameCombo.getItemAt(i).endsWith("GS_DESCR")) {
+				String item = labelColumnNameCombo.getItemAt(i);
+				if(item.endsWith("GS_DESCR")) { // column created by EnrichmentMap
+					labelColumnNameCombo.setSelectedIndex(i);
+					break;
+				}
+				if(item.equalsIgnoreCase("name")) {
 					labelColumnNameCombo.setSelectedIndex(i);
 					break;
 				}

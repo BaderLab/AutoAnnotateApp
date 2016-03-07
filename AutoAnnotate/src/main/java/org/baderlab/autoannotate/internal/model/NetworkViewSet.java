@@ -34,6 +34,13 @@ public class NetworkViewSet {
 	AnnotationSet build(AnnotationSetBuilder builder) {
 		AnnotationSet as = new AnnotationSet(this, builder);
 		annotationSets.add(as);
+		
+		try {
+			builder.getCallback().ifPresent(callback -> callback.accept(as));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		parent.postEvent(new ModelEvents.AnnotationSetAdded(as));
 		return as;
 	}

@@ -12,7 +12,7 @@ public class HeuristicLabelMakerUI implements LabelMakerUI<HeuristicLabelOptions
 	private NumberSpinner spinner;
 	
 	public HeuristicLabelMakerUI(HeuristicLabelOptions options) {
-		this.spinner = new NumberSpinner("Max words per label: ", options.getMaxWords(), 1, 5);
+		this.spinner = new NumberSpinner("Max words per label: ", options.getMaxWords(), 1, 10);
 	}
 	
 	@Override

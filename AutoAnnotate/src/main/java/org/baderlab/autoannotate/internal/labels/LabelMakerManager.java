@@ -6,6 +6,7 @@ import java.lang.annotation.Retention;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
@@ -32,14 +33,32 @@ import com.google.inject.Singleton;
 @Singleton
 public class LabelMakerManager {
 
-	@BindingAnnotation @Retention(RUNTIME) public @interface DefaultFactory {}
+	@BindingAnnotation @Retention(RUNTIME) public @interface DefaultFactoryID {}
+	
+	private final Map<String,LabelMakerFactory<?>> allFactories = new HashMap<>();
+	private final String defaultFactoryID;
+	
+	private final Map<AnnotationSet,LabelMakerFactory<?>> factories = new HashMap<>();
+	private final Map<AnnotationSet,Map<LabelMakerFactory<?>, Object>> contexts = new HashMap<>();
 	
 	
-	@Inject private Map<String, LabelMakerFactory<?>> allFactories;
-	@Inject private @DefaultFactory String defaultFactory;
+	@Inject
+	public LabelMakerManager(Set<LabelMakerFactory<?>> factoryPlugIns, @DefaultFactoryID String defaultFactoryID) {
+		if(factoryPlugIns == null || factoryPlugIns.isEmpty())
+			throw new IllegalArgumentException("There has to be at least one LabelMakerFactory");
+		
+		for(LabelMakerFactory<?> factory : factoryPlugIns) {
+			allFactories.put(factory.getID(), factory);
+		}
+		
+		if(allFactories.containsKey(defaultFactoryID)) {
+			this.defaultFactoryID = defaultFactoryID;
+		}
+		else {
+			this.defaultFactoryID = allFactories.keySet().iterator().next(); // pick one at random
+		}
+	}
 	
-	private Map<AnnotationSet,LabelMakerFactory<?>> factories = new HashMap<>();
-	private Map<AnnotationSet, Map<LabelMakerFactory<?>, Object>> contexts = new HashMap<>();
 	
 	@Inject
 	public void registerForEvents(EventBus eventBus) {
@@ -51,6 +70,14 @@ public class LabelMakerManager {
 		AnnotationSet as = event.getAnnotationSet();
 		factories.remove(as);
 		contexts.remove(as);
+	}
+	
+	@Subscribe
+	public void handle(ModelEvents.NetworkViewSetDeleted event) {
+		for(AnnotationSet as : event.getNetworkViewSet().getAnnotationSets()) {
+			factories.remove(as);
+			contexts.remove(as);
+		}
 	}
 	
 	public void register(AnnotationSet as, LabelMakerFactory<?> factory, Object context) {
@@ -73,7 +100,7 @@ public class LabelMakerManager {
 	}
 	
 	public LabelMakerFactory<?> getDefaultFactory() {
-		return allFactories.get(defaultFactory);
+		return allFactories.get(defaultFactoryID);
 	}
 	
 	public LabelMakerFactory<?> getFactory(AnnotationSet as) {
@@ -81,6 +108,9 @@ public class LabelMakerManager {
 		return factory == null ? getDefaultFactory() : factory;
 	}
 	
+	public LabelMakerFactory<?> getFactory(String id) {
+		return allFactories.get(id);
+	}
 	
 	public Object getContext(AnnotationSet as, LabelMakerFactory<?> factory) {
 		Map<LabelMakerFactory<?>, Object> lmfc = contexts.get(as);
