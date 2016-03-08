@@ -15,7 +15,6 @@ import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.baderlab.autoannotate.internal.ui.render.DrawClusterTask;
 import org.baderlab.autoannotate.internal.ui.render.EraseClusterTask;
 import org.baderlab.autoannotate.internal.ui.render.RemoveAllAnnotationsTask;
-import org.baderlab.autoannotate.internal.ui.render.RemoveCurrentAnnotationsTask;
 import org.baderlab.autoannotate.internal.ui.render.SelectClusterTask;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.model.CyNetwork;
@@ -50,7 +49,6 @@ public class TestRenderer {
 		protected void configureTest() {
 			// Normally these tasks would not be singletons, need to do this to use verify()
 			bindSpy(RemoveAllAnnotationsTask.class).in(TestScope.SINGLETON);
-			bindSpy(RemoveCurrentAnnotationsTask.class).in(TestScope.SINGLETON);
 			bindSpy(DrawClusterTask.class).in(TestScope.SINGLETON);
 			bindSpy(EraseClusterTask.class).in(TestScope.SINGLETON);
 			bindSpy(SelectClusterTask.class).in(TestScope.SINGLETON);
@@ -118,8 +116,8 @@ public class TestRenderer {
  	
 	
 	@Ignore
-	public void testSelect(ModelManager modelManager, AnnotationRenderer renderer, RemoveCurrentAnnotationsTask removeTask, DrawClusterTask drawTask) {
-		resetTasks(removeTask, drawTask);
+	public void testSelect(ModelManager modelManager, AnnotationRenderer renderer, EraseClusterTask eraseTask, DrawClusterTask drawTask) throws Exception {
+		resetTasks(eraseTask, drawTask);
 		
 		NetworkViewSet nvs = modelManager.getActiveNetworkViewSet().get();
 		AnnotationSet as = nvs.getAnnotationSets().iterator().next();
@@ -127,25 +125,25 @@ public class TestRenderer {
 		// Verify that annotations are cleared when no annotation set is selected
 		nvs.select(null);
 		
-		InOrder inOrder = inOrder(removeTask, drawTask);
-		inOrder.verify(removeTask).run(any());
+		InOrder inOrder = inOrder(eraseTask, drawTask);
+		inOrder.verify(eraseTask).run(any());
 		inOrder.verify(drawTask, times(0)).run(any());
-		resetTasks(removeTask, drawTask);
+		resetTasks(eraseTask, drawTask);
 		
 		// Verify that 3 clusters were drawn.
 		nvs.select(as);
 		
 		// verify that removeTask was called first
-		inOrder = inOrder(removeTask, drawTask);
-		inOrder.verify(removeTask).run(any());
+		inOrder = inOrder(eraseTask, drawTask);
+		inOrder.verify(eraseTask).run(any());
 		inOrder.verify(drawTask, times(3)).run(any());
-		resetTasks(removeTask, drawTask);
+		resetTasks(eraseTask, drawTask);
 		
 		// Verify that annotations are cleared when no annotation set is selected
 		nvs.select(null);
 		
-		inOrder = inOrder(removeTask, drawTask);
-		inOrder.verify(removeTask).run(any());
+		inOrder = inOrder(eraseTask, drawTask);
+		inOrder.verify(eraseTask).run(any());
 		inOrder.verify(drawTask, times(0)).run(any());
 	}
 	

@@ -35,9 +35,9 @@ public class AnnotationRenderer {
 	
 	@Inject private Provider<DrawClusterTask> drawTaskProvider;
 	@Inject private Provider<EraseClusterTask> eraseTaskProvider;
-	@Inject private Provider<RemoveCurrentAnnotationsTask> removeCurrentTaskProvider;
 	@Inject private Provider<SelectClusterTask> selectTaskProvider;
 	
+	// MKTODO it would be much better to have a single map so that there is no chance of the keys being different
 	private Map<Cluster,TextAnnotation> textAnnotations = new HashMap<>();
 	private Map<Cluster,ShapeAnnotation> shapeAnnotations = new HashMap<>();
 	
@@ -53,11 +53,11 @@ public class AnnotationRenderer {
 		Optional<AnnotationSet> selected = event.getAnnotationSet();
 		
 		Set<Cluster> selectedClusters = selected.map(AnnotationSet::getClusters).orElse(Collections.emptySet());
-		Set<Cluster> existingClusters = getAllClusters();
 		
 		// This happens when the session has just been restored.
-		if(selectedClusters.equals(existingClusters))
+		if(!selectedClusters.isEmpty() && textAnnotations.keySet().containsAll(selectedClusters) && shapeAnnotations.keySet().containsAll(selectedClusters)) {
 			return;
+		}
 		
 		redrawAnnotations(event.getNetworkViewSet(), event.getAnnotationSet());
 	}
@@ -66,8 +66,9 @@ public class AnnotationRenderer {
 	public void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selected) {
 		TaskIterator tasks = new TaskIterator();
 		
-		RemoveCurrentAnnotationsTask removeTask = removeCurrentTaskProvider.get();
-		tasks.append(removeTask);
+		for(Cluster cluster : getClusters(networkViewSet)) {
+			tasks.append(eraseTaskProvider.get().setCluster(cluster));
+		}
 		
 		if(selected.isPresent()) {
 			for(Cluster cluster : selected.get().getClusters()) {
@@ -186,6 +187,22 @@ public class AnnotationRenderer {
 		syncTaskManager.execute(tasks);
 	}
 	
+	
+	Set<Cluster> getClusters(NetworkViewSet nvs) { 
+		Set<Cluster> clusters = new HashSet<Cluster>();
+		for(Cluster cluster : shapeAnnotations.keySet()) {
+			if(cluster.getParent().getParent().equals(nvs)) {
+				clusters.add(cluster);
+			}
+		}
+		// this is probably redundant
+		for(Cluster cluster : textAnnotations.keySet()) {
+			if(cluster.getParent().getParent().equals(nvs)) {
+				clusters.add(cluster);
+			}
+		}
+		return clusters;
+	}
 	
 	Set<Cluster> getAllClusters() {
 		Set<Cluster> clusters = new HashSet<Cluster>();
