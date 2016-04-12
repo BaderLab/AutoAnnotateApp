@@ -16,8 +16,8 @@ import javax.swing.SwingUtilities;
 
 import org.baderlab.autoannotate.internal.model.ModelEvents.ModelEvent;
 import org.cytoscape.application.CyApplicationManager;
-import org.cytoscape.application.events.SetSelectedNetworkViewsEvent;
-import org.cytoscape.application.events.SetSelectedNetworkViewsListener;
+import org.cytoscape.application.events.SetCurrentNetworkViewEvent;
+import org.cytoscape.application.events.SetCurrentNetworkViewListener;
 import org.cytoscape.group.CyGroup;
 import org.cytoscape.group.CyGroupManager;
 import org.cytoscape.group.events.GroupAboutToCollapseEvent;
@@ -48,7 +48,7 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class ModelManager implements CyDisposable,
-									 SetSelectedNetworkViewsListener, NetworkViewAboutToBeDestroyedListener, 
+									 SetCurrentNetworkViewListener, NetworkViewAboutToBeDestroyedListener, 
                                      ViewChangedListener, AboutToRemoveNodesListener, RowsSetListener, 
                                      GroupAboutToCollapseListener, GroupCollapsedListener {
 	
@@ -125,7 +125,7 @@ public class ModelManager implements CyDisposable,
 	
 	
 	@Override
-	public void handleEvent(SetSelectedNetworkViewsEvent e) {
+	public void handleEvent(SetCurrentNetworkViewEvent e) {
 		Optional<NetworkViewSet> nvs = getActiveNetworkViewSet();
 		postEvent(new ModelEvents.NetworkViewSetSelected(nvs));
 	}
