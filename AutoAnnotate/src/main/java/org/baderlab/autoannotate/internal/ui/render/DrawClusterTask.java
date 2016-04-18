@@ -106,9 +106,9 @@ public class DrawClusterTask extends AbstractTask {
 		arguments.put("y", String.valueOf(args.y));
 		arguments.put("zoom", String.valueOf(args.zoom));
 		arguments.put("canvas", "foreground");
+		
 		TextAnnotation textAnnotation = textFactory.createAnnotation(TextAnnotation.class, view, arguments);
-
-		if(textAnnotation != null && args.label != null){
+		if(textAnnotation != null && args.label != null) {
 			textAnnotation.setText(args.label);
 			textAnnotation.setFontSize(args.fontSize);
 			textAnnotation.setTextColor(DEFAULT_TEXT_COLOR);
@@ -230,15 +230,17 @@ public class DrawClusterTask extends AbstractTask {
 		arguments.put("shapeType", shapeType.toString());
 		
 		ShapeAnnotation shape = shapeFactory.createAnnotation(ShapeAnnotation.class, view, arguments);
-		shape.setSize(width*zoom, height*zoom);
-		shape.setBorderWidth(ellipseBorderWidth);
-		shape.setBorderColor(DEFAULT_BORDER_COLOR);
-		shape.setFillColor(DEFAULT_FILL_COLOR);
-		shape.setFillOpacity(ellipseOpacity);
-		
-		annotationRenderer.setShapeAnnotation(cluster, shape);
-		if(showEllipses) {
-			annotationManager.addAnnotation(shape);
+		if(shape != null) {
+			shape.setSize(width*zoom, height*zoom);
+			shape.setBorderWidth(ellipseBorderWidth);
+			shape.setBorderColor(DEFAULT_BORDER_COLOR);
+			shape.setFillColor(DEFAULT_FILL_COLOR);
+			shape.setFillOpacity(ellipseOpacity);
+			
+			annotationRenderer.setShapeAnnotation(cluster, shape);
+			if(showEllipses) {
+				annotationManager.addAnnotation(shape);
+			}
 		}
 	}
 	
