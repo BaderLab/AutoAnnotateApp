@@ -7,15 +7,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
+import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
+import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.model.io.CreationParameter;
 import org.baderlab.autoannotate.internal.util.ResultObserver;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
@@ -31,18 +35,16 @@ import com.google.inject.Provider;
 public class CreateAnnotationSetTask extends AbstractTask {
 
 	@Inject private Provider<RunClusterMakerTaskFactory> clusterMakerProvider;
-	@Inject private Provider<RunWordCloudTaskFactory> wordCloudProvider;
 	@Inject private Provider<CutoffTask> cutoffTaskProvider;
-	@Inject private Provider<LayoutClustersTaskFactory> layoutProvider;
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	@Inject private ModelManager modelManager;
 	
 	
-	private CreationParameters params;
+	private AnnotationSetTaskParamters params;
 	
-	public void setParameters(CreationParameters params) {
+	public void setParameters(AnnotationSetTaskParamters params) {
 		this.params = params;
 	}
 	
@@ -67,10 +69,6 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		if(clusters == null || clusters.isEmpty())
 			return;
 
-//		if(params.isLayoutClusters()) {
-//			layoutNodes(clusters, params.getNetworkView(), params.getClusterAlgorithm().getColumnName());
-//		}
-		
 		Object context = params.getLabelMakerContext();
 		LabelMakerFactory factory = params.getLabelMakerFactory();
 		LabelMaker labelMaker = factory.createLabelMaker(context);
@@ -90,6 +88,8 @@ public class CreateAnnotationSetTask extends AbstractTask {
 			builder.addCluster(nodes, label, false);
 		}
 		
+		processCreationParameters(builder, factory, labelMaker, params);
+		
 		AnnotationSet annotationSet = builder.build(); // fires ModelEvent.AnnotationSetAdded
 		
 		LabelMakerManager labelManager = labelManagerProvider.get();
@@ -99,6 +99,44 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	}
 	
 	
+	private void processCreationParameters(AnnotationSetBuilder builder, LabelMakerFactory labelMakerFactory, LabelMaker labelMaker, AnnotationSetTaskParamters params) {
+		// Note: The UI is kind of leaking here, since we are making Strings that will be displayed to the user
+		
+		// get cluster params from AutoAnnotate UI
+		if(params.isUseClusterMaker()) {
+			ClusterAlgorithm alg = params.getClusterAlgorithm();
+			builder.addCreationParam("Cluster Source", "clusterMaker2");
+			builder.addCreationParam("ClusterMaker Algorithm", alg.getDisplayName());
+			if(alg.isEdgeAttributeRequired()) {
+				builder.addCreationParam("Edge Attribute", params.getClusterMakerEdgeAttribute());
+			}
+		}
+		else {
+			builder.addCreationParam("Cluster Source", "existing column");
+			builder.addCreationParam("Column", params.getClusterDataColumn());
+		}
+		builder.addCreationParam(CreationParameter.separator());
+
+		
+		// get label params from AutoAnnotate UI
+		builder.addCreationParam("Label Maker", labelMakerFactory.getName());
+		Object context = params.getLabelMakerContext();
+		LabelMakerUI labelUI = labelMakerFactory.createUI(context);
+		Map<String,String> labelParams = labelUI.getParametersForDisplay(context);
+		List<String> keys = labelParams.keySet().stream().sorted().collect(Collectors.toList());
+		for(String k : keys) {
+			builder.addCreationParam(k, labelParams.get(k));
+		}
+		builder.addCreationParam(CreationParameter.separator());
+		
+		// get wordcloud params from WordCloud UI
+		for(CreationParameter cp : labelMaker.getCreationParameters()) {
+			builder.addCreationParam(cp);
+		}
+		builder.addCreationParam(CreationParameter.separator());
+	}
+
+
 	private boolean needClusterEdgeAttribute() {
 		return params.isUseClusterMaker() && params.getClusterAlgorithm().isEdgeAttributeRequired();
 	}

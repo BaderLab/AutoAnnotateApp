@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
 import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.labels.WordInfo;
+import org.baderlab.autoannotate.internal.model.io.CreationParameter;
+import org.baderlab.autoannotate.internal.task.WordCloudResults;
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
@@ -22,7 +25,7 @@ public class HeuristicLabelMaker implements LabelMaker {
 	private final HeuristicLabelOptions labelOptions;
 	private final WordCloudAdapter wordCloudAdapter;
 	
-	
+	private WordCloudResults wcResults;
 	
 	public HeuristicLabelMaker(WordCloudAdapter wordCloudAdapter, HeuristicLabelOptions labelOptions) {
 		this.labelOptions = labelOptions;
@@ -35,6 +38,11 @@ public class HeuristicLabelMaker implements LabelMaker {
 		return wordCloudAdapter.isWordcloudRequiredVersionInstalled();
 	}
 	
+	@Override
+	public List<CreationParameter> getCreationParameters() {
+		return wcResults.getCreationParams();
+	}
+	
 	/**
 	 * MKTODO this code makes no sense to me
 	 */
@@ -45,7 +53,8 @@ public class HeuristicLabelMaker implements LabelMaker {
 		
 		String weightAttribute = "";
 		
-		Collection<WordInfo> wordInfos = wordCloudAdapter.runWordCloud(nodes, network, labelColumn);
+		wcResults = wordCloudAdapter.runWordCloud(nodes, network, labelColumn);
+		Collection<WordInfo> wordInfos = wcResults.getWordInfos();
 		
 		// Work with a copy so as to not mess up the order for comparisons
 		ArrayList<WordInfo> wordInfosCopy = new ArrayList<>();

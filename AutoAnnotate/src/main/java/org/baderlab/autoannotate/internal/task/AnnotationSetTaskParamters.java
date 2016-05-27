@@ -4,7 +4,7 @@ import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.cytoscape.view.model.CyNetworkView;
 
-public class CreationParameters {
+public class AnnotationSetTaskParamters {
 
 	private final CyNetworkView networkView;
 	private final String labelColumn;
@@ -17,7 +17,7 @@ public class CreationParameters {
 	private final LabelMakerFactory<?> labelMakerFactory;
 	private final Object labelMakerContext;
 	
-	private CreationParameters(Builder builder) {
+	private AnnotationSetTaskParamters(Builder builder) {
 		this.networkView = builder.networkView;
 		this.labelColumn = builder.labelColumn;
 		this.useClusterMaker = builder.useClusterMaker;
@@ -37,7 +37,6 @@ public class CreationParameters {
 		private ClusterAlgorithm clusterMakerAlgorithm = ClusterAlgorithm.values()[0];
 		private String clusterMakerEdgeAttribute;
 		private String clusterDataColumn;
-//		private boolean layoutClusters = false;
 		private boolean createGroups = false;
 		private LabelMakerFactory<?> labelMakerFactory;
 		private Object labelMakerContext;
@@ -62,10 +61,6 @@ public class CreationParameters {
 			this.clusterDataColumn = clusterDataColumn;
 			return this;
 		}
-//		public Builder setLayoutClusters(boolean layoutClusters) {
-//			this.layoutClusters = layoutClusters;
-//			return this;
-//		}
 		public Builder setCreateGroups(boolean createGroups) {
 			this.createGroups = createGroups;
 			return this;
@@ -83,10 +78,11 @@ public class CreationParameters {
 			return this;
 		}
 		
-		public CreationParameters build() {
-			return new CreationParameters(this);
+		public AnnotationSetTaskParamters build() {
+			return new AnnotationSetTaskParamters(this);
 		}
 	}
+
 
 	public CyNetworkView getNetworkView() {
 		return networkView;
@@ -107,10 +103,6 @@ public class CreationParameters {
 	public String getClusterDataColumn() {
 		return clusterDataColumn;
 	}
-
-//	public boolean isLayoutClusters() {
-//		return layoutClusters;
-//	}
 
 	public boolean isCreateGroups() {
 		return createGroups;

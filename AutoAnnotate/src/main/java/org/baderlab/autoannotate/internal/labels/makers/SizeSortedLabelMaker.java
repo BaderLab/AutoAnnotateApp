@@ -2,11 +2,14 @@ package org.baderlab.autoannotate.internal.labels.makers;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
 import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.labels.WordInfo;
+import org.baderlab.autoannotate.internal.model.io.CreationParameter;
+import org.baderlab.autoannotate.internal.task.WordCloudResults;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 
@@ -14,6 +17,8 @@ public class SizeSortedLabelMaker implements LabelMaker {
 
 	private final SizeSortedOptions options;
 	private final WordCloudAdapter wordCloudAdapter;
+	
+	private WordCloudResults wcResults;
 	
 	public SizeSortedLabelMaker(WordCloudAdapter wordCloudAdapter, SizeSortedOptions options) {
 		this.options = options;
@@ -27,7 +32,8 @@ public class SizeSortedLabelMaker implements LabelMaker {
 	
 	@Override
 	public String makeLabel(CyNetwork network, Collection<CyNode> nodes, String labelColumn) {
-		Collection<WordInfo> wordInfos = wordCloudAdapter.runWordCloud(nodes, network, labelColumn);
+		wcResults = wordCloudAdapter.runWordCloud(nodes, network, labelColumn);
+		Collection<WordInfo> wordInfos = wcResults.getWordInfos();
 		
 		return
 			wordInfos
@@ -38,5 +44,9 @@ public class SizeSortedLabelMaker implements LabelMaker {
 			.collect(Collectors.joining(" "));
 	}
 
+	@Override
+	public List<CreationParameter> getCreationParameters() {
+		return wcResults.getCreationParams();
+	}
 
 }

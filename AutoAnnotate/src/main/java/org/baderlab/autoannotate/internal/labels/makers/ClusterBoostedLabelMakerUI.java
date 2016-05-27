@@ -1,6 +1,7 @@
 package org.baderlab.autoannotate.internal.labels.makers;
 
 import java.awt.GridBagLayout;
+import java.util.Map;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -10,6 +11,8 @@ import javax.swing.SpinnerNumberModel;
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
 import org.baderlab.autoannotate.internal.ui.GBCFactory;
 import org.cytoscape.util.swing.IconManager;
+
+import com.google.common.collect.ImmutableMap;
 
 public class ClusterBoostedLabelMakerUI implements LabelMakerUI<ClusterBoostedOptions> {
 
@@ -67,5 +70,14 @@ public class ClusterBoostedLabelMakerUI implements LabelMakerUI<ClusterBoostedOp
 		public int getMaxWords() {
 			return maxWordsModel.getNumber().intValue();
 		}
+	}
+
+
+	@Override
+	public Map<String, String> getParametersForDisplay(ClusterBoostedOptions context) {
+		return ImmutableMap.of(
+			"Max Words Per Label",  Integer.toString(context.getMaxWords()), 
+			"Word Adjacency Bonus", Integer.toString(context.getClusterBonus())
+		);
 	}
 }

@@ -35,7 +35,7 @@ public class RunWordCloudTaskFactory implements TaskFactory {
 //		this.clusters = theClusters;
 //	}
 	
-	public void setParameters(CreationParameters params) {
+	public void setParameters(AnnotationSetTaskParamters params) {
 		setParameters(params.getNetworkView().getModel(), params.getLabelColumn());
 	}
 	

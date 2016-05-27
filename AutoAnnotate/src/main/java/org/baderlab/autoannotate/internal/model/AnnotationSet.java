@@ -1,16 +1,21 @@
 package org.baderlab.autoannotate.internal.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.baderlab.autoannotate.internal.model.io.CreationParameter;
 import org.cytoscape.model.CyNode;
 
 public class AnnotationSet {
 
 	private final NetworkViewSet parent;
+	
+	private final List<CreationParameter> creationParameters;
 	
 	private String name;
 	private final DisplayOptions displayOptions;
@@ -26,6 +31,7 @@ public class AnnotationSet {
 		this.name = name;
 		this.labelColumn = labelColumn;
 		this.displayOptions = new DisplayOptions(this);
+		this.creationParameters = Collections.emptyList();
 	}
 	
 	/**
@@ -39,6 +45,7 @@ public class AnnotationSet {
 		this.labelColumn = builder.getLabelColumn();
 		
 		this.displayOptions = new DisplayOptions(this, builder);
+		this.creationParameters = new ArrayList<>(builder.getCreationParameters());
 		
 		for(AnnotationSetBuilder.ClusterBuilder cb : builder.getClusters()) {
 			Cluster cluster = new Cluster(this, cb.nodes, cb.label, cb.collapsed);
@@ -72,6 +79,10 @@ public class AnnotationSet {
 	
 	public DisplayOptions getDisplayOptions() {
 		return displayOptions;
+	}
+	
+	public List<CreationParameter> getCreationParameters() {
+		return Collections.unmodifiableList(creationParameters);
 	}
 	
 	public Set<Cluster> getClusters() {

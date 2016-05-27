@@ -1,19 +1,20 @@
 package org.baderlab.autoannotate.internal.task;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.baderlab.autoannotate.internal.labels.WordInfo;
+import org.baderlab.autoannotate.internal.model.io.CreationParameter;
 import org.cytoscape.work.FinishStatus;
 import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskObserver;
 
 public class RunWordCloudResultObserver implements TaskObserver {
 
-	private Map<String,Collection<WordInfo>> result = new HashMap<>();
+	private Map<String,List<WordInfo>> result = new HashMap<>();
+	private List<CreationParameter> params = new ArrayList<>();
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -33,8 +34,22 @@ public class RunWordCloudResultObserver implements TaskObserver {
 			WordInfo wordInfo = new WordInfo(words.get(i), fontSizes.get(i), clusters.get(i), numbers.get(i));
 			wordInfos.add(wordInfo);
 		}
+		
+		// additional parameters
+		addCp(results, "netWeightFactor", "Normalization Factor");
+		addCp(results, "attributeNames", "Attribute Names");
+		addCp(results, "displayStyle", "Display Style");
+		addCp(results, "maxWords", "Max Words per Cloud");
+		addCp(results, "clusterCutoff", "Cluster Cutoff");
+		addCp(results, "minWordOccurrence", "Min Word Occurrence");
 	}
 	
+	private void addCp(Map<String,?> results, String key, String display) {
+		Object x = results.get(key);
+		if(x != null) {
+			params.add(new CreationParameter(display, x.toString()));
+		}
+	}
 
 	@Override
 	public void allFinished(FinishStatus finishStatus) {
@@ -42,7 +57,11 @@ public class RunWordCloudResultObserver implements TaskObserver {
 
 	
 	
-	public Map<String,Collection<WordInfo>> getResults() {
+	public Map<String,List<WordInfo>> getResults() {
 		return result;
+	}
+	
+	public List<CreationParameter> getCreationParamters() {
+		return params;
 	}
 }

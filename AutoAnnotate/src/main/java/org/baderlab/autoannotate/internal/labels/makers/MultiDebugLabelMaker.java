@@ -2,9 +2,11 @@ package org.baderlab.autoannotate.internal.labels.makers;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
 import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
+import org.baderlab.autoannotate.internal.model.io.CreationParameter;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 
@@ -40,4 +42,8 @@ public class MultiDebugLabelMaker implements LabelMaker {
 		return l2;
 	}
 
+	@Override
+	public List<CreationParameter> getCreationParameters() {
+		return Collections.emptyList();
+	}
 }

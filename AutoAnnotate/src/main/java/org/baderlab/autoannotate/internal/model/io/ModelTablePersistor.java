@@ -1,5 +1,6 @@
 package org.baderlab.autoannotate.internal.model.io;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,6 +52,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -77,7 +80,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		SHOW_CLUSTERS = "showClusters",
 		SHAPE_TYPE = "shapeType",
 		LABEL_MAKER_ID = "labelMakerID",
-		LABEL_MAKER_CONTEXT = "labelMakerContext";
+		LABEL_MAKER_CONTEXT = "labelMakerContext",
+		CREATION_PARAMS = "creationParams";
 	
 	// Cluster properties
 	private static final String 
@@ -213,6 +217,19 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 					}
 				}
 			});
+			
+			String cpJson = asRow.get(CREATION_PARAMS, String.class);
+			if(cpJson != null) {
+				Gson gson = new Gson();
+				Type type = new TypeToken<List<CreationParameter>>(){}.getType();
+				try {
+					List<CreationParameter> creationParams = gson.fromJson(cpJson, type);
+					creationParams.forEach(builder::addCreationParam);
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+				}
+			}
+			
 			
 			Boolean active = asRow.get(ACTIVE, Boolean.class);
 			if(Boolean.TRUE.equals(active)) // null safe
@@ -368,6 +385,10 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				asRow.set(LABEL_MAKER_CONTEXT, serializedContext);
 			}
 			
+			Gson gson = new Gson();
+			String cpJson = gson.toJson(as.getCreationParameters());
+			asRow.set(CREATION_PARAMS, cpJson);
+			
 			for(Cluster cluster : as.getClusters()) {
 				CyRow clusterRow = clusterTable.getRow(ids.clusterId);
 				clusterRow.set(LABEL, cluster.getLabel());
@@ -407,6 +428,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, BORDER_WIDTH, Integer.class);
 		createColumn(table, LABEL_MAKER_ID, String.class);
 		createColumn(table, LABEL_MAKER_CONTEXT, String.class);
+		createColumn(table, CREATION_PARAMS, String.class);
 		return table;
 	}
 	

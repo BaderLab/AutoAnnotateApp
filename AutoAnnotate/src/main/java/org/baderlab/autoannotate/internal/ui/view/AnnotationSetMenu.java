@@ -15,6 +15,7 @@ import org.baderlab.autoannotate.internal.ui.view.action.LayoutClustersAction;
 import org.baderlab.autoannotate.internal.ui.view.action.RedrawAction;
 import org.baderlab.autoannotate.internal.ui.view.action.RelabelAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
+import org.baderlab.autoannotate.internal.ui.view.action.ShowCreationParamsAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowLabelOptionsDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowSettingsDialogAction;
 
@@ -33,6 +34,7 @@ public class AnnotationSetMenu {
 	@Inject private Provider<RelabelAction> relabelActionProvider;
 	@Inject private Provider<ShowSettingsDialogAction> showSettingsProvider;
 	@Inject private Provider<ShowLabelOptionsDialogAction> showLabelOptionsProvider;
+	@Inject private Provider<ShowCreationParamsAction> showCreationParamsProvider;
 	
 	
 	public void show(Optional<AnnotationSet> annotationSet, Component parent, int x, int y) {
@@ -46,6 +48,7 @@ public class AnnotationSetMenu {
 		Action relabelAction = relabelActionProvider.get();
 		Action settingsAction = showSettingsProvider.get();
 		Action showLabelOptionsAction = showLabelOptionsProvider.get();
+		Action showCreationParamsAction = showCreationParamsProvider.get();
 		
 		boolean enabled = annotationSet.isPresent();
 		renameAction.setEnabled(enabled);
@@ -56,6 +59,7 @@ public class AnnotationSetMenu {
 		redrawAction.setEnabled(enabled);
 		relabelAction.setEnabled(enabled);
 		showLabelOptionsAction.setEnabled(enabled);
+		showCreationParamsAction.setEnabled(enabled);
 		
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(createAction);
@@ -69,6 +73,7 @@ public class AnnotationSetMenu {
 		menu.add(redrawAction);
 		menu.add(relabelAction);
 		menu.add(showLabelOptionsAction);
+		menu.add(showCreationParamsAction);
 		menu.addSeparator();
 		menu.add(settingsAction);
 		

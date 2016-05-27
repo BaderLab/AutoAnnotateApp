@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import org.baderlab.autoannotate.internal.model.io.CreationParameter;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 
@@ -28,6 +29,7 @@ public class AnnotationSetBuilder {
 	private final String labelColumn;
 	
 	private final List<ClusterBuilder> clusters = new ArrayList<>();
+	private final List<CreationParameter> creationParameters = new ArrayList<>();
 	
 	private ShapeType shapeType = DisplayOptions.SHAPE_DEFAULT;
 	private boolean showClusters = DisplayOptions.SHOW_CLUSTERS_DEFAULT;
@@ -171,5 +173,16 @@ public class AnnotationSetBuilder {
 	public Optional<Consumer<AnnotationSet>> getCallback() {
 		return asCallback;
 	}
+
+	public List<CreationParameter> getCreationParameters() {
+		return creationParameters;
+	}
+
+	public void addCreationParam(CreationParameter creationParameter) {
+		this.creationParameters.add(creationParameter);
+	}
 	
+	public void addCreationParam(String displayName, String displayValue) {
+		addCreationParam(new CreationParameter(displayName, displayValue));
+	}
 }

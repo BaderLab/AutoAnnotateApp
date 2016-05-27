@@ -34,7 +34,7 @@ import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
-import org.baderlab.autoannotate.internal.task.CreationParameters;
+import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
 import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.GBCFactory;
 import org.baderlab.autoannotate.internal.util.TaskTools;
@@ -345,8 +345,8 @@ public class CreateAnnotationSetDialog extends JDialog {
 		LabelMakerFactory<?> labelMakerFactory = labelOptionsPanel.getLabelMakerFactory();
 		Object labelMakerContext = labelOptionsPanel.getLabelMakerContext();
 		
-		CreationParameters params = 
-			new CreationParameters.Builder(networkView)
+		AnnotationSetTaskParamters params = 
+			new AnnotationSetTaskParamters.Builder(networkView)
 			.setLabelColumn(labelOptionsPanel.getLabelColumn())
 			.setUseClusterMaker(useClusterMakerRadio.isSelected())
 			.setClusterAlgorithm((ClusterAlgorithm)algorithmNameCombo.getSelectedItem())

@@ -13,10 +13,10 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 	
 	@Inject private CommandExecutorTaskFactory commandTaskFactory;
 	
-	private CreationParameters params;
+	private AnnotationSetTaskParamters params;
 	private Double cutoff = null;
 	
-	public void setParameters(CreationParameters params) {
+	public void setParameters(AnnotationSetTaskParamters params) {
 		this.params = params;
 	}
 	

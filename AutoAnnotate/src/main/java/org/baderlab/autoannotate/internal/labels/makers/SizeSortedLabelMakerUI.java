@@ -1,11 +1,14 @@
 package org.baderlab.autoannotate.internal.labels.makers;
 
 import java.awt.BorderLayout;
+import java.util.Map;
 
 import javax.swing.JPanel;
 
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
 import org.baderlab.autoannotate.internal.ui.view.NumberSpinner;
+
+import com.google.common.collect.ImmutableMap;
 
 public class SizeSortedLabelMakerUI implements LabelMakerUI<SizeSortedOptions> {
 
@@ -25,6 +28,13 @@ public class SizeSortedLabelMakerUI implements LabelMakerUI<SizeSortedOptions> {
 	@Override
 	public SizeSortedOptions getContext() {
 		return new SizeSortedOptions(spinner.getValue());
+	}
+	
+	@Override
+	public Map<String, String> getParametersForDisplay(SizeSortedOptions context) {
+		return ImmutableMap.of(
+			"Max Words Per Label",  Integer.toString(context.getMaxWords())
+		);
 	}
 
 }

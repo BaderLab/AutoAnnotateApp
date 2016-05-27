@@ -3,10 +3,12 @@ package org.baderlab.autoannotate.internal.labels;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.baderlab.autoannotate.internal.task.RunWordCloudResultObserver;
 import org.baderlab.autoannotate.internal.task.RunWordCloudTaskFactory;
+import org.baderlab.autoannotate.internal.task.WordCloudResults;
 import org.cytoscape.command.AvailableCommands;
 import org.cytoscape.command.CommandExecutorTaskFactory;
 import org.cytoscape.model.CyNetwork;
@@ -73,7 +75,7 @@ public class WordCloudAdapter {
 	}
 	
 	
-	public Collection<WordInfo> runWordCloud(Collection<CyNode> cluster, CyNetwork network, String labelColumn) {
+	public WordCloudResults runWordCloud(Collection<CyNode> cluster, CyNetwork network, String labelColumn) {
 		RunWordCloudTaskFactory wordCloudTaskFactory = wordCloudProvider.get();
 		
 		Map<String,Collection<CyNode>> clusters = new HashMap<>();
@@ -85,7 +87,9 @@ public class WordCloudAdapter {
 		RunWordCloudResultObserver cloudResultObserver = new RunWordCloudResultObserver();
 		syncTaskManager.execute(wordCloudTaskFactory.createTaskIterator(cloudResultObserver));
 		
-		Collection<WordInfo> wordInfos = cloudResultObserver.getResults().get("myCluster");
-		return wordInfos == null ? Collections.emptyList() : wordInfos;
+		List<WordInfo> wordInfos = cloudResultObserver.getResults().get("myCluster");
+		wordInfos = wordInfos == null ? Collections.emptyList() : wordInfos;
+		
+		return new WordCloudResults(wordInfos, cloudResultObserver.getCreationParamters());
 	}
 }

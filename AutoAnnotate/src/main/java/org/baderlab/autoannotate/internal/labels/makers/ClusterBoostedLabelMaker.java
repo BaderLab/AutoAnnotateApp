@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
 import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.labels.WordInfo;
+import org.baderlab.autoannotate.internal.model.io.CreationParameter;
+import org.baderlab.autoannotate.internal.task.WordCloudResults;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 
@@ -20,6 +22,8 @@ public class ClusterBoostedLabelMaker implements LabelMaker {
 	
 	private final ClusterBoostedOptions options;
 	private final WordCloudAdapter wordCloudAdapter;
+	
+	private WordCloudResults wcResults;
 	
 	public ClusterBoostedLabelMaker(WordCloudAdapter wordCloudAdapter, ClusterBoostedOptions options) {
 		this.options = options;
@@ -41,7 +45,9 @@ public class ClusterBoostedLabelMaker implements LabelMaker {
 		int boost = options.getClusterBonus(); // fixed size, or function of cluster properties?
 		int maxWords = options.getMaxWords();	
 		
-		Collection<WordInfo> wordInfos = wordCloudAdapter.runWordCloud(nodes, network, labelColumn);
+		wcResults = wordCloudAdapter.runWordCloud(nodes, network, labelColumn);
+		Collection<WordInfo> wordInfos = wcResults.getWordInfos();
+		
 		if(wordInfos.size() <= maxWords) {
 			// no need to filter out words in this case, just sort and return
 			return wordInfos
@@ -85,6 +91,10 @@ public class ClusterBoostedLabelMaker implements LabelMaker {
 		return label;
 	}
 	
+	@Override
+	public List<CreationParameter> getCreationParameters() {
+		return wcResults.getCreationParams();
+	}
 
 	private static int numBoosts(List<WordInfoWrapper> topWords, WordInfoWrapper wi) {
 		if(topWords.contains(wi))
