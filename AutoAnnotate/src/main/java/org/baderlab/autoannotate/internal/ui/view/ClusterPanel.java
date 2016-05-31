@@ -1,9 +1,11 @@
 package org.baderlab.autoannotate.internal.ui.view;
 
-import static org.baderlab.autoannotate.internal.util.TaskTools.*;
+import static org.baderlab.autoannotate.internal.util.TaskTools.allFinishedObserver;
+import static org.baderlab.autoannotate.internal.util.TaskTools.taskOf;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -13,12 +15,14 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -173,9 +177,11 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		
 		JPanel comboPanel = createComboPanel();
 		JPanel tablePanel = createTablePanel();
+		JPanel infoPanel  = createInfoPanel();
 		
 		add(comboPanel, BorderLayout.NORTH);
 		add(tablePanel, BorderLayout.CENTER);
+		add(infoPanel,  BorderLayout.SOUTH);
 	}
 
 	
@@ -342,6 +348,41 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		return panel;
 	}
 
+	
+	private JPanel createInfoPanel() {
+		JPanel panel = new JPanel(new BorderLayout());
+		
+		JLabel infoLabel = new JLabel();
+		Font font = infoLabel.getFont();
+		Font smaller = font.deriveFont(((float)font.getSize()) - 2.0f);
+		infoLabel.setFont(smaller);
+		
+		BiConsumer<Integer,Integer> updator = (clusters, selected) -> {
+			if(clusters == 1)
+				infoLabel.setText(clusters + " cluster, " + selected + " selected");
+			else
+				infoLabel.setText(clusters + " clusters, " + selected + " selected");
+		};
+		
+		clusterTable.getSelectionModel().addListSelectionListener(evt -> {
+			int clusters = clusterTable.getRowCount();
+			int selected = clusterTable.getSelectedRowCount();
+			updator.accept(clusters, selected);
+		});
+		
+		// Can't use a TableModelListener because I swap out the ClusterTableModel whenever the AnnotationSet changes.
+		clusterTable.addPropertyChangeListener("model", evt -> {
+			ClusterTableModel model = (ClusterTableModel)evt.getNewValue();
+			int clusters = model.getRowCount();
+			int selected = clusterTable.getSelectedRowCount(); // is this always zero?
+			updator.accept(clusters, selected);
+		});
+		
+		panel.add(infoLabel, BorderLayout.WEST);
+		return panel;
+	}
+	
+	
 	
 	private List<Cluster> getSelectedClusters() {
 		ClusterTableModel model = (ClusterTableModel) clusterTable.getModel();
