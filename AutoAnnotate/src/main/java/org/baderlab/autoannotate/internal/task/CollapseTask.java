@@ -1,5 +1,8 @@
 package org.baderlab.autoannotate.internal.task;
 
+import static org.baderlab.autoannotate.internal.model.SafeRunner.EventType.SELECTION;
+import static org.baderlab.autoannotate.internal.model.SafeRunner.EventType.VIEW_CHANGE;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,7 +69,7 @@ public class CollapseTask extends AbstractTask {
 	
 	private void collapse() {
 		if(!cluster.isCollapsed()) {
-			modelManager.ignoreViewChangeWhile(() -> {
+			modelManager.ignore(VIEW_CHANGE, SELECTION).whileRunning(() -> {
 				CyNetwork network = cluster.getNetwork();
 				List<CyNode> nodes = new ArrayList<>(cluster.getNodes());
 				
@@ -100,7 +103,7 @@ public class CollapseTask extends AbstractTask {
 	
 	private void expand() {
 		if(cluster.isCollapsed()) {
-			modelManager.ignoreViewChangeWhile(() -> {
+			modelManager.ignore(VIEW_CHANGE, SELECTION).whileRunning(() -> {
 				CyNode groupNode = cluster.getNodes().iterator().next();
 				CyGroup group = groupManager.getGroup(groupNode, cluster.getNetwork());
 				group.expand(cluster.getNetwork());

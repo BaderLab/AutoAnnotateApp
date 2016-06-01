@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 import javax.swing.SwingUtilities;
 
 import org.baderlab.autoannotate.internal.model.ModelEvents.ModelEvent;
+import org.baderlab.autoannotate.internal.model.SafeRunner.EventType;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.events.SetCurrentNetworkViewEvent;
 import org.cytoscape.application.events.SetCurrentNetworkViewListener;
@@ -59,6 +60,7 @@ public class ModelManager implements CyDisposable,
 	private ExecutorService asyncEventService;
 	private Map<CyNetworkView, NetworkViewSet> networkViews = new HashMap<>();
 	
+	private final SafeRunnerImpl safeRunner = new SafeRunnerImpl();
 	
 	public ModelManager() {
 		asyncEventService = Executors.newSingleThreadExecutor();
@@ -69,6 +71,14 @@ public class ModelManager implements CyDisposable,
 		asyncEventService.shutdown();
 	}
 	
+	/**
+	 * Returns an instance of SafeRunner that can run code while telling the ModelManager
+	 * to ignore certain types of Cytoscape events.
+	 * @see EventType
+	 */
+	public SafeRunner ignore(EventType ... eventTypes) {
+		return safeRunner.new SafeRunnerIgnore(eventTypes);
+	}
 	
 	public NetworkViewSet getNetworkViewSet(CyNetworkView networkView) {
 		if(networkView == null)
@@ -139,22 +149,6 @@ public class ModelManager implements CyDisposable,
 			postEvent(new ModelEvents.NetworkViewSetDeleted(networkViewSet));
 		}
 	}
-
-	
-	private volatile int ignoreViewChangeEventsCounter = 0;
-	
-	/**
-	 * Invokes the code inside the runnable and ignores any
-	 * ViewChangeEvents that are fired while the code is running.
-	 */
-	public void ignoreViewChangeWhile(Runnable runnable) {
-		ignoreViewChangeEventsCounter++;
-		try {
-			runnable.run();
-		} finally {
-			ignoreViewChangeEventsCounter--;
-		}
-	}
 	
 	/**
 	 * Handle nodes being moved around.
@@ -162,8 +156,9 @@ public class ModelManager implements CyDisposable,
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void handleEvent(ViewChangedEvent<?> e) {
-		if(ignoreViewChangeEventsCounter > 0)
+		if(safeRunner.shouldIgnore(EventType.VIEW_CHANGE)) {
 			return;
+		}
 		
 		CyNetworkView networkView = e.getSource();
 		Optional<NetworkViewSet> optional = getActiveNetworkViewSet();
@@ -220,6 +215,9 @@ public class ModelManager implements CyDisposable,
 	
 	@Override
 	public void handleEvent(RowsSetEvent e) {
+		if(safeRunner.shouldIgnore(EventType.SELECTION)) {
+			return;
+		}
 		if(!e.containsColumn(CyNetwork.SELECTED))
 			return;
 		
