@@ -48,7 +48,7 @@ class SafeRunnerImpl {
 	
 	boolean shouldIgnore(EventType eventType) {
 		synchronized(counters) {
-			return counters.getOrDefault(eventType, 0) >= 0;
+			return counters.getOrDefault(eventType, 0) > 0;
 		}
 	}
 	
