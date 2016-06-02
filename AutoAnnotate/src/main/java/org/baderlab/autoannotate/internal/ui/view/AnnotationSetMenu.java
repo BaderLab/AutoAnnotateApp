@@ -18,6 +18,7 @@ import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreationParamsAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowLabelOptionsDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowSettingsDialogAction;
+import org.baderlab.autoannotate.internal.ui.view.action.SummaryNetworkAction;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -29,6 +30,7 @@ public class AnnotationSetMenu {
 	@Inject private Provider<AnnotationSetDeleteAction> deleteActionProvider;
 	@Inject private Provider<AnnotationSetRenameAction> renameActionProvider;
 	@Inject private Provider<CollapseAction> collapseActionProvider;
+	@Inject private Provider<SummaryNetworkAction> summaryActionProvider;
 	@Inject private Provider<RedrawAction> redrawActionProvider;
 	@Inject private Provider<LayoutClustersAction> layoutActionProvider;
 	@Inject private Provider<RelabelAction> relabelActionProvider;
@@ -43,6 +45,7 @@ public class AnnotationSetMenu {
 		Action deleteAction = deleteActionProvider.get();
 		Action collapseAction = collapseActionProvider.get().setAction(Grouping.COLLAPSE);
 		Action expandAction = collapseActionProvider.get().setAction(Grouping.EXPAND);
+		Action summaryAction = summaryActionProvider.get();
 		Action layoutAction = layoutActionProvider.get();
 		Action redrawAction = redrawActionProvider.get();
 		Action relabelAction = relabelActionProvider.get();
@@ -55,6 +58,7 @@ public class AnnotationSetMenu {
 		deleteAction.setEnabled(enabled);
 		collapseAction.setEnabled(enabled);
 		expandAction.setEnabled(enabled);
+		summaryAction.setEnabled(enabled);
 		layoutAction.setEnabled(enabled);
 		redrawAction.setEnabled(enabled);
 		relabelAction.setEnabled(enabled);
@@ -68,6 +72,7 @@ public class AnnotationSetMenu {
 		menu.addSeparator();
 		menu.add(collapseAction);
 		menu.add(expandAction);
+		menu.add(summaryAction);
 		menu.addSeparator();
 		menu.add(layoutAction);
 		menu.add(redrawAction);

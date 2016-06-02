@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import org.baderlab.autoannotate.internal.ui.view.action.SummaryNetworkAction;
 import org.cytoscape.property.CyProperty;
 
 import com.google.inject.AbstractModule;
@@ -55,6 +56,8 @@ public class WarnDialogModule extends AbstractModule {
 	@Provides @Collapse
 	public WarnDialog warnCollapse(CyProperty<Properties> cyProperty) {
 		return new WarnDialog(cyProperty, CY_PROPERTY_WARN_COLLAPSE,
+			"Warning: Collapsing clusters can be slow for large networks. "
+			+ "Please try using the '" + SummaryNetworkAction.TITLE + "' command instead.",
 			"Before collapsing clusters please go to the menu 'Edit > Preferences > Group Preferences...' and "
 			+ "select 'Enable attribute aggregation'."
 		);

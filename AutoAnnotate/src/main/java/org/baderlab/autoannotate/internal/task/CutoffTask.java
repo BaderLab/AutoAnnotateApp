@@ -14,7 +14,7 @@ import com.google.inject.Inject;
 /**
  * The cluster command needs to be given a value for the edgeCutOff parameter
  * or else the cluster results can be non-deterministic. We compute the minimum
- * value in a column range for edgeCutOFf.
+ * value in a column range for edgeCutOff.
  * 
  * (Because clusterMaker uses a boundedDouble for edgeCutOff that lives in memory
  * so running the cluster command can have the side-effect of changing the value
