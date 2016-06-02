@@ -23,14 +23,12 @@ public class WarnDialogModule extends AbstractModule {
 		CY_PROPERTY_WARN_CREATE    = "warnDialog.dontShowAgain.create",
 		CY_PROPERTY_WARN_COLLAPSE  = "warnDialog.dontShowAgain.collapse",
 		CY_PROPERTY_WARN_LAYOUT    = "warnDialog.dontShowAgain.layout",
-		CY_PROPERTY_WARN_LABEL     = "warnDialog.dontShowAgain.label",
-		CY_PROPERTY_WARN_MAX_WORDS = "warnDialog.dontShowAgain.maxWords";
+		CY_PROPERTY_WARN_LABEL     = "warnDialog.dontShowAgain.label";
 
 	@BindingAnnotation @Retention(RUNTIME) public @interface Create {}
 	@BindingAnnotation @Retention(RUNTIME) public @interface Collapse {}
 	@BindingAnnotation @Retention(RUNTIME) public @interface Layout {}
 	@BindingAnnotation @Retention(RUNTIME) public @interface Label {}
-	@BindingAnnotation @Retention(RUNTIME) public @interface MaxWords {}
 	
 	@Override
 	protected void configure() { }
@@ -40,8 +38,7 @@ public class WarnDialogModule extends AbstractModule {
 			CY_PROPERTY_WARN_COLLAPSE, 
 			CY_PROPERTY_WARN_CREATE, 
 			CY_PROPERTY_WARN_LABEL, 
-			CY_PROPERTY_WARN_LAYOUT,
-			CY_PROPERTY_WARN_MAX_WORDS
+			CY_PROPERTY_WARN_LAYOUT
 		); 
 	}
 	
@@ -56,7 +53,7 @@ public class WarnDialogModule extends AbstractModule {
 	@Provides @Collapse
 	public WarnDialog warnCollapse(CyProperty<Properties> cyProperty) {
 		return new WarnDialog(cyProperty, CY_PROPERTY_WARN_COLLAPSE,
-			"Warning: Collapsing clusters can be slow for large networks. "
+			"Warning: Collapsing or expanding clusters can be slow for large networks. "
 			+ "Please try using the '" + SummaryNetworkAction.TITLE + "' command instead.",
 			"Before collapsing clusters please go to the menu 'Edit > Preferences > Group Preferences...' and "
 			+ "select 'Enable attribute aggregation'."
@@ -65,24 +62,19 @@ public class WarnDialogModule extends AbstractModule {
 	
 	@Provides @Layout
 	public WarnDialog warnLayout(CyProperty<Properties> cyProperty) {
-		return new WarnDialog(cyProperty, CY_PROPERTY_WARN_LAYOUT, 
+		WarnDialog warnDialog =  new WarnDialog(cyProperty, CY_PROPERTY_WARN_LAYOUT, 
 			"Layout clusters cannot be undone."
 		);
+		warnDialog.setAskToContinue(true);
+		return warnDialog;
 	}
 	
 	@Provides @Label
 	public WarnDialog warnLabel(CyProperty<Properties> cyProperty) {
-		return new WarnDialog(cyProperty, CY_PROPERTY_WARN_LABEL, 
+		WarnDialog warnDialog = new WarnDialog(cyProperty, CY_PROPERTY_WARN_LABEL, 
 			"Recalculating labels for selected clusters cannot be undone."
 		);
-	}
-	
-	@Provides @MaxWords
-	public WarnDialog warnMaxWords(CyProperty<Properties> cyProperty) {
-		WarnDialog warnDialog = new WarnDialog(cyProperty, CY_PROPERTY_WARN_MAX_WORDS, 
-			"For setting to take effect please select \"Recalculate Labels\" from the AutoAnnotate panel menu."
-		);
-		warnDialog.setAskToContinue(false);
+		warnDialog.setAskToContinue(true);
 		return warnDialog;
 	}
 	

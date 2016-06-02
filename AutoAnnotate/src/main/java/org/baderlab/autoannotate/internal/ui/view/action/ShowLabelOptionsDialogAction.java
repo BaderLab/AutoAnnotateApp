@@ -26,6 +26,8 @@ public class ShowLabelOptionsDialogAction extends AbstractCyAction {
 	@Inject private LabelMakerManager labelManager;
 	@Inject private Provider<JFrame> jFrameProvider;
 	@Inject private LabelOptionsPanel.Factory labelOptionsPanelFactory;
+	@Inject private Provider<RelabelAction> relabelActionProvider;
+	
 	
 	
 	public ShowLabelOptionsDialogAction() {
@@ -37,20 +39,47 @@ public class ShowLabelOptionsDialogAction extends AbstractCyAction {
 		Optional<AnnotationSet> aso = modelManager.getActiveNetworkViewSet().flatMap(NetworkViewSet::getActiveAnnotationSet);
 		if(aso.isPresent()) {
 			AnnotationSet annotationSet = aso.get();
-			CyNetwork network = annotationSet.getParent().getNetwork();
-			LabelOptionsPanel panel = labelOptionsPanelFactory.create(network, false, false, annotationSet);
 			
-			String title = BuildProperties.APP_NAME + ": Label Options";
-			JFrame jframe = jFrameProvider.get();
-			
-			int result = JOptionPane.showConfirmDialog(jframe, panel, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
-			if(result == JOptionPane.CANCEL_OPTION || result == JOptionPane.NO_OPTION)
-				return;
-			
-			LabelMakerFactory<?> factory = panel.getLabelMakerFactory();
-			Object context = panel.getLabelMakerContext();
-			
-			labelManager.register(annotationSet, factory, context);
+			boolean updated = showLabelOptionsDialog(annotationSet);
+			if(updated) {
+				promptToRedrawAnnotations(annotationSet);
+			}
+		}
+	}
+	
+	
+	private boolean showLabelOptionsDialog(AnnotationSet annotationSet) {
+		CyNetwork network = annotationSet.getParent().getNetwork();
+		LabelOptionsPanel panel = labelOptionsPanelFactory.create(network, false, false, annotationSet);
+		
+		String title = BuildProperties.APP_NAME + ": Label Options";
+		JFrame jframe = jFrameProvider.get();
+		
+		int result = JOptionPane.showConfirmDialog(jframe, panel, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
+		if(result == JOptionPane.CANCEL_OPTION || result == JOptionPane.NO_OPTION)
+			return false;
+		
+		LabelMakerFactory<?> factory = panel.getLabelMakerFactory();
+		Object context = panel.getLabelMakerContext();
+		
+		labelManager.register(annotationSet, factory, context);
+		return true;
+	}
+	
+	
+	private void promptToRedrawAnnotations(AnnotationSet annotationSet) {
+		JFrame jframe = jFrameProvider.get();
+		
+		int result = JOptionPane.showConfirmDialog(
+									jframe, 
+									"Labels must be recalculated for label options to take effect.\nRecalculate all labels now?", 
+									"Recalculate Labels", 
+									JOptionPane.YES_NO_OPTION);
+		
+		if(result == JOptionPane.OK_OPTION) {
+			RelabelAction relabelAction = relabelActionProvider.get();
+			relabelAction.setWarnUser(false); // we have already warned the user
+			relabelAction.actionPerformed(null);
 		}
 	}
 
