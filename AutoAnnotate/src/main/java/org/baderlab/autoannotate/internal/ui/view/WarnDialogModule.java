@@ -23,12 +23,14 @@ public class WarnDialogModule extends AbstractModule {
 		CY_PROPERTY_WARN_CREATE    = "warnDialog.dontShowAgain.create",
 		CY_PROPERTY_WARN_COLLAPSE  = "warnDialog.dontShowAgain.collapse",
 		CY_PROPERTY_WARN_LAYOUT    = "warnDialog.dontShowAgain.layout",
-		CY_PROPERTY_WARN_LABEL     = "warnDialog.dontShowAgain.label";
+		CY_PROPERTY_WARN_LABEL     = "warnDialog.dontShowAgain.label",
+		CY_PROPERTY_WARN_SUMMARY   = "warnDialog.dontShowAgain.summary";
 
 	@BindingAnnotation @Retention(RUNTIME) public @interface Create {}
 	@BindingAnnotation @Retention(RUNTIME) public @interface Collapse {}
 	@BindingAnnotation @Retention(RUNTIME) public @interface Layout {}
 	@BindingAnnotation @Retention(RUNTIME) public @interface Label {}
+	@BindingAnnotation @Retention(RUNTIME) public @interface Summary {}
 	
 	@Override
 	protected void configure() { }
@@ -38,7 +40,8 @@ public class WarnDialogModule extends AbstractModule {
 			CY_PROPERTY_WARN_COLLAPSE, 
 			CY_PROPERTY_WARN_CREATE, 
 			CY_PROPERTY_WARN_LABEL, 
-			CY_PROPERTY_WARN_LAYOUT
+			CY_PROPERTY_WARN_LAYOUT,
+			CY_PROPERTY_WARN_SUMMARY
 		); 
 	}
 	
@@ -52,12 +55,14 @@ public class WarnDialogModule extends AbstractModule {
 	
 	@Provides @Collapse
 	public WarnDialog warnCollapse(CyProperty<Properties> cyProperty) {
-		return new WarnDialog(cyProperty, CY_PROPERTY_WARN_COLLAPSE,
+		WarnDialog warnDialog = new WarnDialog(cyProperty, CY_PROPERTY_WARN_COLLAPSE,
 			"Warning: Collapsing or expanding clusters can be slow for large networks. "
 			+ "Please try using the '" + SummaryNetworkAction.TITLE + "' command instead.",
 			"Before collapsing clusters please go to the menu 'Edit > Preferences > Group Preferences...' and "
 			+ "select 'Enable attribute aggregation'."
 		);
+		warnDialog.setAskToContinue(true);
+		return warnDialog;
 	}
 	
 	@Provides @Layout
@@ -77,5 +82,15 @@ public class WarnDialogModule extends AbstractModule {
 		warnDialog.setAskToContinue(true);
 		return warnDialog;
 	}
+	
+	@Provides @Summary
+	public WarnDialog warnSummary(CyProperty<Properties> cyProperty) {
+		WarnDialog warnDialog = new WarnDialog(cyProperty, CY_PROPERTY_WARN_SUMMARY, 
+			"Column values in summary network are aggregated using the Group aggregation settings.",
+		    "To Edit the Group aggregation settings go to the menu 'Edit > Preferences > Group Preferences...'"
+		);
+		return warnDialog;
+	}
+	
 	
 }

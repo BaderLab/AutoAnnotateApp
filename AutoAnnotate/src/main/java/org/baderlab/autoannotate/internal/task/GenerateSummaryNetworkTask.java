@@ -1,20 +1,29 @@
 package org.baderlab.autoannotate.internal.task;
 
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
-import org.baderlab.autoannotate.internal.model.CoordinateData;
+import org.baderlab.autoannotate.internal.ui.view.action.SummaryNetworkAction;
+import org.cytoscape.group.CyGroup;
+import org.cytoscape.group.CyGroupSettingsManager;
+import org.cytoscape.group.data.Aggregator;
+import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyEdge.Type;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewFactory;
@@ -25,6 +34,8 @@ import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.view.vizmap.VisualStyle;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -38,6 +49,8 @@ public class GenerateSummaryNetworkTask extends AbstractTask {
 	@Inject private CyNetworkViewManager networkViewManager;
 	@Inject private VisualMappingManager visualMappingManager;
 	
+	@Inject private CyGroupSettingsManager groupSettingsManager;
+	
 	private AnnotationSet annotationSet;
 	
 	
@@ -49,12 +62,11 @@ public class GenerateSummaryNetworkTask extends AbstractTask {
 	
 	/**
 	 * An undirected edge.
-	 * The trick of this class is in its hashcode and equals methods
-	 * which ignore edge direction.
+	 * The trick of this class is in its hashcode() and equals() methods which ignore edge direction.
 	 */
 	private class MetaEdge {
-		Cluster source;
-		Cluster target;
+		final Cluster source;
+		final Cluster target;
 		
 		MetaEdge(Cluster source, Cluster target) {
 			this.source = source;
@@ -69,24 +81,104 @@ public class GenerateSummaryNetworkTask extends AbstractTask {
 		@Override
 		public boolean equals(Object obj) {
 			MetaEdge e2 = (MetaEdge) obj;
+			// ignore edge direction
 			return (source == e2.source && target == e2.target)
 			    || (source == e2.target && target == e2.source);
 		}
 	}
 	
 	
+	/**
+	 * Represents a summary CyNetwork where each node corresponds to a Cluster in the origin network.
+	 */
+	private class SummaryNetwork {
+		final CyNetwork network;
+		// One-to-one mapping between Clusters in the origin network and CyNodes in the summary network.
+		private final BiMap<Cluster,CyNode> clusterToSummaryNetworkNode;
+		
+		SummaryNetwork() {
+			this.network = networkFactory.createNetwork();
+			this.clusterToSummaryNetworkNode = HashBiMap.create();
+		}
+		
+		void addNode(Cluster cluster) {
+			CyNode node = network.addNode();
+			clusterToSummaryNetworkNode.put(cluster, node);
+		}
+		
+		void addEdge(MetaEdge metaEdge) {
+			CyNode source = clusterToSummaryNetworkNode.get(metaEdge.source);
+			CyNode target = clusterToSummaryNetworkNode.get(metaEdge.target);
+			network.addEdge(source, target, false);
+		}
+		
+		CyNode getNodeFor(Cluster cluster) {
+			return clusterToSummaryNetworkNode.get(cluster);
+		}
+		
+		Cluster getClusterFor(CyNode node) {
+			return clusterToSummaryNetworkNode.inverse().get(node);
+		}
+		
+		Collection<Cluster> getClusters() {
+			return clusterToSummaryNetworkNode.keySet();
+		}
+	}
+	
+	
+	
+	
+	/**
+	 * This is fast because no events are fired while the summary network is being built. 
+	 * The summary network and view are registered at the end.
+	 */
 	@Override
-	public void run(TaskMonitor taskMonitor) throws Exception {
-		Set<Cluster> clusters = annotationSet.getClusters();
-		CyNetwork network = annotationSet.getParent().getNetwork();
+	public void run(TaskMonitor taskMonitor) {
+		taskMonitor.setTitle(BuildProperties.APP_NAME);
+		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE);
 		
-		Map<CyNode,Cluster> nodeToCluster = createNodeToClusterIndex(clusters);
+		Set<Cluster> clusters   = annotationSet.getClusters();
+		CyNetwork originNetwork = annotationSet.getParent().getNetwork();
 		
-		// find meta edges
+		// create summary network
+		SummaryNetwork summaryNetwork = createSummaryNetwork(originNetwork, clusters);
+		
+		// create summary network view
+		CyNetworkView summaryNetworkView = createNetworkView(summaryNetwork);
+		
+		// apply visual style
+		VisualStyle vs = visualMappingManager.getVisualStyle(annotationSet.getParent().getNetworkView());
+		visualMappingManager.setVisualStyle(vs, summaryNetworkView);
+		
+		// register
+		networkManager.addNetwork(summaryNetwork.network);
+		networkViewManager.addNetworkView(summaryNetworkView);
+		summaryNetworkView.fitContent();
+	}
+	
+	
+	
+	private SummaryNetwork createSummaryNetwork(CyNetwork originNetwork, Collection<Cluster> clusters) {
+		Set<MetaEdge> metaEdges = findMetaEdges(originNetwork, clusters);
+		SummaryNetwork summaryNetwork = new SummaryNetwork();
+		clusters.forEach(summaryNetwork::addNode);
+		metaEdges.forEach(summaryNetwork::addEdge);
+		aggregateAttributes(originNetwork, summaryNetwork);
+		return summaryNetwork;
+	}
+	
+	
+	private Set<MetaEdge> findMetaEdges(CyNetwork originNetwork, Collection<Cluster> clusters) {
+		Map<CyNode, Cluster> nodeToCluster = new HashMap<>();
+		for(Cluster cluster : clusters) {
+			for(CyNode node : cluster.getNodes()) {
+				nodeToCluster.put(node, cluster);
+			}
+		}
+		
 		Set<MetaEdge> metaEdges = new HashSet<>();
-
 		for(Cluster sourceCluster : clusters) {
-			Set<CyNode> targets = getAllTargets(network, sourceCluster);
+			Set<CyNode> targets = getAllTargets(originNetwork, sourceCluster);
 			for(CyNode target : targets) {
 				Cluster targetCluster = nodeToCluster.get(target);
 				if(targetCluster != null) {
@@ -94,74 +186,14 @@ public class GenerateSummaryNetworkTask extends AbstractTask {
 				}
 			}
 		}
-		
-		CyNetwork summaryNetwork = networkFactory.createNetwork();
-		
-		BiMap<Cluster,CyNode> summaryNetworkNodes = HashBiMap.create(clusters.size());
-		
-		CyTable table = summaryNetwork.getDefaultNodeTable();
-		table.createColumn("cluster node count", Integer.class, false);
-		
-		// create nodes in summary network
-		for(Cluster cluster : clusters) {
-			CyNode node = summaryNetwork.addNode();
-			summaryNetworkNodes.put(cluster, node);
-			Long suid = node.getSUID();
-			
-			table.getRow(suid).set("name", cluster.getLabel());
-			table.getRow(suid).set("cluster node count", cluster.getNodeCount());
-		}
-		
-		// create edges in summary network
-		for(MetaEdge metaEdge : metaEdges) {
-			CyNode source = summaryNetworkNodes.get(metaEdge.source);
-			CyNode target = summaryNetworkNodes.get(metaEdge.target);
-			summaryNetwork.addEdge(source, target, false);
-		}
-		
-		networkManager.addNetwork(summaryNetwork);
-		
-		// create the view
-		
-		CyNetworkView networkView = networkViewFactory.createNetworkView(summaryNetwork);
-		
-		for(View<CyNode> nodeView : networkView.getNodeViews()) {
-			CyNode node = nodeView.getModel();
-			Cluster cluster = summaryNetworkNodes.inverse().get(node);
-			CoordinateData coordinateData = cluster.getCoordinateData();
-			double x = coordinateData.getCenterX();
-			double y = coordinateData.getCenterY();
-			
-			nodeView.setVisualProperty(BasicVisualLexicon.NODE_X_LOCATION, x);
-			nodeView.setVisualProperty(BasicVisualLexicon.NODE_Y_LOCATION, y);
-		}
-		
-		
-//		VisualStyle vs = visualMappingManager.getVisualStyle(annotationSet.getParent().getNetworkView());
-//		visualMappingManager.setVisualStyle(vs, networkView);
-		
-		VisualStyle vs = visualMappingManager.getDefaultVisualStyle();
-		visualMappingManager.setVisualStyle(vs, networkView);
-		
-		networkViewManager.addNetworkView(networkView);
-		networkView.fitContent();
+		return metaEdges;
 	}
 	
-	
-	private Map<CyNode,Cluster> createNodeToClusterIndex(Collection<Cluster> clusters) {
-		Map<CyNode, Cluster> index = new HashMap<>();
-		for(Cluster cluster : clusters) {
-			for(CyNode node : cluster.getNodes()) {
-				index.put(node, cluster);
-			}
-		}
-		return index;
-	}
-
-	
+	/**
+	 * Returns all nodes outside the cluster that are connected to a node in the cluster.
+	 */
 	private Set<CyNode> getAllTargets(CyNetwork network, Cluster c) {
 		Set<CyNode> targets = new HashSet<>();
-		
 		Set<CyNode> nodes = c.getNodes();
 		for(CyNode node : nodes) {
 			for(CyEdge edge : network.getAdjacentEdgeIterable(node, Type.ANY)) {
@@ -179,4 +211,101 @@ public class GenerateSummaryNetworkTask extends AbstractTask {
 		return targets;
 	}
 	
+	
+	
+	private CyNetworkView createNetworkView(SummaryNetwork summaryNetwork) {
+		CyNetworkView networkView = networkViewFactory.createNetworkView(summaryNetwork.network);
+		for(View<CyNode> nodeView : networkView.getNodeViews()) {
+			Cluster cluster = summaryNetwork.getClusterFor(nodeView.getModel());
+			Point2D.Double center = cluster.getCoordinateData().getCenter();
+			nodeView.setVisualProperty(BasicVisualLexicon.NODE_X_LOCATION, center.x);
+			nodeView.setVisualProperty(BasicVisualLexicon.NODE_Y_LOCATION, center.y);
+		}
+		return networkView;
+	}
+	
+	
+	
+	private void aggregateAttributes(CyNetwork originNetwork, SummaryNetwork summaryNetwork) {
+		CyTable originNodeTable = originNetwork.getDefaultNodeTable();
+		
+		CyTable summaryNodeTable = summaryNetwork.network.getDefaultNodeTable();
+		summaryNodeTable.createColumn("cluster node count", Integer.class, false);
+		
+		List<String> columnsToAggregate = new ArrayList<>();
+		for(CyColumn column : originNodeTable.getColumns()) {
+			String name = column.getName();
+			if(summaryNodeTable.getColumn(name) == null) {
+				columnsToAggregate.add(name);
+				Class<?> listElementType = column.getListElementType();
+				if(listElementType == null) {
+					summaryNodeTable.createColumn(name, column.getType(), false);
+				}
+				else {
+					summaryNodeTable.createListColumn(name, listElementType, false);
+				}
+			}
+		}
+		
+		for(Cluster cluster : summaryNetwork.getClusters()) {
+			CyNode summaryNode = summaryNetwork.getNodeFor(cluster);
+			CyRow row = summaryNodeTable.getRow(summaryNode.getSUID());
+			
+			row.set("name", cluster.getLabel());
+			row.set("cluster node count", cluster.getNodeCount());
+			
+			for(String columnName : columnsToAggregate) {
+				Object result = aggregate(originNetwork, cluster, columnName);
+				row.set(columnName, result);
+			}
+		}
+	}
+	
+	
+	private Object aggregate(CyNetwork originNetwork, Cluster cluster, String columnName) {
+		CyTable originNodeTable = originNetwork.getDefaultNodeTable();
+		CyColumn originColumn = originNodeTable.getColumn(columnName);
+		
+		Aggregator<?> aggregator;
+		Class<?> listElementType = originColumn.getListElementType();
+		if(listElementType == null)
+			aggregator = groupSettingsManager.getDefaultAggregation(originColumn.getType());
+		else
+			aggregator = groupSettingsManager.getDefaultListAggregation(listElementType);
+		
+		if(aggregator == null)
+			return null;
+		
+		// HACK ATTACK!
+		// ... but seriously, why does aggregator.aggregate() take a CyGroup parameter???, 
+		// it should just be Collection<CyNode>!!, then Aggregators would be more general
+		
+		final Long mockSuid = Long.MAX_VALUE - 1;
+		
+		// mock the CyGroup
+		CyGroup mockGroup = Mockito.mock(CyGroup.class);
+		Mockito.when(mockGroup.getNodeList()).thenReturn(new ArrayList<>(cluster.getNodes()));
+		CyNode mockGroupNode = Mockito.mock(CyNode.class);
+		Mockito.when(mockGroupNode.getSUID()).thenReturn(mockSuid);
+		Mockito.when(mockGroup.getGroupNode()).thenReturn(mockGroupNode);
+		
+		// need to return a mock CyRow when the aggregator asks for the group node row
+		CyTable mockTable = Mockito.mock(CyTable.class);
+		CyRow mockRow = Mockito.mock(CyRow.class);
+		Mockito.when(mockTable.getRow(Matchers.any())).thenAnswer(invocation -> {
+			Long suid = (Long) invocation.getArguments()[0];
+			return suid.equals(mockSuid) ? mockRow : originNodeTable.getRow(suid);
+		});
+		
+		try {
+			return aggregator.aggregate(mockTable, mockGroup, originColumn);
+		}
+		catch(Exception e) {
+			// anything could go wrong when using mocks to hack the aggregator
+			return null;
+		}
+	}
+	
+	
 }
+

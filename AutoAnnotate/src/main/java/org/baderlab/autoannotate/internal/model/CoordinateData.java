@@ -1,5 +1,6 @@
 package org.baderlab.autoannotate.internal.model;
 
+import java.awt.geom.Point2D;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -91,6 +92,10 @@ public class CoordinateData {
 	
 	public double getCenterY() {
 		return (ymin + ymax) / 2;
+	}
+	
+	public Point2D.Double getCenter() {
+		return new Point2D.Double(getCenterX(), getCenterY());
 	}
 	
 	public double getWidth() {

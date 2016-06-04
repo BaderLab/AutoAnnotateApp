@@ -3,4 +3,5 @@ warnDialog.dontShowAgain.collapse=false
 warnDialog.dontShowAgain.layout=false
 warnDialog.dontShowAgain.label=false
 warnDialog.dontShowAgain.maxWords=false
+warnDialog.dontShowAgain.summary=false
 settings.overrideGroupLabels=false

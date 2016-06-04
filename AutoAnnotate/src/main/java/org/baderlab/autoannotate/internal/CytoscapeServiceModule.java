@@ -12,6 +12,8 @@ import org.cytoscape.command.CommandExecutorTaskFactory;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.group.CyGroupManager;
+import org.cytoscape.group.CyGroupSettingsManager;
+import org.cytoscape.group.data.CyGroupAggregationManager;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNetworkTableManager;
@@ -49,29 +51,30 @@ public class CytoscapeServiceModule extends AbstractModule {
 	@Override
 	protected void configure() {
 		// Bind cytoscape OSGi services
-		bind(CyServiceRegistrar.class).toProvider(service(CyServiceRegistrar.class).single());
-		bind(CyApplicationManager.class).toProvider(service(CyApplicationManager.class).single());
-		bind(CySwingApplication.class).toProvider(service(CySwingApplication.class).single());
-		bind(CyNetworkManager.class).toProvider(service(CyNetworkManager.class).single());
-		bind(CyNetworkViewFactory.class).toProvider(service(CyNetworkViewFactory.class).single());
-		bind(CyNetworkViewManager.class).toProvider(service(CyNetworkViewManager.class).single());
-		bind(CyNetworkFactory.class).toProvider(service(CyNetworkFactory.class).single());
-		bind(IconManager.class).toProvider(service(IconManager.class).single());
-		bind(CyLayoutAlgorithmManager.class).toProvider(service(CyLayoutAlgorithmManager.class).single());
-		bind(CyGroupManager.class).toProvider(service(CyGroupManager.class).single());
-		bind(CyGroupFactory.class).toProvider(service(CyGroupFactory.class).single());
-		bind(AvailableCommands.class).toProvider(service(AvailableCommands.class).single());
-		bind(CommandExecutorTaskFactory.class).toProvider(service(CommandExecutorTaskFactory.class).single());
-		bind(CySessionManager.class).toProvider(service(CySessionManager.class).single());
-		bind(CyEventHelper.class).toProvider(service(CyEventHelper.class).single());
-		bind(OpenBrowser.class).toProvider(service(OpenBrowser.class).single());
-		bind(VisualMappingManager.class).toProvider(service(VisualMappingManager.class).single());
+		bindService(CyServiceRegistrar.class);
+		bindService(CyApplicationManager.class);
+		bindService(CySwingApplication.class);
+		bindService(CyNetworkManager.class);
+		bindService(CyNetworkViewFactory.class);
+		bindService(CyNetworkViewManager.class);
+		bindService(CyNetworkFactory.class);
+		bindService(IconManager.class);
+		bindService(CyLayoutAlgorithmManager.class);
+		bindService(CyGroupManager.class);
+		bindService(CyGroupFactory.class);
+		bindService(CyGroupAggregationManager.class);
+		bindService(CyGroupSettingsManager.class);
+		bindService(AvailableCommands.class);
+		bindService(CommandExecutorTaskFactory.class);
+		bindService(CySessionManager.class);
+		bindService(CyEventHelper.class);
+		bindService(OpenBrowser.class);
+		bindService(VisualMappingManager.class);
+		bindService(CyNetworkTableManager.class);
+		bindService(CyTableManager.class);
+		bindService(CyTableFactory.class);
 		
-		bind(CyNetworkTableManager.class).toProvider(service(CyNetworkTableManager.class).single());
-		bind(CyTableManager.class).toProvider(service(CyTableManager.class).single());
-		bind(CyTableFactory.class).toProvider(service(CyTableFactory.class).single());
-		
-		bind(DialogTaskManager.class).toProvider(service(DialogTaskManager.class).single());
+		bindService(DialogTaskManager.class);
 		TypeLiteral<SynchronousTaskManager<?>> synchronousManager = new TypeLiteral<SynchronousTaskManager<?>>(){};
 		bind(synchronousManager).toProvider(service(synchronousManager).single());
 		
@@ -79,13 +82,17 @@ public class CytoscapeServiceModule extends AbstractModule {
 		bind(taskManager).annotatedWith(Names.named("dialog")).toProvider(service(DialogTaskManager.class).single());
 		bind(taskManager).annotatedWith(Names.named("sync")).toProvider(service(synchronousManager).single());
 		
-		bind(AnnotationManager.class).toProvider(service(AnnotationManager.class).single());
+		bindService(AnnotationManager.class);
 		TypeLiteral<AnnotationFactory<ShapeAnnotation>> shapeFactory = new TypeLiteral<AnnotationFactory<ShapeAnnotation>>(){};
 		bind(shapeFactory).toProvider(service(shapeFactory).filter(ldap("(type=ShapeAnnotation.class)")).single());
 		TypeLiteral<AnnotationFactory<TextAnnotation>> textFactory = new TypeLiteral<AnnotationFactory<TextAnnotation>>(){};
 		bind(textFactory).toProvider(service(textFactory).filter(ldap("(type=TextAnnotation.class)")).single());
 	}
 		
+	private <T> void bindService(Class<T> serviceClass) {
+		bind(serviceClass).toProvider(service(serviceClass).single());
+	}
+	
 	@Provides
 	public JFrame getJFrame(CySwingApplication swingApplication) {
 		return swingApplication.getJFrame();

@@ -24,7 +24,7 @@ public class WarnDialog {
 	
 	private String[] messages = {};
 	private Optional<String> propertyName = Optional.empty();
-	private boolean askToContinue = true;
+	private boolean askToContinue = false;
 	
 	
 	@Inject

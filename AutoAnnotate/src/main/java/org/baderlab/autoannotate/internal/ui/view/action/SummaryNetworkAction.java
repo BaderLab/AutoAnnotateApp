@@ -3,10 +3,14 @@ package org.baderlab.autoannotate.internal.ui.view.action;
 import java.awt.event.ActionEvent;
 import java.util.Optional;
 
+import javax.swing.JFrame;
+
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.GenerateSummaryNetworkTask;
+import org.baderlab.autoannotate.internal.ui.view.WarnDialog;
+import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.swing.DialogTaskManager;
@@ -22,7 +26,10 @@ public class SummaryNetworkAction extends AbstractCyAction {
 	@Inject private ModelManager modelManager;
 	@Inject private DialogTaskManager dialogTaskManager;
 	
+	@Inject private @WarnDialogModule.Summary Provider<WarnDialog> warnDialogProvider;
 	@Inject private Provider<GenerateSummaryNetworkTask> taskProvider;
+	@Inject private Provider<JFrame> jFrameProvider;
+	
 
 	
 	public SummaryNetworkAction() {
@@ -33,11 +40,13 @@ public class SummaryNetworkAction extends AbstractCyAction {
 	public void actionPerformed(ActionEvent e) {
 		Optional<AnnotationSet> active = modelManager.getActiveNetworkViewSet().flatMap(NetworkViewSet::getActiveAnnotationSet);
 		if(active.isPresent()) {
-			AnnotationSet annotationSet = active.get();
-
-			GenerateSummaryNetworkTask task = taskProvider.get().init(annotationSet);
-			
-			dialogTaskManager.execute(new TaskIterator(task));
+			WarnDialog warnDialog = warnDialogProvider.get();
+			boolean doIt = warnDialog.warnUser(jFrameProvider.get());
+			if(doIt) {
+				AnnotationSet annotationSet = active.get();
+				GenerateSummaryNetworkTask task = taskProvider.get().init(annotationSet);
+				dialogTaskManager.execute(new TaskIterator(task));
+			}
 		}
 	}
 
