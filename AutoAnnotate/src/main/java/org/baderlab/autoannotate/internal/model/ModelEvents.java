@@ -130,6 +130,27 @@ public class ModelEvents {
 	}
 	
 	
+	public static class NetworkViewSetChanged implements ModelEvent {
+		
+		public static enum Type {
+			ANNOTATION_SET_ORDER
+		}
+		
+		private final NetworkViewSet networkViewSet;
+		private final Type type;
+		
+		NetworkViewSetChanged(NetworkViewSet networkViewSet, Type type) {
+			this.networkViewSet = networkViewSet;
+			this.type = type;
+		}
+		public NetworkViewSet getNetworkViewSet() {
+			return networkViewSet;
+		}
+		public Type getChangeType() {
+			return type;
+		}
+	}
+	
 	public static class DisplayOptionChanged implements ModelEvent {
 		
 		public static enum Option {

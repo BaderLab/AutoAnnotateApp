@@ -39,6 +39,7 @@ import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
+import org.baderlab.autoannotate.internal.model.ModelEvents.NetworkViewSetChanged.Type;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
@@ -119,6 +120,14 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	}
 	
 	@Subscribe
+	public void handle(ModelEvents.NetworkViewSetChanged event) {
+		if(event.getChangeType() == Type.ANNOTATION_SET_ORDER) {
+			setNetworkViewSet(Optional.of(event.getNetworkViewSet())); // refreshes the panel
+		}
+	}
+	
+	
+	@Subscribe
 	public void handle(ModelEvents.AnnotationSetChanged event) {
 		AnnotationSet as = event.getAnnotationSet();
 		@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -126,10 +135,13 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		int index = model.getIndexOf(new ComboItem<>(as));
 		
 		annotationSetCombo.removeItemListener(itemListener);
+		boolean select = annotationSetCombo.getSelectedIndex() == index;
 		model.removeElementAt(index);
 		ComboItem<AnnotationSet> item = new ComboItem<>(as,as.getName());
 		model.insertElementAt(item, index);
-		model.setSelectedItem(item);
+		if(select) {
+			model.setSelectedItem(item);
+		}
 		annotationSetCombo.addItemListener(itemListener);
 	}
 	

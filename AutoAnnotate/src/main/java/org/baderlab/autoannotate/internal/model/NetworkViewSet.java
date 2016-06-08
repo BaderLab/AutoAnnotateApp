@@ -1,12 +1,15 @@
 package org.baderlab.autoannotate.internal.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.baderlab.autoannotate.internal.model.ModelEvents.NetworkViewSetChanged.Type;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
@@ -16,14 +19,14 @@ public class NetworkViewSet {
 	private final ModelManager parent;
 	
 	private final CyNetworkView networkView;
-	private final Set<AnnotationSet> annotationSets;
+	private final List<AnnotationSet> annotationSets;
 	private Optional<AnnotationSet> activeSet = Optional.empty();
 	
 	
 	NetworkViewSet(ModelManager parent, CyNetworkView networkView) {
 		this.parent = parent;
 		this.networkView = networkView;
-		this.annotationSets = new HashSet<>();
+		this.annotationSets = new ArrayList<>();
 	}
 	
 	
@@ -108,8 +111,25 @@ public class NetworkViewSet {
 		return activeSet;
 	}
 	
-	public Collection<AnnotationSet> getAnnotationSets() {
-		return Collections.unmodifiableSet(annotationSets);
+	public List<AnnotationSet> getAnnotationSets() {
+		return Collections.unmodifiableList(annotationSets);
+	}
+	
+	
+	/**
+	 * Swaps the order of the two annotation sets.
+	 * The two annotation sets must be distinct and must be contained
+	 * in this network view set, otherwise this method does nothing.
+	 */
+	public void swap(AnnotationSet first, AnnotationSet second) {
+		int i1 = annotationSets.indexOf(first);
+		int i2 = annotationSets.indexOf(second);
+		
+		if(i1 < 0 || i2 < 0 || i1 == i2)
+			return;
+		
+		Collections.swap(annotationSets, i1, i2);
+		parent.postEvent(new ModelEvents.NetworkViewSetChanged(this, Type.ANNOTATION_SET_ORDER));
 	}
 	
 	public ModelManager getParent() {
@@ -148,7 +168,8 @@ public class NetworkViewSet {
 
 	void delete(AnnotationSet annotationSet) {
 		if(annotationSets.remove(annotationSet)) {
-			if(activeSet.isPresent()) {
+			// if the active set was deleted then we need to unselect it
+			if(activeSet.isPresent() && activeSet.get().equals(annotationSet)) {
 				activeSet = Optional.empty();
 				parent.postEvent(new ModelEvents.AnnotationSetSelected(this, Optional.empty()));
 			}

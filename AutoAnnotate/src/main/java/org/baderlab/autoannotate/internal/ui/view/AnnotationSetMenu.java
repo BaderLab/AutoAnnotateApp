@@ -17,6 +17,7 @@ import org.baderlab.autoannotate.internal.ui.view.action.RelabelAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreationParamsAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowLabelOptionsDialogAction;
+import org.baderlab.autoannotate.internal.ui.view.action.ShowManageDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowSettingsDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.SummaryNetworkAction;
 
@@ -29,6 +30,7 @@ public class AnnotationSetMenu {
 	@Inject private Provider<ShowCreateDialogAction> showActionProvider;
 	@Inject private Provider<AnnotationSetDeleteAction> deleteActionProvider;
 	@Inject private Provider<AnnotationSetRenameAction> renameActionProvider;
+	@Inject private Provider<ShowManageDialogAction> showManageProvider;
 	@Inject private Provider<CollapseAction> collapseActionProvider;
 	@Inject private Provider<SummaryNetworkAction> summaryActionProvider;
 	@Inject private Provider<RedrawAction> redrawActionProvider;
@@ -43,6 +45,7 @@ public class AnnotationSetMenu {
 		Action createAction = showActionProvider.get();
 		Action renameAction = renameActionProvider.get();
 		Action deleteAction = deleteActionProvider.get();
+		Action showManageAction = showManageProvider.get();
 		Action collapseAction = collapseActionProvider.get().setAction(Grouping.COLLAPSE);
 		Action expandAction = collapseActionProvider.get().setAction(Grouping.EXPAND);
 		Action summaryAction = summaryActionProvider.get();
@@ -57,6 +60,7 @@ public class AnnotationSetMenu {
 		renameAction.setEnabled(enabled);
 		deleteAction.setEnabled(enabled);
 		collapseAction.setEnabled(enabled);
+		showManageAction.setEnabled(enabled);
 		expandAction.setEnabled(enabled);
 		summaryAction.setEnabled(enabled);
 		layoutAction.setEnabled(enabled);
@@ -69,6 +73,7 @@ public class AnnotationSetMenu {
 		menu.add(createAction);
 		menu.add(renameAction);
 		menu.add(deleteAction);
+		menu.add(showManageAction);
 		menu.addSeparator();
 		menu.add(collapseAction);
 		menu.add(expandAction);

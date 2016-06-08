@@ -8,6 +8,7 @@ import org.baderlab.autoannotate.internal.ui.PanelManager;
 import org.baderlab.autoannotate.internal.ui.PanelManagerImpl;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.baderlab.autoannotate.internal.ui.view.LabelOptionsPanel;
+import org.baderlab.autoannotate.internal.ui.view.ManageAnnotationSetsDialog;
 import org.cytoscape.property.AbstractConfigDirPropsReader;
 import org.cytoscape.property.CyProperty;
 
@@ -33,6 +34,7 @@ public class ApplicationModule extends AbstractModule {
 		
 		// assistedinject
 		install(new FactoryModuleBuilder().build(LabelOptionsPanel.Factory.class));
+		install(new FactoryModuleBuilder().build(ManageAnnotationSetsDialog.Factory.class));
 		
 		// Create a single EventBus
 		bind(EventBus.class).toInstance(new EventBus((e,c) -> e.printStackTrace()));

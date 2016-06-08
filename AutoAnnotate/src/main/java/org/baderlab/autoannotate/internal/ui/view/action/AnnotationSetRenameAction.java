@@ -20,17 +20,31 @@ public class AnnotationSetRenameAction extends AbstractCyAction {
 	@Inject private Provider<JFrame> jFrameProvider;
 	@Inject private ModelManager modelManager;
 	
+	private Optional<AnnotationSet> annotationSet = Optional.empty();
+	
 	
 	public AnnotationSetRenameAction() {
-		super("Rename");
+		super("Rename...");
 	}
 
+	public AnnotationSetRenameAction setAnnotationSet(AnnotationSet annotationSet) {
+		this.annotationSet = Optional.of(annotationSet);
+		return this;
+	}
+	
+	
+	private Optional<AnnotationSet> getAnnotationSet() {
+		if(annotationSet.isPresent())
+			return annotationSet;
+		
+		return modelManager
+				.getActiveNetworkViewSet()
+				.flatMap(NetworkViewSet::getActiveAnnotationSet);
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		Optional<AnnotationSet> active = modelManager.getActiveNetworkViewSet().flatMap(NetworkViewSet::getActiveAnnotationSet);
-		if(active.isPresent()) {
-			AnnotationSet annotationSet = active.get();
-			
+		getAnnotationSet().ifPresent(annotationSet -> {
 			String current = annotationSet.getName();
 			JFrame frame = jFrameProvider.get();
 			Object result = JOptionPane.showInputDialog(frame, "Annotation Set Name", "Rename", JOptionPane.PLAIN_MESSAGE, null, null, current);
@@ -41,7 +55,7 @@ public class AnnotationSetRenameAction extends AbstractCyAction {
 			if(!name.isEmpty()) {
 				annotationSet.setName(name);
 			}
-		}
+		});
 	}
 
 }
