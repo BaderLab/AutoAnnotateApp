@@ -66,8 +66,10 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		else
 			clusters = computeClustersFromColumn();
 		
-		if(clusters == null || clusters.isEmpty())
+		if(clusters == null || clusters.isEmpty()) {
+			taskMonitor.setStatusMessage("No clusters, aborting");
 			return;
+		}
 
 		Object context = params.getLabelMakerContext();
 		LabelMakerFactory factory = params.getLabelMakerFactory();
