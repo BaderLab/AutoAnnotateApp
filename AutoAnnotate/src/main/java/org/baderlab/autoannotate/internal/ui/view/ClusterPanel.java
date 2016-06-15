@@ -30,6 +30,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
 import javax.swing.SortOrder;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
@@ -256,6 +257,9 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		int widths[] = getColumnWidths(clusterTable);
 		clusterTable.setModel(clusterModel);
 		setColumnWidths(clusterTable, widths);
+		TableColumn collapsedColumn = clusterTable.getColumnModel().getColumn(ClusterTableModel.COLLAPSED_COLUMN_INDEX);
+		collapsedColumn.setCellRenderer(new ClusterTableCollapsedCellRenderer(iconManagerProvider.get()));
+		
 		
 		// sort
 		TableRowSorter<TableModel> sorter = new TableRowSorter<>(clusterTable.getModel());
@@ -331,6 +335,8 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		clusterSelectionListener = selectionListenerProvider.get().init(clusterTable);
 		clusterTable.getSelectionModel().addListSelectionListener(clusterSelectionListener);
 		clusterTable.setAutoCreateRowSorter(true);
+		TableColumn collapsedColumn = clusterTable.getColumnModel().getColumn(ClusterTableModel.COLLAPSED_COLUMN_INDEX);
+		collapsedColumn.setCellRenderer(new ClusterTableCollapsedCellRenderer(iconManagerProvider.get()));
 		
 		clusterTable.addMouseListener(new MouseAdapter() {
 			@Override public void mousePressed(MouseEvent e) { showPopup(e); }
