@@ -15,6 +15,7 @@ import org.baderlab.autoannotate.internal.ui.view.action.ClusterMergeAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ClusterRenameAction;
 import org.baderlab.autoannotate.internal.ui.view.action.CollapseAction;
 import org.baderlab.autoannotate.internal.ui.view.action.RelabelAction;
+import org.baderlab.autoannotate.internal.ui.view.action.SummaryNetworkAction;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -27,16 +28,18 @@ public class ClusterMenu {
 	@Inject private Provider<ClusterMergeAction> mergeActionProvider;
 	@Inject private Provider<ClusterExtractAction> extractActionProvider;
 	@Inject private Provider<CollapseAction> collapseActionProvider;
+	@Inject private Provider<SummaryNetworkAction> summaryActionProvider;
 	
 
 	public void show(Collection<Cluster> clusters, Component parent, int x, int y) {
-		ClusterAction renameAction = renameActionProvider.get().setClusters(clusters);
-		ClusterAction relabelAction = relabelActionProvider.get().setClusters(clusters);
-		ClusterAction deleteAction = deleteActionProvider.get().setClusters(clusters);
-		ClusterAction mergeAction = mergeActionProvider.get().setClusters(clusters);
-		ClusterAction extractAction = extractActionProvider.get().setClusters(clusters);
+		ClusterAction renameAction   = renameActionProvider.get().setClusters(clusters);
+		ClusterAction relabelAction  = relabelActionProvider.get().setClusters(clusters);
+		ClusterAction deleteAction   = deleteActionProvider.get().setClusters(clusters);
+		ClusterAction mergeAction    = mergeActionProvider.get().setClusters(clusters);
+		ClusterAction extractAction  = extractActionProvider.get().setClusters(clusters);
 		ClusterAction collapseAction = collapseActionProvider.get().setAction(Grouping.COLLAPSE).setClusters(clusters);
-		ClusterAction expandAction = collapseActionProvider.get().setAction(Grouping.EXPAND).setClusters(clusters);
+		ClusterAction expandAction   = collapseActionProvider.get().setAction(Grouping.EXPAND).setClusters(clusters);
+		ClusterAction summaryAction  = summaryActionProvider.get().setClusters(clusters);
 		
 		int count = clusters.size();
 		renameAction.setEnabled(count == 1);
@@ -46,6 +49,7 @@ public class ClusterMenu {
 		collapseAction.setEnabled(count > 0);
 		expandAction.setEnabled(count > 0);
 		relabelAction.setEnabled(count > 0);
+		summaryAction.setEnabled(count > 0);
 		
 		// override default name
 		collapseAction.putValue(Action.NAME, "Collapse");
@@ -59,6 +63,7 @@ public class ClusterMenu {
 		menu.addSeparator();
 		menu.add(collapseAction);
 		menu.add(expandAction);
+		menu.add(summaryAction);
 		menu.addSeparator();
 		menu.add(relabelAction);
 		

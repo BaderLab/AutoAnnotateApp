@@ -41,7 +41,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.inject.Inject;
 
-public class GenerateSummaryNetworkTask extends AbstractTask {
+public class SummaryNetworkTask extends AbstractTask {
 
 	@Inject private CyNetworkFactory networkFactory;
 	@Inject private CyNetworkManager networkManager;
@@ -51,11 +51,11 @@ public class GenerateSummaryNetworkTask extends AbstractTask {
 	
 	@Inject private CyGroupSettingsManager groupSettingsManager;
 	
-	private AnnotationSet annotationSet;
+	private Collection<Cluster> clusters;
 	
 	
-	public GenerateSummaryNetworkTask init(AnnotationSet annotationSet) {
-		this.annotationSet = annotationSet;
+	public SummaryNetworkTask init(Collection<Cluster> clusters) {
+		this.clusters = clusters;
 		return this;
 	}
 	
@@ -137,7 +137,12 @@ public class GenerateSummaryNetworkTask extends AbstractTask {
 		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE);
 		
-		Set<Cluster> clusters   = annotationSet.getClusters();
+		if(clusters == null || clusters.isEmpty())
+			return;
+		
+		// There's at least one cluster, assume they all come from the same AnnotationSet
+		AnnotationSet annotationSet = clusters.iterator().next().getParent();
+		
 		CyNetwork originNetwork = annotationSet.getParent().getNetwork();
 		
 		// create summary network
