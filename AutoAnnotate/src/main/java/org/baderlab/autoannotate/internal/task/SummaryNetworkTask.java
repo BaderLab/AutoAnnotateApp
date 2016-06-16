@@ -142,7 +142,6 @@ public class SummaryNetworkTask extends AbstractTask {
 		
 		// There's at least one cluster, assume they all come from the same AnnotationSet
 		AnnotationSet annotationSet = clusters.iterator().next().getParent();
-		
 		CyNetwork originNetwork = annotationSet.getParent().getNetwork();
 		
 		// create summary network
@@ -152,15 +151,13 @@ public class SummaryNetworkTask extends AbstractTask {
 		CyNetworkView summaryNetworkView = createNetworkView(summaryNetwork);
 		
 		// apply visual style
-		VisualStyle vs = visualMappingManager.getVisualStyle(annotationSet.getParent().getNetworkView());
-		visualMappingManager.setVisualStyle(vs, summaryNetworkView);
+		applyVisualStyle(annotationSet.getParent().getNetworkView(), summaryNetworkView);
 		
 		// register
 		networkManager.addNetwork(summaryNetwork.network);
 		networkViewManager.addNetworkView(summaryNetworkView);
 		summaryNetworkView.fitContent();
 	}
-	
 	
 	
 	private SummaryNetwork createSummaryNetwork(CyNetwork originNetwork, Collection<Cluster> clusters) {
@@ -311,6 +308,17 @@ public class SummaryNetworkTask extends AbstractTask {
 		}
 	}
 	
+	
+	private void applyVisualStyle(CyNetworkView originNetworkView, CyNetworkView summaryNetworkView) {
+		VisualStyle vs = visualMappingManager.getVisualStyle(originNetworkView);
+		
+		for(View<CyNode> nodeView : summaryNetworkView.getNodeViews()) {
+			String name = summaryNetworkView.getModel().getRow(nodeView.getModel()).get("name", String.class);
+			nodeView.setLockedValue(BasicVisualLexicon.NODE_LABEL, name);
+		}
+		
+		visualMappingManager.setVisualStyle(vs, summaryNetworkView);
+	}
 	
 }
 
