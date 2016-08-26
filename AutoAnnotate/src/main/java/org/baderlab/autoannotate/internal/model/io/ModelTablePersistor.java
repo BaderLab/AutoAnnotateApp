@@ -299,6 +299,9 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			.map(NetworkViewSet::getNetworkView)
 			.collect(Collectors.toSet());
 		
+		if(networkViews.isEmpty())
+			return;
+		
 		TaskIterator tasks = getExpandTasks(networkViews);
 		
 		Semaphore semaphore = new Semaphore(0);
@@ -312,7 +315,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	private TaskIterator getExpandTasks(Collection<CyNetworkView> networkViewsToCollapse) {
 		TaskIterator tasks = new TaskIterator();
 		tasks.append(TaskTools.taskMessage("Expanding all clusters"));
-		
 		// Right here, expand and remove all groups in networks managed by AutoAnnotate
 		CollapseAllTaskFactory collapseAction = collapseActionProvider.get();
 		collapseAction.setAction(Grouping.EXPAND);

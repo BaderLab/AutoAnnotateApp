@@ -1,5 +1,7 @@
 package org.baderlab.autoannotate.internal.labels.makers;
 
+import java.util.function.Supplier;
+
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
@@ -29,7 +31,12 @@ public class ClusterBoostedLabelMakerFactory implements LabelMakerFactory<Cluste
 
 	@Override
 	public ClusterBoostedOptions getDefaultContext() {
-		return new ClusterBoostedOptions(4, 8);
+		return ClusterBoostedOptions.defaults();
+	}
+	
+	@Override
+	public Supplier<ClusterBoostedOptions> getCommandTunables() {
+		return new ClusterBoostedOptions.Tunables();
 	}
 
 	@Override

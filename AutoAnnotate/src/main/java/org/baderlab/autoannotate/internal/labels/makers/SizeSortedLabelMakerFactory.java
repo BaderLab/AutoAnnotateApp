@@ -1,5 +1,7 @@
 package org.baderlab.autoannotate.internal.labels.makers;
 
+import java.util.function.Supplier;
+
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
@@ -14,7 +16,7 @@ public class SizeSortedLabelMakerFactory implements LabelMakerFactory<SizeSorted
 	
 	@Inject private Provider<WordCloudAdapter> wordCloudProvider; 
 	
-	public static final int DEFAULT_MAX_WORDS = 4;
+	
 	
 	
 	@Override
@@ -29,9 +31,14 @@ public class SizeSortedLabelMakerFactory implements LabelMakerFactory<SizeSorted
 
 	@Override
 	public SizeSortedOptions getDefaultContext() {
-		return new SizeSortedOptions(DEFAULT_MAX_WORDS);
+		return SizeSortedOptions.defaults();
 	}
 
+	@Override
+	public Supplier<SizeSortedOptions> getCommandTunables() {
+		return new SizeSortedOptions.Tunables();
+	}
+	
 	@Override
 	public LabelMakerUI<SizeSortedOptions> createUI(SizeSortedOptions context) {
 		return new SizeSortedLabelMakerUI(context);

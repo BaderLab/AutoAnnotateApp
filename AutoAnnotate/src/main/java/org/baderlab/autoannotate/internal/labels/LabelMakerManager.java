@@ -92,10 +92,14 @@ public class LabelMakerManager {
 	
 	
 	public List<LabelMakerFactory<?>> getFactories() {
-		return allFactories
-				.values()
-				.stream()
+		return allFactories.values().stream()
 				.sorted((f1, f2) -> f1.getName().compareToIgnoreCase(f2.getName()))
+				.collect(Collectors.toList());
+	}
+	
+	public List<String> getFactoryIds() {
+		return allFactories.values().stream()
+				.map(LabelMakerFactory::getID)
 				.collect(Collectors.toList());
 	}
 	

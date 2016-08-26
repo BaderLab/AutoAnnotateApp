@@ -5,9 +5,15 @@ import static org.cytoscape.work.ServiceProperties.IN_MENU_BAR;
 import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
 import static org.cytoscape.work.ServiceProperties.TITLE;
 
+import java.util.Arrays;
 import java.util.Properties;
 
+import javax.inject.Provider;
+
+import org.baderlab.autoannotate.internal.command.LabelClusterCommandTaskFactory;
 import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
+import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
+import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
@@ -19,6 +25,8 @@ import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CyAction;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
+import org.cytoscape.work.ServiceProperties;
+import org.cytoscape.work.TaskFactory;
 import org.ops4j.peaberry.osgi.OSGiModule;
 import org.osgi.framework.BundleContext;
 
@@ -74,6 +82,17 @@ public class CyActivator extends AbstractCyActivator {
 		propsReaderServiceProps.setProperty("cyPropertyName", "autoannotate.props");
 		registerAllServices(context, configProps, propsReaderServiceProps);
 		
+		// Commands
+		LabelMakerManager labelMakerManager = injector.getInstance(LabelMakerManager.class);
+		for(LabelMakerFactory<?> factory : labelMakerManager.getFactories()) {
+			// MKTODO make sure the factory ID doesn't contain spaces or other illegal characters
+			LabelClusterCommandTaskFactory labelClusterCommandTaskFactory = injector.getInstance(LabelClusterCommandTaskFactory.class);
+			labelClusterCommandTaskFactory.setFactory(factory);
+			String id = factory.getID();
+			String description = String.join(" ", Arrays.asList(factory.getDescription()));
+			registerCommand(context, "label-"+id, labelClusterCommandTaskFactory, "Run label algorithm '" + id + "'. " + description);
+		}
+		
 		// If no session is loaded then this won't do anything, but if there is a session loaded 
 		// then we want to load the model immediately.
 		persistor.importModel();
@@ -92,6 +111,15 @@ public class CyActivator extends AbstractCyActivator {
 	private void registerAction(BundleContext context, AbstractCyAction action) {
 		action.setPreferredMenu("Apps." + BuildProperties.APP_NAME);
 		registerService(context, action, CyAction.class, new Properties());
+	}
+	
+	private void registerCommand(BundleContext context, String name, TaskFactory factory, String description) {
+		Properties props = new Properties();
+		props.put(ServiceProperties.COMMAND, name);
+		props.put(ServiceProperties.COMMAND_NAMESPACE, "autoannotate");
+		if(description != null)
+			props.put("commandDescription", description); // added in Cytoscape 3.2
+		registerService(context, factory, TaskFactory.class, props);
 	}
 	
 }
