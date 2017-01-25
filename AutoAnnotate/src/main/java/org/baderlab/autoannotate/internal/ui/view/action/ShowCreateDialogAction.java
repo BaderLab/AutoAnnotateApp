@@ -29,7 +29,7 @@ public class ShowCreateDialogAction extends AbstractCyAction {
 	public void actionPerformed(ActionEvent e) {
 		if(applicationManager.getCurrentNetworkView() == null) {
 			JOptionPane.showMessageDialog(jFrameProvider.get(), 
-				"Please create a network view first.", BuildProperties.APP_NAME, JOptionPane.WARNING_MESSAGE);
+				"Please select a network view first.", BuildProperties.APP_NAME, JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 		

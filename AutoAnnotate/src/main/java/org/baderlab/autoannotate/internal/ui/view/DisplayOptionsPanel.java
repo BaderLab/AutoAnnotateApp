@@ -1,6 +1,18 @@
 package org.baderlab.autoannotate.internal.ui.view;
 
-import static org.baderlab.autoannotate.internal.model.DisplayOptions.*;
+import static org.baderlab.autoannotate.internal.model.DisplayOptions.FONT_SCALE_DEFAULT;
+import static org.baderlab.autoannotate.internal.model.DisplayOptions.FONT_SCALE_MAX;
+import static org.baderlab.autoannotate.internal.model.DisplayOptions.FONT_SCALE_MIN;
+import static org.baderlab.autoannotate.internal.model.DisplayOptions.FONT_SIZE_DEFAULT;
+import static org.baderlab.autoannotate.internal.model.DisplayOptions.FONT_SIZE_MAX;
+import static org.baderlab.autoannotate.internal.model.DisplayOptions.FONT_SIZE_MIN;
+import static org.baderlab.autoannotate.internal.model.DisplayOptions.OPACITY_DEFAULT;
+import static org.baderlab.autoannotate.internal.model.DisplayOptions.OPACITY_MAX;
+import static org.baderlab.autoannotate.internal.model.DisplayOptions.OPACITY_MIN;
+import static org.baderlab.autoannotate.internal.model.DisplayOptions.WIDTH_DEFAULT;
+import static org.baderlab.autoannotate.internal.model.DisplayOptions.WIDTH_MAX;
+import static org.baderlab.autoannotate.internal.model.DisplayOptions.WIDTH_MIN;
+import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -27,7 +39,7 @@ import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
-import org.baderlab.autoannotate.internal.ui.GBCFactory;
+import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.model.CyDisposable;
@@ -170,7 +182,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		
 
 		fontByClusterCheckbox = new JCheckBox("Scale font by cluster size");
-		panel.add(fontByClusterCheckbox, GBCFactory.grid(0,3).weightx(1.0).get());
+		panel.add(makeSmall(fontByClusterCheckbox), GBCFactory.grid(0,3).weightx(1.0).get());
 		
 		fontByClusterCheckbox.addActionListener(fontByClusterListener = e -> {
 			boolean useConstantFontSize = !fontByClusterCheckbox.isSelected();
@@ -188,12 +200,12 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		JPanel panel = new JPanel(new GridBagLayout());
 		
 		hideClustersCheckBox = new JCheckBox("Hide Clusters");
-		panel.add(hideClustersCheckBox, GBCFactory.grid(0,0).weightx(1.0).get());
+		panel.add(makeSmall(hideClustersCheckBox), GBCFactory.grid(0,0).weightx(1.0).get());
 		hideClustersCheckBox.addActionListener(
 				hideClustersListener = e -> displayOptions.setShowClusters(!hideClustersCheckBox.isSelected()));
 		
 		hideLabelsCheckBox = new JCheckBox("Hide Labels");
-		panel.add(hideLabelsCheckBox, GBCFactory.grid(0,1).get());
+		panel.add(makeSmall(hideLabelsCheckBox), GBCFactory.grid(0,1).get());
 		hideLabelsCheckBox.addActionListener(
 				hideLabelsListener = e -> displayOptions.setShowLabels(!hideLabelsCheckBox.isSelected()));
 		
@@ -205,16 +217,16 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		JPanel panel = new JPanel(new GridBagLayout());
 		
 		JLabel label = new JLabel("Shape:");
-		panel.add(label, GBCFactory.grid(0,0).weightx(1.0).get());
+		panel.add(makeSmall(label), GBCFactory.grid(0,0).weightx(1.0).get());
 		
 		ellipseListener = e -> displayOptions.setShapeType(ellipseRadio.isSelected() ? ShapeType.ELLIPSE : ShapeType.RECTANGLE);
 				
 		ellipseRadio = new JRadioButton("Ellipse");
-		panel.add(ellipseRadio, GBCFactory.grid(0,1).get());
+		panel.add(makeSmall(ellipseRadio), GBCFactory.grid(0,1).get());
 		ellipseRadio.addActionListener(ellipseListener);
 		
 		rectangleRadio = new JRadioButton("Rectangle");
-		panel.add(rectangleRadio, GBCFactory.grid(0,2).get());
+		panel.add(makeSmall(rectangleRadio), GBCFactory.grid(0,2).get());
 		rectangleRadio.addActionListener(ellipseListener);
 		
 		ButtonGroup buttonGroup = new ButtonGroup();

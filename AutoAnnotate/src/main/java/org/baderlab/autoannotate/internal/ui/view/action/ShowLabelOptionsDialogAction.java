@@ -50,7 +50,7 @@ public class ShowLabelOptionsDialogAction extends AbstractCyAction {
 	
 	private boolean showLabelOptionsDialog(AnnotationSet annotationSet) {
 		CyNetwork network = annotationSet.getParent().getNetwork();
-		LabelOptionsPanel panel = labelOptionsPanelFactory.create(network, false, false, annotationSet);
+		LabelOptionsPanel panel = labelOptionsPanelFactory.create(network, false, annotationSet);
 		
 		String title = BuildProperties.APP_NAME + ": Label Options";
 		JFrame jframe = jFrameProvider.get();

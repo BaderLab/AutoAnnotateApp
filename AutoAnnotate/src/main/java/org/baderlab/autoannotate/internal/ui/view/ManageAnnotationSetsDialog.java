@@ -24,9 +24,9 @@ import javax.swing.SwingConstants;
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
-import org.baderlab.autoannotate.internal.ui.ComboItem;
 import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetDeleteAction;
 import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetRenameAction;
+import org.baderlab.autoannotate.internal.util.ComboItem;
 import org.cytoscape.application.CyApplicationManager;
 
 import com.google.inject.Inject;

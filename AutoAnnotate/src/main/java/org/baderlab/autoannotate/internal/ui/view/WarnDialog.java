@@ -13,7 +13,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
-import org.baderlab.autoannotate.internal.ui.GBCFactory;
+import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.cytoscape.property.CyProperty;
 
 import com.google.inject.Inject;

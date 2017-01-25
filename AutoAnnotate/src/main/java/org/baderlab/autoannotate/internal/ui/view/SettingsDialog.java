@@ -18,7 +18,7 @@ import javax.swing.SwingConstants;
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.Setting;
 import org.baderlab.autoannotate.internal.SettingManager;
-import org.baderlab.autoannotate.internal.ui.GBCFactory;
+import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.cytoscape.property.CyProperty;
 
 import com.google.inject.Inject;

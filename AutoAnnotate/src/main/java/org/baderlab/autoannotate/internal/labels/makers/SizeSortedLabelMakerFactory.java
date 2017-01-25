@@ -16,9 +16,6 @@ public class SizeSortedLabelMakerFactory implements LabelMakerFactory<SizeSorted
 	
 	@Inject private Provider<WordCloudAdapter> wordCloudProvider; 
 	
-	
-	
-	
 	@Override
 	public String getID() {
 		return ID;

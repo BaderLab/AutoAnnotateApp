@@ -1,6 +1,7 @@
 package org.baderlab.autoannotate.internal.ui.view;
 
 import static org.baderlab.autoannotate.internal.ui.view.CreateAnnotationSetDialog.getColumnsOfType;
+import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -12,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -23,10 +23,11 @@ import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
-import org.baderlab.autoannotate.internal.ui.ComboItem;
-import org.baderlab.autoannotate.internal.ui.GBCFactory;
+import org.baderlab.autoannotate.internal.util.ComboItem;
+import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.util.swing.IconManager;
+import org.cytoscape.util.swing.LookAndFeelUtil;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -46,26 +47,24 @@ public class LabelOptionsPanel extends JPanel {
 	private Map<String, LabelMakerUI<?>> labelUIs = new HashMap<>();
 	
 	private final CyNetwork network;
-	private final boolean showTitle;
 	private final boolean showColumnCombo;
 	private final AnnotationSet annotationSet;
 	
 	// using guice-asssistedinject
 	public interface Factory {
-		LabelOptionsPanel create(CyNetwork net, @Assisted("title") boolean showTitle, @Assisted("column") boolean showColumnCombo);
-		LabelOptionsPanel create(CyNetwork net, @Assisted("title") boolean showTitle, @Assisted("column") boolean showColumnCombo, AnnotationSet annotationSet);
+		LabelOptionsPanel create(CyNetwork net, boolean showColumnCombo);
+		LabelOptionsPanel create(CyNetwork net, boolean showColumnCombo, AnnotationSet annotationSet);
 	}
 	
 	
 	@AssistedInject
-	private LabelOptionsPanel(@Assisted CyNetwork network, @Assisted("title") boolean showTitle, @Assisted("column") boolean showColumnCombo) {
-		this(network, showTitle, showColumnCombo, null);
+	private LabelOptionsPanel(@Assisted CyNetwork network, @Assisted boolean showColumnCombo) {
+		this(network, showColumnCombo, null);
 	}
 	
 	@AssistedInject
-	private LabelOptionsPanel(@Assisted CyNetwork network, @Assisted("title") boolean showTitle, @Assisted("column") boolean showColumnCombo, @Assisted AnnotationSet annotationSet) {
+	private LabelOptionsPanel(@Assisted CyNetwork network, @Assisted boolean showColumnCombo, @Assisted AnnotationSet annotationSet) {
 		this.network = network;
-		this.showTitle = showTitle;
 		this.showColumnCombo = showColumnCombo;
 		this.annotationSet = annotationSet;
 	}
@@ -80,12 +79,8 @@ public class LabelOptionsPanel extends JPanel {
 		String titleText = "Label Options";
 		if(annotationSet != null)
 			titleText += " for: " + annotationSet.getName();
+		setBorder(LookAndFeelUtil.createTitledBorder(titleText));
 			
-		JLabel titleLabel = new JLabel(titleText);
-		titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
-		add(titleLabel, GBCFactory.grid(0,y).gridwidth(2).get());
-		y++;
-		
 		if(showColumnCombo) {
 			labelColumnNameCombo = new JComboBox<>();
 			for(String labelColumn : getColumnsOfType(network, String.class, true, false, true)) {
@@ -105,7 +100,9 @@ public class LabelOptionsPanel extends JPanel {
 				}
 			}
 			
-			add(new JLabel("Label Column:"), GBCFactory.grid(0,y).get());
+			JLabel colLabel = new JLabel("Label Column:");
+			makeSmall(labelColumnNameCombo, colLabel);
+			add(colLabel, GBCFactory.grid(0,y).get());
 			add(labelColumnNameCombo, GBCFactory.grid(1,y).weightx(1.0).get());
 			y++;
 		}
@@ -117,12 +114,12 @@ public class LabelOptionsPanel extends JPanel {
 		for(LabelMakerFactory<?> factory : factories) {
 			labelMakerFactoryCombo.addItem(new ComboItem<>(factory, factory.getName()));
 		}
-		
+		makeSmall(labelMakerFactoryCombo);
 		
 		JLabel quesht = new JLabel();
+		makeSmall(quesht);
 		quesht.setFont(iconManagerProvider.get().getIconFont(14));
 		quesht.setText("  " + IconManager.ICON_QUESTION_CIRCLE);
-//		quesht.setForeground(Color.BLUE.darker());
 		
 		quesht.addMouseListener(new MouseAdapter() {
 			@Override public void mouseClicked(MouseEvent e) {
@@ -135,7 +132,9 @@ public class LabelOptionsPanel extends JPanel {
 				JPanel panel = new JPanel(new GridBagLayout());
 				int y = 0;
 				for(String s : description) {
-					panel.add(new JLabel(s), GBCFactory.grid(0,y++).weightx(1.0).get());
+					JLabel lab = new JLabel(" " + s);
+					makeSmall(lab);
+					panel.add(lab, GBCFactory.grid(0,y++).weightx(1.0).get());
 				}
 				
 				JPopupMenu popup = new JPopupMenu();
@@ -145,7 +144,10 @@ public class LabelOptionsPanel extends JPanel {
 			}
 		});
 		
-		add(new JLabel("Label Algorithm:"), GBCFactory.grid(0,y).get());
+		JLabel algLabel = new JLabel("Label Algorithm:");
+		makeSmall(algLabel);
+		
+		add(algLabel, GBCFactory.grid(0,y).get());
 		add(labelMakerFactoryCombo, GBCFactory.grid(1,y).weightx(1.0).get());
 		add(quesht, GBCFactory.grid(2,y).weightx(1.0).get());
 		y++;
@@ -168,9 +170,12 @@ public class LabelOptionsPanel extends JPanel {
 			else
 				labelUIPanel = labelUI.getPanel();
 			
+			labelUIPanel.setOpaque(false);
 			algorithmPanel.add(labelUIPanel, factory.getName());
+			
 			labelUIs.put(factory.getName(), labelUI);
 		}
+		algorithmPanel.setOpaque(false);
 		
 		LabelMakerFactory<?> factory;
 		if(annotationSet == null)

@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.ui;
+package org.baderlab.autoannotate.internal.util;
 
 
 public class ComboItem<V> {

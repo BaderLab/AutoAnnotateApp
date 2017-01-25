@@ -22,6 +22,7 @@ public class SizeSortedLabelMakerUI implements LabelMakerUI<SizeSortedOptions> {
 	public JPanel getPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.add(spinner, BorderLayout.NORTH);
+		panel.setOpaque(false);
 		return panel;
 	}
 
