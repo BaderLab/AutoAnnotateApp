@@ -14,6 +14,16 @@ public final class SwingUtil {
 	
 	private SwingUtil() {}
 	
+	
+	public static String abbreviate(String s, int maxLength) {
+		s = String.valueOf(s); // null check
+		if(s.length() > maxLength) {
+			s = s.substring(0, maxLength) + "...";
+		}
+		return s;
+	}
+	
+	
 	public static <T extends JComponent> T makeSmall(final T component) {
 		makeSmall(new JComponent[] {component}); // disambiguate to avoid recursion
 		return component;
