@@ -1,6 +1,7 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
 import java.awt.Color;
+import java.awt.geom.Point2D;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +38,7 @@ public class DrawClusterTask extends AbstractTask {
 	
 	
 	public static final Color DEFAULT_TEXT_COLOR = Color.BLACK;
-	private final int minSize = 50; // Minimum size of the ellipse
+	private static final int minSize = 50; // Minimum size of the ellipse
 	
 	public static final Color DEFAULT_FILL_COLOR = Color.getHSBColor(0.19f, 1.25f, 0.95f);
 	public static final Color DEFAULT_BORDER_COLOR = Color.DARK_GRAY;
@@ -68,57 +69,129 @@ public class DrawClusterTask extends AbstractTask {
 	}
 	
 	
-	public static class LabelArgs {
+	
+	public static class AnnotationArgs {
 		public final double x;
 		public final double y;
 		public final double width;
 		public final double height;
-		public final String label;
 		public final double zoom;
-		public final double fontSize;
 		
-		public LabelArgs(double x, double y, double width, double height, String label, double zoom, double fontSize) {
+		public AnnotationArgs(double x, double y, double width, double height, double zoom) {
 			this.x = x;
 			this.y = y;
 			this.width = width;
 			this.height = height;
-			this.label = label;
 			this.zoom = zoom;
-			this.fontSize = fontSize;
-		}
-
-		@Override
-		public String toString() {
-			return "LabelArgs [fontSize=" + fontSize + ", x=" + x + ", y=" + y + ", width=" + width + ", height=" + height + ", label=" + label + ", zoom=" + zoom + "]";
 		}
 	}
+	
+	public static class LabelArgs extends AnnotationArgs {
+		public final String label;
+		public final double fontSize;
+		
+		public LabelArgs(double x, double y, double width, double height, double zoom, String label, double fontSize) {
+			super(x, y, width, height, zoom);
+			this.label = label;
+			this.fontSize = fontSize;
+		}
+	}
+	
+	public static class ShapeArgs extends AnnotationArgs {
+		public final ShapeType shapeType;
+		public final double borderWidth;
+		public final double opacity;
+		
+		public ShapeArgs(double x, double y, double width, double height, double zoom, ShapeType shapeType, double borderWidth, double opacity) {
+			super(x, y, width, height, zoom);
+			this.shapeType = shapeType;
+			this.borderWidth = borderWidth;
+			this.opacity = opacity;
+		}
+	}
+	
 	
 	
 	private void drawLabel() {
-		AnnotationSet annotationSet = cluster.getParent();
-		CyNetworkView view = annotationSet.getParent().getNetworkView();
-		DisplayOptions displayOptions = annotationSet.getDisplayOptions();
-		
 		LabelArgs args = computeLabelArgs(annotationRenderer, cluster);
+		TextAnnotation text = annotationRenderer.getTextAnnotation(cluster);
 		
-		Map<String,String> arguments = new HashMap<>();
-		arguments.put("x", String.valueOf(args.x));
-		arguments.put("y", String.valueOf(args.y));
-		arguments.put("zoom", String.valueOf(args.zoom));
-		arguments.put("canvas", "foreground");
-		
-		TextAnnotation textAnnotation = textFactory.createAnnotation(TextAnnotation.class, view, arguments);
-		if(textAnnotation != null && args.label != null) {
-			textAnnotation.setText(args.label);
-			textAnnotation.setFontSize(args.fontSize);
-			textAnnotation.setTextColor(DEFAULT_TEXT_COLOR);
-			annotationRenderer.setTextAnnotation(cluster, textAnnotation);
-			if (displayOptions.isShowLabels()) {
-				annotationManager.addAnnotation(textAnnotation);
+		if(text == null) {
+			// Create the text annotation
+			Map<String,String> arguments = new HashMap<>();
+			arguments.put("x", String.valueOf(args.x));
+			arguments.put("y", String.valueOf(args.y));
+			arguments.put("zoom", String.valueOf(args.zoom));
+			arguments.put("canvas", "foreground");
+			
+			AnnotationSet annotationSet = cluster.getParent();
+			CyNetworkView view = annotationSet.getParent().getNetworkView();
+			text = textFactory.createAnnotation(TextAnnotation.class, view, arguments);
+			if(text != null && args.label != null) {
+				text.setText(args.label);
+				text.setFontSize(args.fontSize);
+				text.setTextColor(DEFAULT_TEXT_COLOR);
+				annotationRenderer.setTextAnnotation(cluster, text);
+				if (annotationSet.getDisplayOptions().isShowLabels()) {
+					annotationManager.addAnnotation(text);
+				}
 			}
 		}
-		
+		else {
+			// update the existing annotation
+			text.moveAnnotation(new Point2D.Double(args.x, args.y));
+			text.setZoom(args.zoom);
+			text.setText(args.label);
+			text.setFontSize(args.fontSize);
+			text.update();
+		}
 	}
+	
+	
+	private void drawShape() {
+		ShapeArgs args = computeShapeArgs(annotationRenderer, cluster);
+		ShapeAnnotation shape = annotationRenderer.getShapeAnnotation(cluster);
+		
+		AnnotationSet annotationSet = cluster.getParent();
+		
+		if(shape == null) {
+			// Create and draw the shape
+			HashMap<String, String> arguments = new HashMap<String,String>();
+			arguments.put("x", String.valueOf(args.x));
+			arguments.put("y", String.valueOf(args.y));
+			arguments.put("zoom", String.valueOf(args.zoom));
+			arguments.put("canvas", "background");			
+			arguments.put("shapeType", args.shapeType.toString());
+			
+			
+			CyNetworkView view = annotationSet.getParent().getNetworkView();
+			shape = shapeFactory.createAnnotation(ShapeAnnotation.class, view, arguments);
+			if(shape != null) {
+				shape.setSize(args.width*args.zoom, args.height*args.zoom);
+				shape.setBorderWidth(args.borderWidth);
+				shape.setBorderColor(DEFAULT_BORDER_COLOR);
+				shape.setFillColor(DEFAULT_FILL_COLOR);
+				shape.setFillOpacity(args.opacity);
+				
+				annotationRenderer.setShapeAnnotation(cluster, shape);
+				if(annotationSet.getDisplayOptions().isShowClusters()) {
+					annotationManager.addAnnotation(shape);
+				}
+			}
+		}
+		else {
+			// update the existing annotation
+			shape.moveAnnotation(new Point2D.Double(args.x, args.y));
+			shape.setZoom(args.zoom);
+			shape.setSize(args.width*args.zoom, args.height*args.zoom);
+			shape.setShapeType(args.shapeType.toString());
+			shape.setBorderWidth(args.borderWidth);
+			shape.setFillOpacity(annotationSet.getDisplayOptions().isShowClusters() ? args.opacity : 0);
+			shape.update();
+		}
+	}
+	
+	
 	
 	public static LabelArgs computeLabelArgs(AnnotationRenderer annotationRenderer, Cluster cluster) {
 		AnnotationSet annotationSet = cluster.getParent();
@@ -137,21 +210,6 @@ public class DrawClusterTask extends AbstractTask {
 			width = Double.parseDouble(shapeArgs.get("width"));
 			height = Double.parseDouble(shapeArgs.get("height"));
 		}
-		
-		// This code doesn't work properly. 1) The label position is wrong. 2) Sometimes getNodeView() returns null.
-//		else if(cluster.isCollapsed()) {
-//			CyNode groupNode = cluster.getNodes().iterator().next();
-//			CyNetworkView networkView = cluster.getNetworkView();
-//			View<CyNode> nv = networkView.getNodeView(groupNode);
-//			xPos = nv.getVisualProperty(BasicVisualLexicon.NODE_X_LOCATION);
-//			yPos = nv.getVisualProperty(BasicVisualLexicon.NODE_Y_LOCATION);
-//			width = nv.getVisualProperty(BasicVisualLexicon.NODE_WIDTH);
-//			height = nv.getVisualProperty(BasicVisualLexicon.NODE_HEIGHT);
-//			// Cytoscape reports x,y as center of node
-//			xPos -= width/2.0;
-//			yPos -= height/2.0;
-//		}
-		
 		
 		double labelFontSize;
 		if(displayOptions.isUseConstantFontSize()) {
@@ -183,19 +241,18 @@ public class DrawClusterTask extends AbstractTask {
 		
 		double fontSize = 5*zoom*labelFontSize;
 		
-		return new LabelArgs(xPos, yPos, width, height, labelText, zoom, fontSize);
+		return new LabelArgs(xPos, yPos, width, height, zoom, labelText, fontSize);
 	}
 	
 	
-	private void drawShape() {
+	private static ShapeArgs computeShapeArgs(AnnotationRenderer annotationRenderer, Cluster cluster) {
 		AnnotationSet annotationSet = cluster.getParent();
 		CyNetworkView view = annotationSet.getParent().getNetworkView();
 		DisplayOptions displayOptions = annotationSet.getDisplayOptions();
 		
 		ShapeType shapeType = displayOptions.getShapeType();
-		int ellipseBorderWidth = displayOptions.getBorderWidth();
-		boolean showEllipses = displayOptions.isShowClusters();
-		int ellipseOpacity = displayOptions.getOpacity();
+		int borderWidth = displayOptions.getBorderWidth();
+		int opacity = displayOptions.getOpacity();
 		
 		double zoom = view.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR);
 
@@ -206,7 +263,7 @@ public class DrawClusterTask extends AbstractTask {
 		double height = Double.max(coordinateData.getHeight(), minSize);
 		
 		if (shapeType == ShapeType.ELLIPSE) {
-			while (nodesOutOfCluster(coordinateData, width, height, centreX, centreY, ellipseBorderWidth)) {
+			while (nodesOutOfCluster(coordinateData, width, height, centreX, centreY, borderWidth)) {
 				width *= 1.1;
 				height *= 1.1;
 			}
@@ -221,31 +278,11 @@ public class DrawClusterTask extends AbstractTask {
 		Integer xPos = (int) Math.round(centreX - width/2);
 		Integer yPos = (int) Math.round(centreY - height/2);
 		
-		// Create and draw the ellipse
-		HashMap<String, String> arguments = new HashMap<String,String>();
-		arguments.put("x", String.valueOf(xPos));
-		arguments.put("y", String.valueOf(yPos));
-		arguments.put("zoom", String.valueOf(zoom));
-		arguments.put("canvas", "background");			
-		arguments.put("shapeType", shapeType.toString());
-		
-		ShapeAnnotation shape = shapeFactory.createAnnotation(ShapeAnnotation.class, view, arguments);
-		if(shape != null) {
-			shape.setSize(width*zoom, height*zoom);
-			shape.setBorderWidth(ellipseBorderWidth);
-			shape.setBorderColor(DEFAULT_BORDER_COLOR);
-			shape.setFillColor(DEFAULT_FILL_COLOR);
-			shape.setFillOpacity(ellipseOpacity);
-			
-			annotationRenderer.setShapeAnnotation(cluster, shape);
-			if(showEllipses) {
-				annotationManager.addAnnotation(shape);
-			}
-		}
+		return new ShapeArgs(xPos, yPos, width, height, zoom, shapeType, borderWidth, opacity);
 	}
 	
 
-	private boolean nodesOutOfCluster(CoordinateData data, double width, double height, double centreX, double centreY, int ellipseWidth) {
+	private static boolean nodesOutOfCluster(CoordinateData data, double width, double height, double centreX, double centreY, int ellipseWidth) {
 		double semimajor_axis = width / 2;
 		double semiminor_axis = height / 2;
 		Map<CyNode,double[]> nodesToCoordinates = data.getCoordinates();

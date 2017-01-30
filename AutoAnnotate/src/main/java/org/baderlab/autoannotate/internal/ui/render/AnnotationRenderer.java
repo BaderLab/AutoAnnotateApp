@@ -50,6 +50,7 @@ public class AnnotationRenderer {
 	
 	@Subscribe
 	public void handle(ModelEvents.AnnotationSetSelected event) {
+		// User switched annotation sets
 		Optional<AnnotationSet> selected = event.getAnnotationSet();
 		
 		Set<Cluster> selectedClusters = selected.map(AnnotationSet::getClusters).orElse(Collections.emptySet());
@@ -80,12 +81,12 @@ public class AnnotationRenderer {
 	}
 	
 	
+	
 	@Subscribe
 	public void handle(ModelEvents.ClusterChanged event) {
 		Cluster cluster = event.getCluster();
 		if(cluster.getParent().isActive()) {
 			TaskIterator tasks = new TaskIterator();
-			tasks.append(eraseTaskProvider.get().setCluster(cluster));
 			tasks.append(drawTaskProvider.get().setCluster(cluster));
 			syncTaskManager.execute(tasks);
 		}

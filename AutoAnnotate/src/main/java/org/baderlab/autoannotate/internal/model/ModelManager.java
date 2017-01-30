@@ -170,14 +170,11 @@ public class ModelManager implements CyDisposable,
 				Collection<?> payload = e.getPayloadCollection();
 				
 				for(ViewChangeRecord vcr: (Collection<ViewChangeRecord>)payload) {
-					if (!(vcr.getView().getModel() instanceof CyNode))
+					if(!(vcr.getView().getModel() instanceof CyNode))
 						continue;
 		
 					VisualProperty<?> property =  vcr.getVisualProperty();
-					if (property.equals(BasicVisualLexicon.NODE_X_LOCATION) ||
-					    property.equals(BasicVisualLexicon.NODE_Y_LOCATION) ||
-							property.equals(BasicVisualLexicon.NODE_WIDTH) ||
-							property.equals(BasicVisualLexicon.NODE_HEIGHT)) {
+					if(property.equals(BasicVisualLexicon.NODE_X_LOCATION) || property.equals(BasicVisualLexicon.NODE_Y_LOCATION)) {
 		
 						View<CyNode> nodeView = vcr.getView();
 						CyNode node = nodeView.getModel();
