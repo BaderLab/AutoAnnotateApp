@@ -205,7 +205,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 		panel.add(makeSmall(algLabel), GBCFactory.grid(0,1).get());
 		
 		algorithmNameCombo = createComboBox(Arrays.asList(ClusterAlgorithm.values()), ClusterAlgorithm::toString);
-		algorithmNameCombo.setSelectedItem(ClusterAlgorithm.MCL);
+		algorithmNameCombo.setSelectedIndex(ClusterAlgorithm.MCL.ordinal());
 		panel.add(algorithmNameCombo, GBCFactory.grid(1,1).weightx(1.0).get());
 		
 		JLabel edgeWeightLabel = new JLabel("           Edge weight column:");
