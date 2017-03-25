@@ -39,6 +39,7 @@ import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
+import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
@@ -89,8 +90,15 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	}
 	
 	@Subscribe
+	public void handle(ModelEvents.NetworkViewSetSelected event) {
+		Optional<AnnotationSet> as = event.getNetworkViewSet().flatMap(NetworkViewSet::getActiveAnnotationSet);
+		setAnnotationSet(as);
+	}
+	
+	@Subscribe
 	public void handle(ModelEvents.AnnotationSetSelected event) {
-		setAnnotationSet(event.getAnnotationSet());
+		Optional<AnnotationSet> as = event.getAnnotationSet();
+		setAnnotationSet(as);
 	}
 	
 	public void setAnnotationSet(Optional<AnnotationSet> annotationSet) {

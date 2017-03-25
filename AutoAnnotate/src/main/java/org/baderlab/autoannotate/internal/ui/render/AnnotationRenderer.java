@@ -15,8 +15,10 @@ import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.render.DrawClusterTask.LabelArgs;
+import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
+import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskManager;
 
@@ -162,6 +164,11 @@ public class AnnotationRenderer {
 			}
 			break;
 		}
+		
+		// Force the thumbnail view to update
+		CyNetworkView networkView = annotationSet.getParent().getNetworkView();
+		Double x = networkView.getVisualProperty(BasicVisualLexicon.NODE_Z_LOCATION); // ding ignores this property
+		networkView.setVisualProperty(BasicVisualLexicon.NODE_Z_LOCATION, x);
 	}
 	
 	@Subscribe
