@@ -11,6 +11,7 @@ import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetDeleteAction;
 import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetRenameAction;
 import org.baderlab.autoannotate.internal.ui.view.action.CollapseAction;
+import org.baderlab.autoannotate.internal.ui.view.action.ExportClustersAction;
 import org.baderlab.autoannotate.internal.ui.view.action.LayoutClustersAction;
 import org.baderlab.autoannotate.internal.ui.view.action.RedrawAction;
 import org.baderlab.autoannotate.internal.ui.view.action.RelabelAction;
@@ -39,6 +40,7 @@ public class AnnotationSetMenu {
 	@Inject private Provider<ShowSettingsDialogAction> showSettingsProvider;
 	@Inject private Provider<ShowLabelOptionsDialogAction> showLabelOptionsProvider;
 	@Inject private Provider<ShowCreationParamsAction> showCreationParamsProvider;
+	@Inject private Provider<ExportClustersAction> exportClusterProvider;
 	
 	
 	public void show(Optional<AnnotationSet> annotationSet, Component parent, int x, int y) {
@@ -55,6 +57,7 @@ public class AnnotationSetMenu {
 		Action settingsAction = showSettingsProvider.get();
 		Action showLabelOptionsAction = showLabelOptionsProvider.get();
 		Action showCreationParamsAction = showCreationParamsProvider.get();
+		Action exportClustersAction = exportClusterProvider.get();
 		
 		boolean enabled = annotationSet.isPresent();
 		renameAction.setEnabled(enabled);
@@ -68,6 +71,7 @@ public class AnnotationSetMenu {
 		relabelAction.setEnabled(enabled);
 		showLabelOptionsAction.setEnabled(enabled);
 		showCreationParamsAction.setEnabled(enabled);
+		exportClustersAction.setEnabled(enabled);
 		
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(createAction);
@@ -82,9 +86,10 @@ public class AnnotationSetMenu {
 		menu.add(layoutAction);
 		menu.add(redrawAction);
 		menu.add(relabelAction);
-		menu.add(showLabelOptionsAction);
 		menu.add(showCreationParamsAction);
+		menu.add(exportClustersAction);
 		menu.addSeparator();
+		menu.add(showLabelOptionsAction);
 		menu.add(settingsAction);
 		
 		menu.show(parent, x, y);
