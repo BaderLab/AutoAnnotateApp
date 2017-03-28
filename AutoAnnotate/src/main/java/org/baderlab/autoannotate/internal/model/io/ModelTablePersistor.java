@@ -1,5 +1,6 @@
 package org.baderlab.autoannotate.internal.model.io;
 
+import java.awt.Color;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +31,6 @@ import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationPersistor;
 import org.baderlab.autoannotate.internal.util.TaskTools;
-import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNetworkTableManager;
@@ -79,6 +79,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		SHOW_LABELS = "showLabels",
 		SHOW_CLUSTERS = "showClusters",
 		SHAPE_TYPE = "shapeType",
+		FILL_COLOR = "fillColor",
+		BORDER_COLOR = "borderColor",
 		LABEL_MAKER_ID = "labelMakerID",
 		LABEL_MAKER_CONTEXT = "labelMakerContext",
 		CREATION_PARAMS = "creationParams";
@@ -203,6 +205,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			safeGet(asRow, SHOW_CLUSTERS, Boolean.class, builder::setShowClusters);
 			safeGet(asRow, SHOW_LABELS, Boolean.class, builder::setShowLabels);
 			safeGet(asRow, USE_CONSTANT_FONT_SIZE, Boolean.class, builder::setUseConstantFontSize);
+			safeGet(asRow, FILL_COLOR, Integer.class, rgb -> builder.setFillColor(new Color(rgb)));
+			safeGet(asRow, BORDER_COLOR, Integer.class, rgb -> builder.setBorderColor(new Color(rgb)));
 
 			String labelMakerID = asRow.get(LABEL_MAKER_ID, String.class);
 			String serializedContext = asRow.get(LABEL_MAKER_CONTEXT, String.class);
@@ -255,7 +259,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			}
 			
 			Optional<UUID> shapeID = safeUUID(clusterRow.get(SHAPE_ID, String.class));
-			Optional<UUID> textID = safeUUID(clusterRow.get(TEXT_ID, String.class));
+			Optional<UUID> textID  = safeUUID(clusterRow.get(TEXT_ID, String.class));
 			
 			List<CyNode> nodes = nodeSUIDS.stream().map(network::getNode).collect(Collectors.toList());
 			AnnotationPersistor annotationPersistor = annotationPersistorProvider.get();
@@ -333,11 +337,9 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	
 	public void exportModel() {
 		for(CyNetwork network: networkManager.getNetworkSet()) {
+			CyTable asTable = createAnnotationSetTable(network);
+			CyTable clusterTable = createClusterTable(network);
 			
-			CyTable asTable = getAnnotationSetTable(network);
-			CyTable clusterTable = getClusterTable(network);
-			clearTable(asTable);
-			clearTable(clusterTable);
 			Ids ids = new Ids();
 			
 			Collection<CyNetworkView> networkViews = networkViewManager.getNetworkViews(network);
@@ -375,6 +377,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(FONT_SIZE, disp.getFontSize());
 			asRow.set(OPACITY, disp.getOpacity());
 			asRow.set(BORDER_WIDTH, disp.getBorderWidth());
+			asRow.set(FILL_COLOR, disp.getFillColor().getRGB());
+			asRow.set(BORDER_COLOR, disp.getBorderColor().getRGB());
 			
 			LabelMakerManager labelMakerManager = labelManagerProvider.get();
 			
@@ -409,13 +413,22 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		}
 	}
 	
-	private CyTable getAnnotationSetTable(CyNetwork network) {
-		CyTable table = networkTableManager.getTable(network, CyNetwork.class, ANNOTATION_SET_TABLE);
-		if(table == null) {
-			table = tableFactory.createTable(ANNOTATION_SET_TABLE, ANNOTATION_SET_ID, Long.class, true, true);
-			networkTableManager.setTable(network, CyNetwork.class, ANNOTATION_SET_TABLE, table);
-			tableManager.addTable(table);
+	private CyTable createTable(CyNetwork network, String namespace, String id) {
+		CyTable existingTable = networkTableManager.getTable(network, CyNetwork.class, namespace);
+		if(existingTable != null) {
+			tableManager.deleteTable(existingTable.getSUID());
+			networkTableManager.removeTable(network, CyNetwork.class, namespace);
 		}
+		
+		CyTable table = tableFactory.createTable(namespace, id, Long.class, true, true);
+		networkTableManager.setTable(network, CyNetwork.class, namespace, table);
+		tableManager.addTable(table);
+		return table;
+	}
+	
+	
+	private CyTable createAnnotationSetTable(CyNetwork network) {
+		CyTable table = createTable(network, ANNOTATION_SET_TABLE, ANNOTATION_SET_ID);
 		createColumn(table, NAME, String.class);
 		createColumn(table, NETWORK_VIEW_SUID, Long.class);
 		createListColumn(table, LABEL_COLUMN, String.class);
@@ -428,6 +441,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, FONT_SIZE, Integer.class);
 		createColumn(table, OPACITY, Integer.class);
 		createColumn(table, BORDER_WIDTH, Integer.class);
+		createColumn(table, FILL_COLOR, Integer.class); // store as RGB int value
+		createColumn(table, BORDER_COLOR, Integer.class);
 		createColumn(table, LABEL_MAKER_ID, String.class);
 		createColumn(table, LABEL_MAKER_CONTEXT, String.class);
 		createColumn(table, CREATION_PARAMS, String.class);
@@ -435,13 +450,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	}
 	
 
-	private CyTable getClusterTable(CyNetwork network) {
-		CyTable table = networkTableManager.getTable(network, CyNetwork.class, CLUSTER_TABLE);
-		if(table == null) {
-			table = tableFactory.createTable(CLUSTER_TABLE, CLUSTER_ID, Long.class, true, true);
-			networkTableManager.setTable(network, CyNetwork.class, CLUSTER_TABLE, table);
-			tableManager.addTable(table);
-		}
+	private CyTable createClusterTable(CyNetwork network) {
+		CyTable table = createTable(network, CLUSTER_TABLE, CLUSTER_ID);
 		createColumn(table, LABEL, String.class);
 		createColumn(table, COLLAPSED, Boolean.class);
 		createListColumn(table, NODES_SUID, Long.class);
@@ -451,15 +461,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		return table;
 	}
 	
-	private void clearTable(CyTable table) {
-		List<Long> rowKeys = new ArrayList<>();
-		CyColumn keyColumn = table.getPrimaryKey();
-		for(CyRow row : table.getAllRows()) {
-			long key = row.get(keyColumn.getName(), Long.class);
-			rowKeys.add(key);
-		}
-		table.deleteRows(rowKeys);
-	}
 	
 	private static void createColumn(CyTable table, String name, Class<?> type) {
 		if(table.getColumn(name) == null)
@@ -485,7 +486,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		try {
 			T value = row.get(column, type);
 			if(value == null) {
-				System.err.println("AutoAnnotate.importModel - Error loading display options for " + column);
+				System.err.println("AutoAnnotate.importModel - Can't find display option for " + column);
 			}
 			else {
 				consumer.accept(value);

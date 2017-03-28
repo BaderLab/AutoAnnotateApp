@@ -1,5 +1,6 @@
 package org.baderlab.autoannotate.internal.model;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -39,6 +40,8 @@ public class AnnotationSetBuilder {
 	private int	fontSize = DisplayOptions.FONT_SIZE_DEFAULT; 
 	private int opacity = DisplayOptions.OPACITY_DEFAULT;
 	private int borderWidth = DisplayOptions.WIDTH_DEFAULT;
+	private Color fillColor = DisplayOptions.FILL_COLOR_DEFAULT;
+	private Color borderColor = DisplayOptions.BORDER_COLOR_DEFAULT;
 	
 	private Optional<Consumer<AnnotationSet>> asCallback = Optional.empty();
 	
@@ -139,6 +142,22 @@ public class AnnotationSetBuilder {
 
 	public void setBorderWidth(int borderWidth) {
 		this.borderWidth = borderWidth;
+	}
+
+	public Color getFillColor() {
+		return fillColor;
+	}
+
+	public void setFillColor(Color fillColor) {
+		this.fillColor = fillColor;
+	}
+
+	public Color getBorderColor() {
+		return borderColor;
+	}
+
+	public void setBorderColor(Color borderColor) {
+		this.borderColor = borderColor;
 	}
 
 	public void addCluster(Collection<CyNode> nodes, String label, boolean collapsed) {

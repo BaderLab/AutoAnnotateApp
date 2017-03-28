@@ -20,6 +20,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeListener;
 import java.net.URL;
 import java.util.Optional;
 
@@ -40,6 +41,7 @@ import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.util.ColorButton;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
@@ -64,6 +66,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private JCheckBox fontByClusterCheckbox;
 	private JRadioButton ellipseRadio;
 	private JRadioButton rectangleRadio;
+	private ColorButton fillColorButton;
+	private ColorButton borderColorButton;
 	private JPanel fontPanel;
 	
 	private ChangeListener borderWidthListener;
@@ -74,6 +78,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private ActionListener hideLabelsListener;
 	private ActionListener fontByClusterListener;
 	private ActionListener ellipseListener;
+	private PropertyChangeListener fillColorListener;
+	private PropertyChangeListener borderColorListener;
 	
 	private EventBus eventBus;
 	
@@ -116,6 +122,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			hideLabelsCheckBox.removeActionListener(hideLabelsListener);
 			fontByClusterCheckbox.removeActionListener(fontByClusterListener);
 			ellipseRadio.removeActionListener(ellipseListener);
+			fillColorButton.removePropertyChangeListener("color", fillColorListener);
+			borderColorButton.removePropertyChangeListener("color", borderColorListener);
 			
 			borderWidthSlider.setValue(displayOptions.getBorderWidth());
 			opacitySlider.setValue(displayOptions.getOpacity());
@@ -125,6 +133,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			hideLabelsCheckBox.setSelected(!displayOptions.isShowLabels());
 			fontByClusterCheckbox.setSelected(!displayOptions.isUseConstantFontSize());
 			ellipseRadio.setSelected(displayOptions.getShapeType() == ShapeType.ELLIPSE);
+			fillColorButton.setColor(displayOptions.getFillColor());
+			borderColorButton.setColor(displayOptions.getBorderColor());
 			
 			CardLayout cardLayout = (CardLayout) fontPanel.getLayout();
 			cardLayout.show(fontPanel, displayOptions.isUseConstantFontSize() ? fontSizeSlider.getLabel() : fontScaleSlider.getLabel());
@@ -137,6 +147,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			hideLabelsCheckBox.addActionListener(hideLabelsListener);
 			fontByClusterCheckbox.addActionListener(fontByClusterListener);
 			ellipseRadio.addActionListener(ellipseListener);
+			fillColorButton.addPropertyChangeListener("color", fillColorListener);
+			borderColorButton.addPropertyChangeListener("color", borderColorListener);
 		}
 	}
 	
@@ -164,16 +176,11 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	
 	
 	private JPanel createSliderPanel() {
-		JPanel panel = new JPanel(new GridBagLayout());
-		
 		borderWidthSlider = new SliderWithLabel("Border Width", false, WIDTH_MIN, WIDTH_MAX, WIDTH_DEFAULT);
-		panel.add(borderWidthSlider, GBCFactory.grid(0,0).weightx(1.0).get());
 		borderWidthSlider.getSlider().addChangeListener(borderWidthListener = e -> displayOptions.setBorderWidth(borderWidthSlider.getValue()));
 		
 		opacitySlider = new SliderWithLabel("Opacity", true, OPACITY_MIN, OPACITY_MAX, OPACITY_DEFAULT);
-		panel.add(opacitySlider, GBCFactory.grid(0,1).weightx(1.0).get());
 		opacitySlider.getSlider().addChangeListener(opacityListener = e -> displayOptions.setOpacity(opacitySlider.getValue()));
-		
 		
 		CardLayout cardLayout = new CardLayout();
 		fontPanel = new JPanel(cardLayout);
@@ -185,13 +192,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		fontScaleSlider = new SliderWithLabel("Font Scale", true, FONT_SCALE_MIN, FONT_SCALE_MAX, FONT_SCALE_DEFAULT);
 		fontScaleSlider.getSlider().addChangeListener(fontScaleListener = e -> displayOptions.setFontScale(fontScaleSlider.getValue()));
 		fontPanel.add(fontScaleSlider, fontScaleSlider.getLabel());
-		
-		panel.add(fontPanel, GBCFactory.grid(0,2).get());
-		
 
 		fontByClusterCheckbox = new JCheckBox("Scale font by cluster size");
-		panel.add(makeSmall(fontByClusterCheckbox), GBCFactory.grid(0,3).weightx(1.0).get());
-		
 		fontByClusterCheckbox.addActionListener(fontByClusterListener = e -> {
 			boolean useConstantFontSize = !fontByClusterCheckbox.isSelected();
 			// Firing event twice is a workaround for a bug in Cytoscape where the text annotations don't update properly.
@@ -200,47 +202,63 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			cardLayout.show(fontPanel, useConstantFontSize ? fontSizeSlider.getLabel() : fontScaleSlider.getLabel());
 		});
 		
+		
+		JPanel panel = new JPanel(new GridBagLayout());
+		panel.add(borderWidthSlider, GBCFactory.grid(0,0).weightx(1.0).get());
+		panel.add(opacitySlider, GBCFactory.grid(0,1).weightx(1.0).get());
+		panel.add(fontPanel, GBCFactory.grid(0,2).get());
+		panel.add(makeSmall(fontByClusterCheckbox), GBCFactory.grid(0,3).weightx(1.0).get());
 		return panel;
 	}
 	
 	
 	private JPanel createHidePanel() {
-		JPanel panel = new JPanel(new GridBagLayout());
-		
 		hideClustersCheckBox = new JCheckBox("Hide Clusters");
-		panel.add(makeSmall(hideClustersCheckBox), GBCFactory.grid(0,0).weightx(1.0).get());
 		hideClustersCheckBox.addActionListener(
 				hideClustersListener = e -> displayOptions.setShowClusters(!hideClustersCheckBox.isSelected()));
 		
 		hideLabelsCheckBox = new JCheckBox("Hide Labels");
-		panel.add(makeSmall(hideLabelsCheckBox), GBCFactory.grid(0,1).get());
 		hideLabelsCheckBox.addActionListener(
 				hideLabelsListener = e -> displayOptions.setShowLabels(!hideLabelsCheckBox.isSelected()));
 		
+		JPanel panel = new JPanel(new GridBagLayout());
+		panel.add(makeSmall(hideClustersCheckBox), GBCFactory.grid(0,0).weightx(1.0).get());
+		panel.add(makeSmall(hideLabelsCheckBox), GBCFactory.grid(0,1).get());
 		return panel;
 	}
 	
 	
 	private JPanel createShapePanel() {
-		JPanel panel = new JPanel(new GridBagLayout());
-		
-		JLabel label = new JLabel("Shape:");
-		panel.add(makeSmall(label), GBCFactory.grid(0,0).weightx(1.0).get());
+		JLabel shapeLabel = new JLabel("Shape:");
 		
 		ellipseListener = e -> displayOptions.setShapeType(ellipseRadio.isSelected() ? ShapeType.ELLIPSE : ShapeType.RECTANGLE);
-				
 		ellipseRadio = new JRadioButton("Ellipse");
-		panel.add(makeSmall(ellipseRadio), GBCFactory.grid(0,1).get());
 		ellipseRadio.addActionListener(ellipseListener);
 		
 		rectangleRadio = new JRadioButton("Rectangle");
-		panel.add(makeSmall(rectangleRadio), GBCFactory.grid(0,2).get());
 		rectangleRadio.addActionListener(ellipseListener);
 		
 		ButtonGroup buttonGroup = new ButtonGroup();
 		buttonGroup.add(ellipseRadio);
 		buttonGroup.add(rectangleRadio);
 		
+		JLabel fillColorLabel = new JLabel("Fill Color:");
+		fillColorButton = new ColorButton(DisplayOptions.FILL_COLOR_DEFAULT);
+		fillColorButton.addPropertyChangeListener("color", fillColorListener = e -> displayOptions.setFillColor(fillColorButton.getColor()));
+		
+		JLabel borderColorLabel = new JLabel("Border Color:");
+		borderColorButton = new ColorButton(DisplayOptions.BORDER_COLOR_DEFAULT);
+		borderColorButton.addPropertyChangeListener("color", borderColorListener = e -> displayOptions.setBorderColor(borderColorButton.getColor()));
+		
+		JPanel panel = new JPanel(new GridBagLayout());
+		panel.add(makeSmall(fillColorLabel), GBCFactory.grid(0,0).get());
+		panel.add(makeSmall(fillColorButton), GBCFactory.grid(1,0).get());
+		panel.add(new JLabel(""), GBCFactory.grid(2,0).weightx(1.0).get());
+		panel.add(makeSmall(borderColorLabel), GBCFactory.grid(0,1).get());
+		panel.add(makeSmall(borderColorButton), GBCFactory.grid(1,1).get());
+		panel.add(makeSmall(shapeLabel), GBCFactory.grid(0,2).get());
+		panel.add(makeSmall(ellipseRadio), GBCFactory.grid(0,3).get());
+		panel.add(makeSmall(rectangleRadio), GBCFactory.grid(0,4).get());
 		return panel;
 	}
 	

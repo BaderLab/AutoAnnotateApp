@@ -1,5 +1,8 @@
 package org.baderlab.autoannotate.internal.model;
 
+import java.awt.Color;
+import java.util.Objects;
+
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 
@@ -10,6 +13,8 @@ public class DisplayOptions {
 	public static final boolean SHOW_CLUSTERS_DEFAULT = true;
 	public static final boolean SHOW_LABELS_DEFAULT = true;
 	public static final boolean USE_CONSTANT_FONT_SIZE_DEFAULT = false;
+	public static final Color FILL_COLOR_DEFAULT = Color.getHSBColor(0.19f, 1.25f, 0.95f);
+	public static final Color BORDER_COLOR_DEFAULT = Color.DARK_GRAY;
 	
 	public static final int OPACITY_DEFAULT = 20;
 	public static final int OPACITY_MIN = 1;
@@ -38,6 +43,8 @@ public class DisplayOptions {
 	private int opacity = OPACITY_DEFAULT;
 	private int borderWidth = WIDTH_DEFAULT;
 	private int fontSize = FONT_SIZE_DEFAULT;
+	private Color fillColor = FILL_COLOR_DEFAULT;
+	private Color borderColor = BORDER_COLOR_DEFAULT;
 	
 	
 	DisplayOptions(AnnotationSet parent) {
@@ -54,6 +61,8 @@ public class DisplayOptions {
 		this.fontSize = builder.getFontSize();
 		this.opacity = builder.getOpacity();
 		this.borderWidth = builder.getBorderWidth();
+		this.fillColor = Objects.requireNonNull(builder.getFillColor());
+		this.borderColor = Objects.requireNonNull(builder.getBorderColor());
 	}
 	
 	public AnnotationSet getParent() {
@@ -135,6 +144,24 @@ public class DisplayOptions {
 	public void setBorderWidth(int borderWidth) {
 		this.borderWidth = borderWidth;
 		postEvent(Option.BORDER_WIDTH);
+	}
+	
+	public Color getFillColor() {
+		return fillColor;
+	}
+	
+	public void setFillColor(Color fillColor) {
+		this.fillColor = Objects.requireNonNull(fillColor);
+		postEvent(Option.FILL_COLOR);
+	}
+	
+	public Color getBorderColor() {
+		return borderColor;
+	}
+	
+	public void setBorderColor(Color borderColor) {
+		this.borderColor = Objects.requireNonNull(borderColor);
+		postEvent(Option.BORDER_COLOR);
 	}
 	
 }

@@ -161,7 +161,9 @@ public class ModelEvents {
 			FONT_SCALE, 
 			FONT_SIZE,
 			OPACITY, 
-			BORDER_WIDTH
+			BORDER_WIDTH,
+			FILL_COLOR,
+			BORDER_COLOR
 		}
 		
 		private final Option option;

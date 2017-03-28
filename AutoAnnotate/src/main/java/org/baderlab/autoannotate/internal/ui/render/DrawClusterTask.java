@@ -40,8 +40,6 @@ public class DrawClusterTask extends AbstractTask {
 	public static final Color DEFAULT_TEXT_COLOR = Color.BLACK;
 	private static final int minSize = 50; // Minimum size of the ellipse
 	
-	public static final Color DEFAULT_FILL_COLOR = Color.getHSBColor(0.19f, 1.25f, 0.95f);
-	public static final Color DEFAULT_BORDER_COLOR = Color.DARK_GRAY;
 	
 	
 	private Cluster cluster;
@@ -101,12 +99,17 @@ public class DrawClusterTask extends AbstractTask {
 		public final ShapeType shapeType;
 		public final double borderWidth;
 		public final double opacity;
+		public final Color fillColor;
+		public final Color borderColor;
 		
-		public ShapeArgs(double x, double y, double width, double height, double zoom, ShapeType shapeType, double borderWidth, double opacity) {
+		public ShapeArgs(double x, double y, double width, double height, double zoom, 
+				ShapeType shapeType, double borderWidth, double opacity, Color fillColor, Color borderColor) {
 			super(x, y, width, height, zoom);
 			this.shapeType = shapeType;
 			this.borderWidth = borderWidth;
 			this.opacity = opacity;
+			this.fillColor = fillColor;
+			this.borderColor = borderColor;
 		}
 	}
 	
@@ -169,8 +172,8 @@ public class DrawClusterTask extends AbstractTask {
 			if(shape != null) {
 				shape.setSize(args.width*args.zoom, args.height*args.zoom);
 				shape.setBorderWidth(args.borderWidth);
-				shape.setBorderColor(DEFAULT_BORDER_COLOR);
-				shape.setFillColor(DEFAULT_FILL_COLOR);
+				shape.setBorderColor(args.borderColor);
+				shape.setFillColor(args.fillColor);
 				shape.setFillOpacity(args.opacity);
 				
 				annotationRenderer.setShapeAnnotation(cluster, shape);
@@ -253,6 +256,8 @@ public class DrawClusterTask extends AbstractTask {
 		ShapeType shapeType = displayOptions.getShapeType();
 		int borderWidth = displayOptions.getBorderWidth();
 		int opacity = displayOptions.getOpacity();
+		Color borderColor = displayOptions.getBorderColor();
+		Color fillColor = displayOptions.getFillColor();
 		
 		double zoom = view.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR);
 
@@ -278,7 +283,7 @@ public class DrawClusterTask extends AbstractTask {
 		Integer xPos = (int) Math.round(centreX - width/2);
 		Integer yPos = (int) Math.round(centreY - height/2);
 		
-		return new ShapeArgs(xPos, yPos, width, height, zoom, shapeType, borderWidth, opacity);
+		return new ShapeArgs(xPos, yPos, width, height, zoom, shapeType, borderWidth, opacity, fillColor, borderColor);
 	}
 	
 

@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
@@ -115,34 +116,33 @@ public class AnnotationRenderer {
 	@Subscribe
 	public void handle(ModelEvents.DisplayOptionChanged event) {
 		DisplayOptions options = event.getDisplayOptions();
-		AnnotationSet annotationSet = options.getParent();
+		AnnotationSet as = options.getParent();
 		
 		switch(event.getOption()) {
 		case BORDER_WIDTH:
-			for(Cluster cluster : annotationSet.getClusters()) {
-				ShapeAnnotation shape = shapeAnnotations.get(cluster);
-				if(shape != null) {
-					shape.setBorderWidth(options.getBorderWidth());
-					shape.update();
-				}
-			}
+			forEachShape(as, shape -> shape.setBorderWidth(options.getBorderWidth()));
+			break;
+		case SHAPE_TYPE:
+			forEachShape(as, shape -> shape.setShapeType(options.getShapeType().shapeName()));
+			break;
+		case BORDER_COLOR:
+			forEachShape(as, shape -> shape.setBorderColor(options.getBorderColor()));
+			break;
+		case FILL_COLOR:
+			forEachShape(as, shape -> shape.setFillColor(options.getFillColor()));
 			break;
 		case OPACITY:
 		case SHOW_CLUSTERS:
-			for(Cluster cluster : annotationSet.getClusters()) {
-				ShapeAnnotation shape = shapeAnnotations.get(cluster);
-				if(shape != null) {
-					shape.setFillOpacity(options.isShowClusters() ? options.getOpacity() : 0);
-					shape.setBorderOpacity(options.isShowClusters() ? 100 : 0);
-					shape.update();
-				}
-			}
+			forEachShape(as, shape -> {
+				shape.setFillOpacity(options.isShowClusters() ? options.getOpacity() : 0);
+				shape.setBorderOpacity(options.isShowClusters() ? 100 : 0);
+			});
 			break;
 		case FONT_SCALE:
 		case FONT_SIZE:
 		case SHOW_LABELS:
 		case USE_CONSTANT_FONT_SIZE:
-			for(Cluster cluster : annotationSet.getClusters()) {
+			for(Cluster cluster : as.getClusters()) {
 				TextAnnotation text = textAnnotations.get(cluster);
 				if(text != null) {
 					LabelArgs labelArgs = DrawClusterTask.computeLabelArgs(this, cluster);
@@ -154,21 +154,23 @@ public class AnnotationRenderer {
 				}
 			}
 			break;
-		case SHAPE_TYPE:
-			for(Cluster cluster : annotationSet.getClusters()) {
-				ShapeAnnotation shape = shapeAnnotations.get(cluster);
-				if(shape != null) {
-					shape.setShapeType(options.getShapeType().shapeName());
-					shape.update();
-				}
-			}
-			break;
 		}
 		
 		// Force the thumbnail view to update
-		CyNetworkView networkView = annotationSet.getParent().getNetworkView();
+		CyNetworkView networkView = as.getParent().getNetworkView();
 		Double x = networkView.getVisualProperty(BasicVisualLexicon.NODE_Z_LOCATION); // ding ignores this property
 		networkView.setVisualProperty(BasicVisualLexicon.NODE_Z_LOCATION, x);
+	}
+	
+	
+	private void forEachShape(AnnotationSet as, Consumer<ShapeAnnotation> consumer) {
+		for(Cluster cluster : as.getClusters()) {
+			ShapeAnnotation shape = shapeAnnotations.get(cluster);
+			if(shape != null) {
+				consumer.accept(shape);
+				shape.update();
+			}
+		}
 	}
 	
 	@Subscribe
