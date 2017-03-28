@@ -16,6 +16,7 @@ import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanel;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
+import org.cytoscape.application.swing.CytoPanelState;
 import org.cytoscape.service.util.CyServiceRegistrar;
 
 import com.google.common.eventbus.EventBus;
@@ -127,6 +128,7 @@ public class PanelManagerImpl implements PanelManager {
 		CytoPanelName compassPoint = panel.getCytoPanelName();
 		Component component = panel.getComponent();
 		CytoPanel cytoPanel = swingApplication.getCytoPanel(compassPoint);
+		cytoPanel.setState(CytoPanelState.DOCK);
 		int index = cytoPanel.indexOfComponent(component);
 		cytoPanel.setSelectedIndex(index);
 	}
