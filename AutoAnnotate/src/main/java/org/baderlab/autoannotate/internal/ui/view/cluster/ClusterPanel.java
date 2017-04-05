@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.ui.view;
+package org.baderlab.autoannotate.internal.ui.view.cluster;
 
 import static org.baderlab.autoannotate.internal.util.TaskTools.allFinishedObserver;
 import static org.baderlab.autoannotate.internal.util.TaskTools.taskOf;

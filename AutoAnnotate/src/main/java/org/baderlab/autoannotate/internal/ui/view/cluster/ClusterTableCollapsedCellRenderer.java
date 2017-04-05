@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.ui.view;
+package org.baderlab.autoannotate.internal.ui.view.cluster;
 
 import java.awt.Component;
 import java.awt.Font;
