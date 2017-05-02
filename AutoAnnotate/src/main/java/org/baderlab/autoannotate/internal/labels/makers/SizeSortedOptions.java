@@ -25,6 +25,12 @@ public class SizeSortedOptions {
 	}
 	
 	
+	@Override
+	public String toString() {
+		return "SizeSortedOptions [maxWords=" + maxWords + "]";
+	}
+
+
 	public static class Tunables implements Supplier<SizeSortedOptions> {
 
 		@Tunable(description="Max words to include in label. Default: " + DEFAULT_MAX_WORDS)

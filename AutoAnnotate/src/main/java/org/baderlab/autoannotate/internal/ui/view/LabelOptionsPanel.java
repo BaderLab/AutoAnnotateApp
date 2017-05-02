@@ -1,6 +1,6 @@
 package org.baderlab.autoannotate.internal.ui.view;
 
-import static org.baderlab.autoannotate.internal.ui.view.CreateAnnotationSetDialog.getColumnsOfType;
+import static org.baderlab.autoannotate.internal.ui.view.dialog.CreateAnnotationSetDialog.getColumnsOfType;
 import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
 
 import java.awt.BorderLayout;

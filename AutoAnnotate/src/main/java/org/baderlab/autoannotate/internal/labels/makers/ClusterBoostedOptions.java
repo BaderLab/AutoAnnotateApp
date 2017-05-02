@@ -39,6 +39,11 @@ public class ClusterBoostedOptions {
 		return new ClusterBoostedOptions(maxWords, clusterBonus);
 	}
 	
+	@Override
+	public String toString() {
+		return "ClusterBoostedOptions [maxWords=" + maxWords + ", clusterBonus=" + clusterBonus + "]";
+	}
+
 	
 	public static class Tunables implements Supplier<ClusterBoostedOptions> {
 		

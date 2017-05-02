@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.ui.view;
+package org.baderlab.autoannotate.internal.ui.view.dialog;
 
 import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
 
@@ -7,39 +7,30 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Function;
 
 import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
-import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
-import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.internal.task.Grouping;
-import org.baderlab.autoannotate.internal.util.ComboItem;
+import org.baderlab.autoannotate.internal.ui.view.WarnDialog;
+import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.baderlab.autoannotate.internal.util.TaskTools;
@@ -49,7 +40,6 @@ import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.util.swing.IconManager;
-import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.util.swing.OpenBrowser;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.TaskIterator;
@@ -61,26 +51,24 @@ import com.google.inject.Provider;
 @SuppressWarnings("serial")
 public class CreateAnnotationSetDialog extends JDialog {
 	
-	private static final String NONE = "--None--"; // "--None--" is a value accepted by clusterMaker
+	static final String NONE = "--None--"; // "--None--" is a value accepted by clusterMaker
 	
 	@Inject private @WarnDialogModule.Create Provider<WarnDialog> warnDialogProvider;
 	@Inject private Provider<CreateAnnotationSetTask> createTaskProvider;
 	@Inject private Provider<CollapseAllTaskFactory> collapseTaskFactoryProvider;
 	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
-	@Inject private LabelOptionsPanel.Factory labelOptionsPanelFactory;
 	
 	@Inject private Provider<OpenBrowser> browserProvider;
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private IconManager iconManager;
 	@Inject private AvailableCommands availableCommands;
 	
-	private final CyNetworkView networkView;
+	@Inject private NormalModePanel.Factory normalModePanelFactory;
+	@Inject private EasyModePanel.Factory easyModePanelFactory;
 	
-	private LabelOptionsPanel labelOptionsPanel;
-	private JComboBox<ComboItem<ClusterAlgorithm>> algorithmNameCombo;
-	private JComboBox<ComboItem<String>> edgeWeightColumnCombo;
-	private JComboBox<ComboItem<String>> clusterIdColumnCombo;
-	private JRadioButton useClusterMakerRadio;
+	private final CyNetworkView networkView;
+	private JTabbedPane tabPane;
+	
 	private JButton createButton;
 	
 	private boolean isClusterMakerInstalled;
@@ -100,7 +88,6 @@ public class CreateAnnotationSetDialog extends JDialog {
 		isClusterMakerInstalled = availableCommands.getNamespaces().contains("cluster");
 		isWordCloudInstalled = wordCloudAdapterProvider.get().isWordcloudRequiredVersionInstalled();
 		
-		
 		setLayout(new BorderLayout());
 		JPanel parent = new JPanel();
 		parent.setLayout(new BorderLayout());
@@ -108,14 +95,13 @@ public class CreateAnnotationSetDialog extends JDialog {
 		add(parent, BorderLayout.CENTER);
 		
 		JPanel topPanel = createTopPanel();
-		JPanel optionsPanel = createParametersPanel();
+		tabPane = createTabbedPane();
 		JPanel buttonPanel = createButtonPanel();
 		
-		optionsPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
-		
 		parent.add(topPanel, BorderLayout.NORTH);
-		parent.add(optionsPanel, BorderLayout.CENTER);
+		parent.add(tabPane, BorderLayout.CENTER);
 		parent.add(buttonPanel, BorderLayout.SOUTH);
+		parent.setOpaque(false);
 		pack();
 	}
 	
@@ -150,6 +136,23 @@ public class CreateAnnotationSetDialog extends JDialog {
 	}
 	
 	
+	private JTabbedPane createTabbedPane() {
+		JTabbedPane tabbedPane = new JTabbedPane();
+		
+		EasyModePanel easyModePanel = easyModePanelFactory.create(this);
+		easyModePanel.setOpaque(false);
+		tabbedPane.addTab("Quick Start", easyModePanel);
+		
+		NormalModePanel normalModePanel = normalModePanelFactory.create(this);
+		normalModePanel.setOpaque(false);
+		tabbedPane.addTab("Advanced", normalModePanel);
+		
+		tabbedPane.addChangeListener(e -> okButtonStateChanged());
+		
+		return tabbedPane;
+	}
+	
+	
 	private JPanel createMessage(String message, String appName, String appUrl, boolean error) {
 		JPanel panel = new JPanel(new BorderLayout());
 		
@@ -174,118 +177,18 @@ public class CreateAnnotationSetDialog extends JDialog {
 		return panel;
 	}
 	
-
-	private JPanel createParametersPanel() {
-		JPanel panel = new JPanel(new GridBagLayout());
-		
-		JPanel clusterPanel = createParametersPanel_ClusterRadioPanel();
-		panel.add(clusterPanel, GBCFactory.grid(0,0).get());
-		
-		JPanel labelPanel = createParametersPanel_LabelPanel();
-		panel.add(labelPanel, GBCFactory.grid(0,1).weightx(1.0).get());
-		
-		return panel;
-	}
 	
 	
-	private JPanel createParametersPanel_LabelPanel() {
-		labelOptionsPanel = labelOptionsPanelFactory.create(networkView.getModel(), true);
-		return labelOptionsPanel;
-	}
-	
-	
-	private JPanel createParametersPanel_ClusterRadioPanel() {
-		JPanel panel = new JPanel(new GridBagLayout());
-		panel.setBorder(LookAndFeelUtil.createTitledBorder("Cluster Options"));
-		
-		useClusterMakerRadio = new JRadioButton("Use clusterMaker App");
-		panel.add(makeSmall(useClusterMakerRadio), GBCFactory.grid(0,0).gridwidth(2).get());
-		
-		JLabel algLabel = new JLabel("           Cluster algorithm:");
-		panel.add(makeSmall(algLabel), GBCFactory.grid(0,1).get());
-		
-		algorithmNameCombo = createComboBox(Arrays.asList(ClusterAlgorithm.values()), ClusterAlgorithm::toString);
-		algorithmNameCombo.setSelectedIndex(ClusterAlgorithm.MCL.ordinal());
-		panel.add(algorithmNameCombo, GBCFactory.grid(1,1).weightx(1.0).get());
-		
-		JLabel edgeWeightLabel = new JLabel("           Edge weight column:");
-		panel.add(makeSmall(edgeWeightLabel), GBCFactory.grid(0,2).get());
-		
-		edgeWeightColumnCombo = createComboBox(getColumnsOfType(networkView.getModel(), Number.class, false, true, false), CreateAnnotationSetDialog::abbreviate);
-		panel.add(makeSmall(edgeWeightColumnCombo), GBCFactory.grid(1,2).weightx(1.0).get());
-		
-		JRadioButton columnRadio = new JRadioButton("User-defined clusters");
-		panel.add(makeSmall(columnRadio), GBCFactory.grid(0,3).gridwidth(2).get());
-		
-		JLabel clusterIdLabel = new JLabel("           Cluster node ID column:");
-		panel.add(makeSmall(clusterIdLabel), GBCFactory.grid(0,4).get());
-		
-		List<String> columns = new ArrayList<>();
-		columns.addAll(getColumnsOfType(networkView.getModel(), Integer.class, true, false, true));
-		columns.addAll(getColumnsOfType(networkView.getModel(), Long.class, true, false, true));
-		columns.addAll(getColumnsOfType(networkView.getModel(), String.class, true, false, true));
-		columns.addAll(getColumnsOfType(networkView.getModel(), Boolean.class, true, false, true));
-		columns.addAll(getColumnsOfType(networkView.getModel(), Double.class, true, false, true));
-		columns.sort(Comparator.naturalOrder());
-		
-		clusterIdColumnCombo = createComboBox(columns, CreateAnnotationSetDialog::abbreviate);
-		
-		panel.add(clusterIdColumnCombo, GBCFactory.grid(1,4).weightx(1.0).get());
-		
-		ButtonGroup group = new ButtonGroup();
-		group.add(useClusterMakerRadio);
-		group.add(columnRadio);
-		
-		for(int i = 0; i < edgeWeightColumnCombo.getItemCount(); i++) {
-			if(edgeWeightColumnCombo.getItemAt(i).getValue().endsWith("similarity_coefficient")) {
-				edgeWeightColumnCombo.setSelectedIndex(i);
-				break;
-			}
-		}
-		
-		ActionListener enableListener = e -> {
-			boolean useAlg = useClusterMakerRadio.isSelected();
-			ClusterAlgorithm alg = algorithmNameCombo.getItemAt(algorithmNameCombo.getSelectedIndex()).getValue();
-			algLabel.setEnabled(useAlg);
-			algorithmNameCombo.setEnabled(useAlg);
-			edgeWeightLabel.setEnabled(useAlg && alg.isEdgeAttributeRequired());
-			edgeWeightColumnCombo.setEnabled(useAlg && alg.isEdgeAttributeRequired() && edgeWeightColumnCombo.getItemCount() != 0);
-			clusterIdLabel.setEnabled(!useAlg);
-			clusterIdColumnCombo.setEnabled(!useAlg && clusterIdColumnCombo.getItemCount() != 0);
-		};
-		
-		useClusterMakerRadio.setSelected(true);
-		enableListener.actionPerformed(null);
-		
-		useClusterMakerRadio.addActionListener(enableListener);
-		columnRadio.addActionListener(enableListener);
-		algorithmNameCombo.addActionListener(enableListener);
-		
-		useClusterMakerRadio.addActionListener(this::okButtonEnablementListener);
-		columnRadio.addActionListener(this::okButtonEnablementListener);
-		
-		return panel;
-	}
-	
-	private void okButtonEnablementListener(ActionEvent e) {
+	public void okButtonStateChanged() {
 		createButton.setEnabled(true);
 		
 		if(!isWordCloudInstalled) {
 			createButton.setEnabled(false);
+			return;
 		}
-		else if(labelOptionsPanel.getLabelColumn() == null) {
-			createButton.setEnabled(false);
-		}
-		else if(useClusterMakerRadio.isSelected() && !isClusterMakerInstalled) {
-			createButton.setEnabled(false);
-		}
-		// handle empty combo boxes
-		else if(useClusterMakerRadio.isSelected() && algorithmNameCombo.getItemAt(algorithmNameCombo.getSelectedIndex()).getValue().isEdgeAttributeRequired() && edgeWeightColumnCombo.getSelectedIndex() == -1) {
-			createButton.setEnabled(false);
-		}
-		else if(!useClusterMakerRadio.isSelected() && clusterIdColumnCombo.getSelectedIndex() == -1) {
-			createButton.setEnabled(false);
-		}
+		
+		TabPanel tabPanel = (TabPanel)tabPane.getSelectedComponent();
+		createButton.setEnabled(tabPanel.isOkButtonEnabled());
 	}
 	
 	
@@ -304,7 +207,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 		
 		panel.add(buttonPanel, BorderLayout.CENTER);
 		
-		okButtonEnablementListener(null);
+		okButtonStateChanged();
 		return panel;
 	}
 	
@@ -323,27 +226,13 @@ public class CreateAnnotationSetDialog extends JDialog {
 	}
 	
 	
-	
-	
 	private void createAnnotations() {
 		if(networkView == null)
 			return;
 		
-		LabelMakerFactory<?> labelMakerFactory = labelOptionsPanel.getLabelMakerFactory();
-		Object labelMakerContext = labelOptionsPanel.getLabelMakerContext();
+		TabPanel tabPanel = (TabPanel)tabPane.getSelectedComponent();
+		AnnotationSetTaskParamters params = tabPanel.createAnnotationSetTaskParameters();
 		
-		AnnotationSetTaskParamters params = 
-			new AnnotationSetTaskParamters.Builder(networkView)
-			.setLabelColumn(labelOptionsPanel.getLabelColumn())
-			.setUseClusterMaker(useClusterMakerRadio.isSelected())
-			.setClusterAlgorithm(algorithmNameCombo.getItemAt(algorithmNameCombo.getSelectedIndex()).getValue())
-			.setClusterMakerEdgeAttribute(edgeWeightColumnCombo.getItemAt(edgeWeightColumnCombo.getSelectedIndex()).getValue())
-			.setClusterDataColumn(clusterIdColumnCombo.getItemAt(clusterIdColumnCombo.getSelectedIndex()).getValue())
-			.setLabelMakerFactory(labelMakerFactory)
-			.setLabelMakerContext(labelMakerContext)
-			.setCreateGroups(false)
-			.build();
-
 		TaskIterator tasks = new TaskIterator();
 		tasks.append(TaskTools.taskMessage("Generating Clusters"));
 		
@@ -358,6 +247,8 @@ public class CreateAnnotationSetDialog extends JDialog {
 		
 		dialogTaskManager.execute(tasks);
 	}
+	
+	
 	
 	public static List<String> getColumnsOfType(CyNetwork network, Class<?> type, boolean node, boolean addNone, boolean allowList) {
 		List<String> columns = new LinkedList<>();
@@ -394,16 +285,16 @@ public class CreateAnnotationSetDialog extends JDialog {
 		return network.getRow(network).get(CyNetwork.NAME, String.class);
 	}
 	
-	private static <V> JComboBox<ComboItem<V>> createComboBox(Collection<V> items, Function<V,String> label) {
-		JComboBox<ComboItem<V>> combo = new JComboBox<>();
-		for(V item : items) {
-			combo.addItem(new ComboItem<V>(item, label.apply(item)));
-		}
-		makeSmall(combo);
-		return combo;
+	
+	public static String abbreviate(String text) {
+		return SwingUtil.abbreviate(text, 50);
 	}
 	
-	private static String abbreviate(String text) {
-		return SwingUtil.abbreviate(text, 50);
+	public boolean isClusterMakerInstalled() {
+		return isClusterMakerInstalled;
+	}
+	
+	public boolean isWordCloudInstalled() {
+		return isWordCloudInstalled;
 	}
 }

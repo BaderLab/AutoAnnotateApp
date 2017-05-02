@@ -9,6 +9,8 @@ import org.baderlab.autoannotate.internal.ui.PanelManagerImpl;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.baderlab.autoannotate.internal.ui.view.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.ManageAnnotationSetsDialog;
+import org.baderlab.autoannotate.internal.ui.view.dialog.EasyModePanel;
+import org.baderlab.autoannotate.internal.ui.view.dialog.NormalModePanel;
 import org.cytoscape.property.AbstractConfigDirPropsReader;
 import org.cytoscape.property.CyProperty;
 
@@ -31,10 +33,7 @@ public class ApplicationModule extends AbstractModule {
 		bind(ModelManager.class).asEagerSingleton();
 		bind(AnnotationRenderer.class).asEagerSingleton();
 		bind(LabelFactoryModule.class).asEagerSingleton();
-		
-		// assistedinject
-		install(new FactoryModuleBuilder().build(LabelOptionsPanel.Factory.class));
-		install(new FactoryModuleBuilder().build(ManageAnnotationSetsDialog.Factory.class));
+		installFactories();
 		
 		// Create a single EventBus
 		bind(EventBus.class).toInstance(new EventBus((e,c) -> e.printStackTrace()));
@@ -42,6 +41,18 @@ public class ApplicationModule extends AbstractModule {
 		// Set up CyProperty
 		PropsReader propsReader = new PropsReader(BuildProperties.APP_ID, "autoannotate.props");
 		bind(new TypeLiteral<CyProperty<Properties>>(){}).toInstance(propsReader);
+	}
+	
+	
+	private void installFactories() {
+		installFactory(LabelOptionsPanel.Factory.class);
+		installFactory(ManageAnnotationSetsDialog.Factory.class);
+		installFactory(NormalModePanel.Factory.class);
+		installFactory(EasyModePanel.Factory.class);
+	}
+	
+	private void installFactory(Class<?> factoryInterface) {
+		install(new FactoryModuleBuilder().build(factoryInterface));
 	}
 }
 
