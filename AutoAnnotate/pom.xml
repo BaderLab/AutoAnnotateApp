@@ -95,7 +95,7 @@
 						</Embed-Dependency>
 						<Embed-Transitive>true</Embed-Transitive>
 						<Cytoscape-App-Dependencies>
-							WordCloud;3.1.0
+							WordCloud;3.1.0,clusterMaker2;0.9.5
 						</Cytoscape-App-Dependencies>
 					</instructions>
 				</configuration>

@@ -19,9 +19,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingConstants;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
@@ -108,22 +106,18 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	private JPanel createTopPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
-		
 		JPanel messagePanel = new JPanel(new GridBagLayout());
-		JLabel label = new JLabel("Create Annotation Set for: " + getNetworkName());
-		label.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
-		messagePanel.add(makeSmall(label), GBCFactory.grid(0,0).get());
 		
-		int y = 1;
+		int y = 0;
 		if(!isClusterMakerInstalled) {
-			String message = "clusterMaker2 app is not installed (optional)";
+			String message = "clusterMaker2 app is not installed ";
 			String app = "clusterMaker2";
 			String url = "http://apps.cytoscape.org/apps/clustermaker2";
-			JPanel warnPanel = createMessage(message, app, url, false);
+			JPanel warnPanel = createMessage(message, app, url, true);
 			messagePanel.add(warnPanel, GBCFactory.grid(0,y++).weightx(1.0).get());
 		}
 		if(!isWordCloudInstalled)  {
-			String message = "WordCloud app is not installed (minimum "+ WordCloudAdapter.WORDCLOUD_MINIMUM + ")";
+			String message = "WordCloud app is not installed ";
 			String app = "WordCloud";
 			String url = "http://apps.cytoscape.org/apps/wordcloud";
 			JPanel warnPanel = createMessage(message, app, url, true);
@@ -131,7 +125,6 @@ public class CreateAnnotationSetDialog extends JDialog {
 		}
 		
 		panel.add(messagePanel, BorderLayout.WEST);
-		panel.add(new JSeparator(SwingConstants.HORIZONTAL), BorderLayout.SOUTH);
 		return panel;
 	}
 	
@@ -194,7 +187,6 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	private JPanel createButtonPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
-		panel.add(new JSeparator(SwingConstants.HORIZONTAL), BorderLayout.NORTH);
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
 		
 		JButton cancelButton = new JButton("Cancel");
