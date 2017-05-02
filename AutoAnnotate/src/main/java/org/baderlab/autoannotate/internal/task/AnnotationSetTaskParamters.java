@@ -12,7 +12,7 @@ public class AnnotationSetTaskParamters {
 	private final ClusterAlgorithm clusterMakerAlgorithm;
 	private final String clusterMakerEdgeAttribute;
 	private final String clusterDataColumn; // existing cluster IDs
-//	private final boolean layoutClusters;
+	private final boolean layoutClusters;
 	private final boolean createGroups;
 	private final LabelMakerFactory<?> labelMakerFactory;
 	private final Object labelMakerContext;
@@ -24,7 +24,7 @@ public class AnnotationSetTaskParamters {
 		this.clusterMakerAlgorithm = builder.clusterMakerAlgorithm;
 		this.clusterMakerEdgeAttribute = builder.clusterMakerEdgeAttribute;
 		this.clusterDataColumn = builder.clusterDataColumn;
-//		this.layoutClusters = builder.layoutClusters;
+		this.layoutClusters = builder.layoutClusters;
 		this.createGroups = builder.createGroups;
 		this.labelMakerFactory = builder.labelMakerFactory;
 		this.labelMakerContext = builder.labelMakerContext;
@@ -37,6 +37,7 @@ public class AnnotationSetTaskParamters {
 		private ClusterAlgorithm clusterMakerAlgorithm = ClusterAlgorithm.values()[0];
 		private String clusterMakerEdgeAttribute;
 		private String clusterDataColumn;
+		private boolean layoutClusters = false;
 		private boolean createGroups = false;
 		private LabelMakerFactory<?> labelMakerFactory;
 		private Object labelMakerContext;
@@ -59,6 +60,10 @@ public class AnnotationSetTaskParamters {
 		}
 		public Builder setClusterDataColumn(String clusterDataColumn) {
 			this.clusterDataColumn = clusterDataColumn;
+			return this;
+		}
+		public Builder setLayoutClusters(boolean layoutClusters) {
+			this.layoutClusters = layoutClusters;
 			return this;
 		}
 		public Builder setCreateGroups(boolean createGroups) {
@@ -106,6 +111,10 @@ public class AnnotationSetTaskParamters {
 
 	public boolean isCreateGroups() {
 		return createGroups;
+	}
+	
+	public boolean isLayoutClusters() {
+		return layoutClusters;
 	}
 	
 	public String getClusterMakerEdgeAttribute() {

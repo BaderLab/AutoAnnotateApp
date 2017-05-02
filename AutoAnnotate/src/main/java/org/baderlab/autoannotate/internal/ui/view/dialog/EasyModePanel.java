@@ -38,6 +38,7 @@ public class EasyModePanel extends JPanel implements TabPanel {
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	
 	private JComboBox<String> labelCombo;
+	private JCheckBox checkBox;
 	
 	public static interface Factory {
 		EasyModePanel create(CreateAnnotationSetDialog parent);
@@ -84,7 +85,7 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		makeSmall(maxLabel, spinner, filler);
 		
 		JLabel checkLabel = new JLabel(" Layout network to prevent cluster overlap: ");
-		JCheckBox checkBox = new JCheckBox();
+		checkBox = new JCheckBox();
 		makeSmall(checkLabel, checkBox);
 		
 		panel.add(colLabel,   GBCFactory.grid(0,0).anchor(EAST).fill(NONE).get());
@@ -123,6 +124,7 @@ public class EasyModePanel extends JPanel implements TabPanel {
 			.setLabelMakerFactory(labelMakerFactory)
 			.setLabelMakerContext(labelMakerContext)
 			.setCreateGroups(false)
+			.setLayoutClusters(checkBox.isSelected())
 			.build();
 		
 		return params;

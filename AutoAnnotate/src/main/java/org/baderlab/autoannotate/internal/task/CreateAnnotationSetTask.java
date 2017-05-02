@@ -37,6 +37,7 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	@Inject private Provider<RunClusterMakerTaskFactory> clusterMakerProvider;
 	@Inject private Provider<CutoffTask> cutoffTaskProvider;
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
+	@Inject Provider<LayoutClustersTaskFactory> layoutTaskProvider;
 	
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	@Inject private ModelManager modelManager;
@@ -71,6 +72,10 @@ public class CreateAnnotationSetTask extends AbstractTask {
 			return;
 		}
 
+		if(params.isLayoutClusters()) {
+			layoutNodes(clusters, params.getNetworkView(), params.getClusterAlgorithm().getColumnName());
+		}
+		
 		Object context = params.getLabelMakerContext();
 		LabelMakerFactory factory = params.getLabelMakerFactory();
 		LabelMaker labelMaker = factory.createLabelMaker(context);
@@ -156,12 +161,12 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	}
 	
 	
-//	private void layoutNodes(Map<?,Collection<CyNode>> clusters, CyNetworkView networkView, String columnName) {
-//		LayoutClustersTaskFactory layoutTaskFactory = layoutProvider.get();
-//		layoutTaskFactory.init(clusters.values(), networkView, columnName);
-//		TaskIterator tasks = layoutTaskFactory.createTaskIterator();
-//		syncTaskManager.execute(tasks);
-//	}
+	private void layoutNodes(Map<?,Collection<CyNode>> clusters, CyNetworkView networkView, String columnName) {
+		LayoutClustersTaskFactory layoutTaskFactory = layoutTaskProvider.get();
+		layoutTaskFactory.init(clusters.values(), networkView, columnName);
+		TaskIterator tasks = layoutTaskFactory.createTaskIterator();
+		syncTaskManager.execute(tasks);
+	}
 	
 
 	private Optional<Double> runCutoffTask(String edgeAttribute) {
