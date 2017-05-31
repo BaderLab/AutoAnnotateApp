@@ -8,8 +8,7 @@ import static org.cytoscape.work.ServiceProperties.TITLE;
 import java.util.Arrays;
 import java.util.Properties;
 
-import javax.inject.Provider;
-
+import org.baderlab.autoannotate.internal.command.AnnotateCommandTaskFactory;
 import org.baderlab.autoannotate.internal.command.LabelClusterCommandTaskFactory;
 import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
@@ -57,12 +56,9 @@ public class CyActivator extends AbstractCyActivator {
 		
 		// Register menu Actions
 		PanelManager panelManager = injector.getInstance(PanelManager.class);
-		AbstractCyAction showDialogAction = injector.getInstance(ShowCreateDialogAction.class);
-		AbstractCyAction showHideAction = panelManager.getShowHideAction();
-		AbstractCyAction showAboutAction = injector.getInstance(ShowAboutDialogAction.class);
-		registerAction(context, showDialogAction);
-		registerAction(context, showHideAction);
-		registerAction(context, showAboutAction);
+		registerAction(context, injector.getInstance(ShowCreateDialogAction.class));
+		registerAction(context, panelManager.getShowHideAction());
+		registerAction(context, injector.getInstance(ShowAboutDialogAction.class));
 		
 		// Context menu action in network view
 		CreateClusterTaskFactory createClusterTaskFactory = injector.getInstance(CreateClusterTaskFactory.class);
@@ -87,10 +83,13 @@ public class CyActivator extends AbstractCyActivator {
 		for(LabelMakerFactory<?> factory : labelMakerManager.getFactories()) {
 			// MKTODO make sure the factory ID doesn't contain spaces or other illegal characters
 			LabelClusterCommandTaskFactory labelClusterCommandTaskFactory = injector.getInstance(LabelClusterCommandTaskFactory.class);
-			labelClusterCommandTaskFactory.setFactory(factory);
+			labelClusterCommandTaskFactory.setLabelMakerFactory(factory);
+			AnnotateCommandTaskFactory annotateCommandTaskFactory = injector.getInstance(AnnotateCommandTaskFactory.class);
+			annotateCommandTaskFactory.setLabelMakerFactory(factory);
 			String id = factory.getID();
 			String description = String.join(" ", Arrays.asList(factory.getDescription()));
 			registerCommand(context, "label-"+id, labelClusterCommandTaskFactory, "Run label algorithm '" + id + "'. " + description);
+			registerCommand(context, "annotate-"+id, annotateCommandTaskFactory, "Annotate network using label algorithm '" + id + "'. " + description);
 		}
 		
 		// If no session is loaded then this won't do anything, but if there is a session loaded 
@@ -101,10 +100,14 @@ public class CyActivator extends AbstractCyActivator {
 	
 	@Override
 	public void shutDown() {
-		ModelTablePersistor persistor = injector.getInstance(ModelTablePersistor.class);
-		persistor.exportModel();
-		ModelManager modelManager = injector.getInstance(ModelManager.class);
-		modelManager.dispose();
+		try {
+			ModelTablePersistor persistor = injector.getInstance(ModelTablePersistor.class);
+			persistor.exportModel();
+			ModelManager modelManager = injector.getInstance(ModelManager.class);
+			modelManager.dispose();
+		} finally {
+			super.shutDown();
+		}
 	}
 	
 	

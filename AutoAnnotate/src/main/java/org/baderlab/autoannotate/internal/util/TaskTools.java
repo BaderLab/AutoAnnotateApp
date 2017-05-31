@@ -1,5 +1,7 @@
 package org.baderlab.autoannotate.internal.util;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collector;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
@@ -10,6 +12,7 @@ import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.TaskObserver;
+import org.cytoscape.work.util.ListSingleSelection;
 
 public class TaskTools {
 
@@ -58,6 +61,13 @@ public class TaskTools {
 		};
 	}
 	
+	public static ListSingleSelection<String> listSingleSelectionFromEnum(Enum<?>[] values) {
+		List<String> names = new ArrayList<>(values.length);
+		for(Enum<?> value : values) {
+			names.add(value.name());
+		}
+		return new ListSingleSelection<>(names);
+	}
 	
 }
 

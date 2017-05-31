@@ -20,7 +20,7 @@ public class LabelClusterCommandTask implements ObservableTask {
 	@Inject private CyApplicationManager applicationManager;
 	
 	
-	@Tunable(description="Name of node column to use to generate the labels")
+	@Tunable(description="Name of node column to use for generating labels. Must be of type String or String List.")
 	public String labelColumn;
 	
 	private NodeList nodeList = new NodeList(null);

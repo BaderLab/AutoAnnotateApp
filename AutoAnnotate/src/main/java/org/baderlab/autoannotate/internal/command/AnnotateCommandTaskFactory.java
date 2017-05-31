@@ -9,10 +9,9 @@ import org.cytoscape.work.TaskIterator;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
-public class LabelClusterCommandTaskFactory extends AbstractTaskFactory {
+public class AnnotateCommandTaskFactory extends AbstractTaskFactory {
 
-	@Inject private Provider<LabelClusterCommandTask> taskProvider;
-	
+	@Inject private Provider<AnnotateCommandTask> taskProvider;
 	
 	private LabelMakerFactory<?> labelMakerFactory;
 	
@@ -23,7 +22,7 @@ public class LabelClusterCommandTaskFactory extends AbstractTaskFactory {
 	@Override
 	public TaskIterator createTaskIterator() {
 		Objects.nonNull(labelMakerFactory);
-		LabelClusterCommandTask task = taskProvider.get();
+		AnnotateCommandTask task = taskProvider.get();
 		task.setLabelMakerFactory(labelMakerFactory);
 		return new TaskIterator(task);
 	}
