@@ -1,6 +1,7 @@
 package org.baderlab.autoannotate.internal.command;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
@@ -11,7 +12,9 @@ import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyTable;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.work.AbstractTask;
@@ -29,7 +32,7 @@ public class AnnotateCommandTask extends AbstractTask {
 	@Tunable
 	public CyNetwork network;
 	
-	@Tunable(required=true, description="Name of node column to use for generating labels. Must be of type String or String List.")
+	@Tunable(description="Name of node column to use for generating labels. Must be of type String or String List.")
 	public String labelColumn;
 	
 	@Tunable(description="If true calls the clusterMaker app to generate the clusters (default). If false uses the 'clusterIdColumn' parameter to identify clusters.")
@@ -67,11 +70,22 @@ public class AnnotateCommandTask extends AbstractTask {
 	}
 	
 	
+	private static Optional<String> getColumnEndingWith(CyTable table, String suffix) {
+		return table.getColumns().stream().map(CyColumn::getName).filter(name -> name.endsWith(suffix)).findAny();
+	}
+	
 	@Override
-	public void run(TaskMonitor taskMonitor) throws Exception {
+	public void run(TaskMonitor taskMonitor) {
 		CyNetworkView networkView = getNetworkView();
 		CyNetwork network = networkView.getModel();
 		
+		// Reasonable default for EnrichmentMap networks
+		if(labelColumn == null) {
+			Optional<String> col = getColumnEndingWith(network.getDefaultNodeTable(), "GS_DESCR");
+			if(col.isPresent()) {
+				labelColumn = col.get();
+			}
+		}
 		if(labelColumn == null)
 			throw new IllegalArgumentException("labelColumn is null");
 		if(network.getDefaultNodeTable().getColumn(labelColumn) == null)
@@ -79,6 +93,12 @@ public class AnnotateCommandTask extends AbstractTask {
 		
 		ClusterAlgorithm alg = ClusterAlgorithm.valueOf(clusterAlgorithm.getSelectedValue());
 		if(useClusterMaker && alg.isEdgeAttributeRequired()) {
+			// Reasonable default for EnrichmentMap networks
+			if(edgeWeightColumn == null) {
+				Optional<String> col = getColumnEndingWith(network.getDefaultEdgeTable(), "similarity_coefficient");
+				if(col.isPresent())
+					edgeWeightColumn = col.get();
+			}
 			if(edgeWeightColumn == null)
 				throw new IllegalArgumentException("The cluster algorithm " + alg + " requires the 'edgeWeightColumn' parameter.");
 			if(network.getDefaultEdgeTable().getColumn(edgeWeightColumn) == null)
@@ -104,6 +124,8 @@ public class AnnotateCommandTask extends AbstractTask {
 			.setClusterDataColumn(clusterIdColumn)
 			.setCreateGroups(false)
 			.build();
+		
+		System.out.println(params);
 		
 		createTasks(params);
 	}

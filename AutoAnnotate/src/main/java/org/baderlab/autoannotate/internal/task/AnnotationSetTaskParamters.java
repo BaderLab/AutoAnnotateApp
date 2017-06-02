@@ -128,5 +128,16 @@ public class AnnotationSetTaskParamters {
 	public Object getLabelMakerContext() {
 		return labelMakerContext;
 	}
+
+	@Override
+	public String toString() {
+		return "AnnotationSetTaskParamters [networkView=" + networkView + ", labelColumn=" + labelColumn
+				+ ", useClusterMaker=" + useClusterMaker + ", clusterMakerAlgorithm=" + clusterMakerAlgorithm
+				+ ", clusterMakerEdgeAttribute=" + clusterMakerEdgeAttribute + ", clusterDataColumn="
+				+ clusterDataColumn + ", layoutClusters=" + layoutClusters + ", createGroups=" + createGroups
+				+ ", labelMakerFactory=" + labelMakerFactory + ", labelMakerContext=" + labelMakerContext + "]";
+	}
+	
+	
 	
 }
