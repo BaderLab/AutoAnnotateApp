@@ -72,7 +72,7 @@ public class ExportClustersAction extends AbstractCyAction {
 			tm.setTitle(TITLE);
 			
 			List<Cluster> clusters = new ArrayList<>(as.getClusters());
-			clusters.sort(Comparator.comparing(Cluster::getNodeCount));
+			clusters.sort(Comparator.comparing(Cluster::getNodeCount).thenComparing(Cluster::getLabel).reversed());
 			
 			try(BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 				writer.append("Cluster").append("\t").append("Nodes");
