@@ -7,15 +7,18 @@ import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.command.util.NodeList;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ContainsTunables;
 import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 @SuppressWarnings("rawtypes")
-public class LabelClusterCommandTask implements ObservableTask {
+public class LabelClusterCommandTask extends AbstractTask implements ObservableTask {
 	
 	@Inject private CyApplicationManager applicationManager;
 	
@@ -37,8 +40,19 @@ public class LabelClusterCommandTask implements ObservableTask {
 	public Supplier<?> labelMakerArguments;
 
 	
-	private LabelMakerFactory labelMakerFactory;
+	private final LabelMakerFactory labelMakerFactory;
 	private String result = null;
+	
+	
+	public static interface Factory {
+		LabelClusterCommandTask create(LabelMakerFactory<?> labelMakerFactory);
+	}
+	
+	@AssistedInject
+	public LabelClusterCommandTask(@Assisted LabelMakerFactory<?> labelMakerFactory) {
+		this.labelMakerFactory = labelMakerFactory;
+		this.labelMakerArguments = labelMakerFactory.getCommandTunables();
+	}
 	
 	
 	@SuppressWarnings("unchecked")
@@ -55,16 +69,6 @@ public class LabelClusterCommandTask implements ObservableTask {
 	}
 	
 	
-	public void setLabelMakerFactory(LabelMakerFactory<?> labelMakerFactory) {
-		this.labelMakerFactory = labelMakerFactory;
-		this.labelMakerArguments = labelMakerFactory.getCommandTunables();
-	}
-	
-
-	@Override
-	public void cancel() {
-	}
-
 	@Override
 	public <R> R getResults(Class<? extends R> type) {
 		if(String.class.equals(type)) {

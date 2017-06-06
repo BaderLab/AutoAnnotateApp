@@ -8,8 +8,9 @@ import static org.cytoscape.work.ServiceProperties.TITLE;
 import java.util.Arrays;
 import java.util.Properties;
 
-import org.baderlab.autoannotate.internal.command.AnnotateCommandTaskFactory;
-import org.baderlab.autoannotate.internal.command.LabelClusterCommandTaskFactory;
+import org.baderlab.autoannotate.internal.command.AnnotateCommandTask;
+import org.baderlab.autoannotate.internal.command.LabelClusterCommandTask;
+import org.baderlab.autoannotate.internal.command.RedrawCommandTask;
 import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
@@ -24,14 +25,18 @@ import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CyAction;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
+import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.ServiceProperties;
+import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskFactory;
+import org.cytoscape.work.TaskIterator;
 import org.ops4j.peaberry.osgi.OSGiModule;
 import org.osgi.framework.BundleContext;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
+import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
 
 
@@ -82,15 +87,21 @@ public class CyActivator extends AbstractCyActivator {
 		LabelMakerManager labelMakerManager = injector.getInstance(LabelMakerManager.class);
 		for(LabelMakerFactory<?> factory : labelMakerManager.getFactories()) {
 			// MKTODO make sure the factory ID doesn't contain spaces or other illegal characters
-			LabelClusterCommandTaskFactory labelClusterCommandTaskFactory = injector.getInstance(LabelClusterCommandTaskFactory.class);
-			labelClusterCommandTaskFactory.setLabelMakerFactory(factory);
-			AnnotateCommandTaskFactory annotateCommandTaskFactory = injector.getInstance(AnnotateCommandTaskFactory.class);
-			annotateCommandTaskFactory.setLabelMakerFactory(factory);
+			
+			LabelClusterCommandTask.Factory labelClusterCommandTaskFactory = injector.getInstance(LabelClusterCommandTask.Factory.class);
+			TaskFactory labelTaskFactory = createTaskFactory(() -> labelClusterCommandTaskFactory.create(factory));
+			
+			AnnotateCommandTask.Factory annotateCommandTaskFactory = injector.getInstance(AnnotateCommandTask.Factory.class);
+			TaskFactory annotateTaskFactory = createTaskFactory(() -> annotateCommandTaskFactory.create(factory));
+			
 			String id = factory.getID();
 			String description = String.join(" ", Arrays.asList(factory.getDescription()));
-			registerCommand(context, "label-"+id, labelClusterCommandTaskFactory, "Run label algorithm '" + id + "'. " + description);
-			registerCommand(context, "annotate-"+id, annotateCommandTaskFactory, "Annotate network using label algorithm '" + id + "'. " + description);
+			registerCommand(context, "label-"+id, labelTaskFactory, "Run label algorithm '" + id + "'. " + description);
+			registerCommand(context, "annotate-"+id, annotateTaskFactory, "Annotate network using label algorithm '" + id + "'. " + description);
 		}
+		
+		TaskFactory redrawTaskFactory = createTaskFactory(injector.getProvider(RedrawCommandTask.class));
+		registerCommand(context, "redraw", redrawTaskFactory, "Redraw annotations");
 		
 		// If no session is loaded then this won't do anything, but if there is a session loaded 
 		// then we want to load the model immediately.
@@ -123,6 +134,14 @@ public class CyActivator extends AbstractCyActivator {
 		if(description != null)
 			props.put("commandDescription", description); // added in Cytoscape 3.2
 		registerService(context, factory, TaskFactory.class, props);
+	}
+	
+	private static TaskFactory createTaskFactory(Provider<? extends Task> taskProvider) {
+		return new AbstractTaskFactory() {
+			@Override public TaskIterator createTaskIterator() {
+				return new TaskIterator(taskProvider.get());
+			}
+		};
 	}
 	
 }

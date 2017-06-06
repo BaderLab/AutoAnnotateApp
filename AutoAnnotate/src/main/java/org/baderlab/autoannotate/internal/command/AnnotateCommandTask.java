@@ -26,6 +26,8 @@ import org.cytoscape.work.util.ListSingleSelection;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 public class AnnotateCommandTask extends AbstractTask {
 
@@ -50,7 +52,7 @@ public class AnnotateCommandTask extends AbstractTask {
 	@ContainsTunables
 	public Supplier<?> labelMakerArguments;
 
-	private LabelMakerFactory<?> labelMakerFactory;
+	private final LabelMakerFactory<?> labelMakerFactory;
 	
 	
 	@Inject private Provider<CreateAnnotationSetTask> createTaskProvider;
@@ -59,12 +61,14 @@ public class AnnotateCommandTask extends AbstractTask {
 	@Inject private CyNetworkViewManager networkViewManager;
 	
 	
-	public AnnotateCommandTask() {
-		clusterAlgorithm = TaskTools.listSingleSelectionFromEnum(ClusterAlgorithm.values());
-		clusterAlgorithm.setSelectedValue(ClusterAlgorithm.MCL.name());
+	public static interface Factory {
+		AnnotateCommandTask create(LabelMakerFactory<?> labelMakerFactory);
 	}
 	
-	public void setLabelMakerFactory(LabelMakerFactory<?> labelMakerFactory) {
+	@AssistedInject
+	public AnnotateCommandTask(@Assisted LabelMakerFactory<?> labelMakerFactory) {
+		clusterAlgorithm = TaskTools.listSingleSelectionFromEnum(ClusterAlgorithm.values());
+		clusterAlgorithm.setSelectedValue(ClusterAlgorithm.MCL.name());
 		this.labelMakerFactory = labelMakerFactory;
 		this.labelMakerArguments = labelMakerFactory.getCommandTunables();
 	}

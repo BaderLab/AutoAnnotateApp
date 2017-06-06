@@ -2,6 +2,8 @@ package org.baderlab.autoannotate.internal;
 
 import java.util.Properties;
 
+import org.baderlab.autoannotate.internal.command.AnnotateCommandTask;
+import org.baderlab.autoannotate.internal.command.LabelClusterCommandTask;
 import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
@@ -55,6 +57,8 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(CollapseAllTaskFactory.Factory.class);
 		installFactory(LayoutClustersTaskFactory.Factory.class);
 		installFactory(RunClusterMakerTaskFactory.Factory.class);
+		installFactory(AnnotateCommandTask.Factory.class);
+		installFactory(LabelClusterCommandTask.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {
