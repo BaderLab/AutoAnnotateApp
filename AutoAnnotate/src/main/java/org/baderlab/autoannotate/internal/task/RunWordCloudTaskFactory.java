@@ -16,7 +16,7 @@ import com.google.inject.Inject;
 
 public class RunWordCloudTaskFactory implements TaskFactory {
 
-	@Inject CommandExecutorTaskFactory commandTaskFactory;
+	@Inject private CommandExecutorTaskFactory commandTaskFactory;
 	
 	private Map<?,Collection<CyNode>> clusters;
 	private CyNetwork network;
@@ -24,19 +24,6 @@ public class RunWordCloudTaskFactory implements TaskFactory {
 	
 	public void setClusters(Map<?,Collection<CyNode>> clusters) {
 		this.clusters = clusters;
-	}
-	
-//	public void setClusters(Collection<Collection<CyNode>> clusters) {
-//		Map<Integer,Collection<CyNode>> theClusters = new HashMap<>();
-//		int i = 0;
-//		for(Collection<CyNode> cluster : clusters) {
-//			theClusters.put(i++, cluster);
-//		}
-//		this.clusters = theClusters;
-//	}
-	
-	public void setParameters(AnnotationSetTaskParamters params) {
-		setParameters(params.getNetworkView().getModel(), params.getLabelColumn());
 	}
 	
 	public void setParameters(CyNetwork network, String labelColumn) {

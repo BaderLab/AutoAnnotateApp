@@ -99,7 +99,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	@Inject private Provider<ModelManager> modelManagerProvider;
 	@Inject private Provider<PanelManager> panelManagerProvider;
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
-	@Inject private Provider<CollapseAllTaskFactory> collapseActionProvider;
+	@Inject private CollapseAllTaskFactory.Factory collapseActionFactory;
 	
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private CyNetworkTableManager networkTableManager;
@@ -320,12 +320,10 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		TaskIterator tasks = new TaskIterator();
 		tasks.append(TaskTools.taskMessage("Expanding all clusters"));
 		// Right here, expand and remove all groups in networks managed by AutoAnnotate
-		CollapseAllTaskFactory collapseAction = collapseActionProvider.get();
-		collapseAction.setAction(Grouping.EXPAND);
 		for(CyNetworkView networkView : networkViewsToCollapse) {
-			tasks.append(collapseAction.createTaskIterator(networkView));
+			CollapseAllTaskFactory collapseAction = collapseActionFactory.create(Grouping.EXPAND, networkView);
+			tasks.append(collapseAction.createTaskIterator());
 		}
-		
 		return tasks;
 	}
 	

@@ -23,7 +23,7 @@ public class CollapseAction extends ClusterAction {
 	
 	@Inject private @WarnDialogModule.Collapse Provider<WarnDialog> warnDialogProvider;
 	
-	@Inject private Provider<CollapseAllTaskFactory> taskFactoryProvider;
+	@Inject private CollapseAllTaskFactory.Factory taskFactoryFactory;
 	@Inject private Provider<JFrame> jFrameProvider;
 	@Inject private Provider<DialogTaskManager> taskManagerProvider;
 	
@@ -47,10 +47,7 @@ public class CollapseAction extends ClusterAction {
 		
 		if(doIt) {
 			Collection<Cluster> clusters = getClusters();
-			CollapseAllTaskFactory taskFactory = taskFactoryProvider.get();
-			taskFactory.setAction(action);
-			taskFactory.setClusters(clusters);
-			
+			CollapseAllTaskFactory taskFactory = taskFactoryFactory.create(action, clusters);
 			TaskIterator tasks = taskFactory.createTaskIterator();
 			if(tasks.getNumTasks() > 0) {
 				TaskManager<?,?> taskManager = taskManagerProvider.get();

@@ -34,10 +34,9 @@ import com.google.inject.Provider;
 
 public class CreateAnnotationSetTask extends AbstractTask {
 
-	@Inject private Provider<RunClusterMakerTaskFactory> clusterMakerProvider;
-	@Inject private Provider<CutoffTask> cutoffTaskProvider;
+	@Inject private RunClusterMakerTaskFactory.Factory clusterMakerFactoryFactory;
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
-	@Inject Provider<LayoutClustersTaskFactory> layoutTaskProvider;
+	@Inject private LayoutClustersTaskFactory.Factory layoutTaskFactoryFactory;
 	
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	@Inject private ModelManager modelManager;
@@ -58,7 +57,8 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		Optional<Double> cutoff = Optional.empty();
 		if(needClusterEdgeAttribute()) {
 			String edgeAttribute = params.getClusterMakerEdgeAttribute();
-			cutoff = runCutoffTask(edgeAttribute);
+			CyNetwork network = params.getNetworkView().getModel();
+			cutoff = runCutoffTask(network, edgeAttribute);
 		}
 		
 		Map<String,Collection<CyNode>> clusters;
@@ -66,6 +66,8 @@ public class CreateAnnotationSetTask extends AbstractTask {
 			clusters = runClusterMaker(cutoff);
 		else
 			clusters = computeClustersFromColumn();
+		
+		
 		
 		if(clusters == null || clusters.isEmpty()) {
 			taskMonitor.setStatusMessage("No clusters, aborting");
@@ -150,10 +152,7 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	
 	
 	private Map<String,Collection<CyNode>> runClusterMaker(Optional<Double> cutoff) {
-		RunClusterMakerTaskFactory clusterMakerTaskFactory = clusterMakerProvider.get();
-		clusterMakerTaskFactory.setParameters(params);
-		if(cutoff.isPresent())
-			clusterMakerTaskFactory.setCutoff(cutoff.get());
+		RunClusterMakerTaskFactory clusterMakerTaskFactory = clusterMakerFactoryFactory.create(params, cutoff.orElse(null));
 		RunClusterMakerResultObserver clusterResultObserver = new RunClusterMakerResultObserver();
 		TaskIterator tasks = clusterMakerTaskFactory.createTaskIterator(clusterResultObserver);
 		syncTaskManager.execute(tasks);
@@ -162,18 +161,16 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	
 	
 	private void layoutNodes(Map<?,Collection<CyNode>> clusters, CyNetworkView networkView, String columnName) {
-		LayoutClustersTaskFactory layoutTaskFactory = layoutTaskProvider.get();
-		layoutTaskFactory.init(clusters.values(), networkView, columnName);
+		LayoutClustersTaskFactory layoutTaskFactory = layoutTaskFactoryFactory.create(clusters.values(), networkView, columnName);
 		TaskIterator tasks = layoutTaskFactory.createTaskIterator();
 		syncTaskManager.execute(tasks);
 	}
 	
 
-	private Optional<Double> runCutoffTask(String edgeAttribute) {
+	private Optional<Double> runCutoffTask(CyNetwork network, String edgeAttribute) {
 		if(edgeAttribute == null || edgeAttribute.isEmpty())
 			return Optional.empty();
-		CutoffTask task = cutoffTaskProvider.get();
-		task.setEdgeAttribute(edgeAttribute);
+		CutoffTask task = new CutoffTask(network, edgeAttribute);
 		ResultObserver<Double> observer = new ResultObserver<>(task, Double.class);
 		syncTaskManager.execute(new TaskIterator(task), observer);
 		return observer.getResults();

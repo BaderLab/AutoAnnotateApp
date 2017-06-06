@@ -15,7 +15,6 @@ import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskIterator;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 
 
 /**
@@ -24,7 +23,7 @@ import com.google.inject.Provider;
  */
 public class LayoutAnnotationSetTaskFactory extends AbstractTaskFactory {
 
-	@Inject Provider<LayoutClustersTaskFactory> layoutTaskProvider;
+	@Inject private LayoutClustersTaskFactory.Factory layoutTaskFactoryFactory;
 	
 	private AnnotationSet annotationSet;
 	
@@ -53,8 +52,7 @@ public class LayoutAnnotationSetTaskFactory extends AbstractTaskFactory {
 		
 		// Layout the clusters
 		Collection<Collection<CyNode>> clusters = annotationSet.getClusters().stream().map(Cluster::getNodes).collect(Collectors.toSet());
-		LayoutClustersTaskFactory layoutTaskFactory = layoutTaskProvider.get();
-		layoutTaskFactory.init(clusters, annotationSet.getParent().getNetworkView(), tempColumn);
+		LayoutClustersTaskFactory layoutTaskFactory = layoutTaskFactoryFactory.create(clusters, annotationSet.getParent().getNetworkView(), tempColumn);
 		TaskIterator layoutTasks = layoutTaskFactory.createTaskIterator();
 		
 		// Delete the temp column

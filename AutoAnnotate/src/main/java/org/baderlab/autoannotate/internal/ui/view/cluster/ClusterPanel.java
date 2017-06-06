@@ -67,7 +67,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private Provider<IconManager> iconManagerProvider;
 	
-	@Inject private Provider<CollapseAllTaskFactory> collapseTaskFactoryProvider;
+	@Inject private CollapseAllTaskFactory.Factory collapseTaskFactoryFactory;
 	@Inject private Provider<ClusterTableSelectionListener> selectionListenerProvider;
 	@Inject private Provider<AnnotationSetMenu> annotationSetMenuProvider;
 	@Inject private Provider<ClusterMenu> clusterMenuProvider;
@@ -235,8 +235,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		TaskIterator tasks = new TaskIterator();
 		
 		// Expand all the groups
-		CollapseAllTaskFactory collapseAllTaskFactory = collapseTaskFactoryProvider.get();
-		collapseAllTaskFactory.setAction(Grouping.EXPAND);
+		CollapseAllTaskFactory collapseAllTaskFactory = collapseTaskFactoryFactory.create(Grouping.EXPAND, networkViewSet);
 		tasks.append(collapseAllTaskFactory.createTaskIterator());
 		
 		// Select the annotation set (fires event that redraws annotations)

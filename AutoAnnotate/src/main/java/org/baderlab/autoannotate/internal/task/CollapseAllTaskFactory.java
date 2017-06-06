@@ -9,38 +9,59 @@ import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.view.model.CyNetworkView;
-import org.cytoscape.work.TaskFactory;
+import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.TaskIterator;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
-public class CollapseAllTaskFactory implements TaskFactory {
+public class CollapseAllTaskFactory extends AbstractTaskFactory {
 
-	@Inject private ModelManager modelManager;
 	@Inject private Provider<CollapseTask> taskProvider;
 	
-	private Grouping action = Grouping.COLLAPSE;
+	private final Grouping action;
 	private Collection<Cluster> clusters;
 	
-	public CollapseAllTaskFactory setAction(Grouping action) {
+	public static interface Factory {
+		CollapseAllTaskFactory create(Grouping action, CyNetworkView networkView);
+		CollapseAllTaskFactory create(Grouping action, NetworkViewSet networkViewSet);
+		CollapseAllTaskFactory create(Grouping action, Collection<Cluster> clusters);
+	}
+	
+	@AssistedInject
+	public CollapseAllTaskFactory(@Assisted Grouping action, @Assisted CyNetworkView networkView, ModelManager modelManager) {
 		this.action = action;
-		return this;
+		this.clusters = getClusters(networkView, modelManager);
 	}
 	
-	public CollapseAllTaskFactory setClusters(Collection<Cluster> clusters) {
+	@AssistedInject
+	public CollapseAllTaskFactory(@Assisted Grouping action, @Assisted NetworkViewSet networkViewSet) {
+		this.action = action;
+		this.clusters = getClusters(networkViewSet);
+	}
+	
+	@AssistedInject
+	public CollapseAllTaskFactory(@Assisted Grouping action, @Assisted Collection<Cluster> clusters) {
+		this.action = action;
 		this.clusters = clusters;
-		return this;
 	}
 	
-	private Collection<Cluster> getClusters() {
-		if(clusters != null)
-			return clusters;
-		
+	
+	private Collection<Cluster> getClusters(CyNetworkView networkView, ModelManager modelManager) {
 		return 
 			modelManager
-			.getActiveNetworkViewSet()
+			.getExistingNetworkViewSet(networkView)
 			.flatMap(NetworkViewSet::getActiveAnnotationSet)
+			.map(AnnotationSet::getClusters)
+			.orElse(Collections.emptySet());
+	}
+	
+	private Collection<Cluster> getClusters(NetworkViewSet networkViewSet) {
+		return
+			networkViewSet
+			.getActiveAnnotationSet()
 			.map(AnnotationSet::getClusters)
 			.orElse(Collections.emptySet());
 	}
@@ -48,25 +69,10 @@ public class CollapseAllTaskFactory implements TaskFactory {
 	@Override
 	public TaskIterator createTaskIterator() {
 		return 
-			getClusters()
+			clusters
 			.stream()
 			.map(cluster -> taskProvider.get().init(cluster, action))
 			.collect(TaskTools.taskIterator());
-	}
-	
-	public TaskIterator createTaskIterator(CyNetworkView networkView) {
-		return 
-			modelManager
-			.getNetworkViewSet(networkView)
-			.getAllClusters()
-			.stream()
-			.map(cluster -> taskProvider.get().init(cluster, action))
-			.collect(TaskTools.taskIterator());
-	}
-
-	@Override
-	public boolean isReady() {
-		return false;
 	}
 
 }

@@ -54,7 +54,7 @@ public class AnnotateCommandTask extends AbstractTask {
 	
 	
 	@Inject private Provider<CreateAnnotationSetTask> createTaskProvider;
-	@Inject private Provider<CollapseAllTaskFactory> collapseTaskFactoryProvider;
+	@Inject private CollapseAllTaskFactory.Factory collapseTaskFactoryFactory;
 	@Inject private CyApplicationManager applicationManager;
 	@Inject private CyNetworkViewManager networkViewManager;
 	
@@ -125,17 +125,21 @@ public class AnnotateCommandTask extends AbstractTask {
 			.setCreateGroups(false)
 			.build();
 		
-		System.out.println(params);
-		
 		createTasks(params);
 	}
 
 	
 	private CyNetworkView getNetworkView() throws IllegalArgumentException {
-		if(network == null)
+		if(network == null) {
 			network = applicationManager.getCurrentNetwork();
-		if(network == null)
-			throw new IllegalArgumentException("Please create a network first.");
+			if(network == null)
+				throw new IllegalArgumentException("Please create a network first.");
+		}
+		else {
+			// Unfortunatly clusterMaker2 is buggy regarding the network parameter,
+			// the only way to get clusterMaker2 to run without problems is to make the desired network the current one.
+			applicationManager.setCurrentNetwork(network);
+		}
 		
 		Collection<CyNetworkView> netViews = networkViewManager.getNetworkViews(network);
 		if(netViews == null || netViews.isEmpty())
@@ -149,8 +153,7 @@ public class AnnotateCommandTask extends AbstractTask {
 		tasks.append(TaskTools.taskMessage("Generating Clusters"));
 		
 		// clusterMaker does not like it when there are collapsed groups
-		CollapseAllTaskFactory collapseAllTaskFactory = collapseTaskFactoryProvider.get();
-		collapseAllTaskFactory.setAction(Grouping.EXPAND);
+		CollapseAllTaskFactory collapseAllTaskFactory = collapseTaskFactoryFactory.create(Grouping.EXPAND, params.getNetworkView());
 		tasks.append(collapseAllTaskFactory.createTaskIterator());
 		
 		CreateAnnotationSetTask createTask = createTaskProvider.get();

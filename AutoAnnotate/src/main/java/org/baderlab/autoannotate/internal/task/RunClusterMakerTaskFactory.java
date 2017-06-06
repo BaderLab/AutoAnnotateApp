@@ -1,5 +1,7 @@
 package org.baderlab.autoannotate.internal.task;
 
+import java.util.Objects;
+
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.cytoscape.command.CommandExecutorTaskFactory;
 import org.cytoscape.model.CyTable;
@@ -8,19 +10,23 @@ import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskObserver;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 public class RunClusterMakerTaskFactory implements TaskFactory {
 	
 	@Inject private CommandExecutorTaskFactory commandTaskFactory;
 	
-	private AnnotationSetTaskParamters params;
-	private Double cutoff = null;
+	private final AnnotationSetTaskParamters params;
+	private final Double cutoff;
 	
-	public void setParameters(AnnotationSetTaskParamters params) {
-		this.params = params;
+	public static interface Factory {
+		RunClusterMakerTaskFactory create(AnnotationSetTaskParamters params, Double cutoff);
 	}
 	
-	public void setCutoff(Double cutoff) {
+	@AssistedInject
+	public RunClusterMakerTaskFactory(@Assisted AnnotationSetTaskParamters params, @Assisted Double cutoff) {
+		this.params = Objects.requireNonNull(params);
 		this.cutoff = cutoff;
 	}
 	
@@ -38,14 +44,17 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 		ClusterAlgorithm alg = params.getClusterAlgorithm();
 		String columnName = getColumnName();
 		
+		String command = alg.getCommandName();
+		Long suid = params.getNetworkView().getModel().getSUID();
+		
 		if(alg.isEdgeAttributeRequired() && cutoff != null) {
-			return String.format("cluster %s clusterAttribute=\"%s\" attribute=\"%s\" edgeCutOff=\"%s\"", alg.getCommandName(), columnName, params.getClusterMakerEdgeAttribute(), cutoff);
+			return String.format("cluster %s network=\"SUID:%d\" clusterAttribute=\"%s\" attribute=\"%s\" edgeCutOff=\"%s\"", command, suid, columnName, params.getClusterMakerEdgeAttribute(), cutoff);
 		}
 		else if(alg.isEdgeAttributeRequired()) {
-			return String.format("cluster %s clusterAttribute=\"%s\" attribute=\"%s\"", alg.getCommandName(), columnName, params.getClusterMakerEdgeAttribute());
+			return String.format("cluster %s network=\"SUID:%d\" clusterAttribute=\"%s\" attribute=\"%s\"", command, suid, columnName, params.getClusterMakerEdgeAttribute());
 		}
 		else {
-			return String.format("cluster %s clusterAttribute=\"%s\"", alg.getCommandName(), columnName);
+			return String.format("cluster %s network=\"SUID:%d\" clusterAttribute=\"%s\"", command, suid, columnName);
 		}
 	}
 	

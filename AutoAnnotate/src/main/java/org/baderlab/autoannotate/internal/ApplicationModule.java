@@ -4,6 +4,9 @@ import java.util.Properties;
 
 import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.model.ModelManager;
+import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
+import org.baderlab.autoannotate.internal.task.LayoutClustersTaskFactory;
+import org.baderlab.autoannotate.internal.task.RunClusterMakerTaskFactory;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
 import org.baderlab.autoannotate.internal.ui.PanelManagerImpl;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
@@ -49,6 +52,9 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(ManageAnnotationSetsDialog.Factory.class);
 		installFactory(NormalModePanel.Factory.class);
 		installFactory(EasyModePanel.Factory.class);
+		installFactory(CollapseAllTaskFactory.Factory.class);
+		installFactory(LayoutClustersTaskFactory.Factory.class);
+		installFactory(RunClusterMakerTaskFactory.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {

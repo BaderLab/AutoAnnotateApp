@@ -53,7 +53,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	@Inject private @WarnDialogModule.Create Provider<WarnDialog> warnDialogProvider;
 	@Inject private Provider<CreateAnnotationSetTask> createTaskProvider;
-	@Inject private Provider<CollapseAllTaskFactory> collapseTaskFactoryProvider;
+	@Inject private CollapseAllTaskFactory.Factory collapseTaskFactoryFactory;
 	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
 	
 	@Inject private Provider<OpenBrowser> browserProvider;
@@ -229,8 +229,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 		tasks.append(TaskTools.taskMessage("Generating Clusters"));
 		
 		// clusterMaker does not like it when there are collapsed groups
-		CollapseAllTaskFactory collapseAllTaskFactory = collapseTaskFactoryProvider.get();
-		collapseAllTaskFactory.setAction(Grouping.EXPAND);
+		CollapseAllTaskFactory collapseAllTaskFactory = collapseTaskFactoryFactory.create(Grouping.EXPAND, params.getNetworkView());
 		tasks.append(collapseAllTaskFactory.createTaskIterator());
 		
 		CreateAnnotationSetTask createTask = createTaskProvider.get();

@@ -1,15 +1,15 @@
 package org.baderlab.autoannotate.internal.task;
 
+import java.util.Objects;
+
 import org.baderlab.autoannotate.internal.BuildProperties;
-import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.model.CyColumn;
+import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskMonitor;
-
-import com.google.inject.Inject;
 
 /**
  * The cluster command needs to be given a value for the edgeCutOff parameter
@@ -25,21 +25,23 @@ import com.google.inject.Inject;
  */
 public class CutoffTask extends AbstractTask implements ObservableTask {
 
-	@Inject CyApplicationManager applicationManager;
+	private final String edgeAttribute;
+	private final CyNetwork network;
 	
-	private String edgeAttribute;
 	private Double result = null;
 	
-	public void setEdgeAttribute(String edgeAttribute) {
-		this.edgeAttribute = edgeAttribute;
+	public CutoffTask(CyNetwork network, String edgeAttribute) {
+		this.network = Objects.requireNonNull(network);
+		this.edgeAttribute = Objects.requireNonNull(edgeAttribute);
 	}
+	
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) {
 		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Calculating clusterMaker edgeCutOff attribute.");
 		
-		CyTable table = applicationManager.getCurrentNetwork().getDefaultEdgeTable();
+		CyTable table = network.getDefaultEdgeTable();
 		CyColumn column = table.getColumn(edgeAttribute);
 		
 		double min = Double.MAX_VALUE;

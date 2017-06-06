@@ -13,6 +13,8 @@ import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.TaskIterator;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 
 /**
@@ -27,8 +29,12 @@ public class LayoutClustersTaskFactory extends AbstractTaskFactory {
 	private CyNetworkView view;
 	private String layoutAttribute;
 	
+	public static interface Factory {
+		LayoutClustersTaskFactory create(Collection<Collection<CyNode>> clusters, CyNetworkView view, String layoutAttribute);
+	}
 	
-	public void init(Collection<Collection<CyNode>> clusters, CyNetworkView view, String layoutAttribute) {
+	@AssistedInject
+	public LayoutClustersTaskFactory(@Assisted Collection<Collection<CyNode>> clusters, @Assisted CyNetworkView view, @Assisted String layoutAttribute) {
 		this.clusters = clusters;
 		this.view = view;
 		this.layoutAttribute = layoutAttribute;
