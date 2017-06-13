@@ -2,6 +2,8 @@ package org.baderlab.autoannotate.internal.task;
 
 import java.util.Objects;
 
+import javax.annotation.Nullable;
+
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.cytoscape.command.CommandExecutorTaskFactory;
 import org.cytoscape.model.CyTable;
@@ -21,11 +23,11 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 	private final Double cutoff;
 	
 	public static interface Factory {
-		RunClusterMakerTaskFactory create(AnnotationSetTaskParamters params, Double cutoff);
+		RunClusterMakerTaskFactory create(AnnotationSetTaskParamters params, @Nullable Double cutoff);
 	}
 	
 	@AssistedInject
-	public RunClusterMakerTaskFactory(@Assisted AnnotationSetTaskParamters params, @Assisted Double cutoff) {
+	public RunClusterMakerTaskFactory(@Assisted AnnotationSetTaskParamters params, @Assisted @Nullable Double cutoff) {
 		this.params = Objects.requireNonNull(params);
 		this.cutoff = cutoff;
 	}

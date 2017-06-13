@@ -100,13 +100,14 @@ public class AnnotateCommandTask extends AbstractTask {
 			// Reasonable default for EnrichmentMap networks
 			if(edgeWeightColumn == null) {
 				Optional<String> col = getColumnEndingWith(network.getDefaultEdgeTable(), "similarity_coefficient");
-				if(col.isPresent())
+				if(col.isPresent()) {
 					edgeWeightColumn = col.get();
+				} else {
+					edgeWeightColumn = "--None--";
+				}
+			} else if(network.getDefaultEdgeTable().getColumn(edgeWeightColumn) == null) {
+				 throw new IllegalArgumentException("Column with name '" + edgeWeightColumn + "' does not exist in the edge table.");
 			}
-			if(edgeWeightColumn == null)
-				throw new IllegalArgumentException("The cluster algorithm " + alg + " requires the 'edgeWeightColumn' parameter.");
-			if(network.getDefaultEdgeTable().getColumn(edgeWeightColumn) == null)
-				throw new IllegalArgumentException("Column with name '" + edgeWeightColumn + "' does not exist in the edge table.");
 		}
 		if(!useClusterMaker) {
 			if(clusterIdColumn == null)

@@ -20,7 +20,7 @@ public class SummaryNetworkAction extends ClusterAction {
 	
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private @WarnDialogModule.Summary Provider<WarnDialog> warnDialogProvider;
-	@Inject private Provider<SummaryNetworkTask> taskProvider;
+	@Inject private SummaryNetworkTask.Factory taskFactory;
 	@Inject private Provider<JFrame> jFrameProvider;
 	
 	
@@ -33,7 +33,7 @@ public class SummaryNetworkAction extends ClusterAction {
 		WarnDialog warnDialog = warnDialogProvider.get();
 		boolean doIt = warnDialog.warnUser(jFrameProvider.get());
 		if(doIt) {
-			SummaryNetworkTask task = taskProvider.get().init(getClusters());
+			SummaryNetworkTask task = taskFactory.create(getClusters());
 			dialogTaskManager.execute(new TaskIterator(task));
 		}
 	}

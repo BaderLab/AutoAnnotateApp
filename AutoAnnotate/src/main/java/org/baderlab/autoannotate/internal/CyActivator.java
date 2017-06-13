@@ -1,5 +1,6 @@
 package org.baderlab.autoannotate.internal;
 
+import static org.baderlab.autoannotate.internal.util.TaskTools.taskFactory;
 import static org.cytoscape.work.ServiceProperties.APPS_MENU;
 import static org.cytoscape.work.ServiceProperties.IN_MENU_BAR;
 import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
@@ -9,8 +10,12 @@ import java.util.Arrays;
 import java.util.Properties;
 
 import org.baderlab.autoannotate.internal.command.AnnotateCommandTask;
+import org.baderlab.autoannotate.internal.command.CollapseCommandTask;
+import org.baderlab.autoannotate.internal.command.ExpandCommandTask;
 import org.baderlab.autoannotate.internal.command.LabelClusterCommandTask;
+import org.baderlab.autoannotate.internal.command.LayoutCommandTask;
 import org.baderlab.autoannotate.internal.command.RedrawCommandTask;
+import org.baderlab.autoannotate.internal.command.SummaryNetworkCommandTask;
 import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
@@ -25,18 +30,15 @@ import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CyAction;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
-import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.ServiceProperties;
 import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskFactory;
-import org.cytoscape.work.TaskIterator;
 import org.ops4j.peaberry.osgi.OSGiModule;
 import org.osgi.framework.BundleContext;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
-import com.google.inject.Provider;
 import com.google.inject.TypeLiteral;
 
 
@@ -46,9 +48,9 @@ public class CyActivator extends AbstractCyActivator {
 	
 	
 	@Override
-	public void start(BundleContext context) {
+	public void start(BundleContext bc) {
 		injector = Guice.createInjector(
-						new OSGiModule(context), // Peaberry
+						new OSGiModule(bc), // Peaberry
 						new AfterInjectionModule(), 
 						new CytoscapeServiceModule(), 
 						new ApplicationModule(), 
@@ -57,13 +59,13 @@ public class CyActivator extends AbstractCyActivator {
 		
 		// ModelManager listens to Cytoscape events
 		ModelManager modelManager = injector.getInstance(ModelManager.class);
-		registerAllServices(context, modelManager, new Properties());
+		registerAllServices(bc, modelManager, new Properties());
 		
 		// Register menu Actions
 		PanelManager panelManager = injector.getInstance(PanelManager.class);
-		registerAction(context, injector.getInstance(ShowCreateDialogAction.class));
-		registerAction(context, panelManager.getShowHideAction());
-		registerAction(context, injector.getInstance(ShowAboutDialogAction.class));
+		registerAction(bc, injector.getInstance(ShowCreateDialogAction.class));
+		registerAction(bc, panelManager.getShowHideAction());
+		registerAction(bc, injector.getInstance(ShowAboutDialogAction.class));
 		
 		// Context menu action in network view
 		CreateClusterTaskFactory createClusterTaskFactory = injector.getInstance(CreateClusterTaskFactory.class);
@@ -71,37 +73,40 @@ public class CyActivator extends AbstractCyActivator {
 		createClusterProps.setProperty(IN_MENU_BAR, "false");
 		createClusterProps.setProperty(PREFERRED_MENU, APPS_MENU + "." + BuildProperties.APP_NAME);
 		createClusterProps.setProperty(TITLE, "Create Cluster");
-		registerAllServices(context, createClusterTaskFactory, createClusterProps);
+		registerAllServices(bc, createClusterTaskFactory, createClusterProps);
 		
 		// ModelTablePersistor listents to session save/load events
 		ModelTablePersistor persistor = injector.getInstance(ModelTablePersistor.class);
-		registerAllServices(context, persistor, new Properties());
+		registerAllServices(bc, persistor, new Properties());
 		
 		// Configuration properties
 		CyProperty<Properties> configProps = injector.getInstance(Key.get(new TypeLiteral<CyProperty<Properties>>(){}));
 		Properties propsReaderServiceProps = new Properties();
 		propsReaderServiceProps.setProperty("cyPropertyName", "autoannotate.props");
-		registerAllServices(context, configProps, propsReaderServiceProps);
+		registerAllServices(bc, configProps, propsReaderServiceProps);
 		
-		// Commands
+		// Commands that depend on LabelMaker
 		LabelMakerManager labelMakerManager = injector.getInstance(LabelMakerManager.class);
 		for(LabelMakerFactory<?> factory : labelMakerManager.getFactories()) {
 			// MKTODO make sure the factory ID doesn't contain spaces or other illegal characters
-			
 			LabelClusterCommandTask.Factory labelClusterCommandTaskFactory = injector.getInstance(LabelClusterCommandTask.Factory.class);
-			TaskFactory labelTaskFactory = createTaskFactory(() -> labelClusterCommandTaskFactory.create(factory));
+			TaskFactory labelTaskFactory = taskFactory(() -> labelClusterCommandTaskFactory.create(factory));
 			
 			AnnotateCommandTask.Factory annotateCommandTaskFactory = injector.getInstance(AnnotateCommandTask.Factory.class);
-			TaskFactory annotateTaskFactory = createTaskFactory(() -> annotateCommandTaskFactory.create(factory));
+			TaskFactory annotateTaskFactory = taskFactory(() -> annotateCommandTaskFactory.create(factory));
 			
 			String id = factory.getID();
 			String description = String.join(" ", Arrays.asList(factory.getDescription()));
-			registerCommand(context, "label-"+id, labelTaskFactory, "Run label algorithm '" + id + "'. " + description);
-			registerCommand(context, "annotate-"+id, annotateTaskFactory, "Annotate network using label algorithm '" + id + "'. " + description);
+			registerCommand(bc, "label-"+id, labelTaskFactory, "Run label algorithm '" + id + "'. " + description);
+			registerCommand(bc, "annotate-"+id, annotateTaskFactory, "Annotate network using label algorithm '" + id + "'. " + description);
 		}
 		
-		TaskFactory redrawTaskFactory = createTaskFactory(injector.getProvider(RedrawCommandTask.class));
-		registerCommand(context, "redraw", redrawTaskFactory, "Redraw annotations");
+		// Regular commands
+		registerCommand(bc, "redraw", RedrawCommandTask.class, "Redraw annotations");
+		registerCommand(bc, "layout", LayoutCommandTask.class, "Layout network by clusters");
+		registerCommand(bc, "collapse", CollapseCommandTask.class, "Collapse all clusters");
+		registerCommand(bc, "expand", ExpandCommandTask.class, "Expand all clusters");
+		registerCommand(bc, "summary", SummaryNetworkCommandTask.class, "Create summary network");
 		
 		// If no session is loaded then this won't do anything, but if there is a session loaded 
 		// then we want to load the model immediately.
@@ -111,6 +116,7 @@ public class CyActivator extends AbstractCyActivator {
 	
 	@Override
 	public void shutDown() {
+		// MKTODO make this smarter like how EM does it
 		try {
 			ModelTablePersistor persistor = injector.getInstance(ModelTablePersistor.class);
 			persistor.exportModel();
@@ -122,26 +128,24 @@ public class CyActivator extends AbstractCyActivator {
 	}
 	
 	
-	private void registerAction(BundleContext context, AbstractCyAction action) {
+	
+	private void registerAction(BundleContext bc, AbstractCyAction action) {
 		action.setPreferredMenu("Apps." + BuildProperties.APP_NAME);
-		registerService(context, action, CyAction.class, new Properties());
+		registerService(bc, action, CyAction.class, new Properties());
 	}
 	
-	private void registerCommand(BundleContext context, String name, TaskFactory factory, String description) {
+	private void registerCommand(BundleContext bc, String name, Class<? extends Task> type, String description) {
+		TaskFactory taskFactory = taskFactory(injector.getProvider(type));
+		registerCommand(bc, name, taskFactory, description);
+	}
+	
+	private void registerCommand(BundleContext bc, String name, TaskFactory factory, String description) {
 		Properties props = new Properties();
 		props.put(ServiceProperties.COMMAND, name);
 		props.put(ServiceProperties.COMMAND_NAMESPACE, "autoannotate");
 		if(description != null)
 			props.put("commandDescription", description); // added in Cytoscape 3.2
-		registerService(context, factory, TaskFactory.class, props);
-	}
-	
-	private static TaskFactory createTaskFactory(Provider<? extends Task> taskProvider) {
-		return new AbstractTaskFactory() {
-			@Override public TaskIterator createTaskIterator() {
-				return new TaskIterator(taskProvider.get());
-			}
-		};
+		registerService(bc, factory, TaskFactory.class, props);
 	}
 	
 }

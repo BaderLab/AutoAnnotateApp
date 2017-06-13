@@ -67,8 +67,6 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		else
 			clusters = computeClustersFromColumn();
 		
-		
-		
 		if(clusters == null || clusters.isEmpty()) {
 			taskMonitor.setStatusMessage("No clusters, aborting");
 			return;

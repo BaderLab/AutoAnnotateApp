@@ -22,7 +22,7 @@ import com.google.inject.Provider;
 public class LayoutClustersAction extends AbstractCyAction {
 
 	@Inject private @WarnDialogModule.Layout Provider<WarnDialog> warnDialogProvider;
-	@Inject private Provider<LayoutAnnotationSetTaskFactory> layoutTaskProvider;
+	@Inject private LayoutAnnotationSetTaskFactory.Factory layoutTaskFactory;
 	@Inject private Provider<JFrame> jFrameProvider;
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private ModelManager modelManager;
@@ -39,8 +39,7 @@ public class LayoutClustersAction extends AbstractCyAction {
 			WarnDialog warnDialog = warnDialogProvider.get();
 			boolean doIt = warnDialog.warnUser(jFrameProvider.get());
 			if(doIt) {
-				LayoutAnnotationSetTaskFactory taskFactory = layoutTaskProvider.get();
-				taskFactory.setAnnotationSet(annotationSet.get());
+				LayoutAnnotationSetTaskFactory taskFactory = layoutTaskFactory.create(annotationSet.get());
 				TaskIterator tasks = taskFactory.createTaskIterator();
 				dialogTaskManager.execute(tasks);
 			}

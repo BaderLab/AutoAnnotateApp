@@ -15,6 +15,8 @@ import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskIterator;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 
 /**
@@ -25,9 +27,14 @@ public class LayoutAnnotationSetTaskFactory extends AbstractTaskFactory {
 
 	@Inject private LayoutClustersTaskFactory.Factory layoutTaskFactoryFactory;
 	
-	private AnnotationSet annotationSet;
+	private final AnnotationSet annotationSet;
 	
-	public void setAnnotationSet(AnnotationSet annotationSet) {
+	public static interface Factory {
+		LayoutAnnotationSetTaskFactory create(AnnotationSet annotationSet);
+	}
+	
+	@AssistedInject
+	public LayoutAnnotationSetTaskFactory(@Assisted AnnotationSet annotationSet) {
 		this.annotationSet = annotationSet;
 	}
 	

@@ -40,6 +40,7 @@ import org.mockito.Mockito;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 
 public class SummaryNetworkTask extends AbstractTask {
 
@@ -51,12 +52,16 @@ public class SummaryNetworkTask extends AbstractTask {
 	
 	@Inject private CyGroupSettingsManager groupSettingsManager;
 	
-	private Collection<Cluster> clusters;
+	private final Collection<Cluster> clusters;
 	
 	
-	public SummaryNetworkTask init(Collection<Cluster> clusters) {
+	public static interface Factory {
+		SummaryNetworkTask create(Collection<Cluster> clusters);
+	}
+	
+	@Inject
+	public SummaryNetworkTask(@Assisted Collection<Cluster> clusters) {
 		this.clusters = clusters;
-		return this;
 	}
 	
 	
