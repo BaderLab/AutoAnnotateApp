@@ -90,7 +90,12 @@ public class AnnotationRenderer {
 		Cluster cluster = event.getCluster();
 		if(cluster.getParent().isActive()) {
 			TaskIterator tasks = new TaskIterator();
-			tasks.append(drawTaskProvider.get().setCluster(cluster));
+			
+			if(cluster.isCollapsed())
+				tasks.append(eraseTaskProvider.get().setCluster(cluster));
+			else
+				tasks.append(drawTaskProvider.get().setCluster(cluster));
+			
 			syncTaskManager.execute(tasks);
 		}
 	}
