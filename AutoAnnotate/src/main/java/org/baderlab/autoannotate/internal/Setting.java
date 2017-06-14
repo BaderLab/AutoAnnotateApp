@@ -3,9 +3,8 @@ package org.baderlab.autoannotate.internal;
 public class Setting<T> {
 	
 	// Note: WarnDialog settings are in WarnDialogModule
-	
-//	public final static Setting<Integer> DEFAULT_MAX_WORDS = new Setting<Integer>("defaultMaxWords", Integer.class, 4);
 	public final static Setting<Boolean> OVERRIDE_GROUP_LABELS = new Setting<Boolean>("overrideGroupLabels", Boolean.class, true);
+	public final static Setting<Boolean> USE_EASY_MODE = new Setting<Boolean>("useEasyMode", Boolean.class, true);
 		
 	private final String key;
 	private final Class<T> type;
@@ -28,6 +27,5 @@ public class Setting<T> {
 	public T getDefaultValue() {
 		return defaultValue;
 	}
-
 
 }

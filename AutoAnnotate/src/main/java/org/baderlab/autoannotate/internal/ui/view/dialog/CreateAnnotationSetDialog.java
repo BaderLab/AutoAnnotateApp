@@ -22,6 +22,8 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
+import org.baderlab.autoannotate.internal.Setting;
+import org.baderlab.autoannotate.internal.SettingManager;
 import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
@@ -55,6 +57,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 	@Inject private Provider<CreateAnnotationSetTask> createTaskProvider;
 	@Inject private CollapseAllTaskFactory.Factory collapseTaskFactoryFactory;
 	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
+	@Inject private SettingManager settingManager;
 	
 	@Inject private Provider<OpenBrowser> browserProvider;
 	@Inject private DialogTaskManager dialogTaskManager;
@@ -140,7 +143,14 @@ public class CreateAnnotationSetDialog extends JDialog {
 		normalModePanel.setOpaque(false);
 		tabbedPane.addTab("Advanced", normalModePanel);
 		
+		boolean useEasyMode = settingManager.getValue(Setting.USE_EASY_MODE);
+		tabbedPane.setSelectedIndex(useEasyMode ? 0 : 1);
+		
 		tabbedPane.addChangeListener(e -> okButtonStateChanged());
+		tabbedPane.addChangeListener(e -> {
+			int index = tabbedPane.getSelectedIndex();
+			settingManager.setValue(Setting.USE_EASY_MODE, index == 0);
+		});
 		
 		return tabbedPane;
 	}
