@@ -13,13 +13,12 @@ import org.cytoscape.work.AbstractTaskFactory;
 import org.cytoscape.work.TaskIterator;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
 public class CollapseAllTaskFactory extends AbstractTaskFactory {
 
-	@Inject private Provider<CollapseTask> taskProvider;
+	@Inject private CollapseTask.Factory taskProvider;
 	
 	private final Grouping action;
 	private Collection<Cluster> clusters;
@@ -71,7 +70,7 @@ public class CollapseAllTaskFactory extends AbstractTaskFactory {
 		return 
 			clusters
 			.stream()
-			.map(cluster -> taskProvider.get().init(cluster, action))
+			.map(cluster -> taskProvider.create(cluster, action))
 			.collect(TaskTools.taskIterator());
 	}
 

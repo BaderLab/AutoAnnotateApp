@@ -22,6 +22,7 @@ import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 
 
 /**
@@ -40,13 +41,15 @@ public class DrawClusterTask extends AbstractTask {
 	public static final Color DEFAULT_TEXT_COLOR = Color.BLACK;
 	private static final int minSize = 50; // Minimum size of the ellipse
 	
+	private final Cluster cluster;
 	
+	public static interface Factory {
+		DrawClusterTask create(Cluster cluster);
+	}
 	
-	private Cluster cluster;
-	
-	public DrawClusterTask setCluster(Cluster cluster) {
+	@Inject
+	public DrawClusterTask(@Assisted Cluster cluster) {
 		this.cluster = cluster;
-		return this;
 	}
 	
 	@Override

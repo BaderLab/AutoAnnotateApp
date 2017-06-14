@@ -26,7 +26,6 @@ import org.cytoscape.work.TaskManager;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
@@ -36,9 +35,9 @@ public class AnnotationRenderer {
 	@Inject private @Named("dialog") TaskManager<?,?> dialogTaskManager;
 	@Inject private @Named("sync")   TaskManager<?,?> syncTaskManager;
 	
-	@Inject private Provider<DrawClusterTask> drawTaskProvider;
-	@Inject private Provider<EraseClusterTask> eraseTaskProvider;
-	@Inject private Provider<SelectClusterTask> selectTaskProvider;
+	@Inject private DrawClusterTask.Factory drawTaskProvider;
+	@Inject private EraseClusterTask.Factory eraseTaskProvider;
+	@Inject private SelectClusterTask.Factory selectTaskProvider;
 	
 	// MKTODO it would be much better to have a single map so that there is no chance of the keys being different
 	private Map<Cluster,TextAnnotation> textAnnotations = new HashMap<>();
@@ -71,12 +70,12 @@ public class AnnotationRenderer {
 		TaskIterator tasks = new TaskIterator();
 		
 		for(Cluster cluster : getClusters(networkViewSet)) {
-			tasks.append(eraseTaskProvider.get().setCluster(cluster));
+			tasks.append(eraseTaskProvider.create(cluster));
 		}
 		
 		if(selected.isPresent()) {
 			for(Cluster cluster : selected.get().getClusters()) {
-				tasks.append(drawTaskProvider.get().setCluster(cluster));
+				tasks.append(drawTaskProvider.create(cluster));
 			}
 		}
 		
@@ -92,9 +91,9 @@ public class AnnotationRenderer {
 			TaskIterator tasks = new TaskIterator();
 			
 			if(cluster.isCollapsed())
-				tasks.append(eraseTaskProvider.get().setCluster(cluster));
+				tasks.append(eraseTaskProvider.create(cluster));
 			else
-				tasks.append(drawTaskProvider.get().setCluster(cluster));
+				tasks.append(drawTaskProvider.create(cluster));
 			
 			syncTaskManager.execute(tasks);
 		}
@@ -105,7 +104,7 @@ public class AnnotationRenderer {
 	public void handle(ModelEvents.ClusterRemoved event) {
 		Cluster cluster = event.getCluster();
 		TaskIterator tasks = new TaskIterator();
-		tasks.append(eraseTaskProvider.get().setCluster(cluster));
+		tasks.append(eraseTaskProvider.create(cluster));
 		syncTaskManager.execute(tasks);
 	}
 	
@@ -113,8 +112,8 @@ public class AnnotationRenderer {
 	@Subscribe
 	public void handle(ModelEvents.ClusterAdded event) {
 		Cluster cluster = event.getCluster();
-		TaskIterator tasks = new TaskIterator(drawTaskProvider.get().setCluster(cluster));
-		syncTaskManager.execute(tasks);
+		DrawClusterTask task = drawTaskProvider.create(cluster);
+		syncTaskManager.execute(new TaskIterator(task));
 	}
 	
 	
@@ -188,15 +187,10 @@ public class AnnotationRenderer {
 		TaskIterator tasks = new TaskIterator();
 		
 		for(Cluster cluster : deselect) {
-			SelectClusterTask deselectTask = selectTaskProvider.get();
-			deselectTask.setCluster(cluster);
-			deselectTask.setSelect(false);
-			tasks.append(deselectTask);
+			tasks.append(selectTaskProvider.create(cluster, false));
 		}
 		for(Cluster cluster : select) {
-			SelectClusterTask selectTask = selectTaskProvider.get();
-			selectTask.setCluster(cluster);
-			tasks.append(selectTask);
+			tasks.append(selectTaskProvider.create(cluster, true));
 		}
 		
 		syncTaskManager.execute(tasks);

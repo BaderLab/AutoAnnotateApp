@@ -5,6 +5,7 @@ import static org.baderlab.autoannotate.internal.model.SafeRunner.EventType.VIEW
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.Setting;
@@ -27,6 +28,7 @@ import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 
 public class CollapseTask extends AbstractTask {
 
@@ -37,16 +39,19 @@ public class CollapseTask extends AbstractTask {
 	@Inject private VisualMappingManager visualMappingManager;
 	@Inject private SettingManager settingManager;
 	
-	private Cluster cluster;
-	private Grouping action = Grouping.COLLAPSE;
+	private final Cluster cluster;
+	private final Grouping action;
 	private boolean overrideAttribute = false;
 	
+	public interface Factory {
+		CollapseTask create(Cluster cluster, Grouping action);
+	}
 	
-	public CollapseTask init(Cluster cluster, Grouping action) {
-		this.cluster = cluster;
-		this.action = action;
+	@Inject 
+	public CollapseTask(@Assisted Cluster cluster, @Assisted Grouping action) {
+		this.cluster = Objects.requireNonNull(cluster);
+		this.action = Objects.requireNonNull(action);
 		this.overrideAttribute = settingManager.getValue(Setting.OVERRIDE_GROUP_LABELS);
-		return this;
 	}
 	
 	public CollapseTask setOverrideAttribue(boolean overrideAttribute) {

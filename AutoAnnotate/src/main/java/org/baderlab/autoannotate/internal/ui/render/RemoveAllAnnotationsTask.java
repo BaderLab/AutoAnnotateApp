@@ -14,6 +14,7 @@ import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 
 /**
  * Removes every single annotation from the network view, regardless if it
@@ -24,9 +25,14 @@ public class RemoveAllAnnotationsTask extends AbstractTask {
 	@Inject private AnnotationManager annotationManager;
 	@Inject private AnnotationRenderer annotationRenderer;
 	
-	private NetworkViewSet networkViewSet;
+	private final NetworkViewSet networkViewSet;
 	
-	public void setNetworkViewSet(NetworkViewSet networkViewSet) {
+	public interface Factory {
+		RemoveAllAnnotationsTask create(NetworkViewSet networkViewSet);
+	}
+	
+	@Inject
+	public RemoveAllAnnotationsTask(@Assisted NetworkViewSet networkViewSet) {
 		this.networkViewSet = networkViewSet;
 	}
 	

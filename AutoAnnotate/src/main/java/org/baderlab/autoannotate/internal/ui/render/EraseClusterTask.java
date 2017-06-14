@@ -10,16 +10,22 @@ import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 
 public class EraseClusterTask extends AbstractTask {
 
 	@Inject private AnnotationRenderer annotationRenderer;
 	
-	private Cluster cluster;
+	private final Cluster cluster;
 	
-	public EraseClusterTask setCluster(Cluster cluster) {
+	
+	public interface Factory {
+		EraseClusterTask create(Cluster cluster);
+	}
+	
+	@Inject
+	public EraseClusterTask(@Assisted Cluster cluster) {
 		this.cluster = cluster;
-		return this;
 	}
 	
 	@Override

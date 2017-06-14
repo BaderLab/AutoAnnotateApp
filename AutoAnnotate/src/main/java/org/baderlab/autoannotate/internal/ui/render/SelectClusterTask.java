@@ -12,19 +12,22 @@ import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 
 public class SelectClusterTask extends AbstractTask {
 
 	@Inject private AnnotationRenderer annotationRenderer;
 	
-	private Cluster cluster;
-	private boolean select = true;
-	 
-	public void setCluster(Cluster cluster) {
-		this.cluster = cluster;
-	}
+	private final Cluster cluster;
+	private final boolean select;
 	
-	public void setSelect(boolean select) {
+	public interface Factory {
+		SelectClusterTask create(Cluster cluster, boolean select);
+	}
+	 
+	@Inject
+	public SelectClusterTask(@Assisted Cluster cluster, @Assisted boolean select) {
+		this.cluster = cluster;
 		this.select = select;
 	}
 	

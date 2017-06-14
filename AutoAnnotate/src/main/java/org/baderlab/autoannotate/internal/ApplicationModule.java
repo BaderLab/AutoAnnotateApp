@@ -7,6 +7,7 @@ import org.baderlab.autoannotate.internal.command.LabelClusterCommandTask;
 import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
+import org.baderlab.autoannotate.internal.task.CollapseTask;
 import org.baderlab.autoannotate.internal.task.LayoutAnnotationSetTaskFactory;
 import org.baderlab.autoannotate.internal.task.LayoutClustersTaskFactory;
 import org.baderlab.autoannotate.internal.task.RunClusterMakerTaskFactory;
@@ -14,6 +15,10 @@ import org.baderlab.autoannotate.internal.task.SummaryNetworkTask;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
 import org.baderlab.autoannotate.internal.ui.PanelManagerImpl;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
+import org.baderlab.autoannotate.internal.ui.render.DrawClusterTask;
+import org.baderlab.autoannotate.internal.ui.render.EraseClusterTask;
+import org.baderlab.autoannotate.internal.ui.render.RemoveAllAnnotationsTask;
+import org.baderlab.autoannotate.internal.ui.render.SelectClusterTask;
 import org.baderlab.autoannotate.internal.ui.view.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.ManageAnnotationSetsDialog;
 import org.baderlab.autoannotate.internal.ui.view.dialog.EasyModePanel;
@@ -63,6 +68,17 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(LabelClusterCommandTask.Factory.class);
 		installFactory(LayoutAnnotationSetTaskFactory.Factory.class);
 		installFactory(SummaryNetworkTask.Factory.class);
+		installFactory(CollapseTask.Factory.class);
+		
+		
+		installFactory(DrawClusterTask.Factory.class);
+		installFactory(EraseClusterTask.Factory.class);
+		installFactory(SelectClusterTask.Factory.class);
+		installFactory(RemoveAllAnnotationsTask.Factory.class);
+		
+		
+//		install(new FactoryModuleBuilder().implement(Task.class, DrawClusterTask.class).build(RenderTaskFactory.class));
+		
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {
