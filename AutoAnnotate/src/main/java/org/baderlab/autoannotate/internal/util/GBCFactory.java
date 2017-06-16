@@ -1,6 +1,7 @@
 package org.baderlab.autoannotate.internal.util;
 
 import java.awt.GridBagConstraints;
+import java.awt.Insets;
 
 public class GBCFactory {
 
@@ -52,5 +53,14 @@ public class GBCFactory {
 		return this;
 	}
 	
+	public GBCFactory insets(Insets insets) {
+		gbc.insets = insets;
+		return this;
+	}
+	
+	public GBCFactory insets(int top, int left, int bottom, int right) {
+		gbc.insets = new Insets(top, left, bottom, right);
+		return this;
+	}
 	
 }

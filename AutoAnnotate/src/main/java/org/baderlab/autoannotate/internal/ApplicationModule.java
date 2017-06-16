@@ -8,6 +8,7 @@ import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
 import org.baderlab.autoannotate.internal.task.CollapseTask;
+import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.internal.task.LayoutAnnotationSetTaskFactory;
 import org.baderlab.autoannotate.internal.task.LayoutClustersTaskFactory;
 import org.baderlab.autoannotate.internal.task.RunClusterMakerTaskFactory;
@@ -69,16 +70,11 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(LayoutAnnotationSetTaskFactory.Factory.class);
 		installFactory(SummaryNetworkTask.Factory.class);
 		installFactory(CollapseTask.Factory.class);
-		
-		
 		installFactory(DrawClusterTask.Factory.class);
 		installFactory(EraseClusterTask.Factory.class);
 		installFactory(SelectClusterTask.Factory.class);
 		installFactory(RemoveAllAnnotationsTask.Factory.class);
-		
-		
-//		install(new FactoryModuleBuilder().implement(Task.class, DrawClusterTask.class).build(RenderTaskFactory.class));
-		
+		installFactory(CreateAnnotationSetTask.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {

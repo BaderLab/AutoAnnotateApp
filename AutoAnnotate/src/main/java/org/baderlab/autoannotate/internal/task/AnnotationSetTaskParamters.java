@@ -16,6 +16,7 @@ public class AnnotationSetTaskParamters {
 	private final boolean createGroups;
 	private final LabelMakerFactory<?> labelMakerFactory;
 	private final Object labelMakerContext;
+	private final boolean createSingletonClusters;
 	
 	private AnnotationSetTaskParamters(Builder builder) {
 		this.networkView = builder.networkView;
@@ -28,6 +29,7 @@ public class AnnotationSetTaskParamters {
 		this.createGroups = builder.createGroups;
 		this.labelMakerFactory = builder.labelMakerFactory;
 		this.labelMakerContext = builder.labelMakerContext;
+		this.createSingletonClusters = builder.createSingletonClusters;
 	}
 	
 	public static class Builder {
@@ -41,6 +43,7 @@ public class AnnotationSetTaskParamters {
 		private boolean createGroups = false;
 		private LabelMakerFactory<?> labelMakerFactory;
 		private Object labelMakerContext;
+		private  boolean createSingletonClusters = false;
 		
 		public Builder(CyNetworkView networkView) {
 			this.networkView = networkView;
@@ -80,6 +83,10 @@ public class AnnotationSetTaskParamters {
 		}
 		public Builder setLabelMakerContext(Object context) {
 			this.labelMakerContext = context;
+			return this;
+		}
+		public Builder setCreateSingletonClusters(boolean createSingletonClusters) {
+			this.createSingletonClusters = createSingletonClusters;
 			return this;
 		}
 		
@@ -128,6 +135,10 @@ public class AnnotationSetTaskParamters {
 	public Object getLabelMakerContext() {
 		return labelMakerContext;
 	}
+	
+	public boolean isCreateSingletonClusters() {
+		return createSingletonClusters;
+	}
 
 	@Override
 	public String toString() {
@@ -135,9 +146,8 @@ public class AnnotationSetTaskParamters {
 				+ ", useClusterMaker=" + useClusterMaker + ", clusterMakerAlgorithm=" + clusterMakerAlgorithm
 				+ ", clusterMakerEdgeAttribute=" + clusterMakerEdgeAttribute + ", clusterDataColumn="
 				+ clusterDataColumn + ", layoutClusters=" + layoutClusters + ", createGroups=" + createGroups
-				+ ", labelMakerFactory=" + labelMakerFactory + ", labelMakerContext=" + labelMakerContext + "]";
+				+ ", labelMakerFactory=" + labelMakerFactory + ", labelMakerContext=" + labelMakerContext
+				+ ", createSingletonClusters=" + createSingletonClusters + "]";
 	}
-	
-	
 	
 }

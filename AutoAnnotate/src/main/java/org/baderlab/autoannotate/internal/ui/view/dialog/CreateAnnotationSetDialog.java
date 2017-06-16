@@ -54,7 +54,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 	static final String NONE = "--None--"; // "--None--" is a value accepted by clusterMaker
 	
 	@Inject private @WarnDialogModule.Create Provider<WarnDialog> warnDialogProvider;
-	@Inject private Provider<CreateAnnotationSetTask> createTaskProvider;
+	@Inject private CreateAnnotationSetTask.Factory createTaskFactory;
 	@Inject private CollapseAllTaskFactory.Factory collapseTaskFactoryFactory;
 	@Inject private Provider<WordCloudAdapter> wordCloudAdapterProvider;
 	@Inject private SettingManager settingManager;
@@ -242,8 +242,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 		CollapseAllTaskFactory collapseAllTaskFactory = collapseTaskFactoryFactory.create(Grouping.EXPAND, params.getNetworkView());
 		tasks.append(collapseAllTaskFactory.createTaskIterator());
 		
-		CreateAnnotationSetTask createTask = createTaskProvider.get();
-		createTask.setParameters(params);
+		CreateAnnotationSetTask createTask = createTaskFactory.create(params);
 		tasks.append(createTask);
 		
 		dialogTaskManager.execute(tasks);

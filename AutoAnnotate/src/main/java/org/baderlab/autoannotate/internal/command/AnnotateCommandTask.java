@@ -25,7 +25,6 @@ import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListSingleSelection;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
@@ -49,13 +48,16 @@ public class AnnotateCommandTask extends AbstractTask {
 	@Tunable(description="Name of node column to use to identify clusters when the 'userClusterMaker' argument is false.")
 	public String clusterIdColumn;
 	
+	@Tunable
+	public boolean createSingletonClusters = false;
+	
 	@ContainsTunables
 	public Supplier<?> labelMakerArguments;
 
 	private final LabelMakerFactory<?> labelMakerFactory;
 	
 	
-	@Inject private Provider<CreateAnnotationSetTask> createTaskProvider;
+	@Inject private CreateAnnotationSetTask.Factory createTaskFactory;
 	@Inject private CollapseAllTaskFactory.Factory collapseTaskFactoryFactory;
 	@Inject private CyApplicationManager applicationManager;
 	@Inject private CyNetworkViewManager networkViewManager;
@@ -127,6 +129,7 @@ public class AnnotateCommandTask extends AbstractTask {
 			.setClusterAlgorithm(alg)
 			.setClusterMakerEdgeAttribute(edgeWeightColumn)
 			.setClusterDataColumn(clusterIdColumn)
+			.setCreateSingletonClusters(createSingletonClusters)
 			.setCreateGroups(false)
 			.build();
 		
@@ -161,8 +164,7 @@ public class AnnotateCommandTask extends AbstractTask {
 		CollapseAllTaskFactory collapseAllTaskFactory = collapseTaskFactoryFactory.create(Grouping.EXPAND, params.getNetworkView());
 		tasks.append(collapseAllTaskFactory.createTaskIterator());
 		
-		CreateAnnotationSetTask createTask = createTaskProvider.get();
-		createTask.setParameters(params);
+		CreateAnnotationSetTask createTask = createTaskFactory.create(params);
 		tasks.append(createTask);
 		
 		insertTasksAfterCurrentTask(tasks);

@@ -16,6 +16,8 @@ import org.baderlab.autoannotate.internal.ui.render.DrawClusterTask;
 import org.baderlab.autoannotate.internal.ui.render.EraseClusterTask;
 import org.baderlab.autoannotate.internal.ui.render.RemoveAllAnnotationsTask;
 import org.baderlab.autoannotate.internal.ui.render.SelectClusterTask;
+import org.baderlab.autoannotate.util.LogSilenceRule;
+import org.baderlab.autoannotate.util.SerialTestTaskManager;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
@@ -41,7 +43,7 @@ public class TestRenderer {
 	
 	@Rule public TestRule logSilenceRule = new LogSilenceRule();
 	
-	public static class TestModelPersistorModule extends JukitoModule {
+	public static class TestModule extends JukitoModule {
 		@Override
 		protected void configureTest() {
 			TypeLiteral<TaskManager<?,?>> taskManager = new TypeLiteral<TaskManager<?,?>>(){};

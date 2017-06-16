@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate;
+package org.baderlab.autoannotate.util;
 
 import static org.mockito.Mockito.mock;
 

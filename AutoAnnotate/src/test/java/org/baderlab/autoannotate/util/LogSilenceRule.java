@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate;
+package org.baderlab.autoannotate.util;
 
 import org.junit.rules.ExternalResource;
 import org.ops4j.pax.logging.internal.DefaultServiceLog;

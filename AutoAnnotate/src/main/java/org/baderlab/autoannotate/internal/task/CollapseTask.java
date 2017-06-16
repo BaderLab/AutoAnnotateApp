@@ -37,7 +37,6 @@ public class CollapseTask extends AbstractTask {
 	@Inject private CyGroupFactory groupFactory;
 	@Inject private CyGroupManager groupManager;
 	@Inject private VisualMappingManager visualMappingManager;
-	@Inject private SettingManager settingManager;
 	
 	private final Cluster cluster;
 	private final Grouping action;
@@ -48,7 +47,7 @@ public class CollapseTask extends AbstractTask {
 	}
 	
 	@Inject 
-	public CollapseTask(@Assisted Cluster cluster, @Assisted Grouping action) {
+	public CollapseTask(@Assisted Cluster cluster, @Assisted Grouping action, SettingManager settingManager) {
 		this.cluster = Objects.requireNonNull(cluster);
 		this.action = Objects.requireNonNull(action);
 		this.overrideAttribute = settingManager.getValue(Setting.OVERRIDE_GROUP_LABELS);

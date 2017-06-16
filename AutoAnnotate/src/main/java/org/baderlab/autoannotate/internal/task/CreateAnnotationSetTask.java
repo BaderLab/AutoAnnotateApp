@@ -4,10 +4,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
@@ -25,12 +28,14 @@ import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.AbstractTask;
-import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.TaskMonitor;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.name.Named;
 
 public class CreateAnnotationSetTask extends AbstractTask {
 
@@ -38,13 +43,18 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	@Inject private LayoutClustersTaskFactory.Factory layoutTaskFactoryFactory;
 	
-	@Inject private SynchronousTaskManager<?> syncTaskManager;
+	@Inject private @Named("sync") TaskManager<?,?> syncTaskManager;
 	@Inject private ModelManager modelManager;
 	
 	
-	private AnnotationSetTaskParamters params;
+	private final AnnotationSetTaskParamters params;
 	
-	public void setParameters(AnnotationSetTaskParamters params) {
+	public interface Factory {
+		CreateAnnotationSetTask create(AnnotationSetTaskParamters params);
+	}
+	
+	@Inject
+	public CreateAnnotationSetTask(@Assisted AnnotationSetTaskParamters params) {
 		this.params = params;
 	}
 	
@@ -72,6 +82,9 @@ public class CreateAnnotationSetTask extends AbstractTask {
 			return;
 		}
 
+		if(params.isCreateSingletonClusters()) {
+			addSingletonClusters(clusters);
+		}
 		if(params.isLayoutClusters()) {
 			layoutNodes(clusters, params.getNetworkView(), params.getClusterAlgorithm().getColumnName());
 		}
@@ -129,18 +142,20 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		builder.addCreationParam("Label Maker", labelMakerFactory.getName());
 		Object context = params.getLabelMakerContext();
 		LabelMakerUI labelUI = labelMakerFactory.createUI(context);
-		Map<String,String> labelParams = labelUI.getParametersForDisplay(context);
-		List<String> keys = labelParams.keySet().stream().sorted().collect(Collectors.toList());
-		for(String k : keys) {
-			builder.addCreationParam(k, labelParams.get(k));
+		if(labelUI != null) {
+			Map<String,String> labelParams = labelUI.getParametersForDisplay(context);
+			List<String> keys = labelParams.keySet().stream().sorted().collect(Collectors.toList());
+			for(String k : keys) {
+				builder.addCreationParam(k, labelParams.get(k));
+			}
+			builder.addCreationParam(CreationParameter.separator());
+			
+			// get wordcloud params from WordCloud UI
+			for(CreationParameter cp : labelMaker.getCreationParameters()) {
+				builder.addCreationParam(cp);
+			}
+			builder.addCreationParam(CreationParameter.separator());
 		}
-		builder.addCreationParam(CreationParameter.separator());
-		
-		// get wordcloud params from WordCloud UI
-		for(CreationParameter cp : labelMaker.getCreationParameters()) {
-			builder.addCreationParam(cp);
-		}
-		builder.addCreationParam(CreationParameter.separator());
 	}
 
 
@@ -229,6 +244,25 @@ public class CreateAnnotationSetTask extends AbstractTask {
 			}
 		}
 		return clusters;
+	}
+	
+	
+	private void addSingletonClusters(Map<String,Collection<CyNode>> clusters) {
+		Collection<CyNode> singletonNodes = getUnclusteredNodes(clusters);
+		Iterator<String> keyIter = Stream.iterate(1, x->x+1).map(String::valueOf).filter(x->!clusters.containsKey(x)).iterator();
+		
+		for(CyNode node : singletonNodes) {
+			clusters.put(keyIter.next(), Collections.singleton(node));
+		}
+	}
+	
+	private Collection<CyNode> getUnclusteredNodes(Map<String,Collection<CyNode>> clusters) {
+		CyNetwork network = params.getNetworkView().getModel();
+		Set<CyNode> nodes = new HashSet<>(network.getNodeList());
+		for(Collection<CyNode> cluster : clusters.values()) {
+			nodes.removeAll(cluster);
+		}
+		return nodes;
 	}
 
 }

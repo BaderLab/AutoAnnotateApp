@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -42,6 +43,7 @@ public class NormalModePanel extends JPanel implements TabPanel {
 	private JComboBox<ComboItem<String>> edgeWeightColumnCombo;
 	private JComboBox<ComboItem<String>> clusterIdColumnCombo;
 	private JRadioButton useClusterMakerRadio;
+	private JCheckBox singletonCheckBox;
 	
 	private final CyNetworkView networkView;
 	private final CreateAnnotationSetDialog parent;
@@ -117,6 +119,10 @@ public class NormalModePanel extends JPanel implements TabPanel {
 		
 		panel.add(clusterIdColumnCombo, GBCFactory.grid(1,4).weightx(1.0).get());
 		
+		singletonCheckBox = new JCheckBox("Create singleton clusters");
+		singletonCheckBox.setToolTipText("Nodes not included in a cluster will be annotated as a singleton cluster.");
+		panel.add(makeSmall(singletonCheckBox), GBCFactory.grid(0,5).insets(10,0,0,0).get());
+		
 		ButtonGroup group = new ButtonGroup();
 		group.add(useClusterMakerRadio);
 		group.add(columnRadio);
@@ -186,6 +192,7 @@ public class NormalModePanel extends JPanel implements TabPanel {
 			.setClusterDataColumn(clusterIdColumnCombo.getItemAt(clusterIdColumnCombo.getSelectedIndex()).getValue())
 			.setLabelMakerFactory(labelMakerFactory)
 			.setLabelMakerContext(labelMakerContext)
+			.setCreateSingletonClusters(singletonCheckBox.isSelected())
 			.setCreateGroups(false)
 			.build();
 		

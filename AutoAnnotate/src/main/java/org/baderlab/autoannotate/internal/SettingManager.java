@@ -8,7 +8,9 @@ import java.util.Properties;
 import org.cytoscape.property.CyProperty;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
+@Singleton
 public class SettingManager {
 	
 	@Inject private CyProperty<Properties> cyProperties;

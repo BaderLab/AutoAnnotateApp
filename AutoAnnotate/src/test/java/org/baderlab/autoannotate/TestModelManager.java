@@ -21,6 +21,7 @@ import org.baderlab.autoannotate.internal.model.ModelEvents.ClusterAdded;
 import org.baderlab.autoannotate.internal.model.ModelEvents.ClusterChanged;
 import org.baderlab.autoannotate.internal.model.ModelEvents.ClusterRemoved;
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged;
+import org.baderlab.autoannotate.util.EventBusTracker;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.cytoscape.application.CyApplicationManager;
