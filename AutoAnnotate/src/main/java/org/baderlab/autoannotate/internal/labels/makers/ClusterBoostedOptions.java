@@ -7,7 +7,7 @@ import org.cytoscape.work.Tunable;
 public class ClusterBoostedOptions {
 
 	
-	public static final int DEFAULT_MAX_WORDS = 4;
+	public static final int DEFAULT_MAX_WORDS = 3;
 	public static final int DEFAULT_CLUSTER_BONUS = 8;
 	
 	
