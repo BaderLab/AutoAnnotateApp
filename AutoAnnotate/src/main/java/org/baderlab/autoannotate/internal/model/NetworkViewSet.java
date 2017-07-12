@@ -184,5 +184,18 @@ public class NetworkViewSet {
 		}
 	}
 	
+	public String suggestName() {
+		String originalName = getActiveAnnotationSet().map(a->a.getName()).orElse("Annotation Set");
+		originalName = originalName.replaceFirst("\\s*\\d+$", "");
+		
+		Collection<AnnotationSet> sets = getAnnotationSets();
+		
+		String name[] = {originalName};
+		int suffix = 2;
+		while(sets.stream().anyMatch(a -> a.getName().equals(name[0]))) {
+			name[0] = originalName + " " + (suffix++);
+		}
+		return name[0];
+	}
 	
 }

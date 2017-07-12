@@ -29,7 +29,7 @@ public class ClusterExtractAction extends ClusterAction {
 		AnnotationSet currentAnnotationSet = clusters.iterator().next().getParent();
 		NetworkViewSet networkViewSet = currentAnnotationSet.getParent();
 		
-		String suggestedName = suggestName(networkViewSet);
+		String suggestedName = networkViewSet.suggestName();
 		
 		Object result = JOptionPane.showInputDialog(jFrameProvider.get(), "Annotation Set Name", "New Annotation Set", JOptionPane.PLAIN_MESSAGE, null, null, suggestedName);
 		if(result == null)
@@ -46,17 +46,5 @@ public class ClusterExtractAction extends ClusterAction {
 		networkViewSet.select(newAnnotationSet);
 	}
 	
-	private String suggestName(NetworkViewSet networkViewSet) {
-		String originalName = networkViewSet.getActiveAnnotationSet().map(a->a.getName()).orElse("Annotation Set");
-		originalName = originalName.replaceFirst("\\s*\\d+$", "");
-		
-		Collection<AnnotationSet> sets = networkViewSet.getAnnotationSets();
-		
-		String name[] = {originalName};
-		int suffix = 2;
-		while(sets.stream().anyMatch(a -> a.getName().equals(name[0]))) {
-			name[0] = originalName + " " + (suffix++);
-		}
-		return name[0];
-	}
+	
 }

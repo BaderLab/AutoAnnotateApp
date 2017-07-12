@@ -22,6 +22,7 @@ import org.baderlab.autoannotate.internal.ui.render.RemoveAllAnnotationsTask;
 import org.baderlab.autoannotate.internal.ui.render.SelectClusterTask;
 import org.baderlab.autoannotate.internal.ui.view.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.ManageAnnotationSetsDialog;
+import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTask;
 import org.baderlab.autoannotate.internal.ui.view.dialog.EasyModePanel;
 import org.baderlab.autoannotate.internal.ui.view.dialog.NormalModePanel;
 import org.cytoscape.property.AbstractConfigDirPropsReader;
@@ -75,6 +76,7 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(SelectClusterTask.Factory.class);
 		installFactory(RemoveAllAnnotationsTask.Factory.class);
 		installFactory(CreateAnnotationSetTask.Factory.class);
+		installFactory(CreateClusterTask.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {

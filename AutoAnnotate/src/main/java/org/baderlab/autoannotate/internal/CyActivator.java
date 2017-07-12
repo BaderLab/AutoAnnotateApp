@@ -1,10 +1,7 @@
 package org.baderlab.autoannotate.internal;
 
 import static org.baderlab.autoannotate.internal.util.TaskTools.taskFactory;
-import static org.cytoscape.work.ServiceProperties.APPS_MENU;
-import static org.cytoscape.work.ServiceProperties.IN_MENU_BAR;
-import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
-import static org.cytoscape.work.ServiceProperties.TITLE;
+import static org.cytoscape.work.ServiceProperties.*;
 
 import java.util.Arrays;
 import java.util.Properties;
@@ -71,8 +68,8 @@ public class CyActivator extends AbstractCyActivator {
 		CreateClusterTaskFactory createClusterTaskFactory = injector.getInstance(CreateClusterTaskFactory.class);
 		Properties createClusterProps = new Properties();
 		createClusterProps.setProperty(IN_MENU_BAR, "false");
-		createClusterProps.setProperty(PREFERRED_MENU, APPS_MENU + "." + BuildProperties.APP_NAME);
-		createClusterProps.setProperty(TITLE, "Create Cluster");
+		createClusterProps.setProperty(PREFERRED_MENU, APPS_MENU);
+		createClusterProps.setProperty(TITLE, "AutoAnnotate - Create Cluster");
 		registerAllServices(bc, createClusterTaskFactory, createClusterProps);
 		
 		// ModelTablePersistor listents to session save/load events

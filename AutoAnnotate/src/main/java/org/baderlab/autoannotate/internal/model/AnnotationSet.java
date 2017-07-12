@@ -11,6 +11,8 @@ import java.util.Set;
 import org.baderlab.autoannotate.internal.model.io.CreationParameter;
 import org.cytoscape.model.CyNode;
 
+import com.google.common.collect.ImmutableList;
+
 public class AnnotationSet {
 
 	private final NetworkViewSet parent;
@@ -109,7 +111,7 @@ public class AnnotationSet {
 	}
 
 	public void removeNodes(Collection<CyNode> nodes) {
-		for(Cluster cluster : clusters) {
+		for(Cluster cluster : ImmutableList.copyOf(clusters)) { // avoid ConcurrentModificationException
 			cluster.removeNodes(nodes);
 		}
 	}
