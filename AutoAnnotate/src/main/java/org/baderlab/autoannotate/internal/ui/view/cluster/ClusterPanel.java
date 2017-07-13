@@ -5,6 +5,7 @@ import static org.baderlab.autoannotate.internal.util.TaskTools.taskOf;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
@@ -45,7 +46,10 @@ import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
 import org.baderlab.autoannotate.internal.task.Grouping;
+import org.baderlab.autoannotate.internal.ui.view.action.RedrawAction;
+import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.baderlab.autoannotate.internal.util.ComboItem;
+import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.model.CyDisposable;
@@ -65,12 +69,14 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	
 	@Inject private ModelManager modelManager;
 	@Inject private DialogTaskManager dialogTaskManager;
-	@Inject private Provider<IconManager> iconManagerProvider;
+	@Inject private IconManager iconManager;
 	
 	@Inject private CollapseAllTaskFactory.Factory collapseTaskFactoryFactory;
 	@Inject private Provider<ClusterTableSelectionListener> selectionListenerProvider;
 	@Inject private Provider<AnnotationSetMenu> annotationSetMenuProvider;
 	@Inject private Provider<ClusterMenu> clusterMenuProvider;
+	@Inject private Provider<ShowCreateDialogAction> showActionProvider;
+	@Inject private Provider<RedrawAction> redrawActionProvider;
 	
 	private JComboBox<ComboItem<AnnotationSet>> annotationSetCombo;
 	private JTable clusterTable;
@@ -257,7 +263,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		clusterTable.setModel(clusterModel);
 		setColumnWidths(clusterTable, widths);
 		TableColumn collapsedColumn = clusterTable.getColumnModel().getColumn(ClusterTableModel.COLLAPSED_COLUMN_INDEX);
-		collapsedColumn.setCellRenderer(new ClusterTableCollapsedCellRenderer(iconManagerProvider.get()));
+		collapsedColumn.setCellRenderer(new ClusterTableCollapsedCellRenderer(iconManager));
 		
 		
 		// sort
@@ -300,13 +306,21 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 			}
 		});
 		
-		JButton actionButton = new JButton();
-		actionButton.setFont(iconManagerProvider.get().getIconFont(12));
-		actionButton.setText(IconManager.ICON_BARS);
-		actionButton.addActionListener(this::showAnnotationSetPopupMenu);
+		JButton addButton    = SwingUtil.createIconButton(iconManager, IconManager.ICON_PLUS, "Create Annotation Set");
+		JButton redrawButton = SwingUtil.createIconButton(iconManager, IconManager.ICON_REFRESH, "Redraw Annotations");
+		JButton menuButton   = SwingUtil.createIconButton(iconManager, IconManager.ICON_BARS, "Menu");
+		
+		addButton.addActionListener(showActionProvider.get());
+		redrawButton.addActionListener(redrawActionProvider.get());
+		menuButton.addActionListener(this::showAnnotationSetPopupMenu);
+		
+		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
+		buttonPanel.add(addButton);
+		buttonPanel.add(redrawButton);
+		buttonPanel.add(menuButton);
 		
 		panel.add(annotationSetCombo, BorderLayout.CENTER);
-		panel.add(actionButton, BorderLayout.EAST);
+		panel.add(buttonPanel, BorderLayout.EAST);
 		return panel;
 	}
 	
@@ -335,7 +349,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		clusterTable.getSelectionModel().addListSelectionListener(clusterSelectionListener);
 		clusterTable.setAutoCreateRowSorter(true);
 		TableColumn collapsedColumn = clusterTable.getColumnModel().getColumn(ClusterTableModel.COLLAPSED_COLUMN_INDEX);
-		collapsedColumn.setCellRenderer(new ClusterTableCollapsedCellRenderer(iconManagerProvider.get()));
+		collapsedColumn.setCellRenderer(new ClusterTableCollapsedCellRenderer(iconManager));
 		
 		clusterTable.addMouseListener(new MouseAdapter() {
 			@Override public void mousePressed(MouseEvent e) { showPopup(e); }

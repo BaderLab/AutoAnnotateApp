@@ -3,11 +3,13 @@ package org.baderlab.autoannotate.internal.util;
 import java.awt.Component;
 
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JSpinner;
 import javax.swing.JSpinner.NumberEditor;
 
+import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.LookAndFeelUtil;
 
 public final class SwingUtil {
@@ -29,6 +31,7 @@ public final class SwingUtil {
 		return component;
 	}
 
+	@SuppressWarnings("serial")
 	public static void makeSmall(final JComponent... components) {
 		if (components == null || components.length == 0)
 			return;
@@ -62,6 +65,18 @@ public final class SwingUtil {
 				}
 			}
 		}
+	}
+	
+	
+	public static JButton createIconButton(IconManager iconManager, String icon, String toolTip) {
+		JButton button = new JButton(icon);
+		button.setFont(iconManager.getIconFont(13.0f));
+		button.setToolTipText(toolTip);
+		if(LookAndFeelUtil.isAquaLAF()) {
+			button.putClientProperty("JButton.buttonType", "gradient");
+			button.putClientProperty("JComponent.sizeVariant", "small");
+		}
+		return button;
 	}
 	
 }
