@@ -38,7 +38,8 @@ public class EasyModePanel extends JPanel implements TabPanel {
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	
 	private JComboBox<String> labelCombo;
-	private JCheckBox checkBox;
+	private JCheckBox layoutCheckBox;
+	private JCheckBox nodesCheckBox;
 	
 	public static interface Factory {
 		EasyModePanel create(CreateAnnotationSetDialog parent);
@@ -85,16 +86,20 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		makeSmall(maxLabel, spinner, filler);
 		
 		JLabel checkLabel = new JLabel(" Layout network to prevent cluster overlap: ");
-		checkBox = new JCheckBox();
-		makeSmall(checkLabel, checkBox);
+		layoutCheckBox = new JCheckBox();
+		JLabel nodesLabel = new JLabel(" Annotate selected nodes only: ");
+		nodesCheckBox = new JCheckBox();
+		makeSmall(checkLabel, layoutCheckBox, nodesLabel, nodesCheckBox);
 		
-		panel.add(colLabel,   GBCFactory.grid(0,0).anchor(EAST).fill(NONE).get());
-		panel.add(labelCombo, GBCFactory.grid(1,0).gridwidth(2).get());
-		panel.add(maxLabel,   GBCFactory.grid(0,1).anchor(EAST).fill(NONE).get());
-		panel.add(spinner,    GBCFactory.grid(1,1).get());
-		panel.add(filler,     GBCFactory.grid(2,1).weightx(1).get());
-		panel.add(checkLabel, GBCFactory.grid(0,2).get());
-		panel.add(checkBox,   GBCFactory.grid(1,2).gridwidth(2).get());
+		panel.add(colLabel,       GBCFactory.grid(0,0).anchor(EAST).fill(NONE).get());
+		panel.add(labelCombo,     GBCFactory.grid(1,0).gridwidth(2).get());
+		panel.add(maxLabel,       GBCFactory.grid(0,1).anchor(EAST).fill(NONE).get());
+		panel.add(spinner,        GBCFactory.grid(1,1).get());
+		panel.add(filler,         GBCFactory.grid(2,1).weightx(1).get());
+		panel.add(checkLabel,     GBCFactory.grid(0,2).anchor(EAST).fill(NONE).get());
+		panel.add(layoutCheckBox, GBCFactory.grid(1,2).gridwidth(2).get());
+		panel.add(nodesLabel,     GBCFactory.grid(0,3).anchor(EAST).fill(NONE).get());
+		panel.add(nodesCheckBox,  GBCFactory.grid(1,3).gridwidth(2).get());
 		
 		setLayout(new BorderLayout());
 		add(panel, BorderLayout.NORTH);
@@ -124,7 +129,8 @@ public class EasyModePanel extends JPanel implements TabPanel {
 			.setLabelMakerFactory(labelMakerFactory)
 			.setLabelMakerContext(labelMakerContext)
 			.setCreateGroups(false)
-			.setLayoutClusters(checkBox.isSelected())
+			.setLayoutClusters(layoutCheckBox.isSelected())
+			.setSelectedNodesOnly(nodesCheckBox.isSelected())
 			.build();
 		
 		return params;

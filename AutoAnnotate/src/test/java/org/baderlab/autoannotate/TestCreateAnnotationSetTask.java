@@ -1,10 +1,8 @@
 package org.baderlab.autoannotate;
 
+import static org.baderlab.autoannotate.NetworkTestUtils.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -12,36 +10,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelManager;
-import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.util.LogSilenceRule;
-import org.baderlab.autoannotate.util.SerialTestTaskManager;
-import org.baderlab.autoannotate.util.SimpleLabelMakerFactory;
 import org.cytoscape.model.CyNetwork;
-import org.cytoscape.model.CyNetworkFactory;
-import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
-import org.cytoscape.model.CyRow;
-import org.cytoscape.model.NetworkTestSupport;
 import org.cytoscape.view.model.CyNetworkView;
-import org.cytoscape.work.TaskIterator;
-import org.cytoscape.work.TaskManager;
-import org.jukito.JukitoModule;
 import org.jukito.JukitoRunner;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
-
-import com.google.inject.TypeLiteral;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.name.Names;
 
 @RunWith(JukitoRunner.class)
 public class TestCreateAnnotationSetTask {
@@ -52,29 +35,12 @@ public class TestCreateAnnotationSetTask {
 	private CyNetworkView networkView;
 	private Map<String, CyNode> nodes;
 	
-	public static class TestModule extends JukitoModule {
-		@Override
-		protected void configureTest() {
-			TypeLiteral<TaskManager<?,?>> taskManager = new TypeLiteral<TaskManager<?,?>>(){};
-			bind(taskManager).annotatedWith(Names.named("sync")).to(SerialTestTaskManager.class);
-			install(new FactoryModuleBuilder().build(CreateAnnotationSetTask.Factory.class));
-			bind(LabelMakerManager.class).toInstance(mock(LabelMakerManager.class));
-		}
-	}
-	
+	public static class TestModule extends NetworkTestUtils.TestModule { }
 	
 	@Before
 	public void setUp() {
-		NetworkTestSupport networkTestSupport = new NetworkTestSupport();
-		CyNetworkFactory networkFactory = networkTestSupport.getNetworkFactory();
-		CyNetworkManager networkManager = networkTestSupport.getNetworkManager();
-		
-		networkView = mock(CyNetworkView.class);
-		network = networkFactory.createNetwork();
-		networkManager.addNetwork(network);
-		when(networkView.getModel()).thenReturn(network);
-		
-		network.getDefaultNodeTable().createColumn("my_cluster", String.class, false);
+		networkView = createEmptyNetwork();
+		network = networkView.getModel();
 		
 		nodes = new HashMap<>();
 		nodes.put("n1", createNode(network, "n1", "cluster_1"));
@@ -92,29 +58,6 @@ public class TestCreateAnnotationSetTask {
 	}
 	
 	
-	private static CyNode createNode(CyNetwork network, String name, String cluster) {
-		CyNode node = network.addNode();
-		CyRow row = network.getRow(node);
-		row.set(CyNetwork.NAME, name);
-		row.set("my_cluster", cluster);
-		return node;
-	}
-	
-	
-	private AnnotationSetTaskParamters createParams(boolean createSingletonClusters) {
-		return new AnnotationSetTaskParamters.Builder(networkView)
-			.setLabelColumn(CyNetwork.NAME)
-			.setLabelMakerFactory(new SimpleLabelMakerFactory())
-			.setLabelMakerContext(null)
-			.setUseClusterMaker(false)
-			.setClusterAlgorithm(null)
-			.setClusterMakerEdgeAttribute(null)
-			.setClusterDataColumn("my_cluster")
-			.setCreateSingletonClusters(createSingletonClusters)
-			.setCreateGroups(false)
-			.build();
-	}
-	
 	@Test
 	public void testCreateAnnotationSet(CreateAnnotationSetTask.Factory taskFactory, ModelManager modelManager) {
 		test(false, taskFactory, modelManager);
@@ -126,14 +69,9 @@ public class TestCreateAnnotationSetTask {
 	}
 	
 	private void test(boolean createSingletonClusters, CreateAnnotationSetTask.Factory taskFactory, ModelManager modelManager) {
-		AnnotationSetTaskParamters params = createParams(createSingletonClusters);
+		AnnotationSetTaskParamters params = createParams(networkView, createSingletonClusters, false);
+		AnnotationSet as = createAnnotationSet(params, taskFactory, modelManager);
 
-		CreateAnnotationSetTask task = taskFactory.create(params);
-		SerialTestTaskManager taskManager = new SerialTestTaskManager();
-		taskManager.execute(new TaskIterator(task));
-
-		AnnotationSet as = modelManager.getExistingNetworkViewSet(networkView).flatMap(NetworkViewSet::getActiveAnnotationSet).get();
-		assertNotNull(as);
 		if(createSingletonClusters)
 			assertEquals(6, as.getClusterCount());
 		else

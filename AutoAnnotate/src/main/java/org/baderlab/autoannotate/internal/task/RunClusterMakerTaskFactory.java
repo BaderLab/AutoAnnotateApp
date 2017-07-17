@@ -20,7 +20,7 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 	@Inject private CommandExecutorTaskFactory commandTaskFactory;
 	
 	private final AnnotationSetTaskParamters params;
-	private final Double cutoff;
+	private final @Nullable Double cutoff;
 	
 	public static interface Factory {
 		RunClusterMakerTaskFactory create(AnnotationSetTaskParamters params, @Nullable Double cutoff);
@@ -39,26 +39,29 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 	}
 	
 	
-	/*
-	 * MKTODO if the command gets any more complex then create a ClusterMakerCommandBuilder
-	 */
 	public String getClusterCommand() {
 		ClusterAlgorithm alg = params.getClusterAlgorithm();
 		String columnName = getColumnName();
-		
 		String command = alg.getCommandName();
 		Long suid = params.getNetworkView().getModel().getSUID();
 		
-		if(alg.isEdgeAttributeRequired() && cutoff != null) {
-			return String.format("cluster %s network=\"SUID:%d\" clusterAttribute=\"%s\" attribute=\"%s\" edgeCutOff=\"%s\"", command, suid, columnName, params.getClusterMakerEdgeAttribute(), cutoff);
-		}
-		else if(alg.isEdgeAttributeRequired()) {
-			return String.format("cluster %s network=\"SUID:%d\" clusterAttribute=\"%s\" attribute=\"%s\"", command, suid, columnName, params.getClusterMakerEdgeAttribute());
-		}
-		else {
-			return String.format("cluster %s network=\"SUID:%d\" clusterAttribute=\"%s\"", command, suid, columnName);
-		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("cluster ").append(command).append(' ');
+		sb.append("network=\"SUID:").append(suid).append("\" ");
+		sb.append("clusterAttribute=\"").append(columnName).append("\" ");
+
+		if(alg.isEdgeAttributeRequired())
+			sb.append("attribute=\"").append(params.getClusterMakerEdgeAttribute()).append("\" ");
+		if(cutoff != null)
+			sb.append("edgeCutOff=\"").append(cutoff).append("\" ");
+		if(params.isSelectedNodesOnly())
+			sb.append("selectedOnly=true ");
+		
+		String clusterCommand = sb.toString();
+		System.out.println(clusterCommand);
+		return clusterCommand;
 	}
+	
 	
 	private String getColumnName() {
 		CyTable table = params.getNetworkView().getModel().getDefaultNodeTable();

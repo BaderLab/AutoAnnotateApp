@@ -17,6 +17,7 @@ public class AnnotationSetTaskParamters {
 	private final LabelMakerFactory<?> labelMakerFactory;
 	private final Object labelMakerContext;
 	private final boolean createSingletonClusters;
+	private final boolean selectedNodesOnly;
 	
 	private AnnotationSetTaskParamters(Builder builder) {
 		this.networkView = builder.networkView;
@@ -30,6 +31,7 @@ public class AnnotationSetTaskParamters {
 		this.labelMakerFactory = builder.labelMakerFactory;
 		this.labelMakerContext = builder.labelMakerContext;
 		this.createSingletonClusters = builder.createSingletonClusters;
+		this.selectedNodesOnly = builder.selectedNodesOnly;
 	}
 	
 	public static class Builder {
@@ -43,7 +45,8 @@ public class AnnotationSetTaskParamters {
 		private boolean createGroups = false;
 		private LabelMakerFactory<?> labelMakerFactory;
 		private Object labelMakerContext;
-		private  boolean createSingletonClusters = false;
+		private boolean createSingletonClusters = false;
+		private boolean selectedNodesOnly;
 		
 		public Builder(CyNetworkView networkView) {
 			this.networkView = networkView;
@@ -87,6 +90,10 @@ public class AnnotationSetTaskParamters {
 		}
 		public Builder setCreateSingletonClusters(boolean createSingletonClusters) {
 			this.createSingletonClusters = createSingletonClusters;
+			return this;
+		}
+		public Builder setSelectedNodesOnly(boolean selectedNodesOnly) {
+			this.selectedNodesOnly = selectedNodesOnly;
 			return this;
 		}
 		
@@ -139,6 +146,10 @@ public class AnnotationSetTaskParamters {
 	public boolean isCreateSingletonClusters() {
 		return createSingletonClusters;
 	}
+	
+	public boolean isSelectedNodesOnly() {
+		return selectedNodesOnly;
+	}
 
 	@Override
 	public String toString() {
@@ -147,7 +158,9 @@ public class AnnotationSetTaskParamters {
 				+ ", clusterMakerEdgeAttribute=" + clusterMakerEdgeAttribute + ", clusterDataColumn="
 				+ clusterDataColumn + ", layoutClusters=" + layoutClusters + ", createGroups=" + createGroups
 				+ ", labelMakerFactory=" + labelMakerFactory + ", labelMakerContext=" + labelMakerContext
-				+ ", createSingletonClusters=" + createSingletonClusters + "]";
+				+ ", createSingletonClusters=" + createSingletonClusters + ", selectedNodesOnly=" + selectedNodesOnly
+				+ "]";
 	}
+
 	
 }

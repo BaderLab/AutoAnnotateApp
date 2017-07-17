@@ -26,6 +26,7 @@ import org.baderlab.autoannotate.internal.model.io.CreationParameter;
 import org.baderlab.autoannotate.internal.util.ResultObserver;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.model.CyRow;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskIterator;
@@ -61,6 +62,8 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
+		System.out.println(params);
+		
 		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Generating Clusters");
 		
@@ -222,11 +225,20 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		}
 		
 		for(CyNode node : network.getNodeList()) {
+			CyRow row = network.getRow(node);
+			
+			if(params.isSelectedNodesOnly()) {
+				Boolean selected = row.get(CyNetwork.SELECTED, Boolean.class);
+				if(Boolean.FALSE.equals(selected)) {
+					continue;
+				}
+			}
+			
 			List<?> list;
 			if(isList)
-				list = network.getRow(node).getList(attribute, type);
+				list = row.getList(attribute, type);
 			else
-				list = Collections.singletonList(network.getRow(node).get(attribute, type));
+				list = Collections.singletonList(row.get(attribute, type));
 
 			for(Object o : list) {
 				if(o == null)
@@ -251,10 +263,24 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		Collection<CyNode> singletonNodes = getUnclusteredNodes(clusters);
 		Iterator<String> keyIter = Stream.iterate(1, x->x+1).map(String::valueOf).filter(x->!clusters.containsKey(x)).iterator();
 		
-		for(CyNode node : singletonNodes) {
-			clusters.put(keyIter.next(), Collections.singleton(node));
+		if(params.isSelectedNodesOnly()) {
+			CyNetwork network = params.getNetworkView().getModel();
+			for(CyNode node : singletonNodes) {
+				CyRow row = network.getRow(node);
+				if(row != null) {
+					Boolean selected = row.get(CyNetwork.SELECTED, Boolean.class);
+					if(Boolean.TRUE.equals(selected)) {
+						clusters.put(keyIter.next(), Collections.singleton(node));
+					}
+				}
+			}
+		} else {
+			for(CyNode node : singletonNodes) {
+				clusters.put(keyIter.next(), Collections.singleton(node));
+			}
 		}
 	}
+	
 	
 	private Collection<CyNode> getUnclusteredNodes(Map<String,Collection<CyNode>> clusters) {
 		CyNetwork network = params.getNetworkView().getModel();
