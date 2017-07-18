@@ -2,6 +2,7 @@ package org.baderlab.autoannotate.internal.task;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -84,6 +85,9 @@ public class CreateAnnotationSetTask extends AbstractTask {
 
 		if(params.isCreateSingletonClusters()) {
 			addSingletonClusters(clusters);
+		}
+		if(params.getMaxClusters().isPresent()) {
+			limitClusters(clusters, params.getMaxClusters().get());
 		}
 		if(params.isLayoutClusters()) {
 			layoutNodes(clusters, params.getNetworkView(), params.getClusterAlgorithm().getColumnName());
@@ -254,6 +258,18 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		for(CyNode node : singletonNodes) {
 			clusters.put(keyIter.next(), Collections.singleton(node));
 		}
+	}
+	
+	private void limitClusters(Map<String,Collection<CyNode>> clusters, int maxClusters) {
+		List<String> keysToKeep = 
+			clusters.entrySet()
+			.stream()
+			.sorted(Collections.reverseOrder(Map.Entry.comparingByValue(Comparator.comparingInt(Collection::size))))
+			.limit(maxClusters)
+			.map(Map.Entry::getKey)
+			.collect(Collectors.toList());
+		
+		clusters.keySet().retainAll(keysToKeep);
 	}
 	
 	private Collection<CyNode> getUnclusteredNodes(Map<String,Collection<CyNode>> clusters) {

@@ -1,5 +1,7 @@
 package org.baderlab.autoannotate.internal.task;
 
+import java.util.Optional;
+
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.cytoscape.view.model.CyNetworkView;
@@ -17,6 +19,7 @@ public class AnnotationSetTaskParamters {
 	private final LabelMakerFactory<?> labelMakerFactory;
 	private final Object labelMakerContext;
 	private final boolean createSingletonClusters;
+	private final Optional<Integer> maxClusters;
 	
 	private AnnotationSetTaskParamters(Builder builder) {
 		this.networkView = builder.networkView;
@@ -30,6 +33,7 @@ public class AnnotationSetTaskParamters {
 		this.labelMakerFactory = builder.labelMakerFactory;
 		this.labelMakerContext = builder.labelMakerContext;
 		this.createSingletonClusters = builder.createSingletonClusters;
+		this.maxClusters = builder.maxClusters;
 	}
 	
 	public static class Builder {
@@ -43,7 +47,8 @@ public class AnnotationSetTaskParamters {
 		private boolean createGroups = false;
 		private LabelMakerFactory<?> labelMakerFactory;
 		private Object labelMakerContext;
-		private  boolean createSingletonClusters = false;
+		private boolean createSingletonClusters = false;
+		private Optional<Integer> maxClusters = Optional.empty();
 		
 		public Builder(CyNetworkView networkView) {
 			this.networkView = networkView;
@@ -87,6 +92,10 @@ public class AnnotationSetTaskParamters {
 		}
 		public Builder setCreateSingletonClusters(boolean createSingletonClusters) {
 			this.createSingletonClusters = createSingletonClusters;
+			return this;
+		}
+		public Builder setMaxClusters(int maxClusters) {
+			this.maxClusters = Optional.of(maxClusters);
 			return this;
 		}
 		
@@ -140,6 +149,10 @@ public class AnnotationSetTaskParamters {
 		return createSingletonClusters;
 	}
 
+	public Optional<Integer> getMaxClusters() {
+		return maxClusters;
+	}
+	
 	@Override
 	public String toString() {
 		return "AnnotationSetTaskParamters [networkView=" + networkView + ", labelColumn=" + labelColumn

@@ -39,6 +39,7 @@ public class EasyModePanel extends JPanel implements TabPanel {
 	
 	private JComboBox<String> labelCombo;
 	private JCheckBox checkBox;
+	private JSpinner spinner;
 	
 	public static interface Factory {
 		EasyModePanel create(CreateAnnotationSetDialog parent);
@@ -80,7 +81,7 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		
 		JLabel maxLabel = new JLabel(" Maximum number of clusters: ");
 		SpinnerModel spinnerModel = new SpinnerNumberModel(10, 1, 100, 1);
-		JSpinner spinner = new JSpinner(spinnerModel);
+		spinner = new JSpinner(spinnerModel);
 		JLabel filler = new JLabel("");
 		makeSmall(maxLabel, spinner, filler);
 		
@@ -125,6 +126,7 @@ public class EasyModePanel extends JPanel implements TabPanel {
 			.setLabelMakerContext(labelMakerContext)
 			.setCreateGroups(false)
 			.setLayoutClusters(checkBox.isSelected())
+			.setMaxClusters(((SpinnerNumberModel)spinner.getModel()).getNumber().intValue())
 			.build();
 		
 		return params;
