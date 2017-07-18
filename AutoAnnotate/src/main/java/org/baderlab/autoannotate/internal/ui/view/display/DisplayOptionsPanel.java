@@ -1,6 +1,8 @@
 package org.baderlab.autoannotate.internal.ui.view.display;
 
 import static java.awt.GridBagConstraints.NONE;
+import static javax.swing.GroupLayout.DEFAULT_SIZE;
+import static javax.swing.GroupLayout.PREFERRED_SIZE;
 import static org.baderlab.autoannotate.internal.model.DisplayOptions.*;
 import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
 
@@ -15,12 +17,14 @@ import java.util.Optional;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.GroupLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeListener;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
@@ -51,6 +55,9 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	
 	private volatile DisplayOptions displayOptions;
 	private EventBus eventBus;
+	
+	private JPanel shapePanel;
+	private JPanel labelPanel;
 	
 	// Shape controls
 	private SliderWithLabel borderWidthSlider;
@@ -84,6 +91,9 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private ActionListener hideLabelsListener;
 	private PropertyChangeListener fontColorListener;
 	
+
+	private static final String CARD_NULL = "card_null";
+	private static final String CARD_AS = "card_as";
 	
 	@Inject
 	public void registerForEvents(EventBus eventBus) {
@@ -111,11 +121,17 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 
 	
 	public void setAnnotationSet(Optional<AnnotationSet> annotationSet) {
-		SwingUtil.recursiveEnable(this, annotationSet.isPresent());
+		CardLayout cardLayout = (CardLayout) getLayout();
+		cardLayout.show(this, annotationSet.isPresent() ? CARD_AS : CARD_NULL);
 		
 		if(annotationSet.isPresent()) {
 			AnnotationSet as = annotationSet.get();
 			displayOptions = as.getDisplayOptions();
+
+			SwingUtil.recursiveEnable(shapePanel, displayOptions.isShowClusters());
+			hideClustersCheckBox.setEnabled(true);
+			SwingUtil.recursiveEnable(labelPanel, displayOptions.isShowLabels());
+			hideLabelsCheckBox.setEnabled(true);
 			
 			borderWidthSlider.getSlider().removeChangeListener(borderWidthListener);
 			opacitySlider.getSlider().removeChangeListener(opacityListener);
@@ -141,8 +157,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			borderColorButton.setColor(displayOptions.getBorderColor());
 			fontColorButton.setColor(displayOptions.getFontColor());
 			
-			CardLayout cardLayout = (CardLayout) fontPanel.getLayout();
-			cardLayout.show(fontPanel, displayOptions.isUseConstantFontSize() ? fontSizeSlider.getLabel() : fontScaleSlider.getLabel());
+			CardLayout fontCardLayout = (CardLayout) fontPanel.getLayout();
+			fontCardLayout.show(fontPanel, displayOptions.isUseConstantFontSize() ? fontSizeSlider.getLabel() : fontScaleSlider.getLabel());
 			
 			borderWidthSlider.getSlider().addChangeListener(borderWidthListener);
 			opacitySlider.getSlider().addChangeListener(opacityListener);
@@ -155,19 +171,28 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			fillColorButton.addPropertyChangeListener("color", fillColorListener);
 			borderColorButton.addPropertyChangeListener("color", borderColorListener);
 			fontColorButton.addPropertyChangeListener("color", fontColorListener);
-		}
+		} 
 	}
 	
 	
 	@AfterInjection
 	private void createContents() {
-		setLayout(new BorderLayout());
+		JPanel nullViewPanel = new NullViewPanel();
+		JPanel annotationSetPanel = createAnnotationSetPanel();
 		
+		setLayout(new CardLayout());
+		
+		add(nullViewPanel, CARD_NULL);
+		add(annotationSetPanel, CARD_AS);
+	}
+	
+	
+	private JPanel createAnnotationSetPanel() {
 		JPanel panel = new JPanel(new GridBagLayout());
 		panel.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 		
-		JPanel shapePanel = createShapePanel();
-		JPanel labelPanel = createLabelPanel();
+		shapePanel = createShapePanel();
+		labelPanel = createLabelPanel();
 		
 		shapePanel.setBorder(LookAndFeelUtil.createTitledBorder("Shape"));
 		labelPanel.setBorder(LookAndFeelUtil.createTitledBorder("Label"));
@@ -175,11 +200,14 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		panel.add(shapePanel, GBCFactory.grid(0,0).weightx(1.0).get());
 		panel.add(labelPanel, GBCFactory.grid(0,1).get());
 		
-		add(panel, BorderLayout.NORTH);
+		JPanel parent = new JPanel(new BorderLayout());
+		parent.add(panel, BorderLayout.NORTH);
+		return parent;
 	}
 	
-	
 	private JPanel createShapePanel() {
+		JPanel panel = new JPanel();
+		
 		borderWidthSlider = new SliderWithLabel("Border Width", false, WIDTH_MIN, WIDTH_MAX, WIDTH_DEFAULT);
 		borderWidthSlider.getSlider().addChangeListener(borderWidthListener = e -> displayOptions.setBorderWidth(borderWidthSlider.getValue()));
 		borderWidthSlider.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
@@ -188,8 +216,12 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		opacitySlider.getSlider().addChangeListener(opacityListener = e -> displayOptions.setOpacity(opacitySlider.getValue()));
 		
 		hideClustersCheckBox = new JCheckBox("Hide Shapes");
-		hideClustersCheckBox.addActionListener(
-				hideClustersListener = e -> displayOptions.setShowClusters(!hideClustersCheckBox.isSelected()));
+		hideClustersCheckBox.addActionListener(hideClustersListener = e -> {
+			boolean show = !hideClustersCheckBox.isSelected();
+			displayOptions.setShowClusters(show);
+			SwingUtil.recursiveEnable(panel, show);
+			hideClustersCheckBox.setEnabled(true);
+		});
 		
 		JLabel shapeLabel = new JLabel("Shape:");
 		
@@ -213,7 +245,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		borderColorButton.addPropertyChangeListener("color", borderColorListener = e -> displayOptions.setBorderColor(borderColorButton.getColor()));
 		
 		
-		JPanel panel = new JPanel(new GridBagLayout());
+		panel.setLayout(new GridBagLayout());
 		panel.add(borderWidthSlider, GBCFactory.grid(0,0).gridwidth(3).weightx(1.0).get());
 		panel.add(opacitySlider, GBCFactory.grid(0,1).gridwidth(3).weightx(1.0).get());
 		panel.add(makeSmall(shapeLabel), GBCFactory.grid(0,2).get());
@@ -230,6 +262,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	
 	
 	private JPanel createLabelPanel() {
+		JPanel panel = new JPanel();
+		
 		CardLayout cardLayout = new CardLayout();
 		fontPanel = new JPanel(cardLayout);
 		fontPanel.setOpaque(false);
@@ -257,10 +291,15 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		fontColorButton.addPropertyChangeListener("color", fontColorListener = e -> displayOptions.setFontColor(fontColorButton.getColor()));
 		
 		hideLabelsCheckBox = new JCheckBox("Hide Labels");
-		hideLabelsCheckBox.addActionListener(
-				hideLabelsListener = e -> displayOptions.setShowLabels(!hideLabelsCheckBox.isSelected()));
+		hideLabelsCheckBox.addActionListener(e -> {
+			boolean show = !hideLabelsCheckBox.isSelected();
+			displayOptions.setShowLabels(show);
+			SwingUtil.recursiveEnable(panel, show);
+			hideLabelsCheckBox.setEnabled(true);
+		});
 		
-		JPanel panel = new JPanel(new GridBagLayout());
+		
+		panel.setLayout(new GridBagLayout());
 		panel.add(fontPanel, GBCFactory.grid(0,0).gridwidth(2).get());
 		panel.add(makeSmall(fontByClusterCheckbox), GBCFactory.grid(0,1).weightx(1.0).fill(NONE).gridwidth(2).get());
 		panel.add(makeSmall(fontColorLabel), GBCFactory.grid(0,2).get());
@@ -290,4 +329,33 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		URL url = CyActivator.class.getResource("auto_annotate_logo_16by16_v5.png");
 		return url == null ? null : new ImageIcon(url);
 	}
+	
+	
+	private class NullViewPanel extends JPanel {
+		
+		public NullViewPanel() {
+			JLabel infoLabel = new JLabel("No Annotation Set selected");
+			infoLabel.setEnabled(false);
+			infoLabel.setForeground(UIManager.getColor("Label.disabledForeground"));
+			
+			final GroupLayout layout = new GroupLayout(this);
+			this.setLayout(layout);
+			layout.setAutoCreateContainerGaps(true);
+			layout.setAutoCreateGaps(true);
+			
+			layout.setHorizontalGroup(layout.createSequentialGroup()
+					.addGap(0, 0, Short.MAX_VALUE)
+					.addComponent(infoLabel, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
+					.addGap(0, 0, Short.MAX_VALUE)
+			);
+			layout.setVerticalGroup(layout.createSequentialGroup()
+					.addGap(0, 0, Short.MAX_VALUE)
+					.addComponent(infoLabel)
+					.addGap(0, 0, Short.MAX_VALUE)
+			);
+			
+			setOpaque(false);
+		}
+	}
+	
 }
