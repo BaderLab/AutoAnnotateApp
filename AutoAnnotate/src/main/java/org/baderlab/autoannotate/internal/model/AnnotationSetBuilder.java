@@ -42,6 +42,7 @@ public class AnnotationSetBuilder {
 	private int borderWidth = DisplayOptions.WIDTH_DEFAULT;
 	private Color fillColor = DisplayOptions.FILL_COLOR_DEFAULT;
 	private Color borderColor = DisplayOptions.BORDER_COLOR_DEFAULT;
+	private Color fontColor = DisplayOptions.FONT_COLOR_DEFAULT;
 	
 	private Optional<Consumer<AnnotationSet>> asCallback = Optional.empty();
 	
@@ -158,6 +159,14 @@ public class AnnotationSetBuilder {
 
 	public void setBorderColor(Color borderColor) {
 		this.borderColor = borderColor;
+	}
+	
+	public Color getFontColor() {
+		return fontColor;
+	}
+
+	public void setFontColor(Color fontColor) {
+		this.fontColor = fontColor;
 	}
 
 	public void addCluster(Collection<CyNode> nodes, String label, boolean collapsed) {

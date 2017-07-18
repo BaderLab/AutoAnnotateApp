@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
@@ -146,17 +147,19 @@ public class AnnotationRenderer {
 		case FONT_SIZE:
 		case SHOW_LABELS:
 		case USE_CONSTANT_FONT_SIZE:
-			for(Cluster cluster : as.getClusters()) {
-				TextAnnotation text = textAnnotations.get(cluster);
-				if(text != null) {
-					LabelArgs labelArgs = DrawClusterTask.computeLabelArgs(this, cluster);
-					double fontSize = options.isShowLabels() ? labelArgs.fontSize : 0;
-					text.setFontSize(fontSize);
-					text.setSpecificZoom(labelArgs.zoom);
-					text.moveAnnotation(new Point2D.Double(labelArgs.x, labelArgs.y));
-					text.update();
-				}
-			}
+			forEachLabel(as, (text,cluster) -> {
+				LabelArgs labelArgs = DrawClusterTask.computeLabelArgs(this, cluster);
+				double fontSize = options.isShowLabels() ? labelArgs.fontSize : 0;
+				text.setFontSize(fontSize);
+				text.setSpecificZoom(labelArgs.zoom);
+				text.moveAnnotation(new Point2D.Double(labelArgs.x, labelArgs.y));
+				text.update();
+			});
+			break;
+		case FONT_COLOR:
+			forEachLabel(as, (text,c) -> text.setTextColor(options.getFontColor()));
+			break;
+		default:
 			break;
 		}
 		
@@ -173,6 +176,16 @@ public class AnnotationRenderer {
 			if(shape != null) {
 				consumer.accept(shape);
 				shape.update();
+			}
+		}
+	}
+	
+	private void forEachLabel(AnnotationSet as, BiConsumer<TextAnnotation,Cluster> consumer) {
+		for(Cluster cluster : as.getClusters()) {
+			TextAnnotation text = textAnnotations.get(cluster);
+			if(text != null) {
+				consumer.accept(text, cluster);
+				text.update();
 			}
 		}
 	}

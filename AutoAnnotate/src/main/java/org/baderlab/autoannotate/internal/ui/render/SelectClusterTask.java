@@ -59,7 +59,7 @@ public class SelectClusterTask extends AbstractTask {
 			if(select) {
 				text.setTextColor(Color.YELLOW);
 			} else {
-				text.setTextColor(DrawClusterTask.DEFAULT_TEXT_COLOR);
+				text.setTextColor(displayOptions.getFontColor());
 			}
 			text.update();
 		}

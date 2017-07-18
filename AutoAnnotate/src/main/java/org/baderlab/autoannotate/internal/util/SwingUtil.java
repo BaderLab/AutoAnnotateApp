@@ -1,6 +1,7 @@
 package org.baderlab.autoannotate.internal.util;
 
 import java.awt.Component;
+import java.awt.Container;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
@@ -8,6 +9,7 @@ import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JSpinner;
 import javax.swing.JSpinner.NumberEditor;
+import javax.swing.JToggleButton;
 
 import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.LookAndFeelUtil;
@@ -70,7 +72,7 @@ public final class SwingUtil {
 	
 	public static JButton createIconButton(IconManager iconManager, String icon, String toolTip) {
 		JButton button = new JButton(icon);
-		button.setFont(iconManager.getIconFont(13.0f));
+		button.setFont(iconManager.getIconFont(14.0f));
 		button.setToolTipText(toolTip);
 		if(LookAndFeelUtil.isAquaLAF()) {
 			button.putClientProperty("JButton.buttonType", "gradient");
@@ -78,5 +80,29 @@ public final class SwingUtil {
 		}
 		return button;
 	}
+	
+	public static JToggleButton createIconToggleButton(IconManager iconManager, String icon, String toolTip) {
+		JToggleButton button = new JToggleButton(icon);
+		button.setFont(iconManager.getIconFont(14.0f));
+		button.setToolTipText(toolTip);
+		if(LookAndFeelUtil.isAquaLAF()) {
+			button.putClientProperty("JButton.buttonType", "gradient");
+			button.putClientProperty("JComponent.sizeVariant", "small");
+		}
+		return button;
+	}
+	
+	/**
+	 * Calls setEnabled(enabled) on the given component and all its children recursively.
+	 * Warning: The current enabled state of components is not remembered.
+	 */
+	public static void recursiveEnable(Component component, boolean enabled) {
+	    	component.setEnabled(enabled);
+	    	if(component instanceof Container) {
+	    		for(Component child : ((Container)component).getComponents()) {
+	    			recursiveEnable(child, enabled);
+	    		}
+	    	}
+    }
 	
 }

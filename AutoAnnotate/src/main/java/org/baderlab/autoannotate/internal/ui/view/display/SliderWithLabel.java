@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.ui.view;
+package org.baderlab.autoannotate.internal.ui.view.display;
 
 import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
 
@@ -37,6 +37,8 @@ public class SliderWithLabel extends JPanel {
 			int value = slider.getValue();
 			percentageLabel.setText(show(value));
 		});
+		
+		setOpaque(false);
 	}
 	
 	private String show(int value) {

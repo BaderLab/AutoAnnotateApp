@@ -15,6 +15,7 @@ public class DisplayOptions {
 	public static final boolean USE_CONSTANT_FONT_SIZE_DEFAULT = false;
 	public static final Color FILL_COLOR_DEFAULT = Color.getHSBColor(0.19f, 1.25f, 0.95f);
 	public static final Color BORDER_COLOR_DEFAULT = Color.DARK_GRAY;
+	public static final Color FONT_COLOR_DEFAULT = Color.BLACK;
 	
 	public static final int OPACITY_DEFAULT = 20;
 	public static final int OPACITY_MIN = 1;
@@ -45,6 +46,7 @@ public class DisplayOptions {
 	private int fontSize = FONT_SIZE_DEFAULT;
 	private Color fillColor = FILL_COLOR_DEFAULT;
 	private Color borderColor = BORDER_COLOR_DEFAULT;
+	private Color fontColor = FONT_COLOR_DEFAULT;
 	
 	
 	DisplayOptions(AnnotationSet parent) {
@@ -63,6 +65,7 @@ public class DisplayOptions {
 		this.borderWidth = builder.getBorderWidth();
 		this.fillColor = Objects.requireNonNull(builder.getFillColor());
 		this.borderColor = Objects.requireNonNull(builder.getBorderColor());
+		this.fontColor = Objects.requireNonNull(builder.getFontColor());
 	}
 	
 	public AnnotationSet getParent() {
@@ -162,6 +165,15 @@ public class DisplayOptions {
 	public void setBorderColor(Color borderColor) {
 		this.borderColor = Objects.requireNonNull(borderColor);
 		postEvent(Option.BORDER_COLOR);
+	}
+	
+	public Color getFontColor() {
+		return fontColor;
+	}
+	
+	public void setFontColor(Color fontColor) {
+		this.fontColor = Objects.requireNonNull(fontColor);
+		postEvent(Option.FONT_COLOR);
 	}
 	
 }

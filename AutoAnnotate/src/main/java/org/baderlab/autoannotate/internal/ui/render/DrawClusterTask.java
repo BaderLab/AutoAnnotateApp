@@ -37,8 +37,6 @@ public class DrawClusterTask extends AbstractTask {
 	@Inject private AnnotationManager annotationManager;
 	@Inject private AnnotationRenderer annotationRenderer;
 	
-	
-	public static final Color DEFAULT_TEXT_COLOR = Color.BLACK;
 	private static final int minSize = 50; // Minimum size of the ellipse
 	
 	private final Cluster cluster;
@@ -90,11 +88,13 @@ public class DrawClusterTask extends AbstractTask {
 	public static class LabelArgs extends AnnotationArgs {
 		public final String label;
 		public final double fontSize;
+		public final Color fontColor;
 		
-		public LabelArgs(double x, double y, double width, double height, double zoom, String label, double fontSize) {
+		public LabelArgs(double x, double y, double width, double height, double zoom, String label, double fontSize, Color fontColor) {
 			super(x, y, width, height, zoom);
 			this.label = label;
 			this.fontSize = fontSize;
+			this.fontColor = fontColor;
 		}
 	}
 	
@@ -136,7 +136,7 @@ public class DrawClusterTask extends AbstractTask {
 			if(text != null && args.label != null) {
 				text.setText(args.label);
 				text.setFontSize(args.fontSize);
-				text.setTextColor(DEFAULT_TEXT_COLOR);
+				text.setTextColor(args.fontColor);
 				annotationRenderer.setTextAnnotation(cluster, text);
 				if (annotationSet.getDisplayOptions().isShowLabels()) {
 					annotationManager.addAnnotation(text);
@@ -149,6 +149,7 @@ public class DrawClusterTask extends AbstractTask {
 			text.setZoom(args.zoom);
 			text.setText(args.label);
 			text.setFontSize(args.fontSize);
+			text.setTextColor(args.fontColor);
 			text.update();
 		}
 	}
@@ -247,7 +248,9 @@ public class DrawClusterTask extends AbstractTask {
 		
 		double fontSize = 5*zoom*labelFontSize;
 		
-		return new LabelArgs(xPos, yPos, width, height, zoom, labelText, fontSize);
+		Color fontColor = displayOptions.getFontColor();
+		
+		return new LabelArgs(xPos, yPos, width, height, zoom, labelText, fontSize, fontColor);
 	}
 	
 	

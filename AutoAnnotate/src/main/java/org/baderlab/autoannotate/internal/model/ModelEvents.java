@@ -163,7 +163,8 @@ public class ModelEvents {
 			OPACITY, 
 			BORDER_WIDTH,
 			FILL_COLOR,
-			BORDER_COLOR
+			BORDER_COLOR,
+			FONT_COLOR
 		}
 		
 		private final Option option;

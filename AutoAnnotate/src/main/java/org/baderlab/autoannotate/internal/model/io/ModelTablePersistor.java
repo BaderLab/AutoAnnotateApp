@@ -81,6 +81,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		SHAPE_TYPE = "shapeType",
 		FILL_COLOR = "fillColor",
 		BORDER_COLOR = "borderColor",
+		FONT_COLOR = "fontColor",
 		LABEL_MAKER_ID = "labelMakerID",
 		LABEL_MAKER_CONTEXT = "labelMakerContext",
 		CREATION_PARAMS = "creationParams";
@@ -207,6 +208,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			safeGet(asRow, USE_CONSTANT_FONT_SIZE, Boolean.class, builder::setUseConstantFontSize);
 			safeGet(asRow, FILL_COLOR, Integer.class, rgb -> builder.setFillColor(new Color(rgb)));
 			safeGet(asRow, BORDER_COLOR, Integer.class, rgb -> builder.setBorderColor(new Color(rgb)));
+			safeGet(asRow, FONT_COLOR, Integer.class, rgb -> builder.setFontColor(new Color(rgb)));
 
 			String labelMakerID = asRow.get(LABEL_MAKER_ID, String.class);
 			String serializedContext = asRow.get(LABEL_MAKER_CONTEXT, String.class);
@@ -377,6 +379,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(BORDER_WIDTH, disp.getBorderWidth());
 			asRow.set(FILL_COLOR, disp.getFillColor().getRGB());
 			asRow.set(BORDER_COLOR, disp.getBorderColor().getRGB());
+			asRow.set(FONT_COLOR, disp.getFontColor().getRGB());
 			
 			LabelMakerManager labelMakerManager = labelManagerProvider.get();
 			
@@ -441,6 +444,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, BORDER_WIDTH, Integer.class);
 		createColumn(table, FILL_COLOR, Integer.class); // store as RGB int value
 		createColumn(table, BORDER_COLOR, Integer.class);
+		createColumn(table, FONT_COLOR, Integer.class);
 		createColumn(table, LABEL_MAKER_ID, String.class);
 		createColumn(table, LABEL_MAKER_CONTEXT, String.class);
 		createColumn(table, CREATION_PARAMS, String.class);
