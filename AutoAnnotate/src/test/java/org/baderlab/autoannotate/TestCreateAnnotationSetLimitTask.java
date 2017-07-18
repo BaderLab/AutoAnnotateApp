@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 
 
 @RunWith(JukitoRunner.class)
-public class TestCreateAnnotationSetTask {
+public class TestCreateAnnotationSetLimitTask {
 
 	@Rule public TestRule logSilenceRule = new LogSilenceRule();
 	
@@ -54,33 +54,21 @@ public class TestCreateAnnotationSetTask {
 		
 		nodes.put("n6", createNode(network, "n6", "cluster_3"));
 		
-		nodes.put("n7", createNode(network, "n7", null));
-		nodes.put("n8", createNode(network, "n8", null));
-		nodes.put("n9", createNode(network, "n9", null));
+		nodes.put("n7", createNode(network, "n7", "cluster_4"));
+		nodes.put("n8", createNode(network, "n8", "cluster_5"));
+		nodes.put("n9", createNode(network, "n9", "cluster_6"));
 	}
 	
 	
 	@Test
 	public void testCreateAnnotationSet(CreateAnnotationSetTask.Factory taskFactory, ModelManager modelManager) {
-		test(false, taskFactory, modelManager);
-	}
-	
-	@Test
-	public void testCreateAnnotationSetWithSingletonClusters(CreateAnnotationSetTask.Factory taskFactory, ModelManager modelManager) { 
-		test(true, taskFactory, modelManager);
-	}
-	
-	private void test(boolean createSingletonClusters, CreateAnnotationSetTask.Factory taskFactory, ModelManager modelManager) {
 		AnnotationSetTaskParamters params = NetworkTestUtil.basicBuilder(networkView)
-				.setCreateSingletonClusters(createSingletonClusters)
+				.setMaxClusters(3)
 				.build();
-
+		
 		AnnotationSet as = NetworkTestUtil.createAnnotationSet(params, taskFactory, modelManager);
 		
-		if(createSingletonClusters)
-			assertEquals(6, as.getClusterCount());
-		else
-			assertEquals(3, as.getClusterCount());
+		assertEquals(3, as.getClusterCount());
 		
 		List<Cluster> clusters = new ArrayList<>(as.getClusters());
 		clusters.sort(Comparator.comparing(Cluster::getLabel));
@@ -99,20 +87,6 @@ public class TestCreateAnnotationSetTask {
 		Cluster cluster3 = clusters.get(2);
 		assertEquals(1, cluster3.getNodeCount());
 		assertTrue(cluster3.contains(nodes.get("n6")));
-		
-		if(createSingletonClusters) {
-			Cluster cluster4 = clusters.get(3);
-			assertEquals(1, cluster4.getNodeCount());
-			assertTrue(cluster4.contains(nodes.get("n7")));
-			
-			Cluster cluster5 = clusters.get(4);
-			assertEquals(1, cluster5.getNodeCount());
-			assertTrue(cluster5.contains(nodes.get("n8")));
-			
-			Cluster cluster6 = clusters.get(5);
-			assertEquals(1, cluster6.getNodeCount());
-			assertTrue(cluster6.contains(nodes.get("n9")));
-		}
 	}
 
 }
