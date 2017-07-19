@@ -4,8 +4,6 @@ import static org.baderlab.autoannotate.NetworkTestUtil.createNode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,32 +15,37 @@ import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.util.LogSilenceRule;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNetworkFactory;
+import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
 import org.jukito.JukitoRunner;
+import org.jukito.UseModules;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 
+import com.google.inject.Inject;
+
 
 @RunWith(JukitoRunner.class)
+@UseModules(NetworkTestUtil.TestModule.class)
 public class TestCreateAnnotationSetTask {
 
 	@Rule public TestRule logSilenceRule = new LogSilenceRule();
 	
-	private CyNetwork network;
 	private CyNetworkView networkView;
 	private Map<String, CyNode> nodes;
 	
-	public static class TestModule extends NetworkTestUtil.TestModule { }
-	
+	@Inject CreateAnnotationSetTask.Factory taskFactory;
+	@Inject ModelManager modelManager;
 	
 	@Before
-	public void setUp() {
-		networkView = NetworkTestUtil.createNetwork();
-		network = networkView.getModel();
+	public void setUp(CyNetworkFactory networkFactory, CyNetworkManager networkManager) {
+		networkView = NetworkTestUtil.createNetwork(networkFactory, networkManager);
+		CyNetwork network = networkView.getModel();
 		
 		nodes = new HashMap<>();
 		nodes.put("n1", createNode(network, "n1", "cluster_1"));
@@ -61,29 +64,24 @@ public class TestCreateAnnotationSetTask {
 	
 	
 	@Test
-	public void testCreateAnnotationSet(CreateAnnotationSetTask.Factory taskFactory, ModelManager modelManager) {
-		test(false, taskFactory, modelManager);
+	public void testCreateAnnotationSet() {
+		test(false);
 	}
 	
 	@Test
-	public void testCreateAnnotationSetWithSingletonClusters(CreateAnnotationSetTask.Factory taskFactory, ModelManager modelManager) { 
-		test(true, taskFactory, modelManager);
+	public void testCreateAnnotationSetWithSingletonClusters() { 
+		test(true);
 	}
 	
-	private void test(boolean createSingletonClusters, CreateAnnotationSetTask.Factory taskFactory, ModelManager modelManager) {
+	private void test(boolean createSingletonClusters) {
 		AnnotationSetTaskParamters params = NetworkTestUtil.basicBuilder(networkView)
 				.setCreateSingletonClusters(createSingletonClusters)
 				.build();
 
 		AnnotationSet as = NetworkTestUtil.createAnnotationSet(params, taskFactory, modelManager);
+		assertEquals(createSingletonClusters ? 6 : 3, as.getClusterCount());
 		
-		if(createSingletonClusters)
-			assertEquals(6, as.getClusterCount());
-		else
-			assertEquals(3, as.getClusterCount());
-		
-		List<Cluster> clusters = new ArrayList<>(as.getClusters());
-		clusters.sort(Comparator.comparing(Cluster::getLabel));
+		List<Cluster> clusters = NetworkTestUtil.getSortedClusters(as);
 		
 		Cluster cluster1 = clusters.get(0);
 		assertEquals(3, cluster1.getNodeCount());

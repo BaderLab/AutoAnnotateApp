@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.util.Optional;
 
 import javax.swing.Action;
+import javax.swing.JMenu;
 import javax.swing.JPopupMenu;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
@@ -51,6 +52,7 @@ public class AnnotationSetMenu {
 		Action collapseAction = collapseActionProvider.get().setAction(Grouping.COLLAPSE);
 		Action expandAction = collapseActionProvider.get().setAction(Grouping.EXPAND);
 		Action summaryAction = summaryActionProvider.get();
+		Action summaryIncludeAction = summaryActionProvider.get().setIncludeUnclustered(true);
 		Action layoutAction = layoutActionProvider.get();
 		Action redrawAction = redrawActionProvider.get();
 		Action relabelAction = relabelActionProvider.get();
@@ -66,12 +68,20 @@ public class AnnotationSetMenu {
 		showManageAction.setEnabled(enabled);
 		expandAction.setEnabled(enabled);
 		summaryAction.setEnabled(enabled);
+		summaryIncludeAction.setEnabled(enabled);
 		layoutAction.setEnabled(enabled);
 		redrawAction.setEnabled(enabled);
 		relabelAction.setEnabled(enabled);
 		showLabelOptionsAction.setEnabled(enabled);
 		showCreationParamsAction.setEnabled(enabled);
 		exportClustersAction.setEnabled(enabled);
+		
+		JMenu summaryMenu = new JMenu(SummaryNetworkAction.TITLE);
+		summaryAction.putValue(Action.NAME, "Clusters Only");
+		summaryIncludeAction.putValue(Action.NAME, "Clusters and Unclustered Nodes");
+		summaryMenu.add(summaryAction);
+		summaryMenu.add(summaryIncludeAction);
+		summaryMenu.setEnabled(enabled);
 		
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(createAction);
@@ -81,7 +91,7 @@ public class AnnotationSetMenu {
 		menu.addSeparator();
 		menu.add(collapseAction);
 		menu.add(expandAction);
-		menu.add(summaryAction);
+		menu.add(summaryMenu);
 		menu.addSeparator();
 		menu.add(layoutAction);
 		menu.add(redrawAction);

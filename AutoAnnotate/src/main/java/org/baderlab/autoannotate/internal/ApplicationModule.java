@@ -30,6 +30,7 @@ import org.cytoscape.property.CyProperty;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.AbstractModule;
+import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
@@ -47,7 +48,7 @@ public class ApplicationModule extends AbstractModule {
 		bind(ModelManager.class).asEagerSingleton();
 		bind(AnnotationRenderer.class).asEagerSingleton();
 		bind(LabelFactoryModule.class).asEagerSingleton();
-		installFactories();
+		install(new FactoryModule());
 		
 		// Create a single EventBus
 		bind(EventBus.class).toInstance(new EventBus((e,c) -> e.printStackTrace()));
@@ -57,8 +58,17 @@ public class ApplicationModule extends AbstractModule {
 		bind(new TypeLiteral<CyProperty<Properties>>(){}).toInstance(propsReader);
 	}
 	
+	/** For tests */
+	public static Module createFactoryModule() {
+		return new FactoryModule();
+	}
+}
+
+
+class FactoryModule extends AbstractModule {
 	
-	private void installFactories() {
+	@Override
+	protected void configure() {
 		installFactory(LabelOptionsPanel.Factory.class);
 		installFactory(ManageAnnotationSetsDialog.Factory.class);
 		installFactory(NormalModePanel.Factory.class);
@@ -83,6 +93,7 @@ public class ApplicationModule extends AbstractModule {
 		install(new FactoryModuleBuilder().build(factoryInterface));
 	}
 }
+
 
 class PropsReader extends AbstractConfigDirPropsReader {
 	public PropsReader(String name, String fileName) {

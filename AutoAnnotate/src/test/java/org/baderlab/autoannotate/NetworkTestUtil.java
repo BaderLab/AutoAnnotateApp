@@ -4,27 +4,37 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+import org.baderlab.autoannotate.internal.ApplicationModule;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
+import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.util.SerialTestTaskManager;
 import org.baderlab.autoannotate.util.SimpleLabelMakerFactory;
+import org.cytoscape.ding.NetworkViewTestSupport;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
+import org.cytoscape.model.CyNetworkTableManager;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyRow;
-import org.cytoscape.model.NetworkTestSupport;
+import org.cytoscape.model.CyTableFactory;
+import org.cytoscape.model.TableTestSupport;
+import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.view.model.CyNetworkViewFactory;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskManager;
 import org.jukito.JukitoModule;
 
 import com.google.inject.TypeLiteral;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 
 public class NetworkTestUtil {
@@ -35,24 +45,30 @@ public class NetworkTestUtil {
 	public static class TestModule extends JukitoModule {
 		@Override
 		protected void configureTest() {
+			TableTestSupport tableTestSupport = new TableTestSupport();
+			NetworkViewTestSupport networkViewTestSupport = new NetworkViewTestSupport();
+			
+			bind(CyNetworkFactory.class).toInstance(networkViewTestSupport.getNetworkFactory());
+			bind(CyNetworkTableManager.class).toInstance(networkViewTestSupport.getNetworkTableManager());
+			bind(CyNetworkManager.class).toInstance(networkViewTestSupport.getNetworkManager());
+			bind(CyTableFactory.class).toInstance(tableTestSupport.getTableFactory());
+			bind(CyNetworkViewFactory.class).toInstance(networkViewTestSupport.getNetworkViewFactory());
+			
 			TypeLiteral<TaskManager<?,?>> taskManager = new TypeLiteral<TaskManager<?,?>>(){};
 			bind(taskManager).annotatedWith(Names.named("sync")).to(SerialTestTaskManager.class);
-			install(new FactoryModuleBuilder().build(CreateAnnotationSetTask.Factory.class));
+			bind(taskManager).annotatedWith(Names.named("dialog")).to(SerialTestTaskManager.class);
 			bind(LabelMakerManager.class).toInstance(mock(LabelMakerManager.class));
+			bind(IconManager.class).toInstance(mock(IconManager.class));
+			// Bind all AssistedInjection factories
+			install(ApplicationModule.createFactoryModule());
 		}
 	}
 	
-	
-	public static CyNetworkView createNetwork() {
-		NetworkTestSupport networkTestSupport = new NetworkTestSupport();
-		CyNetworkFactory networkFactory = networkTestSupport.getNetworkFactory();
-		CyNetworkManager networkManager = networkTestSupport.getNetworkManager();
-		
+	public static CyNetworkView createNetwork(CyNetworkFactory networkFactory, CyNetworkManager networkManager) {
 		CyNetworkView networkView = mock(CyNetworkView.class);
 		CyNetwork network = networkFactory.createNetwork();
 		networkManager.addNetwork(network);
 		when(networkView.getModel()).thenReturn(network);
-		
 		network.getDefaultNodeTable().createColumn(CLUSTER_COL, String.class, false);
 		return networkView;
 	}
@@ -88,4 +104,10 @@ public class NetworkTestUtil {
 		return as;
 	}
 
+	public static List<Cluster> getSortedClusters(AnnotationSet as) {
+		List<Cluster> clusters = new ArrayList<>(as.getClusters());
+		clusters.sort(Comparator.comparing(Cluster::getLabel));
+		return clusters;
+	}
+	
 }

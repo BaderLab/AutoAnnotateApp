@@ -310,7 +310,20 @@
 		    <version>${cytoscape.version}</version>
 		    <scope>test</scope>
 		</dependency>
-	   	
+	   	<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>ding-presentation-impl</artifactId>
+			<type>test-jar</type>
+			<version>${cytoscape.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>ding-presentation-impl</artifactId>
+			<version>${cytoscape.version}</version>
+			<scope>test</scope>
+		</dependency>
+		
 	</dependencies>
 
 </project>

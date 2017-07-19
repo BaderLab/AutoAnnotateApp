@@ -46,6 +46,10 @@ public class SerialTestTaskManager extends AbstractTaskManager<Void, Void> {
 		execute(iterator, null);
 	}
 
+	public void execute(Task task) {
+		execute(new TaskIterator(task), null);
+	}
+	
 	@Override
 	public void execute(TaskIterator iterator, TaskObserver observer) {
 		TaskMonitor monitor = mock(TaskMonitor.class);
@@ -72,6 +76,7 @@ public class SerialTestTaskManager extends AbstractTaskManager<Void, Void> {
 			finishStatus = FinishStatus.getSucceeded();
 		} catch(Exception e) {
 			finishStatus = FinishStatus.newFailed(task, e);
+			e.printStackTrace();
 			throw new AssertionError("Task failed", e);
 		} finally {
 			if(observer != null) {
