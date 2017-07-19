@@ -212,7 +212,7 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 		CyNetworkView summaryNetworkView = createNetworkView(summaryNetwork);
 		
 		// apply visual style
-		applyVisualStyle(annotationSet.getParent().getNetworkView(), summaryNetworkView);
+		applyVisualStyle(annotationSet.getParent().getNetworkView(), summaryNetworkView, summaryNetwork);
 		
 		// register
 		networkManager.addNetwork(summaryNetwork.network);
@@ -393,12 +393,19 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 	}
 	
 	
-	private void applyVisualStyle(CyNetworkView originNetworkView, CyNetworkView summaryNetworkView) {
+	private void applyVisualStyle(CyNetworkView originNetworkView, CyNetworkView summaryNetworkView, SummaryNetwork summaryNetwork) {
 		VisualStyle vs = visualMappingManager.getVisualStyle(originNetworkView);
 		
 		for(View<CyNode> nodeView : summaryNetworkView.getNodeViews()) {
+			// Label
 			String name = summaryNetworkView.getModel().getRow(nodeView.getModel()).get("name", String.class);
 			nodeView.setLockedValue(BasicVisualLexicon.NODE_LABEL, name);
+			
+			// Node size
+			CyNode node = nodeView.getModel();
+			SummaryCluster cluster = summaryNetwork.getClusterFor(node);
+			int numNodes = cluster.getNodes().size();
+			nodeView.setLockedValue(BasicVisualLexicon.NODE_SIZE, (double)numNodes);
 		}
 		
 		visualMappingManager.setVisualStyle(vs, summaryNetworkView);
