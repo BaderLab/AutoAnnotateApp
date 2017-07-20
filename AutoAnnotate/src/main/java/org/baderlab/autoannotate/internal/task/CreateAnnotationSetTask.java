@@ -64,6 +64,7 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Generating Clusters");
+		//System.out.println(params);
 		
 		Optional<Double> cutoff = Optional.empty();
 		if(needClusterEdgeAttribute()) {

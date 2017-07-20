@@ -6,6 +6,8 @@ import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.cytoscape.view.model.CyNetworkView;
 
+import com.google.common.base.MoreObjects;
+
 public class AnnotationSetTaskParamters {
 
 	private final CyNetworkView networkView;
@@ -152,15 +154,24 @@ public class AnnotationSetTaskParamters {
 	public Optional<Integer> getMaxClusters() {
 		return maxClusters;
 	}
-	
+
 	@Override
 	public String toString() {
-		return "AnnotationSetTaskParamters [networkView=" + networkView + ", labelColumn=" + labelColumn
-				+ ", useClusterMaker=" + useClusterMaker + ", clusterMakerAlgorithm=" + clusterMakerAlgorithm
-				+ ", clusterMakerEdgeAttribute=" + clusterMakerEdgeAttribute + ", clusterDataColumn="
-				+ clusterDataColumn + ", layoutClusters=" + layoutClusters + ", createGroups=" + createGroups
-				+ ", labelMakerFactory=" + labelMakerFactory + ", labelMakerContext=" + labelMakerContext
-				+ ", createSingletonClusters=" + createSingletonClusters + "]";
+		return MoreObjects.toStringHelper(this)
+			.add("networkView", networkView.getSUID())
+			.add("lanelColumn", labelColumn)
+			.add("useClusterMaker", useClusterMaker)
+			.add("clusterMakerAlgorithm", clusterMakerAlgorithm)
+			.add("clusterMakerEdgeAttribute", clusterMakerEdgeAttribute)
+			.add("clusterDataColumn", clusterDataColumn)
+			.add("layoutClusters", layoutClusters)
+			.add("createGroups", createGroups)
+			.add("createSingletonClusters", createSingletonClusters)
+			.add("maxClusters", maxClusters)
+			.add("labelMakerFactory", labelMakerFactory.getName())
+			.add("labelMakerContext", labelMakerContext)
+			.toString();
 	}
+	
 	
 }

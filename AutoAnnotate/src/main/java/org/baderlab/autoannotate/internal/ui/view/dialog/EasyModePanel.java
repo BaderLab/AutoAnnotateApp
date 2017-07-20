@@ -7,6 +7,8 @@ import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
 
 import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
+import java.util.List;
+import java.util.Optional;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -111,6 +113,13 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		return labelCombo.getItemAt(labelCombo.getSelectedIndex());
 	}
 	
+	
+	private String getDefaultClusterMakerEdgeAttribute() {
+		 List<String> columns = getColumnsOfType(networkView.getModel(), Number.class, false, false, false);
+		 Optional<String> emColumn = columns.stream().filter(col -> col.endsWith("similarity_coefficient")).findAny();
+		 return emColumn.orElse(CreateAnnotationSetDialog.NONE);
+	}
+	
 	@Override
 	public AnnotationSetTaskParamters createAnnotationSetTaskParameters() {
 		LabelMakerFactory<?> labelMakerFactory = labelManagerProvider.get().getDefaultFactory();
@@ -121,7 +130,7 @@ public class EasyModePanel extends JPanel implements TabPanel {
 			.setLabelColumn(getLabelColumn())
 			.setUseClusterMaker(true)
 			.setClusterAlgorithm(ClusterAlgorithm.MCL)
-			.setClusterMakerEdgeAttribute(CreateAnnotationSetDialog.NONE)
+			.setClusterMakerEdgeAttribute(getDefaultClusterMakerEdgeAttribute())
 			.setLabelMakerFactory(labelMakerFactory)
 			.setLabelMakerContext(labelMakerContext)
 			.setCreateGroups(false)
