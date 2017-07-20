@@ -3,6 +3,8 @@ package org.baderlab.autoannotate.internal.util;
 import java.awt.Component;
 import java.awt.Container;
 
+import javax.swing.AbstractButton;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -105,4 +107,10 @@ public final class SwingUtil {
 	    	}
     }
 	
+	public static void groupButtons(AbstractButton ... buttons) {
+		ButtonGroup buttonGroup = new ButtonGroup();
+		for(AbstractButton b : buttons) {
+			buttonGroup.add(b);
+		}
+	}
 }

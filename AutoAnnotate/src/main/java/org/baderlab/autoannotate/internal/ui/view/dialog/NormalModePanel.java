@@ -3,6 +3,7 @@ package org.baderlab.autoannotate.internal.ui.view.dialog;
 import static org.baderlab.autoannotate.internal.ui.view.dialog.CreateAnnotationSetDialog.getColumnsOfType;
 import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
 
+import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -62,16 +63,20 @@ public class NormalModePanel extends JPanel implements TabPanel {
 	
 	@AfterInjection
 	private void createContents() {
-		setLayout(new GridBagLayout());
-		setOpaque(false);
+		JPanel parentPanel = new JPanel(new GridBagLayout());
+		parentPanel.setOpaque(false);
 		
 		JPanel clusterPanel = createParametersPanel_ClusterRadioPanel();
 		clusterPanel.setOpaque(false);
-		add(clusterPanel, GBCFactory.grid(0,0).get());
+		parentPanel.add(clusterPanel, GBCFactory.grid(0,0).get());
 		
 		JPanel labelPanel = createParametersPanel_LabelPanel();
 		labelPanel.setOpaque(false);
-		add(labelPanel, GBCFactory.grid(0,1).weightx(1.0).get());
+		parentPanel.add(labelPanel, GBCFactory.grid(0,1).weightx(1.0).get());
+		
+		setLayout(new BorderLayout());
+		add(parentPanel, BorderLayout.NORTH);
+		setOpaque(false);
 	}
 	
 	

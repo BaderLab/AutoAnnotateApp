@@ -5,6 +5,7 @@ import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.event.MouseAdapter;
@@ -81,6 +82,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 		super(jFrame, true);
 		setTitle("AutoAnnotate: Create Annotation Set");
 		this.networkView = appManager.getCurrentNetworkView();
+		setMinimumSize(new Dimension(500, 400));
 	}
 	
 	

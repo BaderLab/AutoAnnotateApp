@@ -70,6 +70,28 @@ public class LabelOptionsPanel extends JPanel {
 	}
 	
 	
+	public static JComboBox<String> createLabelColumnCombo(CyNetwork network) {
+		JComboBox<String> combo = new JComboBox<>();
+		for(String labelColumn : getColumnsOfType(network, String.class, true, false, true)) {
+			combo.addItem(labelColumn);
+		}
+		
+		// Preselect the best choice for label column, with special case for EnrichmentMap
+		for(int i = 0; i < combo.getItemCount(); i++) {
+			String item = combo.getItemAt(i);
+			if(item.endsWith("GS_DESCR")) { // column created by EnrichmentMap
+				combo.setSelectedIndex(i);
+				break;
+			}
+			if(item.equalsIgnoreCase("name")) {
+				combo.setSelectedIndex(i);
+				break;
+			}
+		}
+		return combo;
+	}
+	
+	
 	@AfterInjection
 	private void createContents() {
 		setLayout(new GridBagLayout());
@@ -82,24 +104,7 @@ public class LabelOptionsPanel extends JPanel {
 		setBorder(LookAndFeelUtil.createTitledBorder(titleText));
 			
 		if(showColumnCombo) {
-			labelColumnNameCombo = new JComboBox<>();
-			for(String labelColumn : getColumnsOfType(network, String.class, true, false, true)) {
-				labelColumnNameCombo.addItem(labelColumn);
-			}
-			
-			// Preselect the best choice for label column, with special case for EnrichmentMap
-			for(int i = 0; i < labelColumnNameCombo.getItemCount(); i++) {
-				String item = labelColumnNameCombo.getItemAt(i);
-				if(item.endsWith("GS_DESCR")) { // column created by EnrichmentMap
-					labelColumnNameCombo.setSelectedIndex(i);
-					break;
-				}
-				if(item.equalsIgnoreCase("name")) {
-					labelColumnNameCombo.setSelectedIndex(i);
-					break;
-				}
-			}
-			
+			labelColumnNameCombo = createLabelColumnCombo(network);
 			JLabel colLabel = new JLabel("Label Column:");
 			makeSmall(labelColumnNameCombo, colLabel);
 			add(colLabel, GBCFactory.grid(0,y).get());
