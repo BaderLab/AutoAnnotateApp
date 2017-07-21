@@ -84,7 +84,7 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		
 		clusterMaxRadio = new JRadioButton("Max number of annotations");
 		clusterAllRadio = new JRadioButton("Annotate entire network");
-		clusterAllRadio.setToolTipText("Annotate only the top X largest clusters in the network");
+		clusterMaxRadio.setToolTipText("Annotate only the top X largest clusters in the network");
 		SwingUtil.groupButtons(clusterAllRadio, clusterMaxRadio);
 		clusterAllRadio.setSelected(true);
 		
