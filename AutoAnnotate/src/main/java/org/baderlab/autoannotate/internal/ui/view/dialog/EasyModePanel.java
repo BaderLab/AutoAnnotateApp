@@ -82,22 +82,24 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		clusterPanel.setBorder(BorderFactory.createEmptyBorder(4,0,0,0));
 		clusterPanel.setOpaque(false);
 		
-		clusterMaxRadio = new JRadioButton("Max number of clusters");
-		clusterAllRadio = new JRadioButton("Cluster all nodes");
+		clusterMaxRadio = new JRadioButton("Max number of annotations");
+		clusterAllRadio = new JRadioButton("Annotate entire network");
+		clusterAllRadio.setToolTipText("Annotate only the top X largest clusters in the network");
 		SwingUtil.groupButtons(clusterAllRadio, clusterMaxRadio);
-		clusterMaxRadio.setSelected(true);
+		clusterAllRadio.setSelected(true);
 		
 		spinner = new JSpinner(new SpinnerNumberModel(10, 1, 100, 1));
 		layoutCheckBox = new JCheckBox("Layout network to prevent cluster overlap");
 		SwingUtil.makeSmall(clusterMaxRadio, clusterAllRadio, spinner, layoutCheckBox);
+		spinner.setEnabled(false);
 		
 		clusterAllRadio.addActionListener(e -> spinner.setEnabled(clusterMaxRadio.isSelected()));
 		clusterMaxRadio.addActionListener(e -> spinner.setEnabled(clusterMaxRadio.isSelected()));
 		
-		clusterPanel.add(clusterMaxRadio, GBCFactory.grid(0,0).get());
-		clusterPanel.add(spinner, GBCFactory.grid(1,0).get());
-		clusterPanel.add(new JLabel(""), GBCFactory.grid(2,0).weightx(1.0).get());
-		clusterPanel.add(clusterAllRadio, GBCFactory.grid(0,1).get());
+		clusterPanel.add(clusterAllRadio, GBCFactory.grid(0,0).get());
+		clusterPanel.add(clusterMaxRadio, GBCFactory.grid(0,1).get());
+		clusterPanel.add(spinner, GBCFactory.grid(1,1).get());
+		clusterPanel.add(new JLabel(""), GBCFactory.grid(2,1).weightx(1.0).get());
 		clusterPanel.add(new JLabel(" "), GBCFactory.grid(0,2).get());
 		clusterPanel.add(layoutCheckBox, GBCFactory.grid(0,3).gridwidth(3).get());
 		
