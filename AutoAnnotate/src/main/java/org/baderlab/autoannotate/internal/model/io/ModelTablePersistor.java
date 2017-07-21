@@ -117,6 +117,29 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		importModel();
 	}
 	
+	@Override
+	public void handleEvent(SessionAboutToBeSavedEvent e) {
+		if(sessionIsActuallySaving()) {
+			expandAllClusters();
+			// Note, when a new session is loaded the NetworkViewAboutToBeDestroyedListener will clear out the model.
+			exportModel();
+		}
+	}
+	
+	private boolean sessionIsActuallySaving() {
+		// Hackey fix for bug with STRING app installed
+		// https://github.com/BaderLab/AutoAnnotateApp/issues/102
+		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+		for(StackTraceElement frame : stack) {
+			String className = frame.getClassName();
+			if(className.equals("org.cytoscape.task.internal.session.SaveSessionTask") ||
+			   className.equals("org.cytoscape.task.internal.session.SaveSessionAsTask")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public void importModel() {
 		boolean imported = false;
 		
@@ -285,13 +308,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		return activeSets;
 	}
 
-	
-	@Override
-	public void handleEvent(SessionAboutToBeSavedEvent e) {
-		expandAllClusters();
-		// Note, when a new session is loaded the NetworkViewAboutToBeDestroyedListener will clear out the model.
-		exportModel();
-	}
 	
 	/**
 	 * This is a huge hack to get around a bug in cytoscape.
