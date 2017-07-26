@@ -12,6 +12,7 @@ import org.baderlab.autoannotate.internal.model.CoordinateData;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.presentation.annotations.AnnotationFactory;
 import org.cytoscape.view.presentation.annotations.AnnotationManager;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
@@ -121,26 +122,26 @@ public class DrawClusterTask extends AbstractTask {
 	private void drawLabel() {
 		LabelArgs args = computeLabelArgs(annotationRenderer, cluster);
 		TextAnnotation text = annotationRenderer.getTextAnnotation(cluster);
+		AnnotationSet annotationSet = cluster.getParent();
+		
+		int fontSize = annotationSet.getDisplayOptions().isShowLabels() ? (int)Math.round(args.fontSize) : 0;
 		
 		if(text == null) {
 			// Create the text annotation
-			Map<String,String> arguments = new HashMap<>();
-			arguments.put("x", String.valueOf(args.x));
-			arguments.put("y", String.valueOf(args.y));
-			arguments.put("zoom", String.valueOf(args.zoom));
-			arguments.put("canvas", "foreground");
+			Map<String,String> argMap = new HashMap<>();
+			argMap.put(Annotation.X, String.valueOf(args.x));
+			argMap.put(Annotation.Y, String.valueOf(args.y));
+			argMap.put(Annotation.ZOOM, String.valueOf(args.zoom));
+			argMap.put(Annotation.CANVAS, Annotation.FOREGROUND);
+			argMap.put(TextAnnotation.TEXT, args.label);
+			argMap.put(TextAnnotation.FONTSIZE, String.valueOf(fontSize));
+			argMap.put(TextAnnotation.COLOR, String.valueOf(args.fontColor.getRGB()));
 			
-			AnnotationSet annotationSet = cluster.getParent();
 			CyNetworkView view = annotationSet.getParent().getNetworkView();
-			text = textFactory.createAnnotation(TextAnnotation.class, view, arguments);
+			text = textFactory.createAnnotation(TextAnnotation.class, view, argMap);
 			if(text != null && args.label != null) {
-				text.setText(args.label);
-				text.setFontSize(args.fontSize);
-				text.setTextColor(args.fontColor);
 				annotationRenderer.setTextAnnotation(cluster, text);
-				if (annotationSet.getDisplayOptions().isShowLabels()) {
-					annotationManager.addAnnotation(text);
-				}
+				annotationManager.addAnnotation(text);
 			}
 		}
 		else {
@@ -148,7 +149,7 @@ public class DrawClusterTask extends AbstractTask {
 			text.moveAnnotation(new Point2D.Double(args.x, args.y));
 			text.setZoom(args.zoom);
 			text.setText(args.label);
-			text.setFontSize(args.fontSize);
+			text.setFontSize(fontSize);
 			text.setTextColor(args.fontColor);
 			text.update();
 		}
@@ -158,32 +159,32 @@ public class DrawClusterTask extends AbstractTask {
 	private void drawShape() {
 		ShapeArgs args = computeShapeArgs(annotationRenderer, cluster);
 		ShapeAnnotation shape = annotationRenderer.getShapeAnnotation(cluster);
-		
 		AnnotationSet annotationSet = cluster.getParent();
+		
+		double fillOpacity = annotationSet.getDisplayOptions().isShowClusters() ? args.opacity : 0;
+		double borderOpacity = annotationSet.getDisplayOptions().isShowClusters() ? 100 : 0;
 		
 		if(shape == null) {
 			// Create and draw the shape
-			HashMap<String, String> arguments = new HashMap<String,String>();
-			arguments.put("x", String.valueOf(args.x));
-			arguments.put("y", String.valueOf(args.y));
-			arguments.put("zoom", String.valueOf(args.zoom));
-			arguments.put("canvas", "background");			
-			arguments.put("shapeType", args.shapeType.toString());
-			
+			Map<String,String> argMap = new HashMap<>();
+			argMap.put(Annotation.X, String.valueOf(args.x));
+			argMap.put(Annotation.Y, String.valueOf(args.y));
+			argMap.put(Annotation.ZOOM, String.valueOf(args.zoom));
+			argMap.put(Annotation.CANVAS, Annotation.BACKGROUND);		
+			argMap.put(ShapeAnnotation.WIDTH, String.valueOf(args.width*args.zoom));
+			argMap.put(ShapeAnnotation.HEIGHT, String.valueOf(args.height*args.zoom));
+			argMap.put(ShapeAnnotation.SHAPETYPE, args.shapeType.toString());
+			argMap.put(ShapeAnnotation.EDGETHICKNESS, String.valueOf(args.borderWidth));
+			argMap.put(ShapeAnnotation.EDGECOLOR, String.valueOf(args.borderColor.getRGB()));
+			argMap.put(ShapeAnnotation.FILLCOLOR, String.valueOf(args.fillColor.getRGB()));
+			argMap.put(ShapeAnnotation.FILLOPACITY, String.valueOf(fillOpacity));
+			argMap.put(ShapeAnnotation.EDGEOPACITY, String.valueOf(borderOpacity));
 			
 			CyNetworkView view = annotationSet.getParent().getNetworkView();
-			shape = shapeFactory.createAnnotation(ShapeAnnotation.class, view, arguments);
+			shape = shapeFactory.createAnnotation(ShapeAnnotation.class, view, argMap);
 			if(shape != null) {
-				shape.setSize(args.width*args.zoom, args.height*args.zoom);
-				shape.setBorderWidth(args.borderWidth);
-				shape.setBorderColor(args.borderColor);
-				shape.setFillColor(args.fillColor);
-				shape.setFillOpacity(args.opacity);
-				
 				annotationRenderer.setShapeAnnotation(cluster, shape);
-				if(annotationSet.getDisplayOptions().isShowClusters()) {
-					annotationManager.addAnnotation(shape);
-				}
+				annotationManager.addAnnotation(shape);
 			}
 		}
 		else {
@@ -193,7 +194,10 @@ public class DrawClusterTask extends AbstractTask {
 			shape.setSize(args.width*args.zoom, args.height*args.zoom);
 			shape.setShapeType(args.shapeType.toString());
 			shape.setBorderWidth(args.borderWidth);
-			shape.setFillOpacity(annotationSet.getDisplayOptions().isShowClusters() ? args.opacity : 0);
+			shape.setBorderColor(args.borderColor);
+			shape.setFillOpacity(fillOpacity);
+			shape.setBorderOpacity(borderOpacity);
+			shape.setFillColor(args.fillColor);
 			shape.update();
 		}
 	}
