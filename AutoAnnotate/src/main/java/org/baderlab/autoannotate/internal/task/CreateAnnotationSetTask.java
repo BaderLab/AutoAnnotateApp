@@ -26,8 +26,11 @@ import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.model.io.CreationParameter;
 import org.baderlab.autoannotate.internal.util.ResultObserver;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.view.model.View;
+import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskManager;
@@ -41,8 +44,10 @@ import com.google.inject.name.Named;
 public class CreateAnnotationSetTask extends AbstractTask {
 
 	@Inject private RunClusterMakerTaskFactory.Factory clusterMakerFactoryFactory;
+	@Inject private CreateSubnetworkTask.Factory subnetworkTaskFactory;
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	@Inject private LayoutClustersTaskFactory.Factory layoutTaskFactoryFactory;
+	@Inject private CyNetworkManager networkManager;
 	
 	@Inject private @Named("sync") TaskManager<?,?> syncTaskManager;
 	@Inject private ModelManager modelManager;
@@ -170,11 +175,30 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	
 	
 	private Map<String,Collection<CyNode>> runClusterMaker(Optional<Double> cutoff) {
-		RunClusterMakerTaskFactory clusterMakerTaskFactory = clusterMakerFactoryFactory.create(params, cutoff.orElse(null));
+		CyNetworkView networkView = params.getNetworkView();
+		CyNetwork network = networkView.getModel();
+		boolean hasHidden = hasHiddenNodes(networkView);
+		if(hasHidden) {
+			Collection<CyNode> visibleNodes = getVisibleNodes(networkView);
+			CreateSubnetworkTask subnetworkTask = subnetworkTaskFactory.create(network, visibleNodes);
+			ResultObserver<CyNetwork> observer = new ResultObserver<>(subnetworkTask, CyNetwork.class);
+			syncTaskManager.execute(new TaskIterator(subnetworkTask), observer);
+			network = observer.getResults().get();
+			networkManager.addNetwork(network, false);
+		}
+		
+		RunClusterMakerTaskFactory clusterMakerTaskFactory = 
+				clusterMakerFactoryFactory.create(network, params.getClusterAlgorithm(), params.getClusterMakerEdgeAttribute(), cutoff.orElse(null));
 		RunClusterMakerResultObserver clusterResultObserver = new RunClusterMakerResultObserver();
 		TaskIterator tasks = clusterMakerTaskFactory.createTaskIterator(clusterResultObserver);
 		syncTaskManager.execute(tasks);
-		return clusterResultObserver.getResult();
+		Map<String,Collection<CyNode>> result =  clusterResultObserver.getResult();
+		
+		if(hasHidden) {
+			networkManager.destroyNetwork(network);
+		}
+		
+		return result;
 	}
 	
 	
@@ -215,7 +239,8 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	
 	private Map<String,Collection<CyNode>> computeClustersFromColumn() {
 		String attribute = params.getClusterDataColumn();
-		CyNetwork network = params.getNetworkView().getModel();
+		CyNetworkView networkView = params.getNetworkView();
+		CyNetwork network = networkView.getModel();
 		
 		Map<String,Collection<CyNode>> clusters = new HashMap<>();
 		
@@ -227,6 +252,9 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		}
 		
 		for(CyNode node : network.getNodeList()) {
+			if(isHidden(node, networkView))
+				continue;
+			
 			List<?> list;
 			if(isList)
 				list = network.getRow(node).getList(attribute, type);
@@ -234,18 +262,12 @@ public class CreateAnnotationSetTask extends AbstractTask {
 				list = Collections.singletonList(network.getRow(node).get(attribute, type));
 
 			for(Object o : list) {
-				if(o == null)
-					continue;
-				String key = String.valueOf(o).trim();
-				if(key.isEmpty())
-					continue;
-				
-				Collection<CyNode> cluster = clusters.get(key);
-				if(cluster == null) {
-					cluster = new HashSet<>();
-					clusters.put(key, cluster);
+				if(o != null) {
+					String key = String.valueOf(o).trim();
+					if(!key.isEmpty()) {
+						clusters.computeIfAbsent(key, k -> new HashSet<>()).add(node);
+					}
 				}
-				cluster.add(node);
 			}
 		}
 		return clusters;
@@ -274,12 +296,38 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	}
 	
 	private Collection<CyNode> getUnclusteredNodes(Map<String,Collection<CyNode>> clusters) {
-		CyNetwork network = params.getNetworkView().getModel();
+		CyNetworkView networkView = params.getNetworkView();
+		CyNetwork network = networkView.getModel();
 		Set<CyNode> nodes = new HashSet<>(network.getNodeList());
 		for(Collection<CyNode> cluster : clusters.values()) {
 			nodes.removeAll(cluster);
 		}
+		
+		// filter out hidden nodes
+		nodes.removeIf(node -> isHidden(node, networkView));
 		return nodes;
 	}
+	
+	
+	private static boolean isHidden(View<CyNode> nodeView) {
+		if(nodeView == null)
+			return false;
+		return nodeView.getVisualProperty(BasicVisualLexicon.NODE_VISIBLE) == Boolean.FALSE;
+	}
+	
+	private static boolean isHidden(CyNode node, CyNetworkView networkView) {
+		View<CyNode> nodeView = networkView.getNodeView(node);
+		return isHidden(nodeView);
+	}
 
+	private static boolean hasHiddenNodes(CyNetworkView view) {
+		return view.getNodeViews().stream().anyMatch(CreateAnnotationSetTask::isHidden);
+	}
+	
+	private static Collection<CyNode> getVisibleNodes(CyNetworkView view) {
+		return view.getNodeViews().stream()
+			.filter(nv -> !isHidden(nv))
+			.map(nv -> nv.getModel())
+			.collect(Collectors.toList());
+	}
 }

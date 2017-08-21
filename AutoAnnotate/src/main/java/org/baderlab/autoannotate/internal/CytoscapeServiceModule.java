@@ -19,6 +19,7 @@ import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNetworkTableManager;
 import org.cytoscape.model.CyTableFactory;
 import org.cytoscape.model.CyTableManager;
+import org.cytoscape.model.subnetwork.CyRootNetworkManager;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.session.CySessionManager;
 import org.cytoscape.util.swing.FileUtil;
@@ -75,6 +76,7 @@ public class CytoscapeServiceModule extends AbstractModule {
 		bindService(CyTableManager.class);
 		bindService(CyTableFactory.class);
 		bindService(FileUtil.class);
+		bindService(CyRootNetworkManager.class);
 		
 		bindService(DialogTaskManager.class);
 		TypeLiteral<SynchronousTaskManager<?>> synchronousManager = new TypeLiteral<SynchronousTaskManager<?>>(){};

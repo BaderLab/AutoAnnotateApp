@@ -1,11 +1,10 @@
 package org.baderlab.autoannotate.internal.task;
 
-import java.util.Objects;
-
 import javax.annotation.Nullable;
 
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.cytoscape.command.CommandExecutorTaskFactory;
+import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskIterator;
@@ -19,16 +18,21 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 	
 	@Inject private CommandExecutorTaskFactory commandTaskFactory;
 	
-	private final AnnotationSetTaskParamters params;
+	private final ClusterAlgorithm algorithm;
+	private final CyNetwork network;
+	private final String edgeAttribute;
 	private final Double cutoff;
 	
 	public static interface Factory {
-		RunClusterMakerTaskFactory create(AnnotationSetTaskParamters params, @Nullable Double cutoff);
+		RunClusterMakerTaskFactory create(CyNetwork network, ClusterAlgorithm algorithm, @Nullable String edgeAttribute, @Nullable Double cutoff);
 	}
 	
 	@AssistedInject
-	public RunClusterMakerTaskFactory(@Assisted AnnotationSetTaskParamters params, @Assisted @Nullable Double cutoff) {
-		this.params = Objects.requireNonNull(params);
+	public RunClusterMakerTaskFactory(@Assisted CyNetwork network, @Assisted ClusterAlgorithm algorithm, 
+			@Assisted @Nullable String edgeAttribute, @Assisted @Nullable Double cutoff) {
+		this.network = network;
+		this.algorithm = algorithm;
+		this.edgeAttribute = edgeAttribute;
 		this.cutoff = cutoff;
 	}
 	
@@ -43,26 +47,24 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 	 * MKTODO if the command gets any more complex then create a ClusterMakerCommandBuilder
 	 */
 	public String getClusterCommand() {
-		ClusterAlgorithm alg = params.getClusterAlgorithm();
 		String columnName = getColumnName();
+		String command = algorithm.getCommandName();
+		Long suid = network.getSUID();
 		
-		String command = alg.getCommandName();
-		Long suid = params.getNetworkView().getModel().getSUID();
+		StringBuilder sb = new StringBuilder("cluster ").append(command)
+			.append(" network=\"SUID:").append(suid).append('"')
+			.append(" clusterAttribute=\"").append(columnName).append('"');
+		if(algorithm.isEdgeAttributeRequired())
+			sb.append(" attribute=\"").append(edgeAttribute).append('"');
+		if(algorithm.isEdgeAttributeRequired() && cutoff != null)
+			sb.append(" edgeCutOff=\"").append(cutoff).append('"');
 		
-		if(alg.isEdgeAttributeRequired() && cutoff != null) {
-			return String.format("cluster %s network=\"SUID:%d\" clusterAttribute=\"%s\" attribute=\"%s\" edgeCutOff=\"%s\"", command, suid, columnName, params.getClusterMakerEdgeAttribute(), cutoff);
-		}
-		else if(alg.isEdgeAttributeRequired()) {
-			return String.format("cluster %s network=\"SUID:%d\" clusterAttribute=\"%s\" attribute=\"%s\"", command, suid, columnName, params.getClusterMakerEdgeAttribute());
-		}
-		else {
-			return String.format("cluster %s network=\"SUID:%d\" clusterAttribute=\"%s\"", command, suid, columnName);
-		}
+		return sb.toString();
 	}
 	
 	private String getColumnName() {
-		CyTable table = params.getNetworkView().getModel().getDefaultNodeTable();
-		final String originalName = params.getClusterAlgorithm().getColumnName();
+		CyTable table = network.getDefaultNodeTable();
+		final String originalName = algorithm.getColumnName();
 		
 		String name = originalName;
 		int suffix = 2;
@@ -74,7 +76,10 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 	
 	
 	public String getNetworkCommand() {
-		return "cluster getnetworkcluster algorithm=" + params.getClusterAlgorithm().getCommandName();
+		return new StringBuilder("cluster getnetworkcluster")
+			.append(" network=\"SUID:").append(network.getSUID()).append('"')
+			.append(" algorithm=").append(algorithm.getCommandName())
+			.toString();
 	}
 	
 	
