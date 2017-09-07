@@ -70,6 +70,11 @@ public class NetworkViewSet {
 	 * @throws IllegalStateException If the currently active AnnotationSet has collapsed clusters.
 	 */
 	public void select(AnnotationSet annotationSet) {
+		select(annotationSet, false);
+	}
+	
+
+	public void select(AnnotationSet annotationSet, boolean isCommand) {
 		if(annotationSet == null || annotationSets.contains(annotationSet)) {
 			
 			if(Optional.ofNullable(annotationSet).equals(activeSet)) {
@@ -103,7 +108,7 @@ public class NetworkViewSet {
 				}
 			}
 			
-			parent.postEvent(new ModelEvents.AnnotationSetSelected(this, activeSet));
+			parent.postEvent(new ModelEvents.AnnotationSetSelected(this, activeSet, isCommand));
 		}
 	}
 	
@@ -171,7 +176,7 @@ public class NetworkViewSet {
 			// if the active set was deleted then we need to unselect it
 			if(activeSet.isPresent() && activeSet.get().equals(annotationSet)) {
 				activeSet = Optional.empty();
-				parent.postEvent(new ModelEvents.AnnotationSetSelected(this, Optional.empty()));
+				parent.postEvent(new ModelEvents.AnnotationSetSelected(this, Optional.empty(), false));
 			}
 			parent.postEvent(new ModelEvents.AnnotationSetDeleted(annotationSet));
 		}

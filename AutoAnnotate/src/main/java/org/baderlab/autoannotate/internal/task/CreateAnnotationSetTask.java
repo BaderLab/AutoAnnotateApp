@@ -32,14 +32,13 @@ import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.AbstractTask;
+import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
-import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.TaskMonitor;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
-import com.google.inject.name.Named;
 
 public class CreateAnnotationSetTask extends AbstractTask {
 
@@ -49,11 +48,12 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	@Inject private LayoutClustersTaskFactory.Factory layoutTaskFactoryFactory;
 	@Inject private CyNetworkManager networkManager;
 	
-	@Inject private @Named("sync") TaskManager<?,?> syncTaskManager;
+	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	@Inject private ModelManager modelManager;
 	
 	
 	private final AnnotationSetTaskParamters params;
+	private boolean isCommand;
 	
 	public interface Factory {
 		CreateAnnotationSetTask create(AnnotationSetTaskParamters params);
@@ -62,6 +62,10 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	@Inject
 	public CreateAnnotationSetTask(@Assisted AnnotationSetTaskParamters params) {
 		this.params = params;
+	}
+	
+	public void setIsCommand(boolean isCommand) {
+		this.isCommand = isCommand;
 	}
 	
 	
@@ -125,7 +129,7 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		LabelMakerManager labelManager = labelManagerProvider.get();
 		labelManager.register(annotationSet, factory, context);
 		
-		networkViewSet.select(annotationSet); // fires ModelEvent.AnnotationSetSelected
+		networkViewSet.select(annotationSet, isCommand); // fires ModelEvent.AnnotationSetSelected
 	}
 	
 	

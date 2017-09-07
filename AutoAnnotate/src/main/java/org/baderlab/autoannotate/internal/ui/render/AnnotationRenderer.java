@@ -21,20 +21,20 @@ import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
+import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
-import org.cytoscape.work.TaskManager;
+import org.cytoscape.work.swing.DialogTaskManager;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.google.inject.name.Named;
 
 @Singleton
 public class AnnotationRenderer {
 	
-	@Inject private @Named("dialog") TaskManager<?,?> dialogTaskManager;
-	@Inject private @Named("sync")   TaskManager<?,?> syncTaskManager;
+	@Inject private DialogTaskManager dialogTaskManager;
+	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	
 	@Inject private DrawClusterTask.Factory drawTaskProvider;
 	@Inject private EraseClusterTask.Factory eraseTaskProvider;
@@ -63,11 +63,16 @@ public class AnnotationRenderer {
 			return;
 		}
 		
-		redrawAnnotations(event.getNetworkViewSet(), event.getAnnotationSet());
+		boolean sync = event.isCommand(); // run synchronously if running from a command
+		redrawAnnotations(event.getNetworkViewSet(), event.getAnnotationSet(), sync);
 	}
 	
 	
 	public void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selected) {
+		redrawAnnotations(networkViewSet, selected, false);
+	}
+	
+	private void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selected, boolean sync) {
 		TaskIterator tasks = new TaskIterator();
 		
 		for(Cluster cluster : getClusters(networkViewSet)) {
@@ -80,7 +85,10 @@ public class AnnotationRenderer {
 			}
 		}
 		
-		dialogTaskManager.execute(tasks);
+		if(sync)
+			syncTaskManager.execute(tasks);
+		else
+			dialogTaskManager.execute(tasks);
 	}
 	
 	

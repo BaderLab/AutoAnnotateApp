@@ -84,17 +84,14 @@ public class AnnotateCommandTask extends AbstractTask {
 	public void run(TaskMonitor taskMonitor) {
 		CyNetworkView networkView = getNetworkView();
 		CyNetwork network = networkView.getModel();
+		CyTable nodeTable = network.getDefaultNodeTable();
 		
 		// Reasonable default for EnrichmentMap networks
 		if(labelColumn == null) {
-			Optional<String> col = getColumnEndingWith(network.getDefaultNodeTable(), "GS_DESCR");
-			if(col.isPresent()) {
-				labelColumn = col.get();
-			}
+			Optional<String> col = getColumnEndingWith(nodeTable, "GS_DESCR");
+			labelColumn = col.orElse(CyNetwork.NAME);
 		}
-		if(labelColumn == null)
-			throw new IllegalArgumentException("labelColumn is null");
-		if(network.getDefaultNodeTable().getColumn(labelColumn) == null)
+		if(nodeTable.getColumn(labelColumn) == null)
 			throw new IllegalArgumentException("Column with name '" + labelColumn + "' does not exist in the node table.");
 		
 		ClusterAlgorithm alg = ClusterAlgorithm.valueOf(clusterAlgorithm.getSelectedValue());
@@ -102,11 +99,7 @@ public class AnnotateCommandTask extends AbstractTask {
 			// Reasonable default for EnrichmentMap networks
 			if(edgeWeightColumn == null) {
 				Optional<String> col = getColumnEndingWith(network.getDefaultEdgeTable(), "similarity_coefficient");
-				if(col.isPresent()) {
-					edgeWeightColumn = col.get();
-				} else {
-					edgeWeightColumn = "--None--";
-				}
+				edgeWeightColumn = col.orElse("--None--");
 			} else if(network.getDefaultEdgeTable().getColumn(edgeWeightColumn) == null) {
 				 throw new IllegalArgumentException("Column with name '" + edgeWeightColumn + "' does not exist in the edge table.");
 			}
@@ -114,7 +107,7 @@ public class AnnotateCommandTask extends AbstractTask {
 		if(!useClusterMaker) {
 			if(clusterIdColumn == null)
 				throw new IllegalArgumentException("The 'clusterIdColumn' parameter is required when not using clusterMaker.");
-			if(network.getDefaultNodeTable().getColumn(clusterIdColumn) == null)
+			if(nodeTable.getColumn(clusterIdColumn) == null)
 				throw new IllegalArgumentException("Column with name '" + clusterIdColumn + "' does not exist in the node table.");
 		}
 		
@@ -165,6 +158,7 @@ public class AnnotateCommandTask extends AbstractTask {
 		tasks.append(collapseAllTaskFactory.createTaskIterator());
 		
 		CreateAnnotationSetTask createTask = createTaskFactory.create(params);
+		createTask.setIsCommand(true); // hackey way to tell the AnnotationRenderer to run synchronously
 		tasks.append(createTask);
 		
 		insertTasksAfterCurrentTask(tasks);

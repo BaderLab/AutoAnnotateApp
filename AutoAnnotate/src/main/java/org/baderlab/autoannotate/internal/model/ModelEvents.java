@@ -27,15 +27,20 @@ public class ModelEvents {
 	public static class AnnotationSetSelected implements ModelEvent {
 		private final Optional<AnnotationSet> annotationSet;
 		private final NetworkViewSet networkViewSet; // because annotationSet may be null
-		AnnotationSetSelected(NetworkViewSet networkViewSet, Optional<AnnotationSet> annotationSet) {
+		private final boolean isCommand; // kinda hackey, but oh well
+		AnnotationSetSelected(NetworkViewSet networkViewSet, Optional<AnnotationSet> annotationSet, boolean isCommand) {
 			this.networkViewSet = networkViewSet;
 			this.annotationSet = annotationSet;
+			this.isCommand = isCommand;
 		}
 		public Optional<AnnotationSet> getAnnotationSet() {
 			return annotationSet;
 		}
 		public NetworkViewSet getNetworkViewSet() {
 			return networkViewSet;
+		}
+		public boolean isCommand() {
+			return isCommand;
 		}
 	}
 	
