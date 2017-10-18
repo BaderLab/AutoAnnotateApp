@@ -44,7 +44,12 @@ public class ClusterTableSelectionListener implements ListSelectionListener {
 		
 		for(CyNode node : network.getNodeList()) {
 			CyRow row = network.getRow(node);
-			row.set(CyNetwork.SELECTED, nodesToSelect.contains(node));
+			
+			// Test if the node is already in the correct state, don't fire unnecessary events
+			boolean select = nodesToSelect.contains(node);
+			if(!Boolean.valueOf(select).equals(row.get(CyNetwork.SELECTED, Boolean.class))) {
+				row.set(CyNetwork.SELECTED, select);
+			}
 		}
 	}
 

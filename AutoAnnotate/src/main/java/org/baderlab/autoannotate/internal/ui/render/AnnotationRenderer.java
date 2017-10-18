@@ -43,6 +43,7 @@ public class AnnotationRenderer {
 	// MKTODO it would be much better to have a single map so that there is no chance of the keys being different
 	private Map<Cluster,TextAnnotation> textAnnotations = new HashMap<>();
 	private Map<Cluster,ShapeAnnotation> shapeAnnotations = new HashMap<>();
+	private Set<Cluster> selectedClusters = new HashSet<>();
 	
 	
 	@Inject
@@ -207,13 +208,18 @@ public class AnnotationRenderer {
 		
 		TaskIterator tasks = new TaskIterator();
 		
-		for(Cluster cluster : deselect) {
-			tasks.append(selectTaskProvider.create(cluster, false));
-		}
 		for(Cluster cluster : select) {
-			tasks.append(selectTaskProvider.create(cluster, true));
+			if(!selectedClusters.contains(cluster)) {
+				tasks.append(selectTaskProvider.create(cluster, true));
+			}
+		}
+		for(Cluster cluster : deselect) {
+			if(selectedClusters.contains(cluster)) {
+				tasks.append(selectTaskProvider.create(cluster, false));
+			}
 		}
 		
+		selectedClusters = new HashSet<>(select);
 		syncTaskManager.execute(tasks);
 	}
 	
