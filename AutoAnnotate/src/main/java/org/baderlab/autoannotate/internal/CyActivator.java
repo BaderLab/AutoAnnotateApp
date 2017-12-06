@@ -94,8 +94,8 @@ public class CyActivator extends AbstractCyActivator {
 			
 			String id = factory.getID();
 			String description = String.join(" ", Arrays.asList(factory.getDescription()));
-			registerCommand(bc, "label-"+id, labelTaskFactory, "Run label algorithm '" + id + "'. " + description);
-			registerCommand(bc, "annotate-"+id, annotateTaskFactory, "Annotate network using label algorithm '" + id + "'. " + description);
+			registerCommand(bc, "label-"+id, true, labelTaskFactory, "Run label algorithm '" + id + "'. " + description);
+			registerCommand(bc, "annotate-"+id, true, annotateTaskFactory, "Annotate network using label algorithm '" + id + "'. " + description);
 		}
 		
 		// Regular commands
@@ -133,15 +133,17 @@ public class CyActivator extends AbstractCyActivator {
 	
 	private void registerCommand(BundleContext bc, String name, Class<? extends Task> type, String description) {
 		TaskFactory taskFactory = taskFactory(injector.getProvider(type));
-		registerCommand(bc, name, taskFactory, description);
+		registerCommand(bc, name, false, taskFactory, description);
 	}
 	
-	private void registerCommand(BundleContext bc, String name, TaskFactory factory, String description) {
+	private void registerCommand(BundleContext bc, String name, boolean json, TaskFactory factory, String description) {
 		Properties props = new Properties();
 		props.put(ServiceProperties.COMMAND, name);
 		props.put(ServiceProperties.COMMAND_NAMESPACE, "autoannotate");
+		if(json)
+			props.put(ServiceProperties.COMMAND_SUPPORTS_JSON, "true");
 		if(description != null)
-			props.put("commandDescription", description); // added in Cytoscape 3.2
+			props.put(ServiceProperties.COMMAND_LONG_DESCRIPTION, description);
 		registerService(bc, factory, TaskFactory.class, props);
 	}
 	

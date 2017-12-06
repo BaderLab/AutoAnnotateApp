@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.baderlab.autoannotate.internal.model.io.CreationParameter;
 import org.cytoscape.model.CyNode;
@@ -48,13 +49,13 @@ public class AnnotationSetBuilder {
 	
 	private boolean used = false;
 	
-	class ClusterBuilder {
+	public class ClusterBuilder {
 		final Collection<CyNode> nodes;
 		final String label;
 		final boolean collapsed;
 		final Optional<Consumer<Cluster>> clusterCallback;
 		
-		public ClusterBuilder(Collection<CyNode> nodes, String label, boolean collapsed, Consumer<Cluster> callback) {
+		ClusterBuilder(Collection<CyNode> nodes, String label, boolean collapsed, Consumer<Cluster> callback) {
 			this.nodes = nodes;
 			this.label = label;
 			this.collapsed = collapsed;
@@ -63,6 +64,14 @@ public class AnnotationSetBuilder {
 		
 		public ClusterBuilder(Collection<CyNode> nodes, String label, boolean collapsed) {
 			this(nodes, label, collapsed, null);
+		}
+		
+		public String getLabel() {
+			return label;
+		}
+		
+		public Collection<Long> getNodeSuids() {
+			return nodes.stream().map(CyNode::getSUID).collect(Collectors.toList());
 		}
 	}
 	

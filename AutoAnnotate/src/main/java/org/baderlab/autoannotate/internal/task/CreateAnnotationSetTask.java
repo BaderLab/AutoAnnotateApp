@@ -1,5 +1,8 @@
 package org.baderlab.autoannotate.internal.task;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -20,6 +23,7 @@ import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
+import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder.ClusterBuilder;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
@@ -32,15 +36,20 @@ import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.AbstractTask;
+import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
+import org.cytoscape.work.json.JSONResult;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonWriter;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
-public class CreateAnnotationSetTask extends AbstractTask {
+public class CreateAnnotationSetTask extends AbstractTask implements ObservableTask {
 
 	@Inject private RunClusterMakerTaskFactory.Factory clusterMakerFactoryFactory;
 	@Inject private CreateSubnetworkTask.Factory subnetworkTaskFactory;
@@ -51,6 +60,7 @@ public class CreateAnnotationSetTask extends AbstractTask {
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	@Inject private ModelManager modelManager;
 	
+	private AnnotationSetBuilder builder;
 	
 	private final AnnotationSetTaskParamters params;
 	private boolean isCommand;
@@ -115,21 +125,23 @@ public class CreateAnnotationSetTask extends AbstractTask {
 		NetworkViewSet networkViewSet = modelManager.getNetworkViewSet(networkView);
 		String name = createName(networkViewSet);
 		
-		AnnotationSetBuilder builder = networkViewSet.getAnnotationSetBuilder(name, labelColumn);
+		builder = networkViewSet.getAnnotationSetBuilder(name, labelColumn);
 		for(String clusterKey : clusters.keySet()) {
 			Collection<CyNode> nodes = clusters.get(clusterKey);
 			String label = labelMaker.makeLabel(network, nodes, labelColumn);
 			builder.addCluster(nodes, label, false);
 		}
 		
-		processCreationParameters(builder, factory, labelMaker, params);
-		
-		AnnotationSet annotationSet = builder.build(); // fires ModelEvent.AnnotationSetAdded
-		
-		LabelMakerManager labelManager = labelManagerProvider.get();
-		labelManager.register(annotationSet, factory, context);
-		
-		networkViewSet.select(annotationSet, isCommand); // fires ModelEvent.AnnotationSetSelected
+		if(!params.getReturnJsonOnly()) {
+			processCreationParameters(builder, factory, labelMaker, params);
+			
+			AnnotationSet annotationSet = builder.build(); // fires ModelEvent.AnnotationSetAdded
+			
+			LabelMakerManager labelManager = labelManagerProvider.get();
+			labelManager.register(annotationSet, factory, context);
+			
+			networkViewSet.select(annotationSet, isCommand); // fires ModelEvent.AnnotationSetSelected
+		}
 	}
 	
 	
@@ -333,5 +345,39 @@ public class CreateAnnotationSetTask extends AbstractTask {
 			.filter(nv -> !isHidden(nv))
 			.map(nv -> nv.getModel())
 			.collect(Collectors.toList());
+	}
+
+	@Override
+	public <R> R getResults(Class<? extends R> type) {
+		if(JSONResult.class.equals(type)) {
+			return type.cast((JSONResult)this::generateCommandResponseJson);
+		}
+		return null;
+	}
+	
+	@Override
+	public List<Class<?>> getResultClasses() {
+		return Arrays.asList(JSONResult.class);
+	}
+	
+	
+	private String generateCommandResponseJson() {
+		Gson gson = new Gson();
+		StringWriter stringWriter = new StringWriter();
+		JsonWriter writer = new JsonWriter(stringWriter);
+		try {
+			writer.beginArray();
+			for(ClusterBuilder cluster : builder.getClusters()) {
+				gson.toJson(ImmutableMap.of(
+					"label", cluster.getLabel(),
+					"nodes", cluster.getNodeSuids()
+				), Map.class, writer);
+			}
+			writer.endArray();
+			writer.close();
+			return stringWriter.toString();
+		} catch(IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

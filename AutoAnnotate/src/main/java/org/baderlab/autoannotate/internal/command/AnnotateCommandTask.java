@@ -33,23 +33,28 @@ public class AnnotateCommandTask extends AbstractTask {
 	@Tunable
 	public CyNetwork network;
 	
-	@Tunable(description="Name of node column to use for generating labels. Must be of type String or String List.")
+	@Tunable(longDescription="Name of node column to use for generating labels. Must be of type String or String List.")
 	public String labelColumn;
 	
-	@Tunable(description="If true calls the clusterMaker app to generate the clusters (default). If false uses the 'clusterIdColumn' parameter to identify clusters.")
+	@Tunable(longDescription="If true calls the clusterMaker app to generate the clusters (default). If false uses the 'clusterIdColumn' parameter to identify clusters.")
 	public boolean useClusterMaker = true;
 	
-	@Tunable(description="clusterMaker algorithm. Default: MCL")
+	@Tunable(longDescription="clusterMaker algorithm. Default: MCL")
 	public ListSingleSelection<String> clusterAlgorithm;
 	
-	@Tunable(description="Name of edge column to use with edge-weighted clusterMaker algorithms. Must be numeric.")
+	@Tunable(longDescription="Name of edge column to use with edge-weighted clusterMaker algorithms. Must be numeric.")
 	public String edgeWeightColumn;
 	
-	@Tunable(description="Name of node column to use to identify clusters when the 'userClusterMaker' argument is false.")
+	@Tunable(longDescription="Name of node column to use to identify clusters when the 'userClusterMaker' argument is false.")
 	public String clusterIdColumn;
 	
 	@Tunable
 	public boolean createSingletonClusters = false;
+	
+	@Tunable(longDescription="If true then the labels and clusters will be returned as a JSON object and the annotations will "
+			+ "not actually be created on the network. (i.e. the command will not have side-effects)")
+	public boolean returnJsonOnly = false;
+	
 	
 	@ContainsTunables
 	public Supplier<?> labelMakerArguments;
@@ -124,6 +129,7 @@ public class AnnotateCommandTask extends AbstractTask {
 			.setClusterDataColumn(clusterIdColumn)
 			.setCreateSingletonClusters(createSingletonClusters)
 			.setCreateGroups(false)
+			.setReturnJsonOnly(returnJsonOnly)
 			.build();
 		
 		createTasks(params);

@@ -33,7 +33,7 @@ public class SizeSortedOptions {
 
 	public static class Tunables implements Supplier<SizeSortedOptions> {
 
-		@Tunable(description="Max words to include in label. Default: " + DEFAULT_MAX_WORDS)
+		@Tunable(longDescription="Max words to include in label. Default: " + DEFAULT_MAX_WORDS)
 		public int maxWords = DEFAULT_MAX_WORDS;
 		
 		@Override

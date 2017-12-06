@@ -47,11 +47,11 @@ public class ClusterBoostedOptions {
 	
 	public static class Tunables implements Supplier<ClusterBoostedOptions> {
 		
-		@Tunable(description="Max words to include in label. Default: " + DEFAULT_MAX_WORDS)
+		@Tunable(longDescription="Max words to include in label. Default: " + DEFAULT_MAX_WORDS)
 		public int maxWords = DEFAULT_MAX_WORDS;
 		
 		// Call this 'adjacentWordBonus' to avoid confusion with normal definition of 'clusters'
-		@Tunable(description="Size bonus given to words that are adjacent to the largest words. Default: " + DEFAULT_CLUSTER_BONUS)
+		@Tunable(longDescription="Size bonus given to words that are adjacent to the largest words. Default: " + DEFAULT_CLUSTER_BONUS)
 		public int adjacentWordBonus = DEFAULT_CLUSTER_BONUS;
 
 		@Override

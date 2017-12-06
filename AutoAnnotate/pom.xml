@@ -5,7 +5,7 @@
 		<project.name>AutoAnnotate</project.name>
 		<bundle.symbolicName>org.baderlab.autoannotate</bundle.symbolicName>
 		<bundle.namespace>org.baderlab.autoannotate</bundle.namespace>
-		<cytoscape.version>3.4.0</cytoscape.version>
+		<cytoscape.version>3.6.0</cytoscape.version>
 	</properties>
 
 	<name>AutoAnnotate</name>
@@ -80,6 +80,7 @@
 							!junit.framework,
 							!org.apache.tools.ant.*,
 							!sun.reflect,
+							!org.mockito.asm.signature,
 							*
 						</Import-Package>
 						<Embed-Dependency>
@@ -273,7 +274,7 @@
 			<!-- Used by test and by the app at runtime... don't ask -->
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
-			<version>1.9.5</version>
+			<version>1.10.19</version>
 		</dependency>
 	   	
 	   	
@@ -287,7 +288,7 @@
 		<dependency>
 			<groupId>org.jukito</groupId>
 			<artifactId>jukito</artifactId>
-			<version>1.4</version>
+			<version>1.5</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
