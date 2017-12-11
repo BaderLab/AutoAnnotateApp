@@ -32,6 +32,8 @@ import com.google.inject.assistedinject.Assisted;
  * annotation then run EraseClusterTask first.
  */
 public class DrawClusterTask extends AbstractTask {
+	
+	public static final Color SELECTED_COLOR = Color.YELLOW;
 
 	@Inject private AnnotationFactory<TextAnnotation> textFactory;
 	@Inject private AnnotationFactory<ShapeAnnotation> shapeFactory;
@@ -208,6 +210,7 @@ public class DrawClusterTask extends AbstractTask {
 		AnnotationSet annotationSet = cluster.getParent();
 		CyNetworkView view = annotationSet.getParent().getNetworkView();
 		DisplayOptions displayOptions = annotationSet.getDisplayOptions();
+		boolean isSelected = annotationRenderer.isSelected(cluster);
 		
 		double zoom = view.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR);
 		String labelText = cluster.getLabel();
@@ -252,7 +255,7 @@ public class DrawClusterTask extends AbstractTask {
 		
 		double fontSize = 5*zoom*labelFontSize;
 		
-		Color fontColor = displayOptions.getFontColor();
+		Color fontColor = isSelected ? SELECTED_COLOR : displayOptions.getFontColor();
 		
 		return new LabelArgs(xPos, yPos, width, height, zoom, labelText, fontSize, fontColor);
 	}
@@ -262,12 +265,14 @@ public class DrawClusterTask extends AbstractTask {
 		AnnotationSet annotationSet = cluster.getParent();
 		CyNetworkView view = annotationSet.getParent().getNetworkView();
 		DisplayOptions displayOptions = annotationSet.getDisplayOptions();
+		boolean isSelected = annotationRenderer.isSelected(cluster);
 		
 		ShapeType shapeType = displayOptions.getShapeType();
-		int borderWidth = displayOptions.getBorderWidth();
+		int borderWidth = displayOptions.getBorderWidth() * (isSelected ? 3 : 1);
 		int opacity = displayOptions.getOpacity();
-		Color borderColor = displayOptions.getBorderColor();
+		Color borderColor = isSelected ? SELECTED_COLOR : displayOptions.getBorderColor();
 		Color fillColor = displayOptions.getFillColor();
+		
 		
 		double zoom = view.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR);
 

@@ -48,11 +48,10 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class ModelManager implements CyDisposable,
-									 SetCurrentNetworkViewListener, NetworkViewAboutToBeDestroyedListener, 
-                                     ViewChangedListener, AboutToRemoveNodesListener, RowsSetListener, 
-                                     GroupAboutToCollapseListener, GroupCollapsedListener {
-	
+public class ModelManager implements	CyDisposable, SetCurrentNetworkViewListener, NetworkViewAboutToBeDestroyedListener,
+									ViewChangedListener, AboutToRemoveNodesListener, RowsSetListener, GroupAboutToCollapseListener,
+									GroupCollapsedListener {
+
 	@Inject private CyApplicationManager applicationManager;
 	@Inject private CyGroupManager groupManager;
 	@Inject private EventBus eventBus;

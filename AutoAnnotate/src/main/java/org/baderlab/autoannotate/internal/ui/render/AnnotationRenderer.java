@@ -223,6 +223,10 @@ public class AnnotationRenderer {
 		syncTaskManager.execute(tasks);
 	}
 	
+	public boolean isSelected(Cluster cluster) {
+		return selectedClusters.contains(cluster);
+	}
+	
 	
 	Set<Cluster> getClusters(NetworkViewSet nvs) { 
 		Set<Cluster> clusters = new HashSet<Cluster>();

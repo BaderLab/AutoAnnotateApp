@@ -1,7 +1,5 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
-import java.awt.Color;
-
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
@@ -46,7 +44,7 @@ public class SelectClusterTask extends AbstractTask {
 		
 		if(shape != null) {
 			if(select) {
-				shape.setBorderColor(Color.YELLOW);
+				shape.setBorderColor(DrawClusterTask.SELECTED_COLOR);
 				shape.setBorderWidth(3 * displayOptions.getBorderWidth());
 			} else {
 				shape.setBorderColor(displayOptions.getBorderColor());
@@ -57,7 +55,7 @@ public class SelectClusterTask extends AbstractTask {
 		
 		if(text != null) {
 			if(select) {
-				text.setTextColor(Color.YELLOW);
+				text.setTextColor(DrawClusterTask.SELECTED_COLOR);
 			} else {
 				text.setTextColor(displayOptions.getFontColor());
 			}
