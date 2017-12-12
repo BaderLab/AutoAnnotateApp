@@ -15,6 +15,7 @@ import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.cytoscape.group.CyGroup;
 import org.cytoscape.group.CyGroupFactory;
 import org.cytoscape.group.CyGroupManager;
+import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyRow;
@@ -49,7 +50,7 @@ public class CollapseTask extends AbstractTask {
 	@Inject 
 	public CollapseTask(@Assisted Cluster cluster, @Assisted Grouping action, SettingManager settingManager) {
 		this.cluster = Objects.requireNonNull(cluster);
-		this.action = Objects.requireNonNull(action);
+		this.action  = Objects.requireNonNull(action);
 		this.overrideAttribute = settingManager.getValue(Setting.OVERRIDE_GROUP_LABELS);
 	}
 	
@@ -85,20 +86,29 @@ public class CollapseTask extends AbstractTask {
 				group.collapse(network);
 				
 				if(overrideAttribute) {
-					maybeCreateAnotherAttributeForName(groupRow);
+					maybeCreateAnotherAttributeForName(network, groupRow);
 				}
 			});
 		}
 	}
 	
-	
-	private void maybeCreateAnotherAttributeForName(CyRow groupRow) {
+
+	private void maybeCreateAnotherAttributeForName(CyNetwork network, CyRow groupRow) {
 		VisualStyle visualStyle = visualMappingManager.getCurrentVisualStyle();
 		VisualMappingFunction<?,String> labelFunction = visualStyle.getVisualMappingFunction(BasicVisualLexicon.NODE_LABEL);
 		if(labelFunction != null) {
 			if(String.class.equals(labelFunction.getMappingColumnType())) {
 				String colName = labelFunction.getMappingColumnName();
 				if(groupRow.getTable().getColumn(colName) != null) {
+					groupRow.set(colName, cluster.getLabel());
+				}
+			}
+		} else {
+			// If the network is an EM network then make sure to use the GS_DESCR column, 
+			// otherwise publication ready mode may show the wrong label.
+			for(CyColumn column : network.getDefaultNodeTable().getColumns()) {
+				String colName = column.getName();
+				if(colName.endsWith("GS_DESCR")) {
 					groupRow.set(colName, cluster.getLabel());
 				}
 			}
