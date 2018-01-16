@@ -7,5 +7,6 @@
 .classpath
 .project
 bin/
+docs/_build
 target/
 .settings/
