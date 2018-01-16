@@ -54,6 +54,7 @@ as you like, so its not critical to get everything perfect at this step.
     * Any Node Column of may be used to identify the clusters. 
     * If you select a column of List type then the clusters may overlap. 
 
+
 * Label Options
 
   * Label Column
