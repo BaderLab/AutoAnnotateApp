@@ -18,6 +18,7 @@ import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.util.SerialTestTaskManager;
 import org.baderlab.autoannotate.util.SimpleLabelMakerFactory;
+import org.cytoscape.application.swing.CyColumnPresentationManager;
 import org.cytoscape.ding.NetworkViewTestSupport;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
@@ -59,6 +60,8 @@ public class NetworkTestUtil {
 			bind(taskManager).annotatedWith(Names.named("dialog")).to(SerialTestTaskManager.class);
 			bind(LabelMakerManager.class).toInstance(mock(LabelMakerManager.class));
 			bind(IconManager.class).toInstance(mock(IconManager.class));
+			bind(CyColumnPresentationManager.class).toInstance(mock(CyColumnPresentationManager.class));
+			
 			// Bind all AssistedInjection factories
 			install(ApplicationModule.createFactoryModule());
 		}

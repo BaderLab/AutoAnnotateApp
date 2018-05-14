@@ -143,7 +143,8 @@ public class AnnotationSetTaskParamters {
 	}
 	
 	public String getClusterMakerEdgeAttribute() {
-		return clusterMakerEdgeAttribute;
+		// bit of a hack
+		return clusterMakerEdgeAttribute == null ? "-- None --" : clusterMakerEdgeAttribute;
 	}
 	
 	public LabelMakerFactory<?> getLabelMakerFactory() {

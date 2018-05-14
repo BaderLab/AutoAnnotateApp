@@ -6,6 +6,7 @@ import static org.ops4j.peaberry.util.Filters.ldap;
 import javax.swing.JFrame;
 
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.application.swing.CyColumnPresentationManager;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.command.AvailableCommands;
 import org.cytoscape.command.CommandExecutorTaskFactory;
@@ -75,6 +76,7 @@ public class CytoscapeServiceModule extends AbstractModule {
 		bindService(CyTableFactory.class);
 		bindService(FileUtil.class);
 		bindService(CyRootNetworkManager.class);
+		bindService(CyColumnPresentationManager.class);
 		
 		bindService(DialogTaskManager.class);
 		TypeLiteral<SynchronousTaskManager<?>> synchronousManager = new TypeLiteral<SynchronousTaskManager<?>>(){};

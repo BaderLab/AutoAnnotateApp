@@ -9,7 +9,6 @@ import java.util.Optional;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -25,6 +24,9 @@ import org.baderlab.autoannotate.internal.ui.view.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.application.swing.CyColumnComboBox;
+import org.cytoscape.application.swing.CyColumnPresentationManager;
+import org.cytoscape.model.CyColumn;
 import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.view.model.CyNetworkView;
 
@@ -39,12 +41,13 @@ public class EasyModePanel extends JPanel implements TabPanel {
 	private final CreateAnnotationSetDialog parent;
 	
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
+	@Inject private Provider<CyColumnPresentationManager> presentationManagerProvider;
 	
 	private JRadioButton clusterAllRadio;
 	private JRadioButton clusterMaxRadio;
 	private JCheckBox layoutCheckBox;
 	private JSpinner spinner;
-	private JComboBox<String> labelCombo;
+	private CyColumnComboBox labelCombo;
 	
 	
 	public static interface Factory {
@@ -117,7 +120,7 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		labelPanel.setOpaque(false);
 		
 		JLabel label = new JLabel("Label Column:");
-		labelCombo = LabelOptionsPanel.createLabelColumnCombo(networkView.getModel());
+		labelCombo = LabelOptionsPanel.createLabelColumnCombo(presentationManagerProvider.get(), networkView.getModel());
 		SwingUtil.makeSmall(label, labelCombo);
 		
 		labelPanel.add(label, GBCFactory.grid(0,0).get());
@@ -136,8 +139,8 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		return parent.isClusterMakerInstalled() && parent.isWordCloudInstalled();
 	}
 	
-	public String getLabelColumn() {
-		return labelCombo.getItemAt(labelCombo.getSelectedIndex());
+	public CyColumn getLabelColumn() {
+		return labelCombo.getSelectedItem();
 	}
 	
 	private int getMaxClusters() {
@@ -145,10 +148,9 @@ public class EasyModePanel extends JPanel implements TabPanel {
 	}
 	
 	
-	private String getDefaultClusterMakerEdgeAttribute() {
-		 List<String> columns = getColumnsOfType(networkView.getModel(), Number.class, false, false, false);
-		 Optional<String> emColumn = columns.stream().filter(col -> col.endsWith("similarity_coefficient")).findAny();
-		 return emColumn.orElse(CreateAnnotationSetDialog.NONE);
+	private Optional<CyColumn> getDefaultClusterMakerEdgeAttribute() {
+		List<CyColumn> columns = getColumnsOfType(networkView.getModel(), Number.class, false, false);
+		return columns.stream().filter(c -> c.getName().endsWith("similarity_coefficient")).findAny();
 	}
 	
 	@Override
@@ -158,14 +160,15 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		
 		AnnotationSetTaskParamters.Builder builder = 
 			new AnnotationSetTaskParamters.Builder(networkView)
-			.setLabelColumn(getLabelColumn())
+			.setLabelColumn(getLabelColumn().getName())
 			.setUseClusterMaker(true)
 			.setClusterAlgorithm(ClusterAlgorithm.MCL)
-			.setClusterMakerEdgeAttribute(getDefaultClusterMakerEdgeAttribute())
 			.setLabelMakerFactory(labelMakerFactory)
 			.setLabelMakerContext(labelMakerContext)
 			.setCreateGroups(false)
 			.setLayoutClusters(layoutCheckBox.isSelected());
+		
+		getDefaultClusterMakerEdgeAttribute().map(CyColumn::getName).ifPresent(builder::setClusterMakerEdgeAttribute);
 		
 		if(clusterAllRadio.isSelected()) {
 			builder.setCreateSingletonClusters(true);
