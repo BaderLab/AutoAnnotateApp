@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Semaphore;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -26,11 +25,8 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
-import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
-import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationPersistor;
-import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNetworkTableManager;
@@ -46,8 +42,6 @@ import org.cytoscape.session.events.SessionLoadedListener;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
-import org.cytoscape.work.TaskIterator;
-import org.cytoscape.work.swing.DialogTaskManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,9 +94,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	@Inject private Provider<ModelManager> modelManagerProvider;
 	@Inject private Provider<PanelManager> panelManagerProvider;
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
-	@Inject private CollapseAllTaskFactory.Factory collapseActionFactory;
 	
-	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private CyNetworkTableManager networkTableManager;
 	@Inject private CyNetworkManager networkManager;
 	@Inject private CyNetworkViewManager networkViewManager;
@@ -120,7 +112,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	@Override
 	public void handleEvent(SessionAboutToBeSavedEvent e) {
 		if(sessionIsActuallySaving()) {
-			expandAllClusters();
 			// Note, when a new session is loaded the NetworkViewAboutToBeDestroyedListener will clear out the model.
 			exportModel();
 		}
@@ -307,44 +298,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		
 		return activeSets;
 	}
-
-	
-	/**
-	 * This is a huge hack to get around a bug in cytoscape.
-	 * All groups must be expanded before the session is saved.
-	 */
-	private void expandAllClusters() {
-		Collection<CyNetworkView> networkViews = 
-			modelManagerProvider.get()
-			.getNetworkViewSets()
-			.stream()
-			.map(NetworkViewSet::getNetworkView)
-			.collect(Collectors.toSet());
-		
-		if(networkViews.isEmpty())
-			return;
-		
-		TaskIterator tasks = getExpandTasks(networkViews);
-		
-		Semaphore semaphore = new Semaphore(0);
-		dialogTaskManager.execute(tasks, TaskTools.allFinishedObserver(() -> semaphore.release()));
-		
-		// We need to block while the groups are expanding because this must happen before the session is saved.
-		semaphore.acquireUninterruptibly();
-	}
-	
-	
-	private TaskIterator getExpandTasks(Collection<CyNetworkView> networkViewsToCollapse) {
-		TaskIterator tasks = new TaskIterator();
-		tasks.append(TaskTools.taskMessage("Expanding all clusters"));
-		// Right here, expand and remove all groups in networks managed by AutoAnnotate
-		for(CyNetworkView networkView : networkViewsToCollapse) {
-			CollapseAllTaskFactory collapseAction = collapseActionFactory.create(Grouping.EXPAND, networkView);
-			tasks.append(collapseAction.createTaskIterator());
-		}
-		return tasks;
-	}
-	
 	
 	private class Ids {
 		long asId = 0;

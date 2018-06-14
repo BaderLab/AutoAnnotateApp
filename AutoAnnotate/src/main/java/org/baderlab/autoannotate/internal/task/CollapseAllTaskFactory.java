@@ -21,7 +21,7 @@ public class CollapseAllTaskFactory extends AbstractTaskFactory {
 	@Inject private CollapseTask.Factory taskProvider;
 	
 	private final Grouping action;
-	private Collection<Cluster> clusters;
+	private final Collection<Cluster> clusters;
 	
 	public static interface Factory {
 		CollapseAllTaskFactory create(Grouping action, CyNetworkView networkView);
@@ -48,18 +48,16 @@ public class CollapseAllTaskFactory extends AbstractTaskFactory {
 	}
 	
 	
-	private Collection<Cluster> getClusters(CyNetworkView networkView, ModelManager modelManager) {
-		return 
-			modelManager
+	private static Collection<Cluster> getClusters(CyNetworkView networkView, ModelManager modelManager) {
+		return modelManager
 			.getExistingNetworkViewSet(networkView)
 			.flatMap(NetworkViewSet::getActiveAnnotationSet)
 			.map(AnnotationSet::getClusters)
 			.orElse(Collections.emptySet());
 	}
 	
-	private Collection<Cluster> getClusters(NetworkViewSet networkViewSet) {
-		return
-			networkViewSet
+	private static Collection<Cluster> getClusters(NetworkViewSet networkViewSet) {
+		return networkViewSet
 			.getActiveAnnotationSet()
 			.map(AnnotationSet::getClusters)
 			.orElse(Collections.emptySet());
@@ -67,8 +65,7 @@ public class CollapseAllTaskFactory extends AbstractTaskFactory {
 	
 	@Override
 	public TaskIterator createTaskIterator() {
-		return 
-			clusters
+		return clusters
 			.stream()
 			.map(cluster -> taskProvider.create(cluster, action))
 			.collect(TaskTools.taskIterator());
