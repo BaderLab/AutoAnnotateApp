@@ -226,9 +226,9 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		JLabel shapeLabel = new JLabel("Shape:");
 		
 		ellipseListener = e -> displayOptions.setShapeType(ellipseRadio.isSelected() ? ShapeType.ELLIPSE : ShapeType.RECTANGLE);
+		
 		ellipseRadio = SwingUtil.createIconToggleButton(iconManager, IconManager.ICON_CIRCLE_O, "Ellipse");
 		ellipseRadio.addActionListener(ellipseListener);
-		
 		rectangleRadio = SwingUtil.createIconToggleButton(iconManager, IconManager.ICON_SQUARE_O, "Rectangle");
 		rectangleRadio.addActionListener(ellipseListener);
 		
@@ -236,14 +236,13 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		buttonGroup.add(ellipseRadio);
 		buttonGroup.add(rectangleRadio);
 		
-		JLabel fillColorLabel = new JLabel("Fill Color:");
+		JLabel fillColorLabel = new JLabel("Fill:");
 		fillColorButton = new ColorButton(DisplayOptions.FILL_COLOR_DEFAULT);
 		fillColorButton.addPropertyChangeListener("color", fillColorListener = e -> displayOptions.setFillColor(fillColorButton.getColor()));
 		
-		JLabel borderColorLabel = new JLabel("Border Color:");
+		JLabel borderColorLabel = new JLabel("Border:");
 		borderColorButton = new ColorButton(DisplayOptions.BORDER_COLOR_DEFAULT);
 		borderColorButton.addPropertyChangeListener("color", borderColorListener = e -> displayOptions.setBorderColor(borderColorButton.getColor()));
-		
 		
 		panel.setLayout(new GridBagLayout());
 		panel.add(borderWidthSlider, GBCFactory.grid(0,0).gridwidth(3).weightx(1.0).get());
