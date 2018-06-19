@@ -25,7 +25,6 @@ import org.baderlab.autoannotate.internal.ui.view.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.CyApplicationManager;
-import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.view.model.CyNetworkView;
 
 import com.google.inject.Inject;
@@ -79,7 +78,7 @@ public class EasyModePanel extends JPanel implements TabPanel {
 	
 	private JPanel createClusterPanel() {
 		JPanel clusterPanel = new JPanel(new GridBagLayout());
-		clusterPanel.setBorder(BorderFactory.createEmptyBorder(4,0,0,0));
+		clusterPanel.setBorder(BorderFactory.createEmptyBorder(14,10,10,10));
 		clusterPanel.setOpaque(false);
 		
 		clusterMaxRadio = new JRadioButton("Max number of annotations");
@@ -103,17 +102,18 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		clusterPanel.add(new JLabel(" "), GBCFactory.grid(0,2).get());
 		clusterPanel.add(layoutCheckBox, GBCFactory.grid(0,3).gridwidth(3).get());
 		
-		JPanel panel = new JPanel(new BorderLayout());
-		panel.setBorder(LookAndFeelUtil.createTitledBorder("Cluster Options"));
-		panel.add(clusterPanel, BorderLayout.CENTER);
+//		JPanel panel = new JPanel(new BorderLayout());
+//		panel.setBorder(LookAndFeelUtil.createTitledBorder("Cluster Options"));
+//		panel.add(clusterPanel, BorderLayout.CENTER);
+//		return panel;
 		
-		return panel;
+		return clusterPanel;
 	}
 	
 	
 	private JPanel createLabelPanel() {
 		JPanel labelPanel = new JPanel(new GridBagLayout());
-		labelPanel.setBorder(BorderFactory.createEmptyBorder(4,0,0,0));
+		labelPanel.setBorder(BorderFactory.createEmptyBorder(14,10,10,10));
 		labelPanel.setOpaque(false);
 		
 		JLabel label = new JLabel("Label Column:");
@@ -122,12 +122,13 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		
 		labelPanel.add(label, GBCFactory.grid(0,0).get());
 		labelPanel.add(labelCombo, GBCFactory.grid(1,0).weightx(1.0).get());
+
+//		JPanel panel = new JPanel(new BorderLayout());
+//		panel.setBorder(LookAndFeelUtil.createTitledBorder("Label Options"));
+//		panel.add(labelPanel, BorderLayout.CENTER);
+//		return panel;
 		
-		JPanel panel = new JPanel(new BorderLayout());
-		panel.setBorder(LookAndFeelUtil.createTitledBorder("Label Options"));
-		panel.add(labelPanel, BorderLayout.CENTER);
-		
-		return panel;
+		return labelPanel;
 	}
 	
 	
