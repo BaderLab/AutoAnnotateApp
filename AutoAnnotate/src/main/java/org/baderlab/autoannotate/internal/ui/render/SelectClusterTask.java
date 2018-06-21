@@ -44,7 +44,7 @@ public class SelectClusterTask extends AbstractTask {
 		
 		if(shape != null) {
 			if(select) {
-				shape.setBorderColor(DrawClusterTask.SELECTED_COLOR);
+				shape.setBorderColor(ArgsBase.SELECTED_COLOR);
 				shape.setBorderWidth(3 * displayOptions.getBorderWidth());
 			} else {
 				shape.setBorderColor(displayOptions.getBorderColor());
@@ -55,7 +55,7 @@ public class SelectClusterTask extends AbstractTask {
 		
 		if(text != null) {
 			if(select) {
-				text.setTextColor(DrawClusterTask.SELECTED_COLOR);
+				text.setTextColor(ArgsBase.SELECTED_COLOR);
 			} else {
 				text.setTextColor(displayOptions.getFontColor());
 			}

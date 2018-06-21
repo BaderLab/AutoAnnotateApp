@@ -16,7 +16,6 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
-import org.baderlab.autoannotate.internal.ui.render.DrawClusterTask.LabelArgs;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
@@ -37,8 +36,11 @@ public class AnnotationRenderer {
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	
 	@Inject private DrawClusterTask.Factory drawTaskProvider;
+	@Inject private DrawAllClustersTask.Factory drawAllTaskProvider;
 	@Inject private EraseClusterTask.Factory eraseTaskProvider;
+	@Inject private EraseAllClustersTask.Factory eraseAllTaskProvider;
 	@Inject private SelectClusterTask.Factory selectTaskProvider;
+	
 	
 	// MKTODO it would be much better to have a single map so that there is no chance of the keys being different
 	private Map<Cluster,TextAnnotation> textAnnotations = new HashMap<>();
@@ -69,22 +71,16 @@ public class AnnotationRenderer {
 	}
 	
 	
-	public void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selected) {
-		redrawAnnotations(networkViewSet, selected, false);
+	public void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet) {
+		redrawAnnotations(networkViewSet, selectedAnnotationSet, false);
 	}
 	
-	private void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selected, boolean sync) {
+	private void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet, boolean sync) {
 		TaskIterator tasks = new TaskIterator();
+		Set<Cluster> clusters = getClusters(networkViewSet);
 		
-		for(Cluster cluster : getClusters(networkViewSet)) {
-			tasks.append(eraseTaskProvider.create(cluster));
-		}
-		
-		if(selected.isPresent()) {
-			for(Cluster cluster : selected.get().getClusters()) {
-				tasks.append(drawTaskProvider.create(cluster));
-			}
-		}
+		tasks.append(eraseAllTaskProvider.create(clusters));
+		selectedAnnotationSet.map(drawAllTaskProvider::create).ifPresent(tasks::append);
 		
 		if(sync)
 			syncTaskManager.execute(tasks);
@@ -157,7 +153,8 @@ public class AnnotationRenderer {
 		case SHOW_LABELS:
 		case USE_CONSTANT_FONT_SIZE:
 			forEachLabel(as, (text,cluster) -> {
-				LabelArgs labelArgs = DrawClusterTask.computeLabelArgs(this, cluster);
+				ShapeAnnotation shape = getShapeAnnotation(cluster);
+				ArgsLabel labelArgs = ArgsLabel.createFor(shape.getArgMap(), cluster, isSelected(cluster));
 				double fontSize = options.isShowLabels() ? labelArgs.fontSize : 0;
 				text.setFontSize(fontSize);
 				text.setSpecificZoom(labelArgs.zoom);
