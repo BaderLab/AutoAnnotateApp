@@ -28,21 +28,26 @@ import org.baderlab.autoannotate.internal.ui.view.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.util.ComboItem;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.application.swing.CyColumnComboBox;
+import org.cytoscape.application.swing.CyColumnPresentationManager;
+import org.cytoscape.model.CyColumn;
 import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.view.model.CyNetworkView;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
 @SuppressWarnings("serial")
 public class NormalModePanel extends JPanel implements TabPanel {
 
 	@Inject private LabelOptionsPanel.Factory labelOptionsPanelFactory;
+	@Inject private Provider<CyColumnPresentationManager> presentationProvider;
 	
 	private LabelOptionsPanel labelOptionsPanel;
 	private JComboBox<ComboItem<ClusterAlgorithm>> algorithmNameCombo;
-	private JComboBox<ComboItem<String>> edgeWeightColumnCombo;
-	private JComboBox<ComboItem<String>> clusterIdColumnCombo;
+	private CyColumnComboBox edgeWeightColumnCombo;
+	private CyColumnComboBox clusterIdColumnCombo;
 	private JRadioButton useClusterMakerRadio;
 	private JCheckBox singletonCheckBox;
 	
@@ -103,7 +108,9 @@ public class NormalModePanel extends JPanel implements TabPanel {
 		JLabel edgeWeightLabel = new JLabel("           Edge weight column:");
 		panel.add(makeSmall(edgeWeightLabel), GBCFactory.grid(0,2).get());
 		
-		edgeWeightColumnCombo = createComboBox(getColumnsOfType(networkView.getModel(), Number.class, false, true, false), CreateAnnotationSetDialog::abbreviate);
+		List<CyColumn> edgeWeightColumns = getColumnsOfType(networkView.getModel(), Number.class, false, false);
+		edgeWeightColumns.add(0, null); // add the "-- None --" option at the front
+		edgeWeightColumnCombo = new CyColumnComboBox(presentationProvider.get(), edgeWeightColumns);
 		panel.add(makeSmall(edgeWeightColumnCombo), GBCFactory.grid(1,2).weightx(1.0).get());
 		
 		JRadioButton columnRadio = new JRadioButton("User-defined clusters");
@@ -112,17 +119,17 @@ public class NormalModePanel extends JPanel implements TabPanel {
 		JLabel clusterIdLabel = new JLabel("           Cluster node ID column:");
 		panel.add(makeSmall(clusterIdLabel), GBCFactory.grid(0,4).get());
 		
-		List<String> columns = new ArrayList<>();
-		columns.addAll(getColumnsOfType(networkView.getModel(), Integer.class, true, false, true));
-		columns.addAll(getColumnsOfType(networkView.getModel(), Long.class, true, false, true));
-		columns.addAll(getColumnsOfType(networkView.getModel(), String.class, true, false, true));
-		columns.addAll(getColumnsOfType(networkView.getModel(), Boolean.class, true, false, true));
-		columns.addAll(getColumnsOfType(networkView.getModel(), Double.class, true, false, true));
-		columns.sort(Comparator.naturalOrder());
+		List<CyColumn> columns = new ArrayList<>();
+		columns.addAll(getColumnsOfType(networkView.getModel(), Integer.class, true, true));
+		columns.addAll(getColumnsOfType(networkView.getModel(), Long.class, true, true));
+		columns.addAll(getColumnsOfType(networkView.getModel(), String.class, true, true));
+		columns.addAll(getColumnsOfType(networkView.getModel(), Boolean.class, true, true));
+		columns.addAll(getColumnsOfType(networkView.getModel(), Double.class, true, true));
+		columns.sort(Comparator.comparing(CyColumn::getName));
 		
-		clusterIdColumnCombo = createComboBox(columns, CreateAnnotationSetDialog::abbreviate);
+		clusterIdColumnCombo =  new CyColumnComboBox(presentationProvider.get(), columns);
 		
-		panel.add(clusterIdColumnCombo, GBCFactory.grid(1,4).weightx(1.0).get());
+		panel.add(makeSmall(clusterIdColumnCombo), GBCFactory.grid(1,4).weightx(1.0).get());
 		
 		singletonCheckBox = new JCheckBox("Create singleton clusters");
 		singletonCheckBox.setToolTipText("Nodes not included in a cluster will be annotated as a singleton cluster.");
@@ -133,7 +140,8 @@ public class NormalModePanel extends JPanel implements TabPanel {
 		group.add(columnRadio);
 		
 		for(int i = 0; i < edgeWeightColumnCombo.getItemCount(); i++) {
-			if(edgeWeightColumnCombo.getItemAt(i).getValue().endsWith("similarity_coefficient")) {
+			CyColumn item = edgeWeightColumnCombo.getItemAt(i);
+			if(item != null && item.getName().endsWith("similarity_coefficient")) {
 				edgeWeightColumnCombo.setSelectedIndex(i);
 				break;
 			}
@@ -172,10 +180,6 @@ public class NormalModePanel extends JPanel implements TabPanel {
 		else if(useClusterMakerRadio.isSelected() && !parent.isClusterMakerInstalled()) {
 			return false;
 		}
-		// handle empty combo boxes
-		else if(useClusterMakerRadio.isSelected() && algorithmNameCombo.getItemAt(algorithmNameCombo.getSelectedIndex()).getValue().isEdgeAttributeRequired() && edgeWeightColumnCombo.getSelectedIndex() == -1) {
-			return false;
-		}
 		else if(!useClusterMakerRadio.isSelected() && clusterIdColumnCombo.getSelectedIndex() == -1) {
 			return false;
 		}
@@ -188,20 +192,25 @@ public class NormalModePanel extends JPanel implements TabPanel {
 		LabelMakerFactory<?> labelMakerFactory = labelOptionsPanel.getLabelMakerFactory();
 		Object labelMakerContext = labelOptionsPanel.getLabelMakerContext();
 		
-		AnnotationSetTaskParamters params = 
+		AnnotationSetTaskParamters.Builder builder = 
 			new AnnotationSetTaskParamters.Builder(networkView)
-			.setLabelColumn(labelOptionsPanel.getLabelColumn())
+			.setLabelColumn(labelOptionsPanel.getLabelColumn().getName())
 			.setUseClusterMaker(useClusterMakerRadio.isSelected())
 			.setClusterAlgorithm(algorithmNameCombo.getItemAt(algorithmNameCombo.getSelectedIndex()).getValue())
-			.setClusterMakerEdgeAttribute(edgeWeightColumnCombo.getItemAt(edgeWeightColumnCombo.getSelectedIndex()).getValue())
-			.setClusterDataColumn(clusterIdColumnCombo.getItemAt(clusterIdColumnCombo.getSelectedIndex()).getValue())
 			.setLabelMakerFactory(labelMakerFactory)
 			.setLabelMakerContext(labelMakerContext)
 			.setCreateSingletonClusters(singletonCheckBox.isSelected())
-			.setCreateGroups(false)
-			.build();
+			.setCreateGroups(false);
 		
-		return params;
+		CyColumn edgeWeightColumn = edgeWeightColumnCombo.getSelectedItem();
+		if(edgeWeightColumn != null)
+			builder.setClusterMakerEdgeAttribute(edgeWeightColumn.getName());
+		
+		CyColumn clusterIdColumn = clusterIdColumnCombo.getSelectedItem();
+		if(clusterIdColumn != null)
+			builder.setClusterDataColumn(clusterIdColumn.getName());
+		
+		return builder.build();
 	}
 	
 	

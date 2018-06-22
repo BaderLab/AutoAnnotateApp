@@ -33,7 +33,6 @@ import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.view.WarnDialog;
 import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
-import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.command.AvailableCommands;
@@ -51,8 +50,6 @@ import com.google.inject.Provider;
 
 @SuppressWarnings("serial")
 public class CreateAnnotationSetDialog extends JDialog {
-	
-	static final String NONE = "--None--"; // "--None--" is a value accepted by clusterMaker
 	
 	@Inject private @WarnDialogModule.Create Provider<WarnDialog> warnDialogProvider;
 	@Inject private CreateAnnotationSetTask.Factory createTaskFactory;
@@ -252,8 +249,8 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	
 	
-	public static List<String> getColumnsOfType(CyNetwork network, Class<?> type, boolean node, boolean addNone, boolean allowList) {
-		List<String> columns = new LinkedList<>();
+	public static List<CyColumn> getColumnsOfType(CyNetwork network, Class<?> type, boolean node, boolean allowList) {
+		List<CyColumn> columns = new LinkedList<>();
 		
 		CyTable table;
 		if(node)
@@ -267,17 +264,14 @@ public class CreateAnnotationSetDialog extends JDialog {
 			}
 			
 			if(type.isAssignableFrom(column.getType())) {
-				columns.add(column.getName());
+				columns.add(column);
 			}
 			else if(allowList && List.class.equals(column.getType()) && type.isAssignableFrom(column.getListElementType())) {
-				columns.add(column.getName());
+				columns.add(column);
 			}
 		}
 		
-		columns.sort(Comparator.naturalOrder());
-		if(addNone) {
-			columns.add(0, NONE);
-		}
+		columns.sort(Comparator.comparing(CyColumn::getName));
 		return columns;
 	}
 	
@@ -287,10 +281,6 @@ public class CreateAnnotationSetDialog extends JDialog {
 		return network.getRow(network).get(CyNetwork.NAME, String.class);
 	}
 	
-	
-	public static String abbreviate(String text) {
-		return SwingUtil.abbreviate(text, 50);
-	}
 	
 	public boolean isClusterMakerInstalled() {
 		return isClusterMakerInstalled;

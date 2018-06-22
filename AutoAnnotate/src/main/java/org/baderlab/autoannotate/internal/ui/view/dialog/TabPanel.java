@@ -6,8 +6,5 @@ public interface TabPanel {
 
 	AnnotationSetTaskParamters createAnnotationSetTaskParameters();
 	
-	default boolean isOkButtonEnabled() {
-		return true;
-	}
-	
+	boolean isOkButtonEnabled();
 }

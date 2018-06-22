@@ -25,6 +25,9 @@ import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.util.ComboItem;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
+import org.cytoscape.application.swing.CyColumnComboBox;
+import org.cytoscape.application.swing.CyColumnPresentationManager;
+import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.LookAndFeelUtil;
@@ -39,9 +42,9 @@ public class LabelOptionsPanel extends JPanel {
 
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	@Inject private Provider<IconManager> iconManagerProvider;
+	@Inject private Provider<CyColumnPresentationManager> presentationManagerProvider;
 	
-	
-	private JComboBox<String> labelColumnNameCombo;
+	private JComboBox<CyColumn> labelColumnNameCombo;
 	private JComboBox<ComboItem<LabelMakerFactory<?>>> labelMakerFactoryCombo;
 	
 	private Map<String, LabelMakerUI<?>> labelUIs = new HashMap<>();
@@ -70,20 +73,18 @@ public class LabelOptionsPanel extends JPanel {
 	}
 	
 	
-	public static JComboBox<String> createLabelColumnCombo(CyNetwork network) {
-		JComboBox<String> combo = new JComboBox<>();
-		for(String labelColumn : getColumnsOfType(network, String.class, true, false, true)) {
-			combo.addItem(labelColumn);
-		}
+	public static CyColumnComboBox createLabelColumnCombo(CyColumnPresentationManager presentationManager, CyNetwork network) {
+		List<CyColumn> columns = getColumnsOfType(network, String.class, true, true);
+		CyColumnComboBox combo = new CyColumnComboBox(presentationManager, columns);
 		
 		// Preselect the best choice for label column, with special case for EnrichmentMap
 		for(int i = 0; i < combo.getItemCount(); i++) {
-			String item = combo.getItemAt(i);
-			if(item.endsWith("GS_DESCR")) { // column created by EnrichmentMap
+			CyColumn item = combo.getItemAt(i);
+			if(item.getName().endsWith("GS_DESCR")) { // column created by EnrichmentMap
 				combo.setSelectedIndex(i);
 				break;
 			}
-			if(item.equalsIgnoreCase("name")) {
+			if(item.getName().equalsIgnoreCase("name")) {
 				combo.setSelectedIndex(i);
 				break;
 			}
@@ -104,7 +105,7 @@ public class LabelOptionsPanel extends JPanel {
 		setBorder(LookAndFeelUtil.createTitledBorder(titleText));
 			
 		if(showColumnCombo) {
-			labelColumnNameCombo = createLabelColumnCombo(network);
+			labelColumnNameCombo = createLabelColumnCombo(presentationManagerProvider.get(), network);
 			JLabel colLabel = new JLabel("Label Column:");
 			makeSmall(labelColumnNameCombo, colLabel);
 			add(colLabel, GBCFactory.grid(0,y).get());
@@ -199,7 +200,7 @@ public class LabelOptionsPanel extends JPanel {
 	}
 	
 	
-	public String getLabelColumn() {
+	public CyColumn getLabelColumn() {
 		return labelColumnNameCombo.getItemAt(labelColumnNameCombo.getSelectedIndex());
 	}
 	

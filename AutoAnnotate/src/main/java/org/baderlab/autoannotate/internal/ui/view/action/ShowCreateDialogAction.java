@@ -34,8 +34,8 @@ public class ShowCreateDialogAction extends AbstractCyAction {
 		}
 		
 		JDialog dialog = dialogProvider.get();
-        dialog.setLocationRelativeTo(jFrameProvider.get());
-        dialog.setVisible(true);
+		dialog.setLocationRelativeTo(jFrameProvider.get());
+		dialog.setVisible(true);
 	}
 
 }
