@@ -80,6 +80,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 		setTitle("AutoAnnotate: Create Annotation Set");
 		this.networkView = appManager.getCurrentNetworkView();
 		setMinimumSize(new Dimension(500, 400));
+		setMaximumSize(new Dimension(700, 600));
 	}
 	
 	
