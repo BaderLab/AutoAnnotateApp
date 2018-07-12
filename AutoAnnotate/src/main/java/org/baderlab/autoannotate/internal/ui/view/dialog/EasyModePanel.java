@@ -104,12 +104,6 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		clusterPanel.add(new JLabel(""), GBCFactory.grid(2,1).weightx(1.0).get());
 		clusterPanel.add(new JLabel(" "), GBCFactory.grid(0,2).get());
 		clusterPanel.add(layoutCheckBox, GBCFactory.grid(0,3).gridwidth(3).get());
-		
-//		JPanel panel = new JPanel(new BorderLayout());
-//		panel.setBorder(LookAndFeelUtil.createTitledBorder("Cluster Options"));
-//		panel.add(clusterPanel, BorderLayout.CENTER);
-//		return panel;
-		
 		return clusterPanel;
 	}
 	
@@ -125,11 +119,6 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		
 		labelPanel.add(label, GBCFactory.grid(0,0).get());
 		labelPanel.add(labelCombo, GBCFactory.grid(1,0).weightx(1.0).get());
-
-//		JPanel panel = new JPanel(new BorderLayout());
-//		panel.setBorder(LookAndFeelUtil.createTitledBorder("Label Options"));
-//		panel.add(labelPanel, BorderLayout.CENTER);
-//		return panel;
 		
 		return labelPanel;
 	}
@@ -171,11 +160,10 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		
 		getDefaultClusterMakerEdgeAttribute().map(CyColumn::getName).ifPresent(builder::setClusterMakerEdgeAttribute);
 		
-		if(clusterAllRadio.isSelected()) {
+		if(clusterAllRadio.isSelected())
 			builder.setCreateSingletonClusters(true);
-		} else {
+		else
 			builder.setMaxClusters(getMaxClusters());
-		}
 		
 		return builder.build();
 	}
