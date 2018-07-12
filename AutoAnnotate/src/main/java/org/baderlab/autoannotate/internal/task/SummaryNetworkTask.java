@@ -215,6 +215,7 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 		applyVisualStyle(annotationSet.getParent().getNetworkView(), summaryNetworkView, summaryNetwork);
 		
 		// register
+		summaryNetwork.network.getRow(summaryNetwork.network).set(CyNetwork.NAME, "AutoAnnotate - Summary Network");
 		networkManager.addNetwork(summaryNetwork.network);
 		networkViewManager.addNetworkView(summaryNetworkView);
 		summaryNetworkView.fitContent();
@@ -402,10 +403,10 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 			nodeView.setLockedValue(BasicVisualLexicon.NODE_LABEL, name);
 			
 			// Node size
-			CyNode node = nodeView.getModel();
-			SummaryCluster cluster = summaryNetwork.getClusterFor(node);
-			int numNodes = cluster.getNodes().size();
-			nodeView.setLockedValue(BasicVisualLexicon.NODE_SIZE, (double)numNodes);
+//			CyNode node = nodeView.getModel();
+//			SummaryCluster cluster = summaryNetwork.getClusterFor(node);
+//			int numNodes = cluster.getNodes().size();
+			nodeView.setLockedValue(BasicVisualLexicon.NODE_SIZE, 100.0);
 		}
 		
 		visualMappingManager.setVisualStyle(vs, summaryNetworkView);
