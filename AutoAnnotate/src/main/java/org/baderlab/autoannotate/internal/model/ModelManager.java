@@ -28,11 +28,10 @@ import org.cytoscape.group.events.GroupCollapsedListener;
 import org.cytoscape.model.CyDisposable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
-import org.cytoscape.model.CyTableUtil;
 import org.cytoscape.model.events.AboutToRemoveNodesEvent;
 import org.cytoscape.model.events.AboutToRemoveNodesListener;
-import org.cytoscape.model.events.RowsSetEvent;
-import org.cytoscape.model.events.RowsSetListener;
+import org.cytoscape.model.events.SelectedNodesAndEdgesEvent;
+import org.cytoscape.model.events.SelectedNodesAndEdgesListener;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
 import org.cytoscape.view.model.VisualProperty;
@@ -48,8 +47,8 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class ModelManager implements	CyDisposable, SetCurrentNetworkViewListener, NetworkViewAboutToBeDestroyedListener,
-									ViewChangedListener, AboutToRemoveNodesListener, RowsSetListener, GroupAboutToCollapseListener,
+public class ModelManager implements CyDisposable, SetCurrentNetworkViewListener, NetworkViewAboutToBeDestroyedListener,
+									ViewChangedListener, AboutToRemoveNodesListener, SelectedNodesAndEdgesListener, GroupAboutToCollapseListener,
 									GroupCollapsedListener {
 
 	@Inject private CyApplicationManager applicationManager;
@@ -210,25 +209,26 @@ public class ModelManager implements	CyDisposable, SetCurrentNetworkViewListener
 	
 	
 	@Override
-	public void handleEvent(RowsSetEvent e) {
-		if(safeRunner.shouldIgnore(EventType.SELECTION)) {
+	public void handleEvent(SelectedNodesAndEdgesEvent e) {
+		if(safeRunner.shouldIgnore(EventType.SELECTION))
 			return;
-		}
-		if(!e.containsColumn(CyNetwork.SELECTED))
+		if(!e.nodesChanged())
 			return;
 		
 		Optional<AnnotationSet> active = getActiveNetworkViewSet().flatMap(NetworkViewSet::getActiveAnnotationSet);
 		if(active.isPresent()) {
 			AnnotationSet annotationSet = active.get();
-			CyNetwork network = annotationSet.getParent().getNetwork();
+			CyNetwork activeNetwork = annotationSet.getParent().getNetwork();
 			
-			if(network.getDefaultNodeTable().equals(e.getSource())) {
+			if(activeNetwork.equals(e.getNetwork())) {
 				List<Cluster> selectedClusters = new ArrayList<>();
-				List<CyNode> selectedNodes = CyTableUtil.getNodesInState(network, CyNetwork.SELECTED, true);
 				
-				for(Cluster cluster : annotationSet.getClusters()) {
-					if(selectedNodes.containsAll(cluster.getNodes())) {
-						selectedClusters.add(cluster);
+				Collection<CyNode> selectedNodes = e.getSelectedNodes();
+				if(!selectedNodes.isEmpty()) {
+					for(Cluster cluster : annotationSet.getClusters()) {
+						if(selectedNodes.containsAll(cluster.getNodes())) {
+							selectedClusters.add(cluster);
+						}
 					}
 				}
 				
@@ -237,7 +237,7 @@ public class ModelManager implements	CyDisposable, SetCurrentNetworkViewListener
 			}
 		}
 	}
-
+	
 	
 	/**
 	 * There will probably be only one pending ClusterChangedEvent, but
