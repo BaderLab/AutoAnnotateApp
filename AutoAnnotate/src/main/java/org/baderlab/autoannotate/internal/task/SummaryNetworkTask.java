@@ -418,6 +418,9 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 		if(CyNetwork.class.equals(type)) {
 			return type.cast(resultNetwork);
 		}
+		if(String.class.equals(type)) {
+			return type.cast(String.valueOf(resultNetwork.getSUID()));
+		}
 		return null;
 	}
 	
