@@ -1,6 +1,5 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
-import java.awt.geom.Point2D;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,7 +8,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
@@ -17,8 +15,6 @@ import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.cytoscape.view.model.CyNetworkView;
-import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
-import org.cytoscape.view.presentation.annotations.TextAnnotation;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
@@ -35,16 +31,11 @@ public class AnnotationRenderer {
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	
-	@Inject private DrawClusterTask.Factory drawTaskProvider;
-	@Inject private DrawAllClustersTask.Factory drawAllTaskProvider;
-	@Inject private EraseClusterTask.Factory eraseTaskProvider;
-	@Inject private EraseAllClustersTask.Factory eraseAllTaskProvider;
+	@Inject private DrawClustersTask.Factory drawTaskProvider;
+	@Inject private EraseClustersTask.Factory eraseTaskProvider;
 	@Inject private SelectClusterTask.Factory selectTaskProvider;
 	
-	
-	// MKTODO it would be much better to have a single map so that there is no chance of the keys being different
-	private Map<Cluster,TextAnnotation> textAnnotations = new HashMap<>();
-	private Map<Cluster,ShapeAnnotation> shapeAnnotations = new HashMap<>();
+	private Map<Cluster,AnnotationGroup> clusterAnnotations = new HashMap<>();
 	private Set<Cluster> selectedClusters = new HashSet<>();
 	
 	
@@ -62,7 +53,7 @@ public class AnnotationRenderer {
 		Set<Cluster> selectedClusters = selected.map(AnnotationSet::getClusters).orElse(Collections.emptySet());
 		
 		// This happens when the session has just been restored.
-		if(!selectedClusters.isEmpty() && textAnnotations.keySet().containsAll(selectedClusters) && shapeAnnotations.keySet().containsAll(selectedClusters)) {
+		if(!selectedClusters.isEmpty() && clusterAnnotations.keySet().containsAll(selectedClusters)) {
 			return;
 		}
 		
@@ -79,8 +70,8 @@ public class AnnotationRenderer {
 		TaskIterator tasks = new TaskIterator();
 		Set<Cluster> clusters = getClusters(networkViewSet);
 		
-		tasks.append(eraseAllTaskProvider.create(clusters));
-		selectedAnnotationSet.map(drawAllTaskProvider::create).ifPresent(tasks::append);
+		tasks.append(eraseTaskProvider.create(clusters));
+		selectedAnnotationSet.map(AnnotationSet::getClusters).map(drawTaskProvider::create).ifPresent(tasks::append);
 		
 		if(sync)
 			syncTaskManager.execute(tasks);
@@ -118,7 +109,7 @@ public class AnnotationRenderer {
 	@Subscribe
 	public void handle(ModelEvents.ClusterAdded event) {
 		Cluster cluster = event.getCluster();
-		DrawClusterTask task = drawTaskProvider.create(cluster);
+		DrawClustersTask task = drawTaskProvider.create(cluster);
 		syncTaskManager.execute(new TaskIterator(task));
 	}
 	
@@ -130,41 +121,40 @@ public class AnnotationRenderer {
 		
 		switch(event.getOption()) {
 		case BORDER_WIDTH:
-			forEachShape(as, shape -> shape.setBorderWidth(options.getBorderWidth()));
+			forEachCluster(as, (c,a) -> a.setBorderWidth(options.getBorderWidth()));
 			break;
 		case SHAPE_TYPE:
-			forEachShape(as, shape -> shape.setShapeType(options.getShapeType().shapeName()));
+			forEachCluster(as, (c,a) -> a.setShapeType(options.getShapeType()));
 			break;
 		case BORDER_COLOR:
-			forEachShape(as, shape -> shape.setBorderColor(options.getBorderColor()));
+			forEachCluster(as, (c,a) -> a.setBorderColor(options.getBorderColor()));
 			break;
 		case FILL_COLOR:
-			forEachShape(as, shape -> shape.setFillColor(options.getFillColor()));
+			forEachCluster(as, (c,a) -> a.setFillColor(options.getFillColor()));
+			break;
+		case FONT_COLOR:
+			forEachCluster(as, (c,a) -> a.setTextColor(options.getFontColor()));
 			break;
 		case OPACITY:
 		case SHOW_CLUSTERS:
-			forEachShape(as, shape -> {
-				shape.setFillOpacity(options.isShowClusters() ? options.getOpacity() : 0);
-				shape.setBorderOpacity(options.isShowClusters() ? 100 : 0);
-			});
+			forEachCluster(as, (c,a) -> a.setShow(options.isShowClusters(), options.getOpacity()));
 			break;
 		case FONT_SCALE:
 		case FONT_SIZE:
 		case SHOW_LABELS:
 		case USE_CONSTANT_FONT_SIZE:
-			forEachLabel(as, (text,cluster) -> {
-				ShapeAnnotation shape = getShapeAnnotation(cluster);
-				ArgsLabel labelArgs = ArgsLabel.createFor(shape.getArgMap(), cluster, isSelected(cluster));
-				double fontSize = options.isShowLabels() ? labelArgs.fontSize : 0;
-				text.setFontSize(fontSize);
-				text.setSpecificZoom(labelArgs.zoom);
-				text.moveAnnotation(new Point2D.Double(labelArgs.x, labelArgs.y));
-				text.update();
-			});
+//			forEachCluster(as, (cluster,a) -> {
+//				ShapeAnnotation shape = a.getShape();
+//				TextAnnotation text = a.getText();
+//				ArgsLabel labelArgs = ArgsLabel.createFor(shape.getArgMap(), cluster, isSelected(cluster));
+//				double fontSize = options.isShowLabels() ? labelArgs.fontSize : 0;
+//				text.setFontSize(fontSize);
+//				text.setSpecificZoom(labelArgs.zoom);
+//				text.moveAnnotation(new Point2D.Double(labelArgs.x, labelArgs.y));
+//				text.update();
+//			});
 			break;
-		case FONT_COLOR:
-			forEachLabel(as, (text,c) -> text.setTextColor(options.getFontColor()));
-			break;
+		
 		default:
 			break;
 		}
@@ -176,25 +166,16 @@ public class AnnotationRenderer {
 	}
 	
 	
-	private void forEachShape(AnnotationSet as, Consumer<ShapeAnnotation> consumer) {
+	private void forEachCluster(AnnotationSet as, BiConsumer<Cluster,AnnotationGroup> consumer) {
 		for(Cluster cluster : as.getClusters()) {
-			ShapeAnnotation shape = shapeAnnotations.get(cluster);
-			if(shape != null) {
-				consumer.accept(shape);
-				shape.update();
+			AnnotationGroup annotations = clusterAnnotations.get(cluster);
+			if(annotations != null) {
+				consumer.accept(cluster, annotations);
+				annotations.update();
 			}
 		}
 	}
 	
-	private void forEachLabel(AnnotationSet as, BiConsumer<TextAnnotation,Cluster> consumer) {
-		for(Cluster cluster : as.getClusters()) {
-			TextAnnotation text = textAnnotations.get(cluster);
-			if(text != null) {
-				consumer.accept(text, cluster);
-				text.update();
-			}
-		}
-	}
 	
 	@Subscribe
 	public void handle(ModelEvents.ClustersSelected event) {
@@ -226,14 +207,8 @@ public class AnnotationRenderer {
 	
 	
 	Set<Cluster> getClusters(NetworkViewSet nvs) { 
-		Set<Cluster> clusters = new HashSet<Cluster>();
-		for(Cluster cluster : shapeAnnotations.keySet()) {
-			if(cluster.getParent().getParent().equals(nvs)) {
-				clusters.add(cluster);
-			}
-		}
-		// this is probably redundant
-		for(Cluster cluster : textAnnotations.keySet()) {
+		Set<Cluster> clusters = new HashSet<>();
+		for(Cluster cluster : clusterAnnotations.keySet()) {
 			if(cluster.getParent().getParent().equals(nvs)) {
 				clusters.add(cluster);
 			}
@@ -242,35 +217,19 @@ public class AnnotationRenderer {
 	}
 	
 	Set<Cluster> getAllClusters() {
-		Set<Cluster> clusters = new HashSet<Cluster>();
-		clusters.addAll(shapeAnnotations.keySet());
-		clusters.addAll(textAnnotations.keySet());
-		return clusters;
+		return new HashSet<>(clusterAnnotations.keySet());
 	}
 	
-	ShapeAnnotation getShapeAnnotation(Cluster cluster) {
-		return shapeAnnotations.get(cluster);
+	AnnotationGroup getAnnotations(Cluster cluster) {
+		return clusterAnnotations.get(cluster);
 	}
 	
-	void setShapeAnnotation(Cluster cluster, ShapeAnnotation shapeAnnotation) {
-		shapeAnnotations.put(cluster, shapeAnnotation);
-	}
-	
-	ShapeAnnotation removeShapeAnnoation(Cluster cluster) {
-		return shapeAnnotations.remove(cluster);
-	}
-	
-	
-	TextAnnotation getTextAnnotation(Cluster cluster) {
-		return textAnnotations.get(cluster);
-	}
-	
-	void setTextAnnotation(Cluster cluster, TextAnnotation textAnnotation) {
-		textAnnotations.put(cluster, textAnnotation);
+	void putAnnotations(Cluster cluster, AnnotationGroup annotations) {
+		clusterAnnotations.put(cluster, annotations);
 	}
 
-	TextAnnotation removeTextAnnotation(Cluster cluster) {
-		return textAnnotations.remove(cluster);
+	AnnotationGroup removeAnnotations(Cluster cluster) {
+		return clusterAnnotations.remove(cluster);
 	}
 	
 }

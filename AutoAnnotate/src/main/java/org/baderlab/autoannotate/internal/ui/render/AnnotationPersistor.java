@@ -22,8 +22,7 @@ public class AnnotationPersistor {
 	
 	public void clearAnnotations() {
 		for(Cluster cluster: renderer.getAllClusters()) {
-			renderer.removeTextAnnotation(cluster);
-			renderer.removeShapeAnnoation(cluster);
+			renderer.removeAnnotations(cluster);
 		}
 	}
 
@@ -32,22 +31,29 @@ public class AnnotationPersistor {
 		
 		Collection<Annotation> annotations = annotationManager.getAnnotations(networkView);
 		if(annotations != null) {
+			ShapeAnnotation shape = null;
+			TextAnnotation label = null;
+			
 			for(Annotation annotation : annotations) {
 				if(shapeID.isPresent() && shapeID.get().equals(annotation.getUUID())) {
-					renderer.setShapeAnnotation(cluster, (ShapeAnnotation) annotation);
+					shape = (ShapeAnnotation) annotation;
 				}
 				if(textID.isPresent() && textID.get().equals(annotation.getUUID())) {
-					renderer.setTextAnnotation(cluster, (TextAnnotation) annotation);
+					label = (TextAnnotation) annotation;
 				}
+			}
+			
+			if(shape != null && label != null) {
+				renderer.putAnnotations(cluster, new AnnotationGroup(shape, label));
 			}
 		}
 	}
 	
 	public Optional<UUID> getShapeID(Cluster cluster) {
-		return Optional.ofNullable(renderer.getShapeAnnotation(cluster)).map(Annotation::getUUID);
+		return Optional.ofNullable(renderer.getAnnotations(cluster)).map(AnnotationGroup::getShape).map(Annotation::getUUID);
 	}
 	
 	public Optional<UUID> getTextID(Cluster cluster) {
-		return Optional.ofNullable(renderer.getTextAnnotation(cluster)).map(Annotation::getUUID);
+		return Optional.ofNullable(renderer.getAnnotations(cluster)).map(AnnotationGroup::getLabel).map(Annotation::getUUID);
 	}
 }

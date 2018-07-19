@@ -2,9 +2,15 @@ package org.baderlab.autoannotate;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
@@ -12,10 +18,8 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
-import org.baderlab.autoannotate.internal.ui.render.DrawAllClustersTask;
-import org.baderlab.autoannotate.internal.ui.render.DrawClusterTask;
-import org.baderlab.autoannotate.internal.ui.render.EraseClusterTask;
-import org.baderlab.autoannotate.internal.ui.render.RemoveAllAnnotationsTask;
+import org.baderlab.autoannotate.internal.ui.render.DrawClustersTask;
+import org.baderlab.autoannotate.internal.ui.render.EraseClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.SelectClusterTask;
 import org.baderlab.autoannotate.util.LogSilenceRule;
 import org.baderlab.autoannotate.util.SerialTestTaskManager;
@@ -58,18 +62,19 @@ public class TestRenderer {
 	/*
 	 * This test suite tests that the correct drawing tasks are run by the AnnotationRenderer.
 	 */
+	@SuppressWarnings("unchecked")
 	@Before
 	public void setup(CyApplicationManager appManager, ModelManager modelManager, AnnotationRenderer renderer,
-			RemoveAllAnnotationsTask.Factory removeTaskFactory, DrawClusterTask.Factory drawTaskFactory,
-			EraseClusterTask.Factory eraseTaskFactory, SelectClusterTask.Factory selectTaskFactory) {
+			DrawClustersTask.Factory drawTaskFactory, EraseClustersTask.Factory eraseTaskFactory, SelectClusterTask.Factory selectTaskFactory) {
 		
 		// set up stubbing
 		CyNetworkView networkView = mock(CyNetworkView.class);
 		when(appManager.getCurrentNetworkView()).thenReturn(networkView);
 		
-		when(drawTaskFactory.create(any())).thenReturn(mock(DrawClusterTask.class));
-		when(removeTaskFactory.create(any())).thenReturn(mock(RemoveAllAnnotationsTask.class));
-		when(eraseTaskFactory.create(any())).thenReturn(mock(EraseClusterTask.class));
+		when(drawTaskFactory.create(any(Collection.class))).thenReturn(mock(DrawClustersTask.class));
+		when(drawTaskFactory.create(any(Cluster.class))).thenReturn(mock(DrawClustersTask.class));
+		when(eraseTaskFactory.create(any(Collection.class))).thenReturn(mock(EraseClustersTask.class));
+		when(eraseTaskFactory.create(any(Cluster.class))).thenReturn(mock(EraseClustersTask.class));
 		when(selectTaskFactory.create(any(), anyBoolean())).thenReturn(mock(SelectClusterTask.class));
 		
 		NetworkTestSupport networkTestSupport = new NetworkTestSupport();
@@ -90,10 +95,12 @@ public class TestRenderer {
 		
 		// Reset invocation counts from fixture initialization.
 		// Unfortunately reset() also resets the stubbing so we need to redo it.
-		reset(removeTaskFactory, drawTaskFactory, eraseTaskFactory, selectTaskFactory);
-		when(drawTaskFactory.create(any())).thenReturn(mock(DrawClusterTask.class));
-		when(removeTaskFactory.create(any())).thenReturn(mock(RemoveAllAnnotationsTask.class));
-		when(eraseTaskFactory.create(any())).thenReturn(mock(EraseClusterTask.class));
+		reset(drawTaskFactory, eraseTaskFactory, selectTaskFactory);
+		
+		when(drawTaskFactory.create(any(Collection.class))).thenReturn(mock(DrawClustersTask.class));
+		when(drawTaskFactory.create(any(Cluster.class))).thenReturn(mock(DrawClustersTask.class));
+		when(eraseTaskFactory.create(any(Collection.class))).thenReturn(mock(EraseClustersTask.class));
+		when(eraseTaskFactory.create(any(Cluster.class))).thenReturn(mock(EraseClustersTask.class));
 		when(selectTaskFactory.create(any(), anyBoolean())).thenReturn(mock(SelectClusterTask.class));
 	}
 	
@@ -107,9 +114,10 @@ public class TestRenderer {
 	}
 	
 	
+	@SuppressWarnings("unchecked")
 	@Ignore
 	public void testSelect(ModelManager modelManager, AnnotationRenderer renderer, 
-						   EraseClusterTask.Factory eraseTaskFactory, DrawAllClustersTask.Factory drawTaskFactory) throws Exception {
+						   EraseClustersTask.Factory eraseTaskFactory, DrawClustersTask.Factory drawTaskFactory) throws Exception {
 		
 		NetworkViewSet nvs = modelManager.getActiveNetworkViewSet().get();
 		AnnotationSet as = nvs.getAnnotationSets().iterator().next();
@@ -117,29 +125,29 @@ public class TestRenderer {
 		nvs.select(null);
 		
 		InOrder inOrder = inOrder(eraseTaskFactory, drawTaskFactory);
-		inOrder.verify(eraseTaskFactory, times(0)).create(any());
-		inOrder.verify(drawTaskFactory, times(1)).create(any());
+		inOrder.verify(eraseTaskFactory, times(0)).create(any(Collection.class));
+		inOrder.verify(drawTaskFactory, times(1)).create(any(Collection.class));
 		
 		// Verify that 3 clusters were drawn.
 		nvs.select(as);
 		
 		// verify that removeTask was called first
 		inOrder = inOrder(eraseTaskFactory, drawTaskFactory);
-		inOrder.verify(eraseTaskFactory, times(0)).create(any());
-		inOrder.verify(drawTaskFactory, times(1)).create(any());
+		inOrder.verify(eraseTaskFactory, times(0)).create(any(Collection.class));
+		inOrder.verify(drawTaskFactory, times(1)).create(any(Collection.class));
 		
 		// Verify that annotations are cleared when no annotation set is selected
 		nvs.select(null);
 		
 		inOrder = inOrder(eraseTaskFactory, drawTaskFactory);
-		inOrder.verify(eraseTaskFactory, times(0)).create(any());
-		inOrder.verify(drawTaskFactory, times(1)).create(any());
+		inOrder.verify(eraseTaskFactory, times(0)).create(any(Collection.class));
+		inOrder.verify(drawTaskFactory, times(1)).create(any(Collection.class));
 	}
 	
 	
 	@Test
-	public void testClusterChanged(ModelManager modelManager, EraseClusterTask.Factory eraseTaskFactory,
-								   DrawClusterTask.Factory drawTaskFactory) throws Exception {
+	public void testClusterChanged(ModelManager modelManager, EraseClustersTask.Factory eraseTaskFactory,
+								   DrawClustersTask.Factory drawTaskFactory) throws Exception {
 		
 		NetworkViewSet nvs = modelManager.getActiveNetworkViewSet().get();
 		AnnotationSet as = nvs.getAnnotationSets().iterator().next();
@@ -148,13 +156,13 @@ public class TestRenderer {
 		cluster.setLabel("new_label");
 		
 		InOrder inOrder = inOrder(eraseTaskFactory, drawTaskFactory);
-		inOrder.verify(eraseTaskFactory, times(0)).create(any());
-		inOrder.verify(drawTaskFactory).create(any());
+		inOrder.verify(eraseTaskFactory, times(0)).create(any(Cluster.class));
+		inOrder.verify(drawTaskFactory).create(any(Cluster.class));
 	}
 	
 	
 	@Test
-	public void testClusterAdded(ModelManager modelManager, AnnotationRenderer renderer, DrawClusterTask.Factory drawTaskFactory) {
+	public void testClusterAdded(ModelManager modelManager, AnnotationRenderer renderer, DrawClustersTask.Factory drawTaskFactory) {
 		NetworkViewSet nvs = modelManager.getActiveNetworkViewSet().get();
 		AnnotationSet as = nvs.getAnnotationSets().iterator().next();
 		CyNetwork network = nvs.getNetwork();
@@ -166,7 +174,7 @@ public class TestRenderer {
 	
 	
 	@Test
-	public void testClusterRemoved(ModelManager modelManager, AnnotationRenderer renderer, EraseClusterTask.Factory eraseTaskFactory) {
+	public void testClusterRemoved(ModelManager modelManager, AnnotationRenderer renderer, EraseClustersTask.Factory eraseTaskFactory) {
 		NetworkViewSet nvs = modelManager.getActiveNetworkViewSet().get();
 		AnnotationSet as = nvs.getAnnotationSets().iterator().next();
 		

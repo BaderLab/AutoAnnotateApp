@@ -17,11 +17,8 @@ import org.baderlab.autoannotate.internal.task.SummaryNetworkTask;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
 import org.baderlab.autoannotate.internal.ui.PanelManagerImpl;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
-import org.baderlab.autoannotate.internal.ui.render.DrawAllClustersTask;
-import org.baderlab.autoannotate.internal.ui.render.DrawClusterTask;
-import org.baderlab.autoannotate.internal.ui.render.EraseAllClustersTask;
-import org.baderlab.autoannotate.internal.ui.render.EraseClusterTask;
-import org.baderlab.autoannotate.internal.ui.render.RemoveAllAnnotationsTask;
+import org.baderlab.autoannotate.internal.ui.render.DrawClustersTask;
+import org.baderlab.autoannotate.internal.ui.render.EraseClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.SelectClusterTask;
 import org.baderlab.autoannotate.internal.ui.view.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.ManageAnnotationSetsDialog;
@@ -84,15 +81,12 @@ class FactoryModule extends AbstractModule {
 		installFactory(LayoutAnnotationSetTaskFactory.Factory.class);
 		installFactory(SummaryNetworkTask.Factory.class);
 		installFactory(CollapseTask.Factory.class);
-		installFactory(DrawClusterTask.Factory.class);
-		installFactory(EraseClusterTask.Factory.class);
-		installFactory(SelectClusterTask.Factory.class);
-		installFactory(RemoveAllAnnotationsTask.Factory.class);
 		installFactory(CreateAnnotationSetTask.Factory.class);
 		installFactory(CreateClusterTask.Factory.class);
 		installFactory(CreateSubnetworkTask.Factory.class);
-		installFactory(DrawAllClustersTask.Factory.class);
-		installFactory(EraseAllClustersTask.Factory.class);
+		installFactory(DrawClustersTask.Factory.class);
+		installFactory(EraseClustersTask.Factory.class);
+		installFactory(SelectClusterTask.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {

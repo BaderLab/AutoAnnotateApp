@@ -2,21 +2,21 @@ package org.baderlab.autoannotate.internal.ui.render;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.presentation.annotations.AnnotationManager;
-import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
-import org.cytoscape.view.presentation.annotations.TextAnnotation;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
-public class EraseAllClustersTask extends AbstractTask {
+public class EraseClustersTask extends AbstractTask {
 
 	@Inject private AnnotationRenderer annotationRenderer;
 	@Inject private AnnotationManager annotationManager;
@@ -24,12 +24,18 @@ public class EraseAllClustersTask extends AbstractTask {
 	private final Collection<Cluster> clusters;
 	
 	public static interface Factory {
-		EraseAllClustersTask create(Collection<Cluster> clusters);
+		EraseClustersTask create(Collection<Cluster> clusters);
+		EraseClustersTask create(Cluster cluster);
 	}
 	
-	@Inject
-	public EraseAllClustersTask(@Assisted Collection<Cluster> clusters) {
+	@AssistedInject
+	public EraseClustersTask(@Assisted Collection<Cluster> clusters) {
 		this.clusters = clusters;
+	}
+	
+	@AssistedInject
+	public EraseClustersTask(@Assisted Cluster cluster) {
+		this.clusters = Collections.singleton(cluster);
 	}
 	
 	@Override
@@ -37,16 +43,14 @@ public class EraseAllClustersTask extends AbstractTask {
 		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Removing Annotations");
 		
-		List<Annotation> annotations = new ArrayList<>(clusters.size() * 2);
+		List<Annotation> allAnnotations = new ArrayList<>();
 		
 		for(Cluster cluster : clusters) {
-			ShapeAnnotation shape = annotationRenderer.removeShapeAnnoation(cluster);
-			TextAnnotation text = annotationRenderer.removeTextAnnotation(cluster);
-			annotations.add(shape);
-			annotations.add(text);
+			AnnotationGroup annotations = annotationRenderer.removeAnnotations(cluster);
+			annotations.addTo(allAnnotations);
 		}
 		
-		annotationManager.removeAnnotations(annotations);
+		annotationManager.removeAnnotations(allAnnotations);
 	}
 
 }

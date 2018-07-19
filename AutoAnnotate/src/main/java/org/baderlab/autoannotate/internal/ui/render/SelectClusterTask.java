@@ -4,8 +4,6 @@ import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
-import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
-import org.cytoscape.view.presentation.annotations.TextAnnotation;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
@@ -38,29 +36,21 @@ public class SelectClusterTask extends AbstractTask {
 		AnnotationSet annotationSet = cluster.getParent();
 		DisplayOptions displayOptions = annotationSet.getDisplayOptions();
 		
-		ShapeAnnotation shape = annotationRenderer.getShapeAnnotation(cluster);
-		TextAnnotation text = annotationRenderer.getTextAnnotation(cluster);
+		AnnotationGroup annotations = annotationRenderer.getAnnotations(cluster);
+		if(annotations == null)
+			return;
 		
-		
-		if(shape != null) {
-			if(select) {
-				shape.setBorderColor(ArgsBase.SELECTED_COLOR);
-				shape.setBorderWidth(3 * displayOptions.getBorderWidth());
-			} else {
-				shape.setBorderColor(displayOptions.getBorderColor());
-				shape.setBorderWidth(displayOptions.getBorderWidth());
-			}
-			shape.update();
+		if(select) {
+			annotations.setBorderColor(ArgsBase.SELECTED_COLOR);
+			annotations.setBorderWidth(3 * displayOptions.getBorderWidth());
+			annotations.setTextColor(ArgsBase.SELECTED_COLOR);
+		} else {
+			annotations.setBorderColor(displayOptions.getBorderColor());
+			annotations.setBorderWidth(displayOptions.getBorderWidth());
+			annotations.setTextColor(displayOptions.getFontColor());
 		}
 		
-		if(text != null) {
-			if(select) {
-				text.setTextColor(ArgsBase.SELECTED_COLOR);
-			} else {
-				text.setTextColor(displayOptions.getFontColor());
-			}
-			text.update();
-		}
+		annotations.update();
 	}
 
 }
