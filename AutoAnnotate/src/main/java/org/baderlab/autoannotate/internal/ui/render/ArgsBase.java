@@ -10,7 +10,7 @@ public abstract class ArgsBase<A extends Annotation> {
 	public static final Color SELECTED_COLOR = Color.YELLOW;
 	
 	public final double x;
-	public final double y;
+	public double y;
 	public final double width;
 	public final double height;
 	public final double zoom;

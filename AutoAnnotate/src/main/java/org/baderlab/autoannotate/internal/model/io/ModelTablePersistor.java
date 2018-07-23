@@ -281,9 +281,9 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			AnnotationPersistor annotationPersistor = annotationPersistorProvider.get();
 			
 			AnnotationSetBuilder builder = builders.get(asId);
-			builder.addCluster(nodes, label, collapsed, cluster -> {
-				annotationPersistor.restoreCluster(cluster, shapeID, textID);
-			});
+//			builder.addCluster(nodes, label, collapsed, cluster -> {
+//				annotationPersistor.restoreCluster(cluster, shapeID, textID);
+//			});
 		}
 		
 		
@@ -374,8 +374,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				
 				Optional<UUID> shapeID = annotationPersistor.getShapeID(cluster);
 				clusterRow.set(SHAPE_ID, shapeID.map(UUID::toString).orElse(null));
-				Optional<UUID> textID = annotationPersistor.getTextID(cluster);
-				clusterRow.set(TEXT_ID, textID.map(UUID::toString).orElse(null));
+//				Optional<UUID> textID = annotationPersistor.getTextID(cluster);
+//				clusterRow.set(TEXT_ID, textID.map(UUID::toString).orElse(null));
 				
 				ids.clusterId++;
 			}

@@ -92,6 +92,8 @@
 							guice-assistedinject,
 							guava,
 							gson,
+							commons-text,
+							commons-lang3,
 							mockito-all,
 							jsr305
 						</Embed-Dependency>
@@ -261,14 +263,19 @@
 		
 		<!-- additional libraries -->
 		<dependency>
-		     <groupId>com.google.guava</groupId>
-		     <artifactId>guava</artifactId>
-	     	<version>18.0</version>
-	   	</dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>18.0</version>
+		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 			<version>2.6.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.4</version>
 		</dependency>
 		<dependency>
 			<!-- Used by test and by the app at runtime... don't ask -->
@@ -276,10 +283,9 @@
 			<artifactId>mockito-all</artifactId>
 			<version>1.10.19</version>
 		</dependency>
-	   	
-	   	
-	   	<!-- Testing -->
-	   	<dependency>
+		
+		<!-- Testing -->
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
@@ -292,26 +298,26 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-		    <groupId>org.cytoscape</groupId>
-		    <artifactId>model-impl</artifactId>
-		    <version>${cytoscape.version}</version>
-		    <type>test-jar</type>
-		    <scope>test</scope>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>model-impl</artifactId>
+			<version>${cytoscape.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-		    <groupId>org.cytoscape</groupId>
-		    <artifactId>event-api</artifactId>
-		    <version>${cytoscape.version}</version>
-		    <type>test-jar</type>
-		    <scope>test</scope>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>event-api</artifactId>
+			<version>${cytoscape.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-		    <groupId>org.cytoscape</groupId>
-		    <artifactId>model-impl</artifactId>
-		    <version>${cytoscape.version}</version>
-		    <scope>test</scope>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>model-impl</artifactId>
+			<version>${cytoscape.version}</version>
+			<scope>test</scope>
 		</dependency>
-	   	<dependency>
+		<dependency>
 			<groupId>org.cytoscape</groupId>
 			<artifactId>ding-presentation-impl</artifactId>
 			<type>test-jar</type>

@@ -41,9 +41,9 @@ public class SelectClusterTask extends AbstractTask {
 			return;
 		
 		if(select) {
-			annotations.setBorderColor(ArgsBase.SELECTED_COLOR);
+			annotations.setBorderColor(AnnotationArgs.SELECTED_COLOR);
 			annotations.setBorderWidth(3 * displayOptions.getBorderWidth());
-			annotations.setTextColor(ArgsBase.SELECTED_COLOR);
+			annotations.setTextColor(AnnotationArgs.SELECTED_COLOR);
 		} else {
 			annotations.setBorderColor(displayOptions.getBorderColor());
 			annotations.setBorderWidth(displayOptions.getBorderWidth());

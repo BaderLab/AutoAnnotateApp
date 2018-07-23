@@ -139,13 +139,17 @@ public class AnnotationRenderer {
 		case SHOW_CLUSTERS:
 			forEachCluster(as, (c,a) -> a.setShow(options.isShowClusters(), options.getOpacity()));
 			break;
+			
+		case SHOW_LABELS:
+			// MKTODO this doesn't require a redraw, its like SHOW_CLUSTERS above
 		case FONT_SCALE:
 		case FONT_SIZE:
-		case SHOW_LABELS:
+		
 		case USE_CONSTANT_FONT_SIZE:
 //			forEachCluster(as, (cluster,a) -> {
 //				ShapeAnnotation shape = a.getShape();
-//				TextAnnotation text = a.getText();
+//				List<TextAnnotation> labels = a.getLabels();
+//				
 //				ArgsLabel labelArgs = ArgsLabel.createFor(shape.getArgMap(), cluster, isSelected(cluster));
 //				double fontSize = options.isShowLabels() ? labelArgs.fontSize : 0;
 //				text.setFontSize(fontSize);
@@ -154,7 +158,12 @@ public class AnnotationRenderer {
 //				text.update();
 //			});
 			break;
-		
+		case USE_WORD_WRAP:
+			System.out.println("DisplayOptionChanged: USE_WORD_WRAP");
+			break;
+		case WORD_WRAP_LENGTH:
+			System.out.println("DisplayOptionChanged: WORD_WRAP_LENGTH");
+			break;
 		default:
 			break;
 		}

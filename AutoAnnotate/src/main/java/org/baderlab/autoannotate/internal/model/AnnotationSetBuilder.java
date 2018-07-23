@@ -44,6 +44,8 @@ public class AnnotationSetBuilder {
 	private Color fillColor = DisplayOptions.FILL_COLOR_DEFAULT;
 	private Color borderColor = DisplayOptions.BORDER_COLOR_DEFAULT;
 	private Color fontColor = DisplayOptions.FONT_COLOR_DEFAULT;
+	private boolean useWordWrap = DisplayOptions.USE_WORD_WRAP_DEFAULT;
+	private int wordWrapLength = DisplayOptions.WORD_WRAP_LENGTH_DEFAULT;
 	
 	private Optional<Consumer<AnnotationSet>> asCallback = Optional.empty();
 	
@@ -176,6 +178,22 @@ public class AnnotationSetBuilder {
 
 	public void setFontColor(Color fontColor) {
 		this.fontColor = fontColor;
+	}
+	
+	public boolean isUseWordWrap() {
+		return useWordWrap;
+	}
+
+	public void setUseWordWrap(boolean useWordWrap) {
+		this.useWordWrap = useWordWrap;
+	}
+
+	public int getWordWrapLength() {
+		return wordWrapLength;
+	}
+
+	public void setWordWrapLength(int wordWrapLength) {
+		this.wordWrapLength = wordWrapLength;
 	}
 
 	public void addCluster(Collection<CyNode> nodes, String label, boolean collapsed) {

@@ -67,18 +67,23 @@ public class DrawClustersTask extends AbstractTask {
 	}
 	
 	
-	public AnnotationGroup createAnnotations(Cluster cluster, boolean isSelected) {
+	private AnnotationGroup createAnnotations(Cluster cluster, boolean isSelected) {
 		AnnotationSet annotationSet = cluster.getParent();
 		CyNetworkView networkView = annotationSet.getParent().getNetworkView();
 		
 		ArgsShape shapeArgs = ArgsShape.createFor(cluster, isSelected);
 		ShapeAnnotation shape = shapeFactory.createAnnotation(ShapeAnnotation.class, networkView, shapeArgs.getArgMap());
 		
-		ArgsLabel labelArgs = ArgsLabel.createFor(shapeArgs.getArgMap(), cluster, isSelected);
-		TextAnnotation text = textFactory.createAnnotation(TextAnnotation.class, networkView, labelArgs.getArgMap());
+		List<ArgsLabel> labelArgsList = ArgsLabel.createFor(shapeArgs, cluster, isSelected);
+		List<TextAnnotation> textAnnotations = new ArrayList<>(labelArgsList.size());
+		for(ArgsLabel labelArgs : labelArgsList) {
+			TextAnnotation text = textFactory.createAnnotation(TextAnnotation.class, networkView, labelArgs.getArgMap());
+			textAnnotations.add(text);
+		}
 		
-		return new AnnotationGroup(shape, text);
+		return new AnnotationGroup(shape, textAnnotations);
 	}
+	
 	
 	
 }

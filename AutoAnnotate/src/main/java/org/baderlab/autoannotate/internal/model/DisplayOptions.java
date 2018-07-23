@@ -16,6 +16,8 @@ public class DisplayOptions {
 	public static final Color FILL_COLOR_DEFAULT = Color.getHSBColor(0.19f, 1.25f, 0.95f);
 	public static final Color BORDER_COLOR_DEFAULT = Color.DARK_GRAY;
 	public static final Color FONT_COLOR_DEFAULT = Color.BLACK;
+	public static final boolean USE_WORD_WRAP_DEFAULT = true;
+	public static final int WORD_WRAP_LENGTH_DEFAULT = 20;
 	
 	public static final int OPACITY_DEFAULT = 20;
 	public static final int OPACITY_MIN = 1;
@@ -47,6 +49,8 @@ public class DisplayOptions {
 	private Color fillColor = FILL_COLOR_DEFAULT;
 	private Color borderColor = BORDER_COLOR_DEFAULT;
 	private Color fontColor = FONT_COLOR_DEFAULT;
+	private boolean useWordWrap = USE_WORD_WRAP_DEFAULT;
+	private int wordWrapLength = WORD_WRAP_LENGTH_DEFAULT;
 	
 	
 	DisplayOptions(AnnotationSet parent) {
@@ -66,6 +70,8 @@ public class DisplayOptions {
 		this.fillColor = Objects.requireNonNull(builder.getFillColor());
 		this.borderColor = Objects.requireNonNull(builder.getBorderColor());
 		this.fontColor = Objects.requireNonNull(builder.getFontColor());
+		this.useWordWrap = builder.isUseWordWrap();
+		this.wordWrapLength = builder.getWordWrapLength();
 	}
 	
 	public AnnotationSet getParent() {
@@ -175,5 +181,22 @@ public class DisplayOptions {
 		this.fontColor = Objects.requireNonNull(fontColor);
 		postEvent(Option.FONT_COLOR);
 	}
+
+	public boolean isUseWordWrap() {
+		return useWordWrap;
+	}
 	
+	public void setUseWordWrap(boolean useWordWrap) {
+		this.useWordWrap = useWordWrap;
+		postEvent(Option.USE_WORD_WRAP);
+	}
+	
+	public int getWordWrapLength() {
+		return wordWrapLength;
+	}
+	
+	public void setWordWrapLength(int wordWrapLength) {
+		this.wordWrapLength = wordWrapLength;
+		postEvent(Option.WORD_WRAP_LENGTH);
+	}
 }

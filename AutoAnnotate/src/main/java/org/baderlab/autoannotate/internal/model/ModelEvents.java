@@ -169,7 +169,9 @@ public class ModelEvents {
 			BORDER_WIDTH,
 			FILL_COLOR,
 			BORDER_COLOR,
-			FONT_COLOR
+			FONT_COLOR,
+			USE_WORD_WRAP,
+			WORD_WRAP_LENGTH
 		}
 		
 		private final Option option;

@@ -1,19 +1,24 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.baderlab.autoannotate.internal.model.AnnotationSet;
+import org.apache.commons.text.WordUtils;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
-import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
-import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 
 public class ArgsLabel extends ArgsBase<TextAnnotation> {
+	
+	public static final String FONT_FAMILY_DEFAULT = "Arial";
+	public static final int FONT_STYLE_DEFAULT = Font.PLAIN;
 	
 	public final String label;
 	public final int fontSize;
@@ -35,6 +40,8 @@ public class ArgsLabel extends ArgsBase<TextAnnotation> {
 		argMap.put(Annotation.CANVAS, Annotation.FOREGROUND);
 		argMap.put(TextAnnotation.TEXT, label);
 		argMap.put(TextAnnotation.FONTSIZE, String.valueOf(fontSize));
+		argMap.put(TextAnnotation.FONTFAMILY, FONT_FAMILY_DEFAULT);
+		argMap.put(TextAnnotation.FONTSTYLE, String.valueOf(FONT_STYLE_DEFAULT));
 		argMap.put(TextAnnotation.COLOR, String.valueOf(fontColor.getRGB()));
 		return argMap;
 	}
@@ -51,52 +58,58 @@ public class ArgsLabel extends ArgsBase<TextAnnotation> {
 	}
 	
 	
-	public static ArgsLabel createFor(Map<String,String> shapeArgs, Cluster cluster, boolean isSelected) {
-		AnnotationSet annotationSet = cluster.getParent();
-		CyNetworkView view = annotationSet.getParent().getNetworkView();
-		DisplayOptions displayOptions = annotationSet.getDisplayOptions();
+	public static List<ArgsLabel> createFor(ArgsShape shapeArgs, Cluster cluster, boolean isSelected) {
+		DisplayOptions options = cluster.getParent().getDisplayOptions();
 		
-		double zoom = view.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR);
-		String labelText = cluster.getLabel();
-		
-		double xPos = Double.parseDouble(shapeArgs.get("x"));
-		double yPos = Double.parseDouble(shapeArgs.get("y"));
-		double width = Double.parseDouble(shapeArgs.get("width"));
-		double height = Double.parseDouble(shapeArgs.get("height"));
-		
+		if(options.isUseWordWrap()) {
+			String[] labelParts = wordWrapLabel(cluster.getLabel(), options.getWordWrapLength());
+			
+			List<ArgsLabel> labels = new ArrayList<>(labelParts.length);
+			int adjust = labelParts.length - 1;
+			for(String labelPart : labelParts) {
+				ArgsLabel labelArgs = createFor(shapeArgs, cluster, labelPart, isSelected);
+				labelArgs.y -= adjust * (labelArgs.height * 1.1); // the 1.1 add some space between the labels
+				adjust--;
+				labels.add(labelArgs);
+			}	
+			return labels;
+		} else {
+			ArgsLabel label = createFor(shapeArgs, cluster, cluster.getLabel(), isSelected);
+			return Arrays.asList(label);
+		}
+	}
+	
+	
+	private static String[] wordWrapLabel(String label, int wrapLength) {
+		String wrapped = WordUtils.wrap(label, wrapLength);
+		return wrapped.split("\n");
+	}
+	
+	
+	private static ArgsLabel createFor(ArgsShape shape, Cluster cluster, String labelText, boolean isSelected) {
+		DisplayOptions displayOptions = cluster.getParent().getDisplayOptions();
+
 		double labelFontSize;
 		if(displayOptions.isUseConstantFontSize()) {
 			labelFontSize = displayOptions.getFontSize();
-		}
-		else {
+		} else {
 			int baseFontSize = 2 * (int) Math.round(5 * Math.pow(cluster.getNodeCount(), 0.4));
 			labelFontSize = (int) Math.round(((double)displayOptions.getFontScale()/DisplayOptions.FONT_SCALE_MAX) * baseFontSize);
 		}
 		
-		double labelWidth = 2.3;
-		double labelHeight = 4.8;
-		if(labelText != null) {
-			labelWidth= 2.3*labelFontSize*labelText.length();
-			labelHeight = 4.8*labelFontSize;
-		}
+		double labelWidth  = 2.3 * labelFontSize * labelText.length();
+		double labelHeight = 4.8 * labelFontSize;
+
+		double x = shape.x + (shape.width * 0.5) - (labelWidth * 0.5);
+		double y = shape.y - labelHeight - 10;
 		
-		// MKTODO Default to above-centered for now
-		double xOffset = 0.5;
-		double yOffset = 0.0;
-		// Set the position of the label relative to the ellipse
-		if (yOffset == 0.5 && xOffset != 0.5) {
-			// If vertically centered, label should go outside of cluster (to the right or left)
-			xPos = (int) Math.round(xPos + width/zoom*xOffset + labelWidth*(xOffset-1));
-		} else {
-			xPos = (int) Math.round(xPos + width/zoom*xOffset - labelWidth*xOffset);
-		}
-		yPos = (int) Math.round(yPos + height/zoom*yOffset - labelHeight*(1.0-yOffset) - 10 + yOffset*20.0);
-		
-		double fontSize = 5*zoom*labelFontSize;
-		int fontSizeToUse = annotationSet.getDisplayOptions().isShowLabels() ? (int)Math.round(fontSize) : 0;
+		double fontSize = 5 * shape.zoom * labelFontSize;
+		int fontSizeToUse = displayOptions.isShowLabels() ? (int)Math.round(fontSize) : 0;
 		
 		Color fontColor = isSelected ? SELECTED_COLOR : displayOptions.getFontColor();
 		
-		return new ArgsLabel(xPos, yPos, width, height, zoom, labelText, fontSizeToUse, fontColor);
+		return new ArgsLabel(x, y, labelWidth, labelHeight, shape.zoom, labelText, fontSizeToUse, fontColor);
 	}
+	
+	
 }

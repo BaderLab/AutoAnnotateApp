@@ -12,30 +12,30 @@ import org.cytoscape.view.presentation.annotations.TextAnnotation;
 public class AnnotationGroup {
 	
 	private final ShapeAnnotation shape;
-	private final TextAnnotation label;
+	private final List<TextAnnotation> labels;
 
 	
-	public AnnotationGroup(ShapeAnnotation shape, TextAnnotation label) {
+	public AnnotationGroup(ShapeAnnotation shape, List<TextAnnotation> labels) {
 		this.shape = shape;
-		this.label = label;
+		this.labels = labels;
 	}
 
 	public void update() {
 		shape.update();
-		label.update();
+		labels.forEach(Annotation::update);
 	}
 	
 	public ShapeAnnotation getShape() {
 		return shape;
 	}
 	
-	public TextAnnotation getLabel() {
-		return label;
+	public List<TextAnnotation> getLabels() {
+		return labels;
 	}
 	
 	public void addTo(List<Annotation> annotations) {
 		annotations.add(shape);
-		annotations.add(label);
+		annotations.addAll(labels);
 	}
 	
 	public void setBorderWidth(double width) {
@@ -60,9 +60,8 @@ public class AnnotationGroup {
 	}
 	
 	public void setTextColor(Color color) {
-//		for(TextAnnotation text : labels) {
-//			text.setTextColor(color);
-//		}
-		label.setTextColor(color);
+		for(TextAnnotation text : labels) {
+			text.setTextColor(color);
+		}
 	}
 }
