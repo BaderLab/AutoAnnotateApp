@@ -220,8 +220,11 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		shapePanel = createShapePanel();
 		labelPanel = createLabelPanel();
 		
-		shapePanel.setBorder(LookAndFeelUtil.createTitledBorder("Shape"));
-		labelPanel.setBorder(LookAndFeelUtil.createTitledBorder("Label"));
+//		shapePanel.setBorder(LookAndFeelUtil.createTitledBorder("Shape"));
+//		labelPanel.setBorder(LookAndFeelUtil.createTitledBorder("Label"));
+		
+		shapePanel.setBorder(LookAndFeelUtil.createPanelBorder());
+		labelPanel.setBorder(LookAndFeelUtil.createPanelBorder());
 		
 		panel.add(shapePanel, GBCFactory.grid(0,0).weightx(1.0).get());
 		panel.add(labelPanel, GBCFactory.grid(0,1).get());
@@ -274,11 +277,11 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		SwingUtil.makeSmall(borderColorLabel, borderColorButton, hideClustersCheckBox);
 				
 		panel.setLayout(new GridBagLayout());
-		panel.add(borderWidthSlider,    GBCFactory.grid(0,0).gridwidth(3).weightx(1.0).get());
-		panel.add(opacitySlider,        GBCFactory.grid(0,1).gridwidth(3).weightx(1.0).get());
-		panel.add(shapeLabel,           GBCFactory.grid(0,2).get());
-		panel.add(ellipseRadio,         GBCFactory.grid(1,2).fill(NONE).get());
-		panel.add(rectangleRadio,       GBCFactory.grid(2,2).fill(NONE).get());
+		panel.add(shapeLabel,           GBCFactory.grid(0,0).get());
+		panel.add(ellipseRadio,         GBCFactory.grid(1,0).fill(NONE).get());
+		panel.add(rectangleRadio,       GBCFactory.grid(2,0).fill(NONE).get());
+		panel.add(borderWidthSlider,    GBCFactory.grid(0,1).gridwidth(3).weightx(1.0).get());
+		panel.add(opacitySlider,        GBCFactory.grid(0,2).gridwidth(3).weightx(1.0).get());
 		panel.add(fillColorLabel,       GBCFactory.grid(0,3).get());
 		panel.add(fillColorButton,      GBCFactory.grid(1,3).fill(NONE).gridwidth(2).get());
 		panel.add(borderColorLabel,     GBCFactory.grid(0,4).get());

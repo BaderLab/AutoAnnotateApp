@@ -34,6 +34,7 @@ public class AnnotationRenderer {
 	@Inject private DrawClustersTask.Factory drawTaskProvider;
 	@Inject private EraseClustersTask.Factory eraseTaskProvider;
 	@Inject private SelectClusterTask.Factory selectTaskProvider;
+	@Inject private UpdateClustersTask.Factory updateTastProvider;
 	
 	private Map<Cluster,AnnotationGroup> clusterAnnotations = new HashMap<>();
 	private Set<Cluster> selectedClusters = new HashSet<>();
@@ -85,14 +86,8 @@ public class AnnotationRenderer {
 	public void handle(ModelEvents.ClusterChanged event) {
 		Cluster cluster = event.getCluster();
 		if(cluster.getParent().isActive()) {
-			TaskIterator tasks = new TaskIterator();
-			
-			if(cluster.isCollapsed())
-				tasks.append(eraseTaskProvider.create(cluster));
-			else
-				tasks.append(drawTaskProvider.create(cluster));
-			
-			syncTaskManager.execute(tasks);
+			UpdateClustersTask task = updateTastProvider.create(cluster);
+			syncTaskManager.execute(new TaskIterator(task));
 		}
 	}
 	
@@ -137,32 +132,20 @@ public class AnnotationRenderer {
 			break;
 		case OPACITY:
 		case SHOW_CLUSTERS:
-			forEachCluster(as, (c,a) -> a.setShow(options.isShowClusters(), options.getOpacity()));
+			forEachCluster(as, (c,a) -> a.setShowShapes(options.isShowClusters(), options.getOpacity()));
 			break;
-			
 		case SHOW_LABELS:
-			// MKTODO this doesn't require a redraw, its like SHOW_CLUSTERS above
 		case FONT_SCALE:
 		case FONT_SIZE:
-		
 		case USE_CONSTANT_FONT_SIZE:
-//			forEachCluster(as, (cluster,a) -> {
-//				ShapeAnnotation shape = a.getShape();
-//				List<TextAnnotation> labels = a.getLabels();
-//				
-//				ArgsLabel labelArgs = ArgsLabel.createFor(shape.getArgMap(), cluster, isSelected(cluster));
-//				double fontSize = options.isShowLabels() ? labelArgs.fontSize : 0;
-//				text.setFontSize(fontSize);
-//				text.setSpecificZoom(labelArgs.zoom);
-//				text.moveAnnotation(new Point2D.Double(labelArgs.x, labelArgs.y));
-//				text.update();
-//			});
+			// when changing font size the label position must also be recalculated
+			UpdateClustersTask task = updateTastProvider.create(as.getClusters());
+			syncTaskManager.execute(new TaskIterator(task));
 			break;
 		case USE_WORD_WRAP:
-			System.out.println("DisplayOptionChanged: USE_WORD_WRAP");
-			break;
 		case WORD_WRAP_LENGTH:
-			System.out.println("DisplayOptionChanged: WORD_WRAP_LENGTH");
+			// when changing word wrap we need to re-create the label annotation objects
+			redrawAnnotations(as.getParent(), Optional.of(as), true);
 			break;
 		default:
 			break;
