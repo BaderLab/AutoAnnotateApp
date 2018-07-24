@@ -322,7 +322,9 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		
 		JLabel wordWrapLengthLabel = new JLabel("Wrap Length:");
 		wordWrapLengthSpinner = new JSpinner(new SpinnerNumberModel(15, 1, 100, 1));
-		wordWrapLengthSpinner.addChangeListener(e -> displayOptions.setWordWrapLength((int)wordWrapLengthSpinner.getValue()));
+		wordWrapLengthSpinner.addChangeListener(wordWrapLengthListener = e -> {
+			displayOptions.setWordWrapLength((int)wordWrapLengthSpinner.getValue());
+		});
 		
 		wordWrapCheckBox = new JCheckBox("Word Wrap");
 		wordWrapCheckBox.addActionListener(wordWrapListener = e -> {
