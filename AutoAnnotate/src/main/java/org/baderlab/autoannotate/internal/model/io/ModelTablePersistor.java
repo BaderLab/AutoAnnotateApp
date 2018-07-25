@@ -76,6 +76,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		FILL_COLOR = "fillColor",
 		BORDER_COLOR = "borderColor",
 		FONT_COLOR = "fontColor",
+		WORD_WRAP = "wordWrap",
+		WORD_WRAP_LENGTH = "wordWrapLength",
 		LABEL_MAKER_ID = "labelMakerID",
 		LABEL_MAKER_CONTEXT = "labelMakerContext",
 		CREATION_PARAMS = "creationParams";
@@ -85,9 +87,11 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		CLUSTER_ID = "clusterID",
 		LABEL = "label",
 		COLLAPSED = "collapsed",
-		NODES_SUID = "nodes.SUID",
+		NODES_SUID = "nodes.SUID", // .SUID suffix has special meaning to Cytoscape
 		SHAPE_ID = "shapeID",
-		TEXT_ID = "textID"; // .SUID suffix has special meaning to Cytoscape
+		TEXT_ID = "textID",
+		// Added word wrap which means multiple text IDs, but need separate column for backwards compatibility
+		TEXT_ID_ADDITIONAL = "textID_additional";  
 	
 	
 	@Inject private Provider<AnnotationPersistor> annotationPersistorProvider;
@@ -223,6 +227,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			safeGet(asRow, FILL_COLOR, Integer.class, rgb -> builder.setFillColor(new Color(rgb)));
 			safeGet(asRow, BORDER_COLOR, Integer.class, rgb -> builder.setBorderColor(new Color(rgb)));
 			safeGet(asRow, FONT_COLOR, Integer.class, rgb -> builder.setFontColor(new Color(rgb)));
+			safeGet(asRow, WORD_WRAP, Boolean.class, builder::setUseWordWrap);
+			safeGet(asRow, WORD_WRAP_LENGTH, Integer.class, builder::setWordWrapLength);
 
 			String labelMakerID = asRow.get(LABEL_MAKER_ID, String.class);
 			String serializedContext = asRow.get(LABEL_MAKER_CONTEXT, String.class);
@@ -276,14 +282,15 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			
 			Optional<UUID> shapeID = safeUUID(clusterRow.get(SHAPE_ID, String.class));
 			Optional<UUID> textID  = safeUUID(clusterRow.get(TEXT_ID, String.class));
+			Optional<List<UUID>> textIDAdditional = safeUUID(clusterRow.getList(TEXT_ID_ADDITIONAL, String.class));
 			
 			List<CyNode> nodes = nodeSUIDS.stream().map(network::getNode).collect(Collectors.toList());
 			AnnotationPersistor annotationPersistor = annotationPersistorProvider.get();
 			
 			AnnotationSetBuilder builder = builders.get(asId);
-//			builder.addCluster(nodes, label, collapsed, cluster -> {
-//				annotationPersistor.restoreCluster(cluster, shapeID, textID);
-//			});
+			builder.addCluster(nodes, label, collapsed, cluster -> {
+				annotationPersistor.restoreCluster(cluster, shapeID, textID, textIDAdditional);
+			});
 		}
 		
 		
@@ -349,6 +356,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(FILL_COLOR, disp.getFillColor().getRGB());
 			asRow.set(BORDER_COLOR, disp.getBorderColor().getRGB());
 			asRow.set(FONT_COLOR, disp.getFontColor().getRGB());
+			asRow.set(WORD_WRAP, disp.isUseWordWrap());
+			asRow.set(WORD_WRAP_LENGTH, disp.getWordWrapLength());
 			
 			LabelMakerManager labelMakerManager = labelManagerProvider.get();
 			
@@ -374,8 +383,15 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				
 				Optional<UUID> shapeID = annotationPersistor.getShapeID(cluster);
 				clusterRow.set(SHAPE_ID, shapeID.map(UUID::toString).orElse(null));
-//				Optional<UUID> textID = annotationPersistor.getTextID(cluster);
-//				clusterRow.set(TEXT_ID, textID.map(UUID::toString).orElse(null));
+				
+				Optional<List<UUID>> optTextIDs = annotationPersistor.getTextIDs(cluster);
+				if(optTextIDs.map(List::size).orElse(0) > 0) {
+					List<UUID> textIds = optTextIDs.get();
+					String firstId = textIds.get(0).toString();
+					List<String> rest = textIds.subList(1, textIds.size()).stream().map(UUID::toString).collect(Collectors.toList());
+					clusterRow.set(TEXT_ID, firstId);
+					clusterRow.set(TEXT_ID_ADDITIONAL, rest);
+				} 
 				
 				ids.clusterId++;
 			}
@@ -414,6 +430,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, FILL_COLOR, Integer.class); // store as RGB int value
 		createColumn(table, BORDER_COLOR, Integer.class);
 		createColumn(table, FONT_COLOR, Integer.class);
+		createColumn(table, WORD_WRAP, Boolean.class);
+		createColumn(table, WORD_WRAP_LENGTH, Integer.class);
 		createColumn(table, LABEL_MAKER_ID, String.class);
 		createColumn(table, LABEL_MAKER_CONTEXT, String.class);
 		createColumn(table, CREATION_PARAMS, String.class);
@@ -429,6 +447,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, ANNOTATION_SET_ID, Long.class);
 		createColumn(table, SHAPE_ID, String.class);
 		createColumn(table, TEXT_ID, String.class);
+		createListColumn(table, TEXT_ID_ADDITIONAL, String.class);
 		return table;
 	}
 	
@@ -452,14 +471,27 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			return Optional.empty();
 		}
 	}
+	
+	private static Optional<List<UUID>> safeUUID(List<String> ss) {
+		if(ss == null || ss.isEmpty())
+			return Optional.empty();
+		try {
+			List<UUID> uuids = new ArrayList<>(ss.size());
+			for(String s : ss) {
+				uuids.add(UUID.fromString(s));
+			}
+			return Optional.of(uuids);
+		} catch(IllegalArgumentException e) {
+			return Optional.empty();
+		}
+	}
 
 	private static <T> void safeGet(CyRow row, String column, Class<T> type, Consumer<T> consumer) {
 		try {
 			T value = row.get(column, type);
 			if(value == null) {
 				System.err.println("AutoAnnotate.importModel - Can't find display option for " + column);
-			}
-			else {
+			} else {
 				consumer.accept(value);
 			}
 		} catch(ClassCastException e) { 
