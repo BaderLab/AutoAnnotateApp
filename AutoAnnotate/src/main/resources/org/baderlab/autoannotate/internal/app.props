@@ -1,5 +1,5 @@
 app.url = http://www.baderlab.org/Software/AutoAnnotate
-app.url.manual = http://www.baderlab.org/Software/AutoAnnotate/UserManual
+app.url.manual = http://autoannotate.readthedocs.io
 
 project.name=${project.name}
 project.version=${project.version}

@@ -1,7 +1,10 @@
 package org.baderlab.autoannotate.internal;
 
 import static org.baderlab.autoannotate.internal.util.TaskTools.taskFactory;
-import static org.cytoscape.work.ServiceProperties.*;
+import static org.cytoscape.work.ServiceProperties.APPS_MENU;
+import static org.cytoscape.work.ServiceProperties.IN_MENU_BAR;
+import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
+import static org.cytoscape.work.ServiceProperties.TITLE;
 
 import java.util.Arrays;
 import java.util.Properties;
@@ -23,6 +26,7 @@ import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTaskFactory;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowAboutDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
+import org.baderlab.autoannotate.internal.ui.view.action.ShowHelpAction;
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CyAction;
 import org.cytoscape.property.CyProperty;
@@ -60,9 +64,10 @@ public class CyActivator extends AbstractCyActivator {
 		
 		// Register menu Actions
 		PanelManager panelManager = injector.getInstance(PanelManager.class);
-		registerAction(bc, injector.getInstance(ShowCreateDialogAction.class));
-		registerAction(bc, panelManager.getShowHideAction());
-		registerAction(bc, injector.getInstance(ShowAboutDialogAction.class));
+		registerAction(bc, 1.0f, injector.getInstance(ShowCreateDialogAction.class));
+		registerAction(bc, 2.0f, panelManager.getShowHideAction());
+		registerAction(bc, 3.0f, injector.getInstance(ShowHelpAction.class));
+		registerAction(bc, 4.0f, injector.getInstance(ShowAboutDialogAction.class));
 		
 		// Context menu action in network view
 		CreateClusterTaskFactory createClusterTaskFactory = injector.getInstance(CreateClusterTaskFactory.class);
@@ -125,9 +130,9 @@ public class CyActivator extends AbstractCyActivator {
 	}
 	
 	
-	
-	private void registerAction(BundleContext bc, AbstractCyAction action) {
+	private void registerAction(BundleContext bc, float gravity, AbstractCyAction action) {
 		action.setPreferredMenu("Apps." + BuildProperties.APP_NAME);
+		action.setMenuGravity(gravity);
 		registerService(bc, action, CyAction.class, new Properties());
 	}
 	

@@ -35,8 +35,8 @@ public class PanelManagerImpl implements PanelManager {
 	@Inject private CySwingApplication swingApplication;
 	@Inject private CyServiceRegistrar registrar;
 	
-	private final String showName = "Show AutoAnnotate";
-	private final String hideName = "Hide AutoAnnotate";
+	private final String showName = "Show AutoAnnotate Panels";
+	private final String hideName = "Hide AutoAnnotate Panels";
 	
 	private ClusterPanel mainPanel;
 	private DisplayOptionsPanel optionsPanel;
