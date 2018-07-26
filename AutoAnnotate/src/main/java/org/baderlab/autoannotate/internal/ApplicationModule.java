@@ -12,6 +12,7 @@ import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.internal.task.CreateSubnetworkTask;
 import org.baderlab.autoannotate.internal.task.LayoutAnnotationSetTaskFactory;
 import org.baderlab.autoannotate.internal.task.LayoutClustersTaskFactory;
+import org.baderlab.autoannotate.internal.task.RecalculateLabelsTask;
 import org.baderlab.autoannotate.internal.task.RunClusterMakerTaskFactory;
 import org.baderlab.autoannotate.internal.task.SummaryNetworkTask;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
@@ -85,6 +86,7 @@ class FactoryModule extends AbstractModule {
 		installFactory(CreateAnnotationSetTask.Factory.class);
 		installFactory(CreateClusterTask.Factory.class);
 		installFactory(CreateSubnetworkTask.Factory.class);
+		installFactory(RecalculateLabelsTask.Factory.class);
 		installFactory(DrawClustersTask.Factory.class);
 		installFactory(EraseClustersTask.Factory.class);
 		installFactory(SelectClusterTask.Factory.class);

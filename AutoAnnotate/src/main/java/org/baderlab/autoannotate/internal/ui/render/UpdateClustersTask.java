@@ -1,5 +1,6 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -17,6 +18,8 @@ import com.google.inject.assistedinject.AssistedInject;
 public class UpdateClustersTask extends AbstractTask {
 
 	@Inject private AnnotationRenderer annotationRenderer;
+	@Inject private DrawClustersTask.Factory drawTaskProvider;
+	@Inject private EraseClustersTask.Factory eraseTaskProvider;
 	
 	private final Collection<Cluster> clusters;
 	
@@ -42,6 +45,8 @@ public class UpdateClustersTask extends AbstractTask {
 		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Drawing Annotations");
 		
+		List<Cluster> clustersToRedraw = new ArrayList<>();
+		
 		for(Cluster cluster : clusters) {
 			AnnotationGroup group = annotationRenderer.getAnnotations(cluster);
 			if(group == null) {
@@ -52,18 +57,27 @@ public class UpdateClustersTask extends AbstractTask {
 			ArgsShape argsShape = ArgsShape.createFor(cluster, isSelected);
 			List<ArgsLabel> argsLabels = ArgsLabel.createFor(argsShape, cluster, isSelected);
 			
-			if(!compatible(group.getLabels(), argsLabels)) {
-				throw new IllegalArgumentException("Labels do not match up");
-			}
-			
-			argsShape.updateAnnotation(group.getShape());
-			for(int i = 0; i < argsLabels.size(); i++) {
-				TextAnnotation text = group.getLabels().get(i);
-				ArgsLabel args = argsLabels.get(i);
-				args.updateAnnotation(text);
+			if(compatible(group.getLabels(), argsLabels)) {
+				// If it has the same number of shape and label annotations then we can update the existing ones
+				argsShape.updateAnnotation(group.getShape());
+				for(int i = 0; i < argsLabels.size(); i++) {
+					TextAnnotation text = group.getLabels().get(i);
+					ArgsLabel args = argsLabels.get(i);
+					args.updateAnnotation(text);
+				}
+			} else {
+				clustersToRedraw.add(cluster);
 			}
 		}
 		
+		// This shouldn't normally happen, more of a defensive thing.
+		// But this can happen if the user manually updates a label.
+		if(!clustersToRedraw.isEmpty()) {
+			EraseClustersTask eraseTask = eraseTaskProvider.create(clustersToRedraw);
+			DrawClustersTask drawTask = drawTaskProvider.create(clustersToRedraw);
+			System.out.println("Redrawing clusters " + clustersToRedraw.size());
+			insertTasksAfterCurrentTask(eraseTask, drawTask);
+		}
 	}
 	
 	private boolean compatible(List<TextAnnotation> textAnnotations, List<ArgsLabel> labelArgs) {

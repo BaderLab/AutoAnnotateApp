@@ -66,6 +66,15 @@ public class ModelEvents {
 		}
 	}
 	
+	public static class ClustersLabelsUpdated implements ModelEvent {
+		private final AnnotationSet annotationSet;
+		ClustersLabelsUpdated(AnnotationSet annotationSet) {
+			this.annotationSet = annotationSet;
+		}
+		public AnnotationSet getAnnotationSet() {
+			return annotationSet;
+		}
+	}
 	
 	public static class ClusterAdded implements ModelEvent {
 		private final Cluster cluster;

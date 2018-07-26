@@ -18,6 +18,7 @@ import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.swing.DialogTaskManager;
 
 import com.google.common.eventbus.EventBus;
@@ -63,21 +64,28 @@ public class AnnotationRenderer {
 	}
 	
 	
+	@Subscribe
+	public void handle(ModelEvents.ClustersLabelsUpdated event) {
+		AnnotationSet annotationSet = event.getAnnotationSet();
+		if(annotationSet.isActive()) {
+			redrawAnnotations(annotationSet.getParent(), Optional.of(event.getAnnotationSet()), false);
+		};
+	}
+	
+	
 	public void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet) {
 		redrawAnnotations(networkViewSet, selectedAnnotationSet, false);
 	}
 	
 	private void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet, boolean sync) {
-		TaskIterator tasks = new TaskIterator();
 		Set<Cluster> clusters = getClusters(networkViewSet);
 		
+		TaskIterator tasks = new TaskIterator();
 		tasks.append(eraseTaskProvider.create(clusters));
 		selectedAnnotationSet.map(AnnotationSet::getClusters).map(drawTaskProvider::create).ifPresent(tasks::append);
 		
-		if(sync)
-			syncTaskManager.execute(tasks);
-		else
-			dialogTaskManager.execute(tasks);
+		TaskManager<?,?> taskManager = sync ? syncTaskManager : dialogTaskManager;
+		taskManager.execute(tasks);
 	}
 	
 	

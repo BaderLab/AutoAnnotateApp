@@ -104,6 +104,15 @@ public class Cluster {
 			getRoot().postEvent(new ModelEvents.ClusterChanged(this));
 		}
 	}
+	
+	boolean updateLabel(String newLabel) {
+		// don't fire event
+		if(!newLabel.equals(label)) {
+			label = newLabel;
+			return true;
+		}
+		return false;
+	}
 
 	public CyNetwork getNetwork() {
 		return getParent().getParent().getNetwork();

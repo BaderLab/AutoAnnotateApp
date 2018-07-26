@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -126,6 +127,22 @@ public class AnnotationSet {
 		// MKTODO should I also test if the NetworkViewSet is active?
 		Optional<AnnotationSet> active = getParent().getActiveAnnotationSet();
 		return active.isPresent() && active.get() == this;
+	}
+	
+	public void updateLabels(Map<Cluster, String> newLabels) {
+		boolean updated = false;
+		
+		for(Map.Entry<Cluster,String> entry : newLabels.entrySet()) {
+			Cluster cluster = entry.getKey();
+			String newLabel = entry.getValue();
+			if(clusters.contains(cluster)) {
+				updated |= cluster.updateLabel(newLabel);
+			}
+		}
+		
+		if(updated) {
+			parent.getParent().postEvent(new ModelEvents.ClustersLabelsUpdated(this));
+		}
 	}
 	
 }
