@@ -59,10 +59,6 @@ public class AnnotationGroup {
 		shape.setBorderOpacity(show ? 100 : 0);
 	}
 	
-	public void setShowLabels(boolean show, int fontSize) {
-		labels.forEach(l -> l.setFontSize(show ? fontSize : 0));
-	}
-	
 	public void setTextColor(Color color) {
 		for(TextAnnotation text : labels) {
 			text.setTextColor(color);
