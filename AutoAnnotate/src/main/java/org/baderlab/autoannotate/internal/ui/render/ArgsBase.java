@@ -9,13 +9,15 @@ public abstract class ArgsBase<A extends Annotation> {
 	
 	public static final Color SELECTED_COLOR = Color.YELLOW;
 	
+	public final String name;
 	public final double x;
 	public double y;
 	public final double width;
 	public final double height;
 	public final double zoom;
 	
-	public ArgsBase(double x, double y, double width, double height, double zoom) {
+	public ArgsBase(String name, double x, double y, double width, double height, double zoom) {
+		this.name = name;
 		this.x = x;
 		this.y = y;
 		this.width = width;

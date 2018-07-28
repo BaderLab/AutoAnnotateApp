@@ -28,9 +28,9 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 	public final double fillOpacity;
 	public final double borderOpacity;
 
-	public ArgsShape(double x, double y, double width, double height, double zoom, ShapeType shapeType,
+	public ArgsShape(String name, double x, double y, double width, double height, double zoom, ShapeType shapeType,
 			double borderWidth, double opacity, Color fillColor, Color borderColor, double fillOpacity, double borderOpacity) {
-		super(x, y, width, height, zoom);
+		super(name, x, y, width, height, zoom);
 		this.shapeType = shapeType;
 		this.borderWidth = borderWidth;
 		this.opacity = opacity;
@@ -47,6 +47,7 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 		argMap.put(Annotation.Y, String.valueOf(y));
 		argMap.put(Annotation.ZOOM, String.valueOf(zoom));
 		argMap.put(Annotation.CANVAS, Annotation.BACKGROUND);
+		argMap.put(Annotation.NAME, "AutoAnnotate: " + name);
 		argMap.put(ShapeAnnotation.WIDTH, String.valueOf(width * zoom));
 		argMap.put(ShapeAnnotation.HEIGHT, String.valueOf(height * zoom));
 		argMap.put(ShapeAnnotation.SHAPETYPE, shapeType.toString());
@@ -70,6 +71,7 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 		shape.setFillOpacity(fillOpacity);
 		shape.setBorderOpacity(borderOpacity);
 		shape.setFillColor(fillColor);
+		shape.setName("AutoAnnotate: " + name);
 		shape.update();
 	}
 
@@ -113,7 +115,8 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 		double fillOpacity = annotationSet.getDisplayOptions().isShowClusters() ? opacity : 0;
 		double borderOpacity = annotationSet.getDisplayOptions().isShowClusters() ? 100 : 0;
 		
-		return new ArgsShape(xPos, yPos, width, height, zoom, shapeType, borderWidth, opacity, fillColor, borderColor, fillOpacity, borderOpacity);
+		return new ArgsShape(cluster.getLabel(), xPos, yPos, width, height, zoom, shapeType, borderWidth, 
+				opacity, fillColor, borderColor, fillOpacity, borderOpacity);
 	}
 	
 	private static boolean nodesOutOfCluster(CoordinateData data, double width, double height, double centreX, double centreY, int ellipseWidth) {

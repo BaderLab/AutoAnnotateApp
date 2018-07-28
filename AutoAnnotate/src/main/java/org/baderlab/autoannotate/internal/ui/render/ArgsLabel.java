@@ -24,11 +24,19 @@ public class ArgsLabel extends ArgsBase<TextAnnotation> {
 	public final int fontSize;
 	public final Color fontColor;
 	
-	public ArgsLabel(double x, double y, double width, double height, double zoom, String label, int fontSize, Color fontColor) {
-		super(x, y, width, height, zoom);
+	private int index;
+	private int total;
+	
+	public ArgsLabel(String name, double x, double y, double width, double height, double zoom, String label, int fontSize, Color fontColor) {
+		super(name, x, y, width, height, zoom);
 		this.label = label;
 		this.fontSize = fontSize;
 		this.fontColor = fontColor;
+	}
+	
+	public void setIndexOfTotal(int index, int total) {
+		this.index = index;
+		this.total = total;
 	}
 	
 	@Override
@@ -38,6 +46,7 @@ public class ArgsLabel extends ArgsBase<TextAnnotation> {
 		argMap.put(Annotation.Y, String.valueOf(y));
 		argMap.put(Annotation.ZOOM, String.valueOf(zoom));
 		argMap.put(Annotation.CANVAS, Annotation.FOREGROUND);
+		argMap.put(Annotation.NAME, getAnnotationName());
 		argMap.put(TextAnnotation.TEXT, label);
 		argMap.put(TextAnnotation.FONTSIZE, String.valueOf(fontSize));
 		argMap.put(TextAnnotation.FONTFAMILY, FONT_FAMILY_DEFAULT);
@@ -54,9 +63,17 @@ public class ArgsLabel extends ArgsBase<TextAnnotation> {
 		text.setText(label);
 		text.setFontSize(fontSize);
 		text.setTextColor(fontColor);
+		text.setName(getAnnotationName());
 		text.update();
 	}
 	
+	private String getAnnotationName() {
+		if(index > 0 && total > 0) {
+			return "AutoAnnotate: " + name + " (" + index + "/" + total + ")";
+		} else {
+			return "AutoAnnotate: " + name;
+		}
+	}
 	
 	public static List<ArgsLabel> createFor(ArgsShape shapeArgs, Cluster cluster, boolean isSelected) {
 		DisplayOptions options = cluster.getParent().getDisplayOptions();
@@ -108,7 +125,7 @@ public class ArgsLabel extends ArgsBase<TextAnnotation> {
 		
 		Color fontColor = isSelected ? SELECTED_COLOR : displayOptions.getFontColor();
 		
-		return new ArgsLabel(x, y, labelWidth, labelHeight, shape.zoom, labelText, fontSizeToUse, fontColor);
+		return new ArgsLabel(cluster.getLabel(), x, y, labelWidth, labelHeight, shape.zoom, labelText, fontSizeToUse, fontColor);
 	}
 	
 	

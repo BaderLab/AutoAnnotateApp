@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
@@ -58,7 +59,7 @@ public class DrawClustersTask extends AbstractTask {
 		
 		for(Cluster cluster : clusters) {
 			boolean isSelected = annotationRenderer.isSelected(cluster);
-			AnnotationGroup group = createAnnotations(cluster, isSelected);
+			AnnotationGroup group = createClusterAnnotations(cluster, isSelected);
 			annotationRenderer.putAnnotations(cluster, group);
 			group.addTo(allAnnotations);
 		}
@@ -67,7 +68,7 @@ public class DrawClustersTask extends AbstractTask {
 	}
 	
 	
-	private AnnotationGroup createAnnotations(Cluster cluster, boolean isSelected) {
+	private AnnotationGroup createClusterAnnotations(Cluster cluster, boolean isSelected) {
 		AnnotationSet annotationSet = cluster.getParent();
 		CyNetworkView networkView = annotationSet.getParent().getNetworkView();
 		
@@ -75,9 +76,19 @@ public class DrawClustersTask extends AbstractTask {
 		ShapeAnnotation shape = shapeFactory.createAnnotation(ShapeAnnotation.class, networkView, shapeArgs.getArgMap());
 		
 		List<ArgsLabel> labelArgsList = ArgsLabel.createFor(shapeArgs, cluster, isSelected);
+		
+		if(annotationSet.getDisplayOptions().isUseWordWrap()) {
+			int n = labelArgsList.size();
+			for(int i = 0; i < n; i++) {
+				labelArgsList.get(i).setIndexOfTotal(i+1, n);
+			}
+		}
+		
 		List<TextAnnotation> textAnnotations = new ArrayList<>(labelArgsList.size());
+		
 		for(ArgsLabel labelArgs : labelArgsList) {
-			TextAnnotation text = textFactory.createAnnotation(TextAnnotation.class, networkView, labelArgs.getArgMap());
+			Map<String, String> argMap = labelArgs.getArgMap();
+			TextAnnotation text = textFactory.createAnnotation(TextAnnotation.class, networkView, argMap);
 			textAnnotations.add(text);
 		}
 		
