@@ -16,12 +16,16 @@ import org.baderlab.autoannotate.internal.ui.view.action.ExportClustersAction;
 import org.baderlab.autoannotate.internal.ui.view.action.LayoutClustersAction;
 import org.baderlab.autoannotate.internal.ui.view.action.RedrawAction;
 import org.baderlab.autoannotate.internal.ui.view.action.RelabelAction;
+import org.baderlab.autoannotate.internal.ui.view.action.ShowCopyAnnotationsDialog;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreationParamsAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowLabelOptionsDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowManageDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowSettingsDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.SummaryNetworkAction;
+import org.baderlab.autoannotate.internal.ui.view.copy.CopyAnnotationsEnabler;
+import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.view.model.CyNetworkView;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -42,10 +46,21 @@ public class AnnotationSetMenu {
 	@Inject private Provider<ShowLabelOptionsDialogAction> showLabelOptionsProvider;
 	@Inject private Provider<ShowCreationParamsAction> showCreationParamsProvider;
 	@Inject private Provider<ExportClustersAction> exportClusterProvider;
+	@Inject private Provider<ShowCopyAnnotationsDialog> copyActionProvider;
+	
+	@Inject private Provider<CopyAnnotationsEnabler> copyEnablerProvider;
+	@Inject private Provider<CyApplicationManager> applicationManagerProvider;
+	
+	
+	private boolean shouldEnableCopyAction() {
+		CyNetworkView currentNetView = applicationManagerProvider.get().getCurrentNetworkView();
+		return copyEnablerProvider.get().hasCompatibleNetworkViews(currentNetView);
+	}
 	
 	
 	public void show(Optional<AnnotationSet> annotationSet, Component parent, int x, int y) {
 		Action createAction = showActionProvider.get();
+		Action copyAction = copyActionProvider.get();
 		Action renameAction = renameActionProvider.get();
 		Action deleteAction = deleteActionProvider.get();
 		Action showManageAction = showManageProvider.get();
@@ -76,6 +91,8 @@ public class AnnotationSetMenu {
 		showCreationParamsAction.setEnabled(enabled);
 		exportClustersAction.setEnabled(enabled);
 		
+		copyAction.setEnabled(shouldEnableCopyAction());
+		
 		JMenu summaryMenu = new JMenu(SummaryNetworkAction.TITLE);
 		summaryAction.putValue(Action.NAME, "Clusters Only");
 		summaryIncludeAction.putValue(Action.NAME, "Clusters and Unclustered Nodes");
@@ -85,6 +102,7 @@ public class AnnotationSetMenu {
 		
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(createAction);
+		menu.add(copyAction);
 		menu.add(renameAction);
 		menu.add(deleteAction);
 		menu.add(showManageAction);

@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.ui.view;
+package org.baderlab.autoannotate.internal.util;
 
 import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
 
@@ -8,8 +8,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
-
-import org.baderlab.autoannotate.internal.util.GBCFactory;
 
 @SuppressWarnings("serial")
 public class NumberSpinner extends JPanel {

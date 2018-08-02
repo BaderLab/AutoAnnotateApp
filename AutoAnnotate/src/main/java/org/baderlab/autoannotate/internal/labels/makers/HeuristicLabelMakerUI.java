@@ -5,7 +5,7 @@ import java.awt.BorderLayout;
 import javax.swing.JPanel;
 
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
-import org.baderlab.autoannotate.internal.ui.view.NumberSpinner;
+import org.baderlab.autoannotate.internal.util.NumberSpinner;
 
 public class HeuristicLabelMakerUI implements LabelMakerUI<HeuristicLabelOptions> {
 

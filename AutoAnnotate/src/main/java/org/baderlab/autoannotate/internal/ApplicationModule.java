@@ -25,8 +25,9 @@ import org.baderlab.autoannotate.internal.ui.render.UpdateClustersTask;
 import org.baderlab.autoannotate.internal.ui.view.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.ManageAnnotationSetsDialog;
 import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTask;
-import org.baderlab.autoannotate.internal.ui.view.dialog.EasyModePanel;
-import org.baderlab.autoannotate.internal.ui.view.dialog.NormalModePanel;
+import org.baderlab.autoannotate.internal.ui.view.copy.CopyAnnotationsDialog;
+import org.baderlab.autoannotate.internal.ui.view.create.EasyModePanel;
+import org.baderlab.autoannotate.internal.ui.view.create.NormalModePanel;
 import org.cytoscape.property.AbstractConfigDirPropsReader;
 import org.cytoscape.property.CyProperty;
 
@@ -91,6 +92,7 @@ class FactoryModule extends AbstractModule {
 		installFactory(EraseClustersTask.Factory.class);
 		installFactory(SelectClusterTask.Factory.class);
 		installFactory(UpdateClustersTask.Factory.class);
+		installFactory(CopyAnnotationsDialog.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {

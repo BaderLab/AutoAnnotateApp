@@ -84,6 +84,7 @@ public class AnnotationSetBuilder {
 		this.labelColumn = labelColumn;
 	}
 	
+	
 	public AnnotationSet build() {
 		if(used)
 			throw new IllegalStateException("builder has already been used");

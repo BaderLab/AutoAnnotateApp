@@ -1,5 +1,6 @@
 package org.baderlab.autoannotate.internal.util;
 
+import org.apache.commons.lang3.tuple.Pair;
 
 public class ComboItem<V> {
 	
@@ -14,6 +15,10 @@ public class ComboItem<V> {
 	
 	public ComboItem(V value) {
 		this(value, String.valueOf(value));
+	}
+	
+	public ComboItem(Pair<V, String> pair) {
+		this(pair.getKey(), pair.getValue());
 	}
 	
 	public V getValue() {

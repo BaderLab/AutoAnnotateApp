@@ -7,7 +7,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
-import org.baderlab.autoannotate.internal.ui.view.dialog.CreateAnnotationSetDialog;
+import org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialog;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.AbstractCyAction;
 

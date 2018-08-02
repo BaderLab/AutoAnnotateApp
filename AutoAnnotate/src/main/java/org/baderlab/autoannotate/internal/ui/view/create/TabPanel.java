@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.ui.view.dialog;
+package org.baderlab.autoannotate.internal.ui.view.create;
 
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
 

@@ -1,12 +1,9 @@
-package org.baderlab.autoannotate.internal.ui.view.dialog;
-
-import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
+package org.baderlab.autoannotate.internal.ui.view.create;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -40,6 +37,7 @@ import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.util.swing.IconManager;
+import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.util.swing.OpenBrowser;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.TaskIterator;
@@ -196,18 +194,14 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	
 	private JPanel createButtonPanel() {
-		JPanel panel = new JPanel(new BorderLayout());
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING));
-		
 		JButton cancelButton = new JButton("Cancel");
-		buttonPanel.add(makeSmall(cancelButton));
 		cancelButton.addActionListener(e -> dispose());
 		
 		createButton = new JButton("Create Annotations");
-		buttonPanel.add(makeSmall(createButton));
 		createButton.addActionListener(e -> createButtonPressed());
 		
-		panel.add(buttonPanel, BorderLayout.CENTER);
+		LookAndFeelUtil.makeSmall(cancelButton, createButton);
+		JPanel panel = LookAndFeelUtil.createOkCancelPanel(createButton, cancelButton);
 		
 		okButtonStateChanged();
 		return panel;
