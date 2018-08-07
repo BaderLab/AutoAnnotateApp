@@ -1,11 +1,10 @@
 package org.baderlab.autoannotate.internal.ui.view.copy;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
@@ -13,25 +12,19 @@ import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.UIManager;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableCellRenderer;
+import javax.swing.SwingConstants;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
-import org.baderlab.autoannotate.internal.util.ComboItem;
-import org.cytoscape.model.subnetwork.CyRootNetworkManager;
-import org.cytoscape.util.swing.IconManager;
+import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.view.model.CyNetworkView;
-import org.cytoscape.view.model.CyNetworkViewManager;
+import org.cytoscape.work.swing.DialogTaskManager;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -41,12 +34,17 @@ import com.google.inject.assistedinject.AssistedInject;
 public class CopyAnnotationsDialog extends JDialog {
 
 	@Inject private ModelManager modelManager;
-	@Inject private CyRootNetworkManager rootNetworkManager;
-	@Inject private CyNetworkViewManager networkViewManager;
-	@Inject private IconManager iconManager;
-	@Inject private CopyAnnotationsEnabler copyAnnotationsEnabler;
+	@Inject private NetworkList.Factory networkListFactory;
+	@Inject private DialogTaskManager dialogTaskManager;
 	
 	private final CyNetworkView destination;
+	
+	private JButton okButton;
+	private NetworkList networkList;
+	private JTable annotationSetTable;
+	
+	private Map<CyNetworkView, AnnotationSetTableModel> tableModels = new HashMap<>();
+	
 	
 	public static interface Factory {
 		CopyAnnotationsDialog create(CyNetworkView destination);
@@ -58,7 +56,6 @@ public class CopyAnnotationsDialog extends JDialog {
 		setTitle("AutoAnnotate: Copy Annotation Sets");
 		this.destination = destination;
 	}
-	
 	
 	@AfterInjection
 	public void createContents() {
@@ -72,22 +69,30 @@ public class CopyAnnotationsDialog extends JDialog {
 	
 	
 	private JPanel createBodyPanel() {
-		JLabel title = new JLabel("Copy Annotations to: " + CopyAnnotationsEnabler.getName(destination));
 		JLabel networkTitle = new JLabel("Copy annotations from");
 		JLabel asTitle = new JLabel("Annotation sets to copy");
 		
-		JList<ComboItem<CyNetworkView>> networkList = createNetworkSourcesJList(destination);
+		networkList = networkListFactory.create(destination);
+		JScrollPane networkListScrollPane = new JScrollPane(networkList);
 		
-		CyNetworkView first = networkList.getModel().getElementAt(0).getValue();
-		NetworkViewSet nvs = modelManager.getNetworkViewSet(first);
+		annotationSetTable = new JTable();
+		annotationSetTable.setTableHeader(null);
+		annotationSetTable.setShowGrid(false);
+		annotationSetTable.setModel(new AnnotationSetTableModel(null));
+		annotationSetTable.getColumnModel().getColumn(0).setMaxWidth(27);
 		
-		JTable annotationSetTable = createTable();
-		annotationSetTable.setModel(new AnnotationSetTableModel(nvs.getAnnotationSets()));
+		JScrollPane tableScrollPane = new JScrollPane(annotationSetTable);
+		
+		networkList.addListSelectionListener(e -> updateTable());
 		
 		JButton selectAllButton = new JButton("Select All");
+		selectAllButton.addActionListener(e -> ((AnnotationSetTableModel)annotationSetTable.getModel()).selectAll());
 		JButton selectNoneButton = new JButton("Select None");
+		selectNoneButton.addActionListener(e -> ((AnnotationSetTableModel)annotationSetTable.getModel()).selectNone());
 		
 		JCheckBox allClustersCheckBox = new JCheckBox("Copy annotations even when clusters are incomplete");
+		
+		SwingUtil.makeSmall(networkTitle, asTitle, selectAllButton, selectNoneButton, allClustersCheckBox);
 		
 		JPanel panel = new JPanel();
 		GroupLayout layout = new GroupLayout(panel);
@@ -96,15 +101,14 @@ public class CopyAnnotationsDialog extends JDialog {
 		layout.setAutoCreateGaps(true);
 		
 		layout.setHorizontalGroup(layout.createParallelGroup()
-			.addComponent(title)
 			.addGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
 					.addComponent(networkTitle)
-					.addComponent(networkList)
+					.addComponent(networkListScrollPane, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				)
 				.addGroup(layout.createParallelGroup()
 					.addComponent(asTitle)
-					.addComponent(annotationSetTable)
+					.addComponent(tableScrollPane, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				)
 				.addGroup(layout.createParallelGroup()
 					.addComponent(selectAllButton)
@@ -115,14 +119,13 @@ public class CopyAnnotationsDialog extends JDialog {
 		);
 		
 		layout.setVerticalGroup(layout.createSequentialGroup()
-			.addComponent(title)
 			.addGroup(layout.createParallelGroup(Alignment.BASELINE)
 				.addComponent(networkTitle)
 				.addComponent(asTitle)
 			)
 			.addGroup(layout.createParallelGroup(Alignment.BASELINE)
-				.addComponent(networkList)
-				.addComponent(annotationSetTable)
+				.addComponent(networkListScrollPane)
+				.addComponent(tableScrollPane)
 				.addGroup(layout.createSequentialGroup()
 					.addComponent(selectAllButton)
 					.addComponent(selectNoneButton)
@@ -131,96 +134,49 @@ public class CopyAnnotationsDialog extends JDialog {
 			.addComponent(allClustersCheckBox)
 		);
 		
+		layout.linkSize(SwingConstants.HORIZONTAL, selectAllButton, selectNoneButton);
+		
 		return panel;
 	}
 	
+	private void updateTable() {
+		CyNetworkView netView = networkList.getSelectedValue();
+		if(netView == null) {
+			annotationSetTable.setModel(new AnnotationSetTableModel(null));
+		} else {
+			AnnotationSetTableModel tableModel = tableModels.computeIfAbsent(netView, (key) -> {
+				NetworkViewSet nvs = modelManager.getNetworkViewSet(netView);
+				return new AnnotationSetTableModel(nvs.getAnnotationSets());
+			});
+			annotationSetTable.setModel(tableModel);
+			annotationSetTable.getColumnModel().getColumn(0).setMaxWidth(27);
+			tableModel.addTableModelListener(e -> updateButtonEnablement());
+		}
+		updateButtonEnablement();
+	}
+	
+	
+	private void updateButtonEnablement() {
+		boolean empty = ((AnnotationSetTableModel)annotationSetTable.getModel()).getSelectedAnnotationSets().isEmpty();
+		okButton.setEnabled(!empty);
+	}
 	
 	private JPanel createButtonPanel() {
 		JButton cancelButton = new JButton("Cancel");
 		cancelButton.addActionListener(e -> dispose());
 		
-		JButton copyButton = new JButton("Copy Annotations");
-//		copyButton.addActionListener(e -> createButtonPressed());
+		okButton = new JButton("Copy Annotations");
+		okButton.addActionListener(e -> copyAnnotations());
+		okButton.setEnabled(false);
 		
-		LookAndFeelUtil.makeSmall(cancelButton, copyButton);
-		JPanel panel = LookAndFeelUtil.createOkCancelPanel(copyButton, cancelButton);
+		LookAndFeelUtil.makeSmall(cancelButton, okButton);
+		JPanel panel = LookAndFeelUtil.createOkCancelPanel(okButton, cancelButton);
 		return panel;
 	}
 	
 	
-	
-	private class AnnotationSetTableModel extends AbstractTableModel {
-		private List<AnnotationSet> annotationSets;
-		private boolean[] selected;
-		
-		public AnnotationSetTableModel(List<AnnotationSet> annotationSets) {
-			this.annotationSets = annotationSets;
-			this.selected = new boolean[annotationSets.size()];
-		}
-
-		@Override
-		public int getRowCount() {
-			return annotationSets.size();
-		}
-
-		@Override
-		public int getColumnCount() {
-			return 2;
-		}
-
-		@Override
-		public Object getValueAt(int rowIndex, int columnIndex) {
-			if(columnIndex == 0)
-				return selected[rowIndex];
-			if(columnIndex == 1)
-				return annotationSets.get(rowIndex).getName();
-			return null;
-		}
+	private void copyAnnotations() {
+		List<AnnotationSet> annotationSetsToCopy = ((AnnotationSetTableModel)annotationSetTable.getModel()).getSelectedAnnotationSets();
+		System.out.println("CopyAnnotationsDialog.copyAnnotations() " + annotationSetsToCopy);
 	}
-	
-	
-	private JList<ComboItem<CyNetworkView>> createNetworkSourcesJList(CyNetworkView destination) {		
-		List<Pair<CyNetworkView,String>> networkViews = copyAnnotationsEnabler.getCompatibleNetworkViews(destination);
-		DefaultListModel<ComboItem<CyNetworkView>> listModel = new DefaultListModel<>();
-		networkViews.forEach(pair -> listModel.addElement(new ComboItem<>(pair)));
-		return new JList<>(listModel);
-	}
-	
-	
-	private JTable createTable() {
-		JTable table = new JTable();
-		table.setTableHeader(null);
-		table.setShowGrid(false);
-		table.setDefaultRenderer(Boolean.class, new CheckBoxTableCellRenderer());
-		return table;
-	}
-	
-	
-	private class CheckBoxTableCellRenderer implements TableCellRenderer {
-		final JPanel panel;
-		final JCheckBox chk;
-		
-		CheckBoxTableCellRenderer() {
-			chk = new JCheckBox();
-			chk.putClientProperty("JComponent.sizeVariant", "mini"); // Aqua LAF only
-			panel = new JPanel(new BorderLayout());
-			panel.add(chk, BorderLayout.WEST);
-		}
-
-		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-			Color bg = UIManager.getColor("Table.background");
-			chk.setSelected((boolean)value);
-			chk.setToolTipText((boolean)value ? "Show" : "Hide");
-			chk.setBackground(isSelected ? UIManager.getColor("Table.selectionBackground") : bg);
-			panel.setBackground(isSelected ? UIManager.getColor("Table.selectionBackground") : bg);
-			panel.setBorder(new EmptyBorder(0, 0, 0, 0));
-			return panel;
-		}
-	}
-	
-	
-	
-	
-	
 }
