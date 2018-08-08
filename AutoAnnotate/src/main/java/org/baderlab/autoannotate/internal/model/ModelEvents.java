@@ -1,6 +1,7 @@
 package org.baderlab.autoannotate.internal.model;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -87,13 +88,16 @@ public class ModelEvents {
 	}
 	
 	
-	public static class ClusterChanged implements ModelEvent {
-		private final Cluster cluster;
-		ClusterChanged(Cluster cluster) {
-			this.cluster = cluster;
+	public static class ClustersChanged implements ModelEvent {
+		private final Collection<Cluster> clusters;
+		ClustersChanged(Collection<Cluster> clusters) {
+			this.clusters = clusters;
 		}
-		public Cluster getCluster() {
-			return cluster;
+		ClustersChanged(Cluster cluster) {
+			this.clusters = Collections.singleton(cluster);
+		}
+		public Collection<Cluster> getClusters() {
+			return clusters;
 		}
 	}
 	

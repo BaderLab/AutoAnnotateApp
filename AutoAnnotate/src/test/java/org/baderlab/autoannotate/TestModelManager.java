@@ -1,8 +1,14 @@
 package org.baderlab.autoannotate;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -18,12 +24,12 @@ import org.baderlab.autoannotate.internal.model.ModelEvents.AnnotationSetChanged
 import org.baderlab.autoannotate.internal.model.ModelEvents.AnnotationSetDeleted;
 import org.baderlab.autoannotate.internal.model.ModelEvents.AnnotationSetSelected;
 import org.baderlab.autoannotate.internal.model.ModelEvents.ClusterAdded;
-import org.baderlab.autoannotate.internal.model.ModelEvents.ClusterChanged;
 import org.baderlab.autoannotate.internal.model.ModelEvents.ClusterRemoved;
+import org.baderlab.autoannotate.internal.model.ModelEvents.ClustersChanged;
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged;
-import org.baderlab.autoannotate.util.EventBusTracker;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.util.EventBusTracker;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
@@ -194,8 +200,8 @@ public class TestModelManager {
 		assertEquals(15, c2.getNodeCount());
 		nodesToRemove.forEach(n->assertFalse(c2.contains(n)));
 		assertEquals(1, eventTracker.size());
-		ModelEvents.ClusterChanged changedEvent = (ClusterChanged) eventTracker.popFirst();
-		assertEquals(c2, changedEvent.getCluster());
+		ModelEvents.ClustersChanged changedEvent = (ClustersChanged) eventTracker.popFirst();
+		assertEquals(Collections.singleton(c2), changedEvent.getClusters());
 		
 		c1.delete();
 		assertEquals(1, as.getClusterCount());

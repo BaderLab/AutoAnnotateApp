@@ -66,7 +66,7 @@ public class Cluster {
 		this.nodes.clear();
 		this.nodes.add(groupNode);
 		collapsed = true;
-		getRoot().addPendingGroupEvent(new ModelEvents.ClusterChanged(this));
+		getRoot().addPendingGroupEvent(new ModelEvents.ClustersChanged(this));
 	}
 	
 	void expand(Set<CyNode> nodes) {
@@ -75,7 +75,7 @@ public class Cluster {
 		this.nodes.clear();
 		this.nodes.addAll(nodes);
 		collapsed = false;
-		getRoot().addPendingGroupEvent(new ModelEvents.ClusterChanged(this));
+		getRoot().addPendingGroupEvent(new ModelEvents.ClustersChanged(this));
 	}
 	
 	
@@ -94,14 +94,14 @@ public class Cluster {
 			if(nodes.isEmpty())
 				delete();
 			else 
-				getRoot().postEvent(new ModelEvents.ClusterChanged(this));
+				getRoot().postEvent(new ModelEvents.ClustersChanged(this));
 		}
 	}
 	
 	public void setLabel(String newLabel) {
 		if(!newLabel.equals(label)) {
 			label = newLabel;
-			getRoot().postEvent(new ModelEvents.ClusterChanged(this));
+			getRoot().postEvent(new ModelEvents.ClustersChanged(this));
 		}
 	}
 	

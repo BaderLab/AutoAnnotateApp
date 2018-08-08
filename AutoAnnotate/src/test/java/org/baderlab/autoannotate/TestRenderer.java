@@ -21,6 +21,7 @@ import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.baderlab.autoannotate.internal.ui.render.DrawClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.EraseClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.SelectClusterTask;
+import org.baderlab.autoannotate.internal.ui.render.UpdateClustersTask;
 import org.baderlab.autoannotate.util.LogSilenceRule;
 import org.baderlab.autoannotate.util.SerialTestTaskManager;
 import org.cytoscape.application.CyApplicationManager;
@@ -147,7 +148,7 @@ public class TestRenderer {
 	
 	@Test
 	public void testClusterChanged(ModelManager modelManager, EraseClustersTask.Factory eraseTaskFactory,
-								   DrawClustersTask.Factory drawTaskFactory) throws Exception {
+								   UpdateClustersTask.Factory updateTaskFactory) throws Exception {
 		
 		NetworkViewSet nvs = modelManager.getActiveNetworkViewSet().get();
 		AnnotationSet as = nvs.getAnnotationSets().iterator().next();
@@ -155,9 +156,9 @@ public class TestRenderer {
 		Cluster cluster = as.getClusters().iterator().next();
 		cluster.setLabel("new_label");
 		
-		InOrder inOrder = inOrder(eraseTaskFactory, drawTaskFactory);
+		InOrder inOrder = inOrder(eraseTaskFactory, updateTaskFactory);
 		inOrder.verify(eraseTaskFactory, times(0)).create(any(Cluster.class));
-		inOrder.verify(drawTaskFactory).create(any(Cluster.class));
+		inOrder.verify(updateTaskFactory).create(any(Collection.class));
 	}
 	
 	

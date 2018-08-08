@@ -91,10 +91,10 @@ public class AnnotationRenderer {
 	
 	
 	@Subscribe
-	public void handle(ModelEvents.ClusterChanged event) {
-		Cluster cluster = event.getCluster();
-		if(cluster.getParent().isActive()) {
-			UpdateClustersTask task = updateTastProvider.create(cluster);
+	public void handle(ModelEvents.ClustersChanged event) {
+		Collection<Cluster> clusters = event.getClusters();
+		if(!clusters.isEmpty() && clusters.iterator().next().getParent().isActive()) {
+			UpdateClustersTask task = updateTastProvider.create(clusters);
 			syncTaskManager.execute(new TaskIterator(task));
 		}
 	}

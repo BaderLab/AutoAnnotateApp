@@ -187,9 +187,7 @@ public class ModelManager implements CyDisposable, SetCurrentNetworkViewListener
 					}
 				}
 				
-				for(Cluster cluster : affectedClusters) {
-					postEventOffEDT(new ModelEvents.ClusterChanged(cluster));
-				}
+				postEventOffEDT(new ModelEvents.ClustersChanged(affectedClusters));
 			}
 		}
 	}

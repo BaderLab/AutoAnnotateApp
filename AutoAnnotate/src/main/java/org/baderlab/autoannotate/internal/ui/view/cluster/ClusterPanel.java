@@ -153,10 +153,11 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	}
 	
 	@Subscribe
-	public void handle(ModelEvents.ClusterChanged event) {
-		Cluster cluster = event.getCluster();
+	public void handle(ModelEvents.ClustersChanged event) {
 		ClusterTableModel model = (ClusterTableModel) clusterTable.getModel();
-		model.updateCluster(cluster); // does nothing if the cluster isn't in the table
+		for(Cluster cluster : event.getClusters()) {
+			model.updateCluster(cluster); // does nothing if the cluster isn't in the table
+		}
 	}
 	
 	@Subscribe
