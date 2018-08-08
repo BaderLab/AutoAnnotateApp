@@ -1,6 +1,7 @@
 package org.baderlab.autoannotate.internal.ui.view.copy;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,7 @@ public class CopyAnnotationsDialog extends JDialog {
 	private JButton okButton;
 	private NetworkList networkList;
 	private JTable annotationSetTable;
+	private JCheckBox includeIncompleteCheckbox;
 	
 	private Map<CyNetworkView, AnnotationSetTableModel> tableModels = new HashMap<>();
 	
@@ -66,6 +68,7 @@ public class CopyAnnotationsDialog extends JDialog {
 	public void createContents() {
 		JPanel bodyPanel = createBodyPanel();
 		JPanel buttonPanel = createButtonPanel();
+		updateTable();
 		
 		setLayout(new BorderLayout());
 		add(bodyPanel, BorderLayout.CENTER);
@@ -81,10 +84,7 @@ public class CopyAnnotationsDialog extends JDialog {
 		JScrollPane networkListScrollPane = new JScrollPane(networkList);
 		
 		annotationSetTable = new JTable();
-		annotationSetTable.setTableHeader(null);
-		annotationSetTable.setShowGrid(false);
-		annotationSetTable.setModel(new AnnotationSetTableModel(null));
-		annotationSetTable.getColumnModel().getColumn(0).setMaxWidth(27);
+		annotationSetTable.getTableHeader().setPreferredSize(new Dimension(10, 20));
 		
 		JScrollPane tableScrollPane = new JScrollPane(annotationSetTable);
 		
@@ -95,9 +95,10 @@ public class CopyAnnotationsDialog extends JDialog {
 		JButton selectNoneButton = new JButton("Select None");
 		selectNoneButton.addActionListener(e -> ((AnnotationSetTableModel)annotationSetTable.getModel()).selectNone());
 		
-		JCheckBox allClustersCheckBox = new JCheckBox("Copy annotations even when clusters are incomplete");
+		includeIncompleteCheckbox = new JCheckBox("Include annotations for clusters that are incomplete.");
+		includeIncompleteCheckbox.setToolTipText("When selected all annoations are copied, even for clusters that have missing nodes.");
 		
-		SwingUtil.makeSmall(networkTitle, asTitle, selectAllButton, selectNoneButton, allClustersCheckBox);
+		SwingUtil.makeSmall(networkTitle, asTitle, selectAllButton, selectNoneButton, includeIncompleteCheckbox);
 		
 		JPanel panel = new JPanel();
 		GroupLayout layout = new GroupLayout(panel);
@@ -120,7 +121,7 @@ public class CopyAnnotationsDialog extends JDialog {
 					.addComponent(selectNoneButton)
 				)
 			)
-			.addComponent(allClustersCheckBox)
+			.addComponent(includeIncompleteCheckbox)
 		);
 		
 		layout.setVerticalGroup(layout.createSequentialGroup()
@@ -136,7 +137,7 @@ public class CopyAnnotationsDialog extends JDialog {
 					.addComponent(selectNoneButton)
 				)
 			)
-			.addComponent(allClustersCheckBox)
+			.addComponent(includeIncompleteCheckbox)
 		);
 		
 		layout.linkSize(SwingConstants.HORIZONTAL, selectAllButton, selectNoneButton);
@@ -154,9 +155,10 @@ public class CopyAnnotationsDialog extends JDialog {
 				return new AnnotationSetTableModel(nvs.getAnnotationSets());
 			});
 			annotationSetTable.setModel(tableModel);
-			annotationSetTable.getColumnModel().getColumn(0).setMaxWidth(27);
 			tableModel.addTableModelListener(e -> updateButtonEnablement());
 		}
+		annotationSetTable.getColumnModel().getColumn(0).setMaxWidth(27);
+		annotationSetTable.getColumnModel().getColumn(2).setMaxWidth(60);
 		updateButtonEnablement();
 	}
 	
@@ -184,6 +186,8 @@ public class CopyAnnotationsDialog extends JDialog {
 		List<AnnotationSet> annotationSetsToCopy = ((AnnotationSetTableModel)annotationSetTable.getModel()).getSelectedAnnotationSets();
 		
 		CopyAnnotationsTask copyAnnotationsTask = copyTaskFactory.create(annotationSetsToCopy, destination);
+		copyAnnotationsTask.setIncludeIncompleteClusters(includeIncompleteCheckbox.isSelected());
+		
 		Task closeTask = TaskTools.taskOf(() -> dispose());
 		
 		TaskIterator tasks = new TaskIterator(copyAnnotationsTask, closeTask);

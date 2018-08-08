@@ -29,7 +29,18 @@ public class AnnotationSetTableModel extends AbstractTableModel {
 
 	@Override
 	public int getColumnCount() {
-		return 2;
+		return 3;
+	}
+	
+	@Override
+	public String getColumnName(int col) {
+		if(col == 0)
+			return "";
+		if(col == 1)
+			return "Name";
+		if(col == 2)
+			return "Clusters";
+		return null;
 	}
 	
 	@Override
@@ -43,6 +54,8 @@ public class AnnotationSetTableModel extends AbstractTableModel {
 			return Boolean.class;
 		if(col == 1)
 			return String.class;
+		if(col == 2)
+			return Integer.class;
 		return null;
 	}
 	
@@ -52,6 +65,8 @@ public class AnnotationSetTableModel extends AbstractTableModel {
 			return isSelected(annotationSets.get(row));
 		if(col == 1)
 			return annotationSets.get(row).getName();
+		if(col == 2)
+			return annotationSets.get(row).getClusterCount();
 		return null;
 	}
 	
@@ -61,9 +76,11 @@ public class AnnotationSetTableModel extends AbstractTableModel {
 	
 	@Override
 	public void setValueAt(Object value, int row, int col) {
-		AnnotationSet as = annotationSets.get(row);
-		selected.put(as, (Boolean)value);
-		fireTableCellUpdated(row, col);
+		if(col == 0) {
+			AnnotationSet as = annotationSets.get(row);
+			selected.put(as, (Boolean)value);
+			fireTableCellUpdated(row, col);
+		}
 	}
 	
 	public void selectAll() {
