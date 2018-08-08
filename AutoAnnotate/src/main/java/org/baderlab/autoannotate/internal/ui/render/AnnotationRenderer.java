@@ -1,9 +1,11 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -34,7 +36,6 @@ public class AnnotationRenderer {
 	
 	@Inject private DrawClustersTask.Factory drawTaskProvider;
 	@Inject private EraseClustersTask.Factory eraseTaskProvider;
-	@Inject private SelectClusterTask.Factory selectTaskProvider;
 	@Inject private UpdateClustersTask.Factory updateTastProvider;
 	
 	private Map<Cluster,AnnotationGroup> clusterAnnotations = new HashMap<>();
@@ -184,22 +185,25 @@ public class AnnotationRenderer {
 		Set<Cluster> deselect = new HashSet<>(annotationSet.getClusters());
 		deselect.removeAll(select);
 		
-		TaskIterator tasks = new TaskIterator();
+		List<Cluster> clustersToRedraw = new ArrayList<>();
 		
 		for(Cluster cluster : select) {
 			if(!selectedClusters.contains(cluster)) {
-				tasks.append(selectTaskProvider.create(cluster, true));
+				clustersToRedraw.add(cluster);
 			}
 		}
 		for(Cluster cluster : deselect) {
 			if(selectedClusters.contains(cluster)) {
-				tasks.append(selectTaskProvider.create(cluster, false));
+				clustersToRedraw.add(cluster);
 			}
 		}
 		
 		selectedClusters = new HashSet<>(select);
-		syncTaskManager.execute(tasks);
+		
+		UpdateClustersTask task = updateTastProvider.create(clustersToRedraw);
+		syncTaskManager.execute(new TaskIterator(task));
 	}
+
 	
 	public boolean isSelected(Cluster cluster) {
 		return selectedClusters.contains(cluster);

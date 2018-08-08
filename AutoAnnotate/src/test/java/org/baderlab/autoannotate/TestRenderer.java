@@ -1,7 +1,6 @@
 package org.baderlab.autoannotate;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -20,7 +19,6 @@ import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.baderlab.autoannotate.internal.ui.render.DrawClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.EraseClustersTask;
-import org.baderlab.autoannotate.internal.ui.render.SelectClusterTask;
 import org.baderlab.autoannotate.internal.ui.render.UpdateClustersTask;
 import org.baderlab.autoannotate.util.LogSilenceRule;
 import org.baderlab.autoannotate.util.SerialTestTaskManager;
@@ -66,7 +64,7 @@ public class TestRenderer {
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setup(CyApplicationManager appManager, ModelManager modelManager, AnnotationRenderer renderer,
-			DrawClustersTask.Factory drawTaskFactory, EraseClustersTask.Factory eraseTaskFactory, SelectClusterTask.Factory selectTaskFactory) {
+			DrawClustersTask.Factory drawTaskFactory, EraseClustersTask.Factory eraseTaskFactory) {
 		
 		// set up stubbing
 		CyNetworkView networkView = mock(CyNetworkView.class);
@@ -76,7 +74,6 @@ public class TestRenderer {
 		when(drawTaskFactory.create(any(Cluster.class))).thenReturn(mock(DrawClustersTask.class));
 		when(eraseTaskFactory.create(any(Collection.class))).thenReturn(mock(EraseClustersTask.class));
 		when(eraseTaskFactory.create(any(Cluster.class))).thenReturn(mock(EraseClustersTask.class));
-		when(selectTaskFactory.create(any(), anyBoolean())).thenReturn(mock(SelectClusterTask.class));
 		
 		NetworkTestSupport networkTestSupport = new NetworkTestSupport();
 		CyNetworkFactory networkFactory = networkTestSupport.getNetworkFactory();
@@ -96,13 +93,12 @@ public class TestRenderer {
 		
 		// Reset invocation counts from fixture initialization.
 		// Unfortunately reset() also resets the stubbing so we need to redo it.
-		reset(drawTaskFactory, eraseTaskFactory, selectTaskFactory);
+		reset(drawTaskFactory, eraseTaskFactory);
 		
 		when(drawTaskFactory.create(any(Collection.class))).thenReturn(mock(DrawClustersTask.class));
 		when(drawTaskFactory.create(any(Cluster.class))).thenReturn(mock(DrawClustersTask.class));
 		when(eraseTaskFactory.create(any(Collection.class))).thenReturn(mock(EraseClustersTask.class));
 		when(eraseTaskFactory.create(any(Cluster.class))).thenReturn(mock(EraseClustersTask.class));
-		when(selectTaskFactory.create(any(), anyBoolean())).thenReturn(mock(SelectClusterTask.class));
 	}
 	
 	
