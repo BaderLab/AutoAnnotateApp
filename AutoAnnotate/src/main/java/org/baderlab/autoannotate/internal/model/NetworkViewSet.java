@@ -48,38 +48,6 @@ public class NetworkViewSet {
 		return as;
 	}
 
-	
-	void copyTo(NetworkViewSet other) {
-		for(AnnotationSet as : annotationSets) {
-			AnnotationSetBuilder builder = new AnnotationSetBuilder(other, as.getName(), as.getLabelColumn());
-			
-			DisplayOptions dispOpts = as.getDisplayOptions();
-			builder.setShapeType(dispOpts.getShapeType());
-			builder.setShowClusters(dispOpts.isShowClusters());
-			builder.setShowLabels(dispOpts.isShowLabels());
-			builder.setUseConstantFontSize(dispOpts.isUseConstantFontSize());
-			builder.setFontScale(dispOpts.getFontScale());
-			builder.setFontSize(dispOpts.getFontSize());
-			builder.setOpacity(dispOpts.getOpacity());
-			builder.setBorderWidth(dispOpts.getBorderWidth());
-			builder.setFillColor(dispOpts.getFillColor());
-			builder.setBorderColor(dispOpts.getBorderColor());
-			builder.setFontColor(dispOpts.getFontColor());
-			builder.setUseWordWrap(dispOpts.isUseWordWrap());
-			builder.setWordWrapLength(dispOpts.getWordWrapLength());
-			
-			for(Cluster cluster : as.getClusters()) {
-				builder.addCluster(cluster.getNodes(), cluster.getLabel(), cluster.isCollapsed());
-			}
-			
-			AnnotationSet newAnnotationSet = builder.build();
-			if(as.isActive()) {
-				other.select(newAnnotationSet);
-			}
-		}
-	}
-	
-
 	public AnnotationSet createAnnotationSet(String name, String labelColumn) {
 		AnnotationSet as = new AnnotationSet(this, name, labelColumn);
 		annotationSets.add(as);

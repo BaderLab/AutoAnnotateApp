@@ -12,7 +12,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import org.baderlab.autoannotate.internal.model.ModelEvents.ModelEvent;
@@ -33,7 +32,6 @@ import org.cytoscape.model.events.AboutToRemoveNodesEvent;
 import org.cytoscape.model.events.AboutToRemoveNodesListener;
 import org.cytoscape.model.events.SelectedNodesAndEdgesEvent;
 import org.cytoscape.model.events.SelectedNodesAndEdgesListener;
-import org.cytoscape.model.subnetwork.CyRootNetworkManager;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
 import org.cytoscape.view.model.VisualProperty;
@@ -46,7 +44,6 @@ import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -56,9 +53,7 @@ public class ModelManager implements CyDisposable, SetCurrentNetworkViewListener
 
 	@Inject private CyApplicationManager applicationManager;
 	@Inject private CyGroupManager groupManager;
-	@Inject private CyRootNetworkManager rootNetworkManager;
 	@Inject private EventBus eventBus;
-	@Inject private Provider<JFrame> jFrameProvider;
 	
 	private ExecutorService asyncEventService;
 	private Map<CyNetworkView, NetworkViewSet> networkViews = new HashMap<>();
@@ -83,17 +78,12 @@ public class ModelManager implements CyDisposable, SetCurrentNetworkViewListener
 		return safeRunner.new SafeRunnerIgnore(eventTypes);
 	}
 	
-	public NetworkViewSet getNetworkViewSet(CyNetworkView networkView) {
-		if(networkView == null)
+	public NetworkViewSet getNetworkViewSet(CyNetworkView netView) {
+		if(netView == null)
 			throw new NullPointerException();
 		
 		synchronized (networkViews) {
-			NetworkViewSet set = networkViews.get(networkView);
-			if(set == null) {
-				set = new NetworkViewSet(this, networkView);
-				networkViews.put(networkView, set);
-			}
-			return set;
+			return networkViews.computeIfAbsent(netView, nv -> new NetworkViewSet(this, netView));
 		}
 	}
 	

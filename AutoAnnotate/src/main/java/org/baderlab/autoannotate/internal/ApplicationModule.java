@@ -8,6 +8,7 @@ import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
 import org.baderlab.autoannotate.internal.task.CollapseTask;
+import org.baderlab.autoannotate.internal.task.CopyAnnotationsTask;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.internal.task.CreateSubnetworkTask;
 import org.baderlab.autoannotate.internal.task.LayoutAnnotationSetTaskFactory;
@@ -40,9 +41,6 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 /**
  * Guice module, binds AutoAnnotate managers and event bus.
- * 
- * @author mkucera
- *
  */
 public class ApplicationModule extends AbstractModule {
 
@@ -52,6 +50,7 @@ public class ApplicationModule extends AbstractModule {
 		bind(ModelManager.class).asEagerSingleton();
 		bind(AnnotationRenderer.class).asEagerSingleton();
 		bind(LabelFactoryModule.class).asEagerSingleton();
+		
 		install(new FactoryModule());
 		
 		// Create a single EventBus
@@ -67,7 +66,6 @@ public class ApplicationModule extends AbstractModule {
 		return new FactoryModule();
 	}
 }
-
 
 class FactoryModule extends AbstractModule {
 	
@@ -95,6 +93,7 @@ class FactoryModule extends AbstractModule {
 		installFactory(UpdateClustersTask.Factory.class);
 		installFactory(CopyAnnotationsDialog.Factory.class);
 		installFactory(NetworkList.Factory.class);
+		installFactory(CopyAnnotationsTask.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {

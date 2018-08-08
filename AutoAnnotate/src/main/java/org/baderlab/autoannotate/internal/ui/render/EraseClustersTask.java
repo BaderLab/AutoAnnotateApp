@@ -47,7 +47,9 @@ public class EraseClustersTask extends AbstractTask {
 		
 		for(Cluster cluster : clusters) {
 			AnnotationGroup annotations = annotationRenderer.removeAnnotations(cluster);
-			annotations.addTo(allAnnotations);
+			if(annotations != null) {
+				annotations.addTo(allAnnotations);
+			}
 		}
 		
 		annotationManager.removeAnnotations(allAnnotations);

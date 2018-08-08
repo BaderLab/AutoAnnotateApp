@@ -21,9 +21,13 @@ import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.task.CopyAnnotationsTask;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
+import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.work.Task;
+import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.swing.DialogTaskManager;
 
 import com.google.inject.Inject;
@@ -36,6 +40,7 @@ public class CopyAnnotationsDialog extends JDialog {
 	@Inject private ModelManager modelManager;
 	@Inject private NetworkList.Factory networkListFactory;
 	@Inject private DialogTaskManager dialogTaskManager;
+	@Inject private CopyAnnotationsTask.Factory copyTaskFactory;
 	
 	private final CyNetworkView destination;
 	
@@ -177,6 +182,11 @@ public class CopyAnnotationsDialog extends JDialog {
 	
 	private void copyAnnotations() {
 		List<AnnotationSet> annotationSetsToCopy = ((AnnotationSetTableModel)annotationSetTable.getModel()).getSelectedAnnotationSets();
-		System.out.println("CopyAnnotationsDialog.copyAnnotations() " + annotationSetsToCopy);
+		
+		CopyAnnotationsTask copyAnnotationsTask = copyTaskFactory.create(annotationSetsToCopy, destination);
+		Task closeTask = TaskTools.taskOf(() -> dispose());
+		
+		TaskIterator tasks = new TaskIterator(copyAnnotationsTask, closeTask);
+		dialogTaskManager.execute(tasks);
 	}
 }
