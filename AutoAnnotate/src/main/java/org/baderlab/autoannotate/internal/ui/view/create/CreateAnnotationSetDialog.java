@@ -31,7 +31,6 @@ import org.baderlab.autoannotate.internal.ui.view.WarnDialog;
 import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.TaskTools;
-import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.command.AvailableCommands;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
@@ -45,6 +44,7 @@ import org.cytoscape.work.swing.DialogTaskManager;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.assistedinject.Assisted;
 
 @SuppressWarnings("serial")
 public class CreateAnnotationSetDialog extends JDialog {
@@ -72,11 +72,15 @@ public class CreateAnnotationSetDialog extends JDialog {
 	private boolean isWordCloudInstalled;
 
 	
+	public static interface Factory {
+		CreateAnnotationSetDialog create(CyNetworkView networkView);
+	}
+	
 	@Inject
-	public CreateAnnotationSetDialog(JFrame jFrame, CyApplicationManager appManager) {
+	public CreateAnnotationSetDialog(@Assisted CyNetworkView networkView, JFrame jFrame) {
 		super(jFrame, true);
 		setTitle("AutoAnnotate: Create Annotation Set");
-		this.networkView = appManager.getCurrentNetworkView();
+		this.networkView = networkView;
 		setMinimumSize(new Dimension(500, 400));
 		setMaximumSize(new Dimension(700, 600));
 	}
@@ -270,11 +274,6 @@ public class CreateAnnotationSetDialog extends JDialog {
 		return columns;
 	}
 	
-	
-	private String getNetworkName() {
-		CyNetwork network = networkView.getModel();
-		return network.getRow(network).get(CyNetwork.NAME, String.class);
-	}
 	
 	
 	public boolean isClusterMakerInstalled() {

@@ -27,6 +27,7 @@ import org.baderlab.autoannotate.internal.ui.view.ManageAnnotationSetsDialog;
 import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTask;
 import org.baderlab.autoannotate.internal.ui.view.copy.CopyAnnotationsDialog;
 import org.baderlab.autoannotate.internal.ui.view.copy.NetworkList;
+import org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialog;
 import org.baderlab.autoannotate.internal.ui.view.create.EasyModePanel;
 import org.baderlab.autoannotate.internal.ui.view.create.NormalModePanel;
 import org.cytoscape.property.AbstractConfigDirPropsReader;
@@ -34,7 +35,6 @@ import org.cytoscape.property.CyProperty;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.AbstractModule;
-import com.google.inject.Module;
 import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
@@ -50,7 +50,7 @@ public class ApplicationModule extends AbstractModule {
 		bind(AnnotationRenderer.class).asEagerSingleton();
 		bind(LabelFactoryModule.class).asEagerSingleton();
 		
-		install(new FactoryModule());
+		installFactories();
 		
 		// Create a single EventBus
 		bind(EventBus.class).toInstance(new EventBus((e,c) -> e.printStackTrace()));
@@ -61,15 +61,7 @@ public class ApplicationModule extends AbstractModule {
 	}
 	
 	/** For tests */
-	public static Module createFactoryModule() {
-		return new FactoryModule();
-	}
-}
-
-class FactoryModule extends AbstractModule {
-	
-	@Override
-	protected void configure() {
+	private void installFactories() {
 		installFactory(LabelOptionsPanel.Factory.class);
 		installFactory(ManageAnnotationSetsDialog.Factory.class);
 		installFactory(NormalModePanel.Factory.class);
@@ -92,6 +84,7 @@ class FactoryModule extends AbstractModule {
 		installFactory(CopyAnnotationsDialog.Factory.class);
 		installFactory(NetworkList.Factory.class);
 		installFactory(CopyAnnotationsTask.Factory.class);
+		installFactory(CreateAnnotationSetDialog.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import org.baderlab.autoannotate.internal.ApplicationModule;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
@@ -16,6 +15,9 @@ import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
+import org.baderlab.autoannotate.internal.task.SummaryNetworkTask;
+import org.baderlab.autoannotate.internal.ui.render.DrawClustersTask;
+import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTask;
 import org.baderlab.autoannotate.util.SerialTestTaskManager;
 import org.baderlab.autoannotate.util.SimpleLabelMakerFactory;
 import org.cytoscape.application.swing.CyColumnPresentationManager;
@@ -36,6 +38,7 @@ import org.cytoscape.work.TaskManager;
 import org.jukito.JukitoModule;
 
 import com.google.inject.TypeLiteral;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Names;
 
 public class NetworkTestUtil {
@@ -61,11 +64,18 @@ public class NetworkTestUtil {
 			bind(LabelMakerManager.class).toInstance(mock(LabelMakerManager.class));
 			bind(IconManager.class).toInstance(mock(IconManager.class));
 			bind(CyColumnPresentationManager.class).toInstance(mock(CyColumnPresentationManager.class));
-			
-			// Bind all AssistedInjection factories
-			install(ApplicationModule.createFactoryModule());
+
+			installFactory(SummaryNetworkTask.Factory.class);
+			installFactory(CreateAnnotationSetTask.Factory.class);
+			installFactory(CreateClusterTask.Factory.class);
+			installFactory(DrawClustersTask.Factory.class);
+		}
+		
+		private void installFactory(Class<?> factoryInterface) {
+			install(new FactoryModuleBuilder().build(factoryInterface));
 		}
 	}
+	
 	
 	public static CyNetworkView createNetwork(CyNetworkFactory networkFactory, CyNetworkManager networkManager) {
 		CyNetworkView networkView = mock(CyNetworkView.class);

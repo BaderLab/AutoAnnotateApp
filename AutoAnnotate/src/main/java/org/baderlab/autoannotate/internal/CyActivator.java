@@ -27,6 +27,7 @@ import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTaskFactor
 import org.baderlab.autoannotate.internal.ui.view.action.ShowAboutDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowHelpAction;
+import org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialogManager;
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CyAction;
 import org.cytoscape.property.CyProperty;
@@ -60,7 +61,7 @@ public class CyActivator extends AbstractCyActivator {
 		
 		// ModelManager listens to Cytoscape events
 		ModelManager modelManager = injector.getInstance(ModelManager.class);
-		registerAllServices(bc, modelManager, new Properties());
+		registerAllServices(bc, modelManager);
 		
 		// Register menu Actions
 		PanelManager panelManager = injector.getInstance(PanelManager.class);
@@ -79,7 +80,11 @@ public class CyActivator extends AbstractCyActivator {
 		
 		// ModelTablePersistor listents to session save/load events
 		ModelTablePersistor persistor = injector.getInstance(ModelTablePersistor.class);
-		registerAllServices(bc, persistor, new Properties());
+		registerAllServices(bc, persistor);
+		
+		// Dialog manager also needs to listen to cytoscape events
+		CreateAnnotationSetDialogManager dialogManager = injector.getInstance(CreateAnnotationSetDialogManager.class);
+		registerAllServices(bc, dialogManager);
 		
 		// Configuration properties
 		CyProperty<Properties> configProps = injector.getInstance(Key.get(new TypeLiteral<CyProperty<Properties>>(){}));
@@ -133,7 +138,7 @@ public class CyActivator extends AbstractCyActivator {
 	private void registerAction(BundleContext bc, float gravity, AbstractCyAction action) {
 		action.setPreferredMenu("Apps." + BuildProperties.APP_NAME);
 		action.setMenuGravity(gravity);
-		registerService(bc, action, CyAction.class, new Properties());
+		registerService(bc, action, CyAction.class);
 	}
 	
 	private void registerCommand(BundleContext bc, String name, Class<? extends Task> type, String description) {
