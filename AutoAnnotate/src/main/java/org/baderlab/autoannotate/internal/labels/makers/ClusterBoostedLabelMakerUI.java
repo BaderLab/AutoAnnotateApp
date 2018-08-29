@@ -63,8 +63,12 @@ public class ClusterBoostedLabelMakerUI implements LabelMakerUI<ClusterBoostedOp
 			
 			add(makeSmall(new JLabel("")), GBCFactory.grid(2,1).weightx(1.0).get());
 		}
-
 		
+		public void reset(ClusterBoostedOptions context) {
+			maxWordsModel.setValue(context.getMaxWords());
+			boostModel.setValue(context.getClusterBonus());
+		}
+
 		public int getClusterBonus() {
 			return boostModel.getNumber().intValue();
 		}
@@ -72,6 +76,11 @@ public class ClusterBoostedLabelMakerUI implements LabelMakerUI<ClusterBoostedOp
 		public int getMaxWords() {
 			return maxWordsModel.getNumber().intValue();
 		}
+	}
+	
+	@Override
+	public void reset(Object context) {
+		panel.reset((ClusterBoostedOptions)context);
 	}
 
 

@@ -196,6 +196,18 @@ public class NormalModePanel extends JPanel implements TabPanel {
 	
 	
 	@Override
+	public void resetButtonPressed() {
+		useClusterMakerRadio.setSelected(true);
+		algorithmNameCombo.setSelectedIndex(ClusterAlgorithm.MCL.ordinal());
+		edgeWeightColumnCombo.setSelectedIndex(0);
+		clusterIdColumnCombo.setSelectedIndex(0);
+		singletonCheckBox.setSelected(false);
+		layoutCheckBox.setSelected(false);
+		labelOptionsPanel.reset();
+	}
+	
+	
+	@Override
 	public AnnotationSetTaskParamters createAnnotationSetTaskParameters() {
 		LabelMakerFactory<?> labelMakerFactory = labelOptionsPanel.getLabelMakerFactory();
 		Object labelMakerContext = labelOptionsPanel.getLabelMakerContext();

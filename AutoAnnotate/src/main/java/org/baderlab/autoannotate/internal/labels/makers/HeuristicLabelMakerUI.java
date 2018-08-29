@@ -11,6 +11,7 @@ public class HeuristicLabelMakerUI implements LabelMakerUI<HeuristicLabelOptions
 
 	private NumberSpinner spinner;
 	
+	
 	public HeuristicLabelMakerUI(HeuristicLabelOptions options) {
 		this.spinner = new NumberSpinner("Max words per label: ", options.getMaxWords(), 1, 10);
 	}
@@ -25,6 +26,11 @@ public class HeuristicLabelMakerUI implements LabelMakerUI<HeuristicLabelOptions
 	@Override
 	public HeuristicLabelOptions getContext() {
 		return HeuristicLabelOptions.defaults().maxWords(spinner.getValue());
+	}
+
+	@Override
+	public void reset(Object context) {
+		spinner.setValue(((HeuristicLabelOptions)context).getMaxWords());
 	}
 	
 }

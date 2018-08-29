@@ -125,6 +125,15 @@ public class EasyModePanel extends JPanel implements TabPanel {
 	
 	
 	@Override
+	public void resetButtonPressed() {
+		spinner.setValue(10);
+		clusterAllRadio.setSelected(true);
+		layoutCheckBox.setSelected(false);
+		LabelOptionsPanel.setDefault(labelCombo);
+	}
+	
+	
+	@Override
 	public boolean isOkButtonEnabled() {
 		return parent.isClusterMakerInstalled() && parent.isWordCloudInstalled();
 	}

@@ -32,5 +32,8 @@ public class NumberSpinner extends JPanel {
 		return spinnerModel.getNumber().intValue();
 	}
 	
+	public void setValue(int value) {
+		spinnerModel.setValue(value);
+	}
 	
 }

@@ -37,5 +37,10 @@ public class SizeSortedLabelMakerUI implements LabelMakerUI<SizeSortedOptions> {
 			"Max Words Per Label",  Integer.toString(context.getMaxWords())
 		);
 	}
+	
+	@Override
+	public void reset(Object context) {
+		spinner.setValue(((SizeSortedOptions)context).getMaxWords());
+	}
 
 }

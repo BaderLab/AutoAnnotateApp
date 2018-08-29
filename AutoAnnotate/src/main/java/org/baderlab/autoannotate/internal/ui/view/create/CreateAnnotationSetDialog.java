@@ -198,14 +198,17 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	
 	private JPanel createButtonPanel() {
+		JButton resetButton = new JButton("Reset");
+		resetButton.addActionListener(e -> resetButtonPressed());
+		
 		JButton cancelButton = new JButton("Cancel");
 		cancelButton.addActionListener(e -> dispose());
 		
 		createButton = new JButton("Create Annotations");
 		createButton.addActionListener(e -> createButtonPressed());
 		
-		LookAndFeelUtil.makeSmall(cancelButton, createButton);
-		JPanel panel = LookAndFeelUtil.createOkCancelPanel(createButton, cancelButton);
+		LookAndFeelUtil.makeSmall(resetButton, cancelButton, createButton);
+		JPanel panel = LookAndFeelUtil.createOkCancelPanel(createButton, cancelButton, resetButton);
 		
 		okButtonStateChanged();
 		return panel;
@@ -222,6 +225,14 @@ public class CreateAnnotationSetDialog extends JDialog {
 			} finally {
 				dispose(); // close this dialog
 			}
+		}
+	}
+	
+	
+	private void resetButtonPressed() {
+		for(int i = 0; i < tabPane.getTabCount(); i++) {
+			TabPanel tabPanel = (TabPanel) tabPane.getComponentAt(i);
+			tabPanel.resetButtonPressed();
 		}
 	}
 	

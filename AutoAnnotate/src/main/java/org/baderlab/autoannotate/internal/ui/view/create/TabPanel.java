@@ -7,4 +7,6 @@ public interface TabPanel {
 	AnnotationSetTaskParamters createAnnotationSetTaskParameters();
 	
 	boolean isOkButtonEnabled();
+
+	void resetButtonPressed();
 }

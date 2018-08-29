@@ -18,6 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
@@ -44,10 +45,12 @@ public class LabelOptionsPanel extends JPanel {
 	@Inject private Provider<IconManager> iconManagerProvider;
 	@Inject private Provider<CyColumnPresentationManager> presentationManagerProvider;
 	
-	private JComboBox<CyColumn> labelColumnNameCombo;
+	private CyColumnComboBox labelColumnNameCombo;
 	private JComboBox<ComboItem<LabelMakerFactory<?>>> labelMakerFactoryCombo;
+	private CardLayout cardLayout;
+	private JPanel algorithmPanel;
 	
-	private Map<String, LabelMakerUI<?>> labelUIs = new HashMap<>();
+	private Map<String, Pair<LabelMakerUI<?>,Object>> labelUIs = new HashMap<>();
 	
 	private final CyNetwork network;
 	private final boolean showColumnCombo;
@@ -76,8 +79,13 @@ public class LabelOptionsPanel extends JPanel {
 	public static CyColumnComboBox createLabelColumnCombo(CyColumnPresentationManager presentationManager, CyNetwork network) {
 		List<CyColumn> columns = getColumnsOfType(network, String.class, true, true);
 		CyColumnComboBox combo = new CyColumnComboBox(presentationManager, columns);
-		
-		// Preselect the best choice for label column, with special case for EnrichmentMap
+		setDefault(combo);
+		return combo;
+	}
+	
+	
+	public static void setDefault(CyColumnComboBox combo) {
+		// Select the best choice for label column, with special case for EnrichmentMap
 		for(int i = 0; i < combo.getItemCount(); i++) {
 			CyColumn item = combo.getItemAt(i);
 			if(item.getName().endsWith("GS_DESCR")) { // column created by EnrichmentMap
@@ -89,7 +97,6 @@ public class LabelOptionsPanel extends JPanel {
 				break;
 			}
 		}
-		return combo;
 	}
 	
 	
@@ -158,8 +165,8 @@ public class LabelOptionsPanel extends JPanel {
 		add(quesht, GBCFactory.grid(2,y).weightx(1.0).get());
 		y++;
 		
-		CardLayout cardLayout = new CardLayout();
-		JPanel algorithmPanel = new JPanel(cardLayout);
+		cardLayout = new CardLayout();
+		algorithmPanel = new JPanel(cardLayout);
 		
 		for(LabelMakerFactory factory : factories) {
 			Object context = null;
@@ -179,10 +186,23 @@ public class LabelOptionsPanel extends JPanel {
 			labelUIPanel.setOpaque(false);
 			algorithmPanel.add(labelUIPanel, factory.getName());
 			
-			labelUIs.put(factory.getName(), labelUI);
+			labelUIs.put(factory.getName(), Pair.of(labelUI,context));
 		}
 		algorithmPanel.setOpaque(false);
 		
+		reset();
+		
+		labelMakerFactoryCombo.addActionListener(e -> {
+			cardLayout.show(algorithmPanel, getLabelMakerFactory().getName());
+		});
+		
+		add(algorithmPanel, GBCFactory.grid(0,y).gridwidth(2).anchor(GridBagConstraints.WEST).get());
+	}
+	
+	
+	public void reset() {
+		LabelMakerManager labelMakerManager = labelManagerProvider.get();
+		setDefault(labelColumnNameCombo);
 		LabelMakerFactory<?> factory;
 		if(annotationSet == null)
 			factory = labelMakerManager.getDefaultFactory();
@@ -190,13 +210,11 @@ public class LabelOptionsPanel extends JPanel {
 			factory = labelMakerManager.getFactory(annotationSet);
 		cardLayout.show(algorithmPanel, factory.getName());
 		labelMakerFactoryCombo.setSelectedItem(new ComboItem<>(factory));
-		
-		
-		labelMakerFactoryCombo.addActionListener(e -> {
-			cardLayout.show(algorithmPanel, getLabelMakerFactory().getName());
-		});
-		
-		add(algorithmPanel, GBCFactory.grid(0,y).gridwidth(2).anchor(GridBagConstraints.WEST).get());
+		for(Pair<LabelMakerUI<?>,Object> uiAndContext : labelUIs.values()) {
+			LabelMakerUI<?> ui = uiAndContext.getLeft();
+			Object context = uiAndContext.getRight();
+			ui.reset(context);
+		}
 	}
 	
 	
@@ -210,11 +228,10 @@ public class LabelOptionsPanel extends JPanel {
 	
 	public Object getLabelMakerContext() {
 		LabelMakerFactory<?> factory = getLabelMakerFactory();
-		LabelMakerUI<?> ui = labelUIs.get(factory.getName());
+		LabelMakerUI<?> ui = labelUIs.get(factory.getName()).getLeft();
 		if(ui == null)
 			return null;
 		return ui.getContext();
 	}
-	
-	
+
 }
