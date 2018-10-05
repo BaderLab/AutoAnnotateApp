@@ -45,7 +45,7 @@ public class LayoutClustersTaskFactory extends AbstractTaskFactory {
 	public TaskIterator createTaskIterator() {
 		TaskIterator tasks = new TaskIterator();
 		
-		CyLayoutAlgorithm attributeCircle = layoutManager.getLayout("attributes-layout");
+		CyLayoutAlgorithm attributeCircle = layoutManager.getLayout("attributes-layout"); // Group Attributes Layout
 		TaskIterator attributeLayoutTasks = attributeCircle.createTaskIterator(view, attributeCircle.createLayoutContext(), CyLayoutAlgorithm.ALL_NODE_VIEWS, layoutAttribute);
 		tasks.append(attributeLayoutTasks);
 		

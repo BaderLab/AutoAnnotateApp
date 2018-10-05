@@ -36,6 +36,7 @@ import org.cytoscape.view.presentation.annotations.TextAnnotation;
 import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.swing.DialogTaskManager;
+import org.cytoscape.work.undo.UndoSupport;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -77,6 +78,7 @@ public class CytoscapeServiceModule extends AbstractModule {
 		bindService(FileUtil.class);
 		bindService(CyRootNetworkManager.class);
 		bindService(CyColumnPresentationManager.class);
+		bindService(UndoSupport.class);
 		
 		bindService(DialogTaskManager.class);
 		TypeLiteral<SynchronousTaskManager<?>> synchronousManager = new TypeLiteral<SynchronousTaskManager<?>>(){};

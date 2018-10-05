@@ -95,7 +95,8 @@
 							commons-text,
 							commons-lang3,
 							mockito-all,
-							jsr305
+							jsr305,
+							chilay-sbgn
 						</Embed-Dependency>
 						<Embed-Transitive>true</Embed-Transitive>
 						<Cytoscape-App-Dependencies>
@@ -329,6 +330,12 @@
 			<artifactId>ding-presentation-impl</artifactId>
 			<version>${cytoscape.version}</version>
 			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+		    <groupId>pathwaycommons</groupId>
+		    <artifactId>chilay-sbgn</artifactId>
+		    <version>3.0.0</version>
 		</dependency>
 		
 	</dependencies>
