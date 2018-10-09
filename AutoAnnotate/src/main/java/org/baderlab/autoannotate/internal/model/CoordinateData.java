@@ -53,7 +53,7 @@ public class CoordinateData {
 	}
 	
 	
-	private CoordinateData(double xmin, double xmax, double ymin, double ymax, Map<CyNode,double[]> coordinates, Map<CyNode,Double> radii) {
+	public CoordinateData(double xmin, double xmax, double ymin, double ymax, Map<CyNode,double[]> coordinates, Map<CyNode,Double> radii) {
 		this.xmin = xmin;
 		this.xmax = xmax;
 		this.ymin = ymin;

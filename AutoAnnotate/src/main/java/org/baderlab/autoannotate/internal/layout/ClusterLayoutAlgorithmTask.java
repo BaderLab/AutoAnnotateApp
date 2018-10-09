@@ -36,6 +36,7 @@ public class ClusterLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 
 	@Inject private ModelManager modelManager;
 	
+	private final boolean useCatchallCluster;
 	
 	public static interface Factory {
 		ClusterLayoutAlgorithmTask create(CyNetworkView netView, Set<View<CyNode>> nodes, ClusterLayoutContext context);
@@ -62,6 +63,8 @@ public class ClusterLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		coseOpt.compoundGravityRange = context.compoundGravityRange;
 		coseOpt.smartEdgeLengthCalc = context.smartEdgeLengthCalc;
 		coseOpt.smartRepulsionRangeCalc = context.smartRepulsionRangeCalc;
+		
+		this.useCatchallCluster = context.useCatchallCluster;
 	}
 	
 	
@@ -73,6 +76,38 @@ public class ClusterLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 				.orElse(Collections.emptySet());
 	}
 	
+	
+	private static class ClusterKey {
+		private final Cluster cluster;
+
+		public ClusterKey(Cluster cluster) {
+			this.cluster = cluster;
+		}
+		
+		@Override
+		public int hashCode() {
+			return System.identityHashCode(cluster);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if(obj instanceof ClusterKey) {
+				return this.cluster == ((ClusterKey)obj).cluster;
+			}
+			return false;
+		}
+		
+		public String toString() {
+			return String.valueOf(cluster);
+		}
+		
+		public CoordinateData getCoordinateData() {
+			if(cluster == null) {
+				return new CoordinateData(0, 0, 0, 0, null, null);
+			}
+			return cluster.getCoordinateData();
+		}
+	}
 
 	@Override
 	public void layoutPartition(LayoutPartition partition) {
@@ -86,22 +121,22 @@ public class ClusterLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		LGraphManager graphManager = layout.getGraphManager();
 		LGraph root = graphManager.addRoot();
 		
-		Map<Cluster, Pair<LNode,LGraph>> clusterToGraph = new HashMap<>();
+		Map<ClusterKey, Pair<LNode,LGraph>> clusterToGraph = new HashMap<>();
 		Map<CyNode, LNode> nodeToNode = new HashMap<>();
 		Map<LNode, LNode> nodeToParentNode = new HashMap<>();
 		
 		System.out.println("creating nodes");
 		
-		for (LayoutNode n : partition.getNodeList()) {
-			Cluster cluster = clusterFor(clusters, n);
-			if(cluster != null) {
-				Pair<LNode,LGraph> pair = clusterToGraph.get(cluster);
+		for(LayoutNode n : partition.getNodeList()) {
+			ClusterKey clusterKey = getClusterKey(clusters, n);
+			if(clusterKey != null) {
+				Pair<LNode,LGraph> pair = clusterToGraph.get(clusterKey);
 				LNode parent;
 				LGraph subGraph;
 				if(pair == null) {
-					parent = createParentNode(cluster, root, layout);
-					subGraph = graphManager.add(layout.newGraph(cluster.getLabel()), parent);
-					clusterToGraph.put(cluster, Pair.of(parent,subGraph));
+					parent = createParentNode(clusterKey.getCoordinateData(), root, layout);
+					subGraph = graphManager.add(layout.newGraph(clusterKey.toString()), parent);
+					clusterToGraph.put(clusterKey, Pair.of(parent,subGraph));
 				} else {
 					parent = pair.getLeft();
 					subGraph = pair.getRight();
@@ -121,7 +156,7 @@ public class ClusterLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		System.out.println("creating edges");
 		
 		final Iterator<LayoutEdge> edgeIter = partition.edgeIterator();
-		while (edgeIter.hasNext() && !cancelled) {
+		while(edgeIter.hasNext() && !cancelled) {
 			LayoutEdge le = edgeIter.next();
 			
 			LNode source = nodeToNode.get(le.getSource().getNode());
@@ -141,7 +176,7 @@ public class ClusterLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 			}
 		}
 		
-		if (cancelled)
+		if(cancelled)
 			return;
 		
 		// Run the layout
@@ -153,25 +188,28 @@ public class ClusterLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 			return;
 		}
 		
-		if (cancelled)
+		if(cancelled)
 			return;
 		
 		// Move all Node Views to the new positions
-		for (LayoutNode n : partition.getNodeList())
+		for(LayoutNode n : partition.getNodeList())
 			partition.moveNodeToLocation(n);
 		
 	}
 	
 	
-	private static Cluster clusterFor(Set<Cluster> clusters, LayoutNode n) {
+	private ClusterKey getClusterKey(Set<Cluster> clusters, LayoutNode n) {
 		for(Cluster cluster : clusters) {
 			if(cluster.contains(n.getNode())) {
-				return cluster;
+				return new ClusterKey(cluster);
 			}
 		}
-		return null;
+		if(useCatchallCluster)
+			return new ClusterKey(null);
+		else
+			return null;
 	}
-
+	
 	
 	private static LNode createLNode(LayoutNode layoutNode, LGraph graph, CoSELayout layout) {
 		VNode vn = new VNode(layoutNode);
@@ -182,10 +220,9 @@ public class ClusterLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		return ln;
 	}
 	
-	private static LNode createParentNode(Cluster cluster, LGraph graph, CoSELayout layout) {
+	private static LNode createParentNode(CoordinateData data, LGraph graph, CoSELayout layout) {
 		VNode vn = new VNode(null);
 		LNode ln = graph.add(layout.newNode(vn));
-		CoordinateData data = cluster.getCoordinateData();
 		ln.setCenter(data.getCenterX(), data.getCenterY());
 		ln.setWidth(data.getWidth() + 1000);
 		ln.setHeight(data.getHeight() + 1000);

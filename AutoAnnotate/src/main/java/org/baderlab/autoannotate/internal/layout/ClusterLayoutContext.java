@@ -69,6 +69,11 @@ public class ClusterLayoutContext implements TunableValidator {
 	@Tunable(description = "Use smart repulsion range calculation:", gravity = 3.1, context="both", longDescription="Use smart repulsion range calculation; boolean values only, ```true``` or ```false```; defaults to ```true```", exampleStringValue="true")
 	public boolean smartRepulsionRangeCalc = CoSEConstants.DEFAULT_USE_SMART_REPULSION_RANGE_CALCULATION;
 	
+	// Extra tunables
+	@Tunable(description = "Experimental: tree all non-clustered nodes as being in a catch-all cluster", gravity = 3.2, context="both", exampleStringValue="true")
+	public boolean useCatchallCluster = false;
+	
+	
 	@Override
 	public ValidationState getValidationState(final Appendable errMsg) {
 		return ValidationState.OK;
