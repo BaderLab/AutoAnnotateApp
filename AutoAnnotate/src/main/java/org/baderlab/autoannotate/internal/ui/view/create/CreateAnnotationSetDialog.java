@@ -105,7 +105,8 @@ public class CreateAnnotationSetDialog extends JDialog {
 		parent.add(tabPane, BorderLayout.CENTER);
 		parent.add(buttonPanel, BorderLayout.SOUTH);
 		parent.setOpaque(false);
-		pack();
+
+		setSize(new Dimension(600, 500));
 	}
 	
 	
