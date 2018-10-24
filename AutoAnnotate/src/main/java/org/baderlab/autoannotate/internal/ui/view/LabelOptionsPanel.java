@@ -202,7 +202,9 @@ public class LabelOptionsPanel extends JPanel {
 	
 	public void reset() {
 		LabelMakerManager labelMakerManager = labelManagerProvider.get();
-		setDefault(labelColumnNameCombo);
+		if(labelColumnNameCombo != null)
+			setDefault(labelColumnNameCombo);
+		
 		LabelMakerFactory<?> factory;
 		if(annotationSet == null)
 			factory = labelMakerManager.getDefaultFactory();
