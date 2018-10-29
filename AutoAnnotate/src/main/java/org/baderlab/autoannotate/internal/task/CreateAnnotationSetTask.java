@@ -21,7 +21,8 @@ import org.baderlab.autoannotate.internal.labels.LabelMaker;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
-import org.baderlab.autoannotate.internal.layout.tasks.GridLayoutClustersTaskFactory;
+import org.baderlab.autoannotate.internal.layout.tasks.CoseLayoutAlgorithm;
+import org.baderlab.autoannotate.internal.layout.tasks.CoseLayoutContext;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder.ClusterBuilder;
@@ -55,7 +56,7 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 	@Inject private RunClusterMakerTaskFactory.Factory clusterMakerFactoryFactory;
 	@Inject private CreateSubnetworkTask.Factory subnetworkTaskFactory;
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
-	@Inject private GridLayoutClustersTaskFactory.Factory layoutTaskFactoryFactory;
+	@Inject private Provider<CoseLayoutAlgorithm> coseLayoutAlgorithmProvider;
 	@Inject private CyNetworkManager networkManager;
 	
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
@@ -110,9 +111,6 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 		if(params.getMaxClusters().isPresent()) {
 			limitClusters(clusters, params.getMaxClusters().get());
 		}
-		if(params.isLayoutClusters()) {
-			layoutNodes(clusters, params.getNetworkView(), params.getClusterAlgorithm().getColumnName());
-		}
 		
 		Object context = params.getLabelMakerContext();
 		LabelMakerFactory factory = params.getLabelMakerFactory();
@@ -142,6 +140,10 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 			labelManager.register(annotationSet, factory, context);
 			
 			networkViewSet.select(annotationSet, isCommand); // fires ModelEvent.AnnotationSetSelected
+			
+			if(params.isLayoutClusters()) {
+				layoutNodes(annotationSet);
+			}
 		}
 	}
 	
@@ -219,9 +221,10 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 	}
 	
 	
-	private void layoutNodes(Map<?,Collection<CyNode>> clusters, CyNetworkView networkView, String columnName) {
-		GridLayoutClustersTaskFactory layoutTaskFactory = layoutTaskFactoryFactory.create(clusters.values(), networkView, columnName);
-		TaskIterator tasks = layoutTaskFactory.createTaskIterator();
+	private void layoutNodes(AnnotationSet annotationSet) {
+		CoseLayoutAlgorithm alg = coseLayoutAlgorithmProvider.get();
+		CoseLayoutContext context = alg.createLayoutContext();
+		TaskIterator tasks = alg.createTaskIterator(annotationSet, context);
 		syncTaskManager.execute(tasks);
 	}
 	

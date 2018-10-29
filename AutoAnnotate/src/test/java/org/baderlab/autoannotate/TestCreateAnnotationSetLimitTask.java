@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.baderlab.autoannotate.internal.layout.tasks.CoseLayoutAlgorithmTask;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelManager;
@@ -19,6 +20,7 @@ import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.work.undo.UndoSupport;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Before;
@@ -27,12 +29,17 @@ import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 
+import com.google.inject.Inject;
+
 
 @RunWith(JukitoRunner.class)
 @UseModules(NetworkTestUtil.TestModule.class)
 public class TestCreateAnnotationSetLimitTask {
 
 	@Rule public TestRule logSilenceRule = new LogSilenceRule();
+	
+	@Inject UndoSupport undoSupport;
+	@Inject CoseLayoutAlgorithmTask.Factory coseTaskFactory;
 	
 	private CyNetworkView networkView;
 	private Map<String, CyNode> nodes;

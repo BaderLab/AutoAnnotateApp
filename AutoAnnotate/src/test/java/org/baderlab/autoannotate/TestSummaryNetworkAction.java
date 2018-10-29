@@ -3,6 +3,7 @@ package org.baderlab.autoannotate;
 import static org.baderlab.autoannotate.NetworkTestUtil.createNode;
 import static org.junit.Assert.assertEquals;
 
+import org.baderlab.autoannotate.internal.layout.tasks.CoseLayoutAlgorithmTask;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
@@ -14,6 +15,7 @@ import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkFactory;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.work.undo.UndoSupport;
 import org.jukito.JukitoRunner;
 import org.jukito.UseModules;
 import org.junit.Before;
@@ -34,6 +36,8 @@ public class TestSummaryNetworkAction {
 	@Inject ModelManager modelManager;
 	@Inject SummaryNetworkTask.Factory summaryTaskFactory;
 	@Inject CyNetworkManager networkManager;
+	@Inject UndoSupport undoSupport;
+	@Inject CoseLayoutAlgorithmTask.Factory coseTaskFactory;
 	
 	private CyNetworkView networkView;
 	
