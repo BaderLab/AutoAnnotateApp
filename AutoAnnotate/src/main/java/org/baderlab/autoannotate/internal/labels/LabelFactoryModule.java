@@ -16,8 +16,8 @@ public class LabelFactoryModule extends AbstractModule {
 	@Override
 	protected void configure() {
 		// Boilerplate
-		TypeLiteral<LabelMakerFactory<?>> labelMakerFactoryType = new TypeLiteral<LabelMakerFactory<?>>() {};
-		Multibinder<LabelMakerFactory<?>> labelFactoryBinder = Multibinder.newSetBinder(binder(), labelMakerFactoryType);
+		TypeLiteral<LabelMakerFactory<?>> factoryType = new TypeLiteral<LabelMakerFactory<?>>() {};
+		Multibinder<LabelMakerFactory<?>> labelFactoryBinder = Multibinder.newSetBinder(binder(), factoryType);
 		
 		// Register factories as "plug-ins"
 		labelFactoryBinder.addBinding().to(ClusterBoostedLabelMakerFactory.class);

@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.task;
+package org.baderlab.autoannotate.internal.layout.tasks;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -23,18 +23,18 @@ import com.google.inject.assistedinject.AssistedInject;
  * Layout an existing AnnotationSet.
  *
  */
-public class LayoutAnnotationSetTaskFactory extends AbstractTaskFactory {
+public class GridLayoutAnnotationSetTaskFactory extends AbstractTaskFactory {
 
-	@Inject private LayoutClustersTaskFactory.Factory layoutTaskFactoryFactory;
+	@Inject private GridLayoutClustersTaskFactory.Factory layoutTaskFactoryFactory;
 	
 	private final AnnotationSet annotationSet;
 	
 	public static interface Factory {
-		LayoutAnnotationSetTaskFactory create(AnnotationSet annotationSet);
+		GridLayoutAnnotationSetTaskFactory create(AnnotationSet annotationSet);
 	}
 	
 	@AssistedInject
-	public LayoutAnnotationSetTaskFactory(@Assisted AnnotationSet annotationSet) {
+	public GridLayoutAnnotationSetTaskFactory(@Assisted AnnotationSet annotationSet) {
 		this.annotationSet = annotationSet;
 	}
 	
@@ -59,7 +59,7 @@ public class LayoutAnnotationSetTaskFactory extends AbstractTaskFactory {
 		
 		// Layout the clusters
 		Collection<Collection<CyNode>> clusters = annotationSet.getClusters().stream().map(Cluster::getNodes).collect(Collectors.toSet());
-		LayoutClustersTaskFactory layoutTaskFactory = layoutTaskFactoryFactory.create(clusters, annotationSet.getParent().getNetworkView(), tempColumn);
+		GridLayoutClustersTaskFactory layoutTaskFactory = layoutTaskFactoryFactory.create(clusters, annotationSet.getParent().getNetworkView(), tempColumn);
 		TaskIterator layoutTasks = layoutTaskFactory.createTaskIterator();
 		
 		// Delete the temp column

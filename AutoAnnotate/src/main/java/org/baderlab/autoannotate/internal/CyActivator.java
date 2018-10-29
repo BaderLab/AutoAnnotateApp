@@ -19,7 +19,8 @@ import org.baderlab.autoannotate.internal.command.SummaryNetworkCommandTask;
 import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
-import org.baderlab.autoannotate.internal.layout.ClusterLayoutAlgorithm;
+import org.baderlab.autoannotate.internal.layout.ClusterLayoutAlgorithmModule;
+import org.baderlab.autoannotate.internal.layout.tasks.CoseLayoutAlgorithm;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
@@ -51,15 +52,21 @@ public class CyActivator extends AbstractCyActivator {
 	private Injector injector;
 	
 	
+	private static Injector createInjector(BundleContext bc) {
+		return Guice.createInjector(
+			new OSGiModule(bc), 
+			new AfterInjectionModule(), 
+			new CytoscapeServiceModule(), 
+			new ApplicationModule(), 
+			new LabelFactoryModule(), 
+			new ClusterLayoutAlgorithmModule(), 
+			new WarnDialogModule()
+		);
+	}
+	
 	@Override
 	public void start(BundleContext bc) {
-		injector = Guice.createInjector(
-						new OSGiModule(bc), // Peaberry
-						new AfterInjectionModule(), 
-						new CytoscapeServiceModule(), 
-						new ApplicationModule(), 
-						new LabelFactoryModule(),
-						new WarnDialogModule());
+		injector = createInjector(bc);
 		
 		// ModelManager listens to Cytoscape events
 		ModelManager modelManager = injector.getInstance(ModelManager.class);
@@ -118,7 +125,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerCommand(bc, "summary", SummaryNetworkCommandTask.class, "Create summary network");
 		
 		// Layout Algorithm
-		ClusterLayoutAlgorithm clusterLayout = injector.getInstance(ClusterLayoutAlgorithm.class);
+		CoseLayoutAlgorithm clusterLayout = injector.getInstance(CoseLayoutAlgorithm.class);
 		registerService(bc, clusterLayout, CyLayoutAlgorithm.class);
 		
 		// If no session is loaded then this won't do anything, but if there is a session loaded 

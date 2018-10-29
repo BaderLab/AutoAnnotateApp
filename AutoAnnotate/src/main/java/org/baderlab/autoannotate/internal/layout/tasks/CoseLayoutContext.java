@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.layout;
+package org.baderlab.autoannotate.internal.layout.tasks;
 
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.TunableValidator;
@@ -6,7 +6,7 @@ import org.cytoscape.work.util.ListSingleSelection;
 import org.ivis.layout.LayoutConstants;
 import org.ivis.layout.cose.CoSEConstants;
 
-public class ClusterLayoutContext implements TunableValidator {
+public class CoseLayoutContext implements TunableValidator {
 	
 	public enum LayoutQuality {
 		PROOF(LayoutConstants.PROOF_QUALITY, "Proof"),

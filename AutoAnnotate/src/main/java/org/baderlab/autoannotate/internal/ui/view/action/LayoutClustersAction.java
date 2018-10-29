@@ -5,10 +5,10 @@ import java.util.Optional;
 
 import javax.swing.JFrame;
 
+import org.baderlab.autoannotate.internal.layout.tasks.GridLayoutAnnotationSetTaskFactory;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
-import org.baderlab.autoannotate.internal.task.LayoutAnnotationSetTaskFactory;
 import org.baderlab.autoannotate.internal.ui.view.WarnDialog;
 import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.cytoscape.application.swing.AbstractCyAction;
@@ -22,7 +22,7 @@ import com.google.inject.Provider;
 public class LayoutClustersAction extends AbstractCyAction {
 
 	@Inject private @WarnDialogModule.Layout Provider<WarnDialog> warnDialogProvider;
-	@Inject private LayoutAnnotationSetTaskFactory.Factory layoutTaskFactory;
+	@Inject private GridLayoutAnnotationSetTaskFactory.Factory layoutTaskFactory;
 	@Inject private Provider<JFrame> jFrameProvider;
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private ModelManager modelManager;
@@ -39,7 +39,7 @@ public class LayoutClustersAction extends AbstractCyAction {
 			WarnDialog warnDialog = warnDialogProvider.get();
 			boolean doIt = warnDialog.warnUser(jFrameProvider.get());
 			if(doIt) {
-				LayoutAnnotationSetTaskFactory taskFactory = layoutTaskFactory.create(annotationSet.get());
+				GridLayoutAnnotationSetTaskFactory taskFactory = layoutTaskFactory.create(annotationSet.get());
 				TaskIterator tasks = taskFactory.createTaskIterator();
 				dialogTaskManager.execute(tasks);
 			}

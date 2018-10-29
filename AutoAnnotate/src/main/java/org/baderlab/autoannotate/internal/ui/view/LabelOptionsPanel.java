@@ -176,12 +176,7 @@ public class LabelOptionsPanel extends JPanel {
 				context = factory.getDefaultContext();
 			
 			LabelMakerUI<?> labelUI = factory.createUI(context);
-			
-			JPanel labelUIPanel;
-			if(labelUI == null)
-				labelUIPanel = new JPanel();
-			else
-				labelUIPanel = labelUI.getPanel();
+			JPanel labelUIPanel = labelUI == null ? new JPanel() : labelUI.getPanel();
 			
 			labelUIPanel.setOpaque(false);
 			algorithmPanel.add(labelUIPanel, factory.getName());

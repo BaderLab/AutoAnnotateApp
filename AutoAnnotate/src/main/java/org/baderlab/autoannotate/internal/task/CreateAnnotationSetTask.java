@@ -21,6 +21,7 @@ import org.baderlab.autoannotate.internal.labels.LabelMaker;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
+import org.baderlab.autoannotate.internal.layout.tasks.GridLayoutClustersTaskFactory;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder.ClusterBuilder;
@@ -54,7 +55,7 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 	@Inject private RunClusterMakerTaskFactory.Factory clusterMakerFactoryFactory;
 	@Inject private CreateSubnetworkTask.Factory subnetworkTaskFactory;
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
-	@Inject private LayoutClustersTaskFactory.Factory layoutTaskFactoryFactory;
+	@Inject private GridLayoutClustersTaskFactory.Factory layoutTaskFactoryFactory;
 	@Inject private CyNetworkManager networkManager;
 	
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
@@ -219,7 +220,7 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 	
 	
 	private void layoutNodes(Map<?,Collection<CyNode>> clusters, CyNetworkView networkView, String columnName) {
-		LayoutClustersTaskFactory layoutTaskFactory = layoutTaskFactoryFactory.create(clusters.values(), networkView, columnName);
+		GridLayoutClustersTaskFactory layoutTaskFactory = layoutTaskFactoryFactory.create(clusters.values(), networkView, columnName);
 		TaskIterator tasks = layoutTaskFactory.createTaskIterator();
 		syncTaskManager.execute(tasks);
 	}

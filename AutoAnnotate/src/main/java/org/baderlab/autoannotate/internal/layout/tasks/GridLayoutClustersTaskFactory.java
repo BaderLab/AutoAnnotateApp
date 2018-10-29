@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.task;
+package org.baderlab.autoannotate.internal.layout.tasks;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -21,7 +21,7 @@ import com.google.inject.assistedinject.AssistedInject;
  * Runs layouts on the given clusters.
  * This task factory is typically called before an annotation set is created.
  */
-public class LayoutClustersTaskFactory extends AbstractTaskFactory {
+public class GridLayoutClustersTaskFactory extends AbstractTaskFactory {
 	
 	@Inject private CyLayoutAlgorithmManager layoutManager;
 	
@@ -30,11 +30,11 @@ public class LayoutClustersTaskFactory extends AbstractTaskFactory {
 	private String layoutAttribute;
 	
 	public static interface Factory {
-		LayoutClustersTaskFactory create(Collection<Collection<CyNode>> clusters, CyNetworkView view, String layoutAttribute);
+		GridLayoutClustersTaskFactory create(Collection<Collection<CyNode>> clusters, CyNetworkView view, String layoutAttribute);
 	}
 	
 	@AssistedInject
-	public LayoutClustersTaskFactory(@Assisted Collection<Collection<CyNode>> clusters, @Assisted CyNetworkView view, @Assisted String layoutAttribute) {
+	public GridLayoutClustersTaskFactory(@Assisted Collection<Collection<CyNode>> clusters, @Assisted CyNetworkView view, @Assisted String layoutAttribute) {
 		this.clusters = clusters;
 		this.view = view;
 		this.layoutAttribute = layoutAttribute;

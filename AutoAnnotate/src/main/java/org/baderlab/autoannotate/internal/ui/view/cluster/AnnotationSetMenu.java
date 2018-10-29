@@ -13,13 +13,13 @@ import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetDeleteActi
 import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetRenameAction;
 import org.baderlab.autoannotate.internal.ui.view.action.CollapseAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ExportClustersAction;
-import org.baderlab.autoannotate.internal.ui.view.action.LayoutClustersAction;
 import org.baderlab.autoannotate.internal.ui.view.action.RedrawAction;
 import org.baderlab.autoannotate.internal.ui.view.action.RelabelAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCopyAnnotationsDialog;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreationParamsAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowLabelOptionsDialogAction;
+import org.baderlab.autoannotate.internal.ui.view.action.ShowLayoutDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowManageDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowSettingsDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.SummaryNetworkAction;
@@ -40,7 +40,7 @@ public class AnnotationSetMenu {
 	@Inject private Provider<CollapseAction> collapseActionProvider;
 	@Inject private Provider<SummaryNetworkAction> summaryActionProvider;
 	@Inject private Provider<RedrawAction> redrawActionProvider;
-	@Inject private Provider<LayoutClustersAction> layoutActionProvider;
+	@Inject private Provider<ShowLayoutDialogAction> layoutActionProvider;
 	@Inject private Provider<RelabelAction> relabelActionProvider;
 	@Inject private Provider<ShowSettingsDialogAction> showSettingsProvider;
 	@Inject private Provider<ShowLabelOptionsDialogAction> showLabelOptionsProvider;

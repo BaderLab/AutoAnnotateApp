@@ -5,15 +5,15 @@ import java.util.Properties;
 import org.baderlab.autoannotate.internal.command.AnnotateCommandTask;
 import org.baderlab.autoannotate.internal.command.LabelClusterCommandTask;
 import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
-import org.baderlab.autoannotate.internal.layout.ClusterLayoutAlgorithmTask;
+import org.baderlab.autoannotate.internal.layout.tasks.CoseLayoutAlgorithmTask;
+import org.baderlab.autoannotate.internal.layout.tasks.GridLayoutAnnotationSetTaskFactory;
+import org.baderlab.autoannotate.internal.layout.tasks.GridLayoutClustersTaskFactory;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
 import org.baderlab.autoannotate.internal.task.CollapseTask;
 import org.baderlab.autoannotate.internal.task.CopyAnnotationsTask;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.internal.task.CreateSubnetworkTask;
-import org.baderlab.autoannotate.internal.task.LayoutAnnotationSetTaskFactory;
-import org.baderlab.autoannotate.internal.task.LayoutClustersTaskFactory;
 import org.baderlab.autoannotate.internal.task.RecalculateLabelsTask;
 import org.baderlab.autoannotate.internal.task.RunClusterMakerTaskFactory;
 import org.baderlab.autoannotate.internal.task.SummaryNetworkTask;
@@ -68,11 +68,11 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(NormalModePanel.Factory.class);
 		installFactory(EasyModePanel.Factory.class);
 		installFactory(CollapseAllTaskFactory.Factory.class);
-		installFactory(LayoutClustersTaskFactory.Factory.class);
+		installFactory(GridLayoutClustersTaskFactory.Factory.class);
 		installFactory(RunClusterMakerTaskFactory.Factory.class);
 		installFactory(AnnotateCommandTask.Factory.class);
 		installFactory(LabelClusterCommandTask.Factory.class);
-		installFactory(LayoutAnnotationSetTaskFactory.Factory.class);
+		installFactory(GridLayoutAnnotationSetTaskFactory.Factory.class);
 		installFactory(SummaryNetworkTask.Factory.class);
 		installFactory(CollapseTask.Factory.class);
 		installFactory(CreateAnnotationSetTask.Factory.class);
@@ -86,7 +86,7 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(NetworkList.Factory.class);
 		installFactory(CopyAnnotationsTask.Factory.class);
 		installFactory(CreateAnnotationSetDialog.Factory.class);
-		installFactory(ClusterLayoutAlgorithmTask.Factory.class);
+		installFactory(CoseLayoutAlgorithmTask.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {

@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.layout;
+package org.baderlab.autoannotate.internal.layout.tasks;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,22 +32,20 @@ import org.ivis.layout.cose.CoSELayout;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
-public class ClusterLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
+public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 
 	@Inject private ModelManager modelManager;
 	
 	private final boolean useCatchallCluster;
 	
 	public static interface Factory {
-		ClusterLayoutAlgorithmTask create(CyNetworkView netView, Set<View<CyNode>> nodes, ClusterLayoutContext context);
+		CoseLayoutAlgorithmTask create(CyNetworkView netView, Set<View<CyNode>> nodes, CoseLayoutContext context);
 	}
 	
 	@Inject
-	public ClusterLayoutAlgorithmTask(@Assisted CyNetworkView netView, @Assisted Set<View<CyNode>> nodes, 
-			@Assisted ClusterLayoutContext context, UndoSupport undo) {
-		super(ClusterLayoutAlgorithm.DISPLAY_NAME, true, netView, nodes, "", undo);
-		
-		System.out.println(context);
+	public CoseLayoutAlgorithmTask(@Assisted CyNetworkView netView, @Assisted Set<View<CyNode>> nodes, 
+			@Assisted CoseLayoutContext context, UndoSupport undo) {
+		super(CoseLayoutAlgorithm.DISPLAY_NAME, true, netView, nodes, "", undo);
 		
 		final LayoutOptionsPack.General generalOpt = LayoutOptionsPack.getInstance().getGeneral();
 		generalOpt.layoutQuality = context.layoutQuality.getValue();
@@ -125,8 +123,6 @@ public class ClusterLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		Map<CyNode, LNode> nodeToNode = new HashMap<>();
 		Map<LNode, LNode> nodeToParentNode = new HashMap<>();
 		
-		System.out.println("creating nodes");
-		
 		for(LayoutNode n : partition.getNodeList()) {
 			ClusterKey clusterKey = getClusterKey(clusters, n);
 			if(clusterKey != null) {
@@ -153,8 +149,6 @@ public class ClusterLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		}
 		
 		// Create all CoSE edges
-		System.out.println("creating edges");
-		
 		final Iterator<LayoutEdge> edgeIter = partition.edgeIterator();
 		while(edgeIter.hasNext() && !cancelled) {
 			LayoutEdge le = edgeIter.next();
@@ -180,7 +174,6 @@ public class ClusterLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 			return;
 		
 		// Run the layout
-		System.out.println("running the layout");
 		try {
 			layout.runLayout();
 		} catch (Exception e) {
