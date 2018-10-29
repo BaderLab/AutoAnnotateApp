@@ -60,7 +60,7 @@ public class CoseLayoutContext implements TunableValidator {
 	@Tunable(description = "Compound gravity strength (0-100):", gravity = 2.4, context="both", longDescription="Compound gravity strength (0-100)", exampleStringValue="50")
 	public int compoundGravityStrength = 50;
 	@Tunable(description = "Gravity range (0-100):", gravity = 2.5, context="both", longDescription="Gravity range (0-100)", exampleStringValue="50")
-	public int gravityRange = 50;
+	public int gravityRange = 53;
 	@Tunable(description = "Compound gravity range (0-100):", gravity = 2.6, context="both", longDescription="Compound gravity range (0-100)", exampleStringValue="50")
 	public int compoundGravityRange = 50;
 	
@@ -73,7 +73,6 @@ public class CoseLayoutContext implements TunableValidator {
 	@Tunable(description = "Experimental: tree all non-clustered nodes as being in a catch-all cluster", gravity = 3.2, context="both", exampleStringValue="true")
 	public boolean useCatchallCluster = false;
 	
-	
 	@Override
 	public ValidationState getValidationState(final Appendable errMsg) {
 		return ValidationState.OK;
@@ -81,12 +80,12 @@ public class CoseLayoutContext implements TunableValidator {
 
 	@Override
 	public String toString() {
-		return "ClusterLayoutContext [layoutQuality=" + layoutQuality + ", incremental=" + incremental
+		return "CoseLayoutContext [layoutQuality=" + layoutQuality + ", incremental=" + incremental
 				+ ", idealEdgeLength=" + idealEdgeLength + ", springStrength=" + springStrength + ", repulsionStrength="
 				+ repulsionStrength + ", gravityStrength=" + gravityStrength + ", compoundGravityStrength="
 				+ compoundGravityStrength + ", gravityRange=" + gravityRange + ", compoundGravityRange="
 				+ compoundGravityRange + ", smartEdgeLengthCalc=" + smartEdgeLengthCalc + ", smartRepulsionRangeCalc="
-				+ smartRepulsionRangeCalc + "]";
+				+ smartRepulsionRangeCalc + ", useCatchallCluster=" + useCatchallCluster + "]";
 	}
-	
+
 }

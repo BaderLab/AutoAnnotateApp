@@ -109,8 +109,6 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 
 	@Override
 	public void layoutPartition(LayoutPartition partition) {
-		System.out.println("ClusterLayoutAlgorithmTask.layoutPartition() : 3");
-		
 		Set<Cluster> clusters = getClusters();
 		if(clusters.isEmpty())
 			return;

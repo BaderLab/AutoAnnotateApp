@@ -18,25 +18,42 @@ import org.baderlab.autoannotate.internal.util.SwingUtil;
 public class CoseLayoutAlgorithmUI implements ClusterLayoutAlgorithmUI<CoseLayoutContext> {
 
 	private CoseLayoutAlgorithmOptionsPanel panel;
+	private CoseLayoutContext context;
 	
 	
 	public CoseLayoutAlgorithmUI(CoseLayoutContext context) {
+		this.context = context;
 		this.panel = new CoseLayoutAlgorithmOptionsPanel(context);
 	}
 	
 	
 	private static class CoseLayoutAlgorithmOptionsPanel extends JPanel {
 		
+		private SpacingSlider slider;
+		private JCheckBox checkbox;
+		
 		public CoseLayoutAlgorithmOptionsPanel(CoseLayoutContext context) {
 			JLabel label = new JLabel("Space between clusters:");
-			SpacingSlider slider = new SpacingSlider(50, 60, 55);
-			JCheckBox checkbox = new JCheckBox("Group unclustered nodes");
+			
+			int gravity = Math.max(50, Math.min(60, context.gravityRange));
+			context.gravityRange = gravity;
+			
+			slider = new SpacingSlider(50, 60, gravity);
+			checkbox = new JCheckBox("Group unclustered nodes");
 			SwingUtil.makeSmall(label, checkbox);
 			
 			setLayout(new GridBagLayout());
 			add(label,    GBCFactory.grid(0,0).get());
 			add(slider,   GBCFactory.grid(0,1).get());
 			add(checkbox, GBCFactory.grid(0,2).get());
+		}
+		
+		public boolean getGroupUnclusteredNodes() {
+			return checkbox.isSelected();
+		}
+		
+		public int getGravityRange() {
+			return slider.getGravityValue();
 		}
 	}
 	
@@ -67,7 +84,7 @@ public class CoseLayoutAlgorithmUI implements ClusterLayoutAlgorithmUI<CoseLayou
 			setOpaque(false);
 		}
 		
-		public int getValue() {
+		public int getGravityValue() {
 			return slider.getValue();
 		}
 	}
@@ -80,13 +97,13 @@ public class CoseLayoutAlgorithmUI implements ClusterLayoutAlgorithmUI<CoseLayou
 
 	@Override
 	public CoseLayoutContext getContext() {
-		// TODO Auto-generated method stub
-		return null;
+		context.gravityRange = panel.getGravityRange();
+		context.useCatchallCluster = panel.getGroupUnclusteredNodes();
+		return context;
 	}
 
 	@Override
 	public void reset(CoseLayoutContext context) {
-		// TODO Auto-generated method stub
 	}
 
 }

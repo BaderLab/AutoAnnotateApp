@@ -3,6 +3,9 @@ package org.baderlab.autoannotate.internal.ui.view.layout;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.GridBagLayout;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
@@ -16,10 +19,16 @@ import javax.swing.JPanel;
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.layout.ClusterLayoutAlgorithm;
 import org.baderlab.autoannotate.internal.layout.ClusterLayoutAlgorithmUI;
+import org.baderlab.autoannotate.internal.model.AnnotationSet;
+import org.baderlab.autoannotate.internal.model.ModelManager;
+import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.util.ComboItem;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
+import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.util.swing.LookAndFeelUtil;
+import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.swing.DialogTaskManager;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -36,9 +45,13 @@ public class LayoutClustersDialog extends JDialog {
 	
 	@Inject private Provider<Set<ClusterLayoutAlgorithm<?>>> algorithmProvider;
 	@Inject private @Named("default") String defaultAlgID;
+	
+	@Inject private ModelManager modelManager;
+	@Inject private DialogTaskManager dialogTaskManager;
 
 	private JComboBox<ComboItem<ClusterLayoutAlgorithm<?>>> algCombo;
-	
+	private Map<String,ClusterLayoutAlgorithmUI<?>> uiMap = new HashMap<>();
+	private JButton applyLayoutButton;
 	
 	@Inject
 	public LayoutClustersDialog(JFrame jFrame) {
@@ -61,7 +74,7 @@ public class LayoutClustersDialog extends JDialog {
 			((CardLayout)cardPanel.getLayout()).show(cardPanel, id);
 		});
 		
-		JButton applyLayoutButton = new JButton("Apply Layout");
+		applyLayoutButton = new JButton("Apply Layout");
 		applyLayoutButton.addActionListener(e -> applyLayout());
 		JButton closeButton = new JButton("Close");
 		closeButton.addActionListener(e -> setVisible(false));
@@ -108,7 +121,13 @@ public class LayoutClustersDialog extends JDialog {
 		for(ClusterLayoutAlgorithm alg : algorithms) {
 			Object context = alg.createLayoutContext();
 			ClusterLayoutAlgorithmUI ui = alg.createUI(context);
-			JPanel panel = ui == null ? new JPanel() : ui.getPanel();
+			JPanel panel;
+			if(ui != null) {
+				uiMap.put(alg.getID(), ui);
+				panel = ui.getPanel();
+			} else {
+				panel = new JPanel();
+			}
 			panel.setOpaque(false);
 			cardPanel.add(panel, alg.getID());
 		}
@@ -116,8 +135,29 @@ public class LayoutClustersDialog extends JDialog {
 		return cardPanel;
 	}
 	
+	
 	private void applyLayout() {
-		ClusterLayoutAlgorithm<?> algorithm = getAlgorithm();  
+		Optional<AnnotationSet> annotationSet = modelManager
+				.getActiveNetworkViewSet()
+				.flatMap(NetworkViewSet::getActiveAnnotationSet);
+		
+		if(!annotationSet.isPresent())
+			return;
+		
+		ClusterLayoutAlgorithm alg = getAlgorithm();  
+		ClusterLayoutAlgorithmUI<?> ui = uiMap.get(alg.getID());
+		Object context;
+		if(ui == null) {
+			context = alg.createLayoutContext();
+		} else {
+			context = ui.getContext();
+		}
+		
+		System.out.println(context);
+		applyLayoutButton.setEnabled(false);
+		
+		TaskIterator taskIterator = alg.createTaskIterator(annotationSet.get(), context);
+		dialogTaskManager.execute(taskIterator, TaskTools.allFinishedObserver(() -> applyLayoutButton.setEnabled(true)));
 	}
 	
 }
