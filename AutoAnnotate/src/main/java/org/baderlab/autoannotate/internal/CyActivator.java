@@ -20,7 +20,7 @@ import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.layout.ClusterLayoutAlgorithmModule;
-import org.baderlab.autoannotate.internal.layout.tasks.CoseLayoutAlgorithm;
+import org.baderlab.autoannotate.internal.layout.cose.CoseLayoutAlgorithm;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.ui.PanelManager;

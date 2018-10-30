@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.baderlab.autoannotate.internal.layout.tasks.CoseLayoutAlgorithmTask;
+import org.baderlab.autoannotate.internal.layout.cose.CoseLayoutAlgorithmTask;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelManager;

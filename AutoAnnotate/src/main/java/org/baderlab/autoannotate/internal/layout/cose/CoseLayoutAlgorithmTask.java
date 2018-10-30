@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.layout.tasks;
+package org.baderlab.autoannotate.internal.layout.cose;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -113,6 +113,15 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		if(clusters.isEmpty())
 			return;
 		
+		layoutPhase1(partition, clusters);
+	}
+	
+	
+	/**
+	 * Phase 1:
+	 * Make CoSE think that each cluster is a compound node, and run CoSE as it normally works.
+	 */
+	private void layoutPhase1(LayoutPartition partition, Set<Cluster> clusters) {
 		CoSELayout layout = new CoSELayout();
 		LGraphManager graphManager = layout.getGraphManager();
 		LGraph root = graphManager.addRoot();
@@ -205,7 +214,9 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 	private static LNode createLNode(LayoutNode layoutNode, LGraph graph, CoSELayout layout) {
 		VNode vn = new VNode(layoutNode);
 		LNode ln = graph.add(layout.newNode(vn));
-		ln.setCenter(layoutNode.getX(), layoutNode.getY());
+		double x = layoutNode.getX() - layoutNode.getWidth()/2;
+		double y = layoutNode.getY() - layoutNode.getHeight()/2;
+		ln.setLocation(x, y);
 		ln.setWidth(layoutNode.getWidth());
 		ln.setHeight(layoutNode.getHeight());
 		return ln;
@@ -214,11 +225,14 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 	private static LNode createParentNode(CoordinateData data, LGraph graph, CoSELayout layout) {
 		VNode vn = new VNode(null);
 		LNode ln = graph.add(layout.newNode(vn));
-		ln.setCenter(data.getCenterX(), data.getCenterY());
-		ln.setWidth(data.getWidth() + 1000);
-		ln.setHeight(data.getHeight() + 1000);
+		double x = data.getCenterX() - data.getWidth()/2;
+		double y = data.getCenterY() - data.getHeight()/2;
+		ln.setLocation(x, y);
+		ln.setWidth(data.getWidth());
+		ln.setHeight(data.getHeight());
 		return ln;
 	}
+	
 	
 	
 	private static LEdge createLEdge(LNode source, LNode target, CoSELayout layout) {

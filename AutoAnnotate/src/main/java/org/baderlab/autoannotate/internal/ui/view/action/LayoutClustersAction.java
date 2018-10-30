@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import javax.swing.JFrame;
 
-import org.baderlab.autoannotate.internal.layout.tasks.GridLayoutAnnotationSetTaskFactory;
+import org.baderlab.autoannotate.internal.layout.grid.GridLayoutAnnotationSetTaskFactory;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;

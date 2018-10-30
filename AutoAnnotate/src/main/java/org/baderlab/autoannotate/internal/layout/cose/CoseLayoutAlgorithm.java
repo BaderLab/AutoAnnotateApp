@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.layout.tasks;
+package org.baderlab.autoannotate.internal.layout.cose;
 
 import java.util.Collection;
 import java.util.HashSet;

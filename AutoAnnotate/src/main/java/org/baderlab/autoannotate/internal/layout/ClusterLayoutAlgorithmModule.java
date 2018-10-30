@@ -1,7 +1,7 @@
 package org.baderlab.autoannotate.internal.layout;
 
-import org.baderlab.autoannotate.internal.layout.tasks.CoseLayoutAlgorithm;
-import org.baderlab.autoannotate.internal.layout.tasks.GridLayoutAlgorithm;
+import org.baderlab.autoannotate.internal.layout.cose.CoseLayoutAlgorithm;
+import org.baderlab.autoannotate.internal.layout.grid.GridLayoutAlgorithm;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;

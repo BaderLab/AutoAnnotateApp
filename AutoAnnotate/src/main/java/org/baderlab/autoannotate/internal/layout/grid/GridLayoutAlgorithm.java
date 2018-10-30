@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.layout.tasks;
+package org.baderlab.autoannotate.internal.layout.grid;
 
 import org.baderlab.autoannotate.internal.layout.ClusterLayoutAlgorithm;
 import org.baderlab.autoannotate.internal.layout.ClusterLayoutAlgorithmUI;

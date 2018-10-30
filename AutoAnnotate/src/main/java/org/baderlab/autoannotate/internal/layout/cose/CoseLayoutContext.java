@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.layout.tasks;
+package org.baderlab.autoannotate.internal.layout.cose;
 
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.TunableValidator;

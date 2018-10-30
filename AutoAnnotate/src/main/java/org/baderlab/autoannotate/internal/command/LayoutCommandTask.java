@@ -1,6 +1,6 @@
 package org.baderlab.autoannotate.internal.command;
 
-import org.baderlab.autoannotate.internal.layout.tasks.GridLayoutAnnotationSetTaskFactory;
+import org.baderlab.autoannotate.internal.layout.grid.GridLayoutAnnotationSetTaskFactory;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ContainsTunables;
