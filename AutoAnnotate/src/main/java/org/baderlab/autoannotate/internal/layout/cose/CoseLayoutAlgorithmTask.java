@@ -1,5 +1,6 @@
 package org.baderlab.autoannotate.internal.layout.cose;
 
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,6 +15,8 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.CoordinateData;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.ui.render.ArgsLabel;
+import org.baderlab.autoannotate.internal.ui.render.ArgsShape;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.layout.AbstractPartitionLayoutTask;
 import org.cytoscape.view.layout.LayoutEdge;
@@ -21,6 +24,10 @@ import org.cytoscape.view.layout.LayoutNode;
 import org.cytoscape.view.layout.LayoutPartition;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
+import org.cytoscape.view.presentation.annotations.Annotation;
+import org.cytoscape.view.presentation.annotations.AnnotationFactory;
+import org.cytoscape.view.presentation.annotations.AnnotationManager;
+import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.work.undo.UndoSupport;
 import org.ivis.layout.LEdge;
 import org.ivis.layout.LGraph;
@@ -32,11 +39,15 @@ import org.ivis.layout.Updatable;
 import org.ivis.layout.cose.CoSELayout;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
 public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 
 	@Inject private ModelManager modelManager;
+	
+	@Inject private Provider<AnnotationManager> annotationManagerProvider;
+	@Inject private AnnotationFactory<ShapeAnnotation> shapeFactory;
 	
 	private final boolean useCatchallCluster;
 	
@@ -86,16 +97,12 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		
 		ClusterMap clusterMap = new ClusterMap(clusters, useCatchallCluster);
 		
-		System.out.println("running phase 1");
 		layoutPhase1(partition, clusterMap);
 		
 		if(cancelled)
 			return;
 		
-		System.out.println("running phase 2");
 		layoutPhase2(partition, clusterMap);
-		
-		System.out.println("done");
 	}
 	
 	
@@ -248,6 +255,27 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 	}
 	
 	
+	@SuppressWarnings("unused")
+	private void drawBordersForTesting(Set<Cluster> clusters) {
+		List<Annotation> borders = new ArrayList<>();
+		
+		for(Cluster cluster : clusters) {
+			Rectangle2D bounds = getClusterBounds(cluster);
+			
+			Map<String,String> argMap = new HashMap<>();
+			argMap.put(Annotation.X, String.valueOf(bounds.getX()));
+			argMap.put(Annotation.Y, String.valueOf(bounds.getY()));
+			argMap.put(ShapeAnnotation.WIDTH,  String.valueOf(bounds.getWidth()));
+			argMap.put(ShapeAnnotation.HEIGHT, String.valueOf(bounds.getHeight()));
+			
+			ShapeAnnotation border = shapeFactory.createAnnotation(ShapeAnnotation.class, networkView, argMap);
+			borders.add(border);
+		}
+		
+		AnnotationManager annotationManager = annotationManagerProvider.get();
+		annotationManager.addAnnotations(borders);
+	}
+	
 	
 	private static LNode createLNode(LayoutNode layoutNode, LGraph graph, CoSELayout layout) {
 		VNode vn = new VNode(layoutNode);
@@ -271,19 +299,38 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		return ln;
 	}
 	
-	private static Pair<LNode,ClusterVNode> createClusterLNode(Cluster cluster, LGraph graph, CoSELayout layout) {
-		// MKTODO add space for label
+	private Pair<LNode,ClusterVNode> createClusterLNode(Cluster cluster, LGraph graph, CoSELayout layout) {
 		ClusterVNode vn = new ClusterVNode(cluster);
 		LNode ln = graph.add(layout.newNode(vn));
-		CoordinateData data = cluster.getCoordinateData();
-		double x = data.getCenterX() - data.getWidth()/2;
-		double y = data.getCenterY() - data.getHeight()/2;
-		y = y - 400;
-		x = x - 200;
-		ln.setLocation(x, y);
-		ln.setWidth(data.getWidth() + 400);
-		ln.setHeight(data.getHeight() + 400);
+		Rectangle2D bounds = getClusterBounds(cluster);
+		ln.setLocation(bounds.getX(), bounds.getY());
+		ln.setWidth(bounds.getWidth());
+		ln.setHeight(bounds.getHeight());
 		return Pair.of(ln, vn);
+	}
+	
+	
+	private static Rectangle2D getClusterBounds(Cluster cluster) {
+		ArgsShape shapeArgs = ArgsShape.createFor(cluster, false);
+		List<ArgsLabel> labelArgsList = ArgsLabel.createFor(shapeArgs, cluster, false);
+		
+		double x = shapeArgs.x;
+		double y = shapeArgs.y;
+		double w = shapeArgs.width;
+		double h = shapeArgs.height;
+		
+		for(ArgsLabel labelArgs : labelArgsList) {
+			if(labelArgs.y < y) {
+				h += y - labelArgs.y;
+				y = labelArgs.y;
+			}
+			if(labelArgs.x < x) {
+				w += (x - labelArgs.x) * 2;
+				x = labelArgs.x;
+			}
+		}
+		
+		return new Rectangle2D.Double(x, y, w, h);
 	}
 	
 	
