@@ -1,8 +1,10 @@
 package org.baderlab.autoannotate.internal.layout.cose;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,6 +39,7 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 	@Inject private ModelManager modelManager;
 	
 	private final boolean useCatchallCluster;
+	
 	
 	public static interface Factory {
 		CoseLayoutAlgorithmTask create(CyNetworkView netView, Set<View<CyNode>> nodes, CoseLayoutContext context);
@@ -75,53 +78,37 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 	}
 	
 	
-	private static class ClusterKey {
-		private final Cluster cluster;
-
-		public ClusterKey(Cluster cluster) {
-			this.cluster = cluster;
-		}
-		
-		@Override
-		public int hashCode() {
-			return System.identityHashCode(cluster);
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if(obj instanceof ClusterKey) {
-				return this.cluster == ((ClusterKey)obj).cluster;
-			}
-			return false;
-		}
-		
-		public String toString() {
-			return String.valueOf(cluster);
-		}
-		
-		public CoordinateData getCoordinateData() {
-			if(cluster == null) {
-				return new CoordinateData(0, 0, 0, 0, null, null);
-			}
-			return cluster.getCoordinateData();
-		}
-	}
-
 	@Override
 	public void layoutPartition(LayoutPartition partition) {
 		Set<Cluster> clusters = getClusters();
 		if(clusters.isEmpty())
 			return;
 		
-		layoutPhase1(partition, clusters);
+		ClusterMap clusterMap = new ClusterMap(clusters, useCatchallCluster);
+		
+		System.out.println("running phase 1");
+		layoutPhase1(partition, clusterMap);
+		
+		if(cancelled)
+			return;
+		
+		System.out.println("running phase 2");
+		layoutPhase2(partition, clusterMap);
+		
+		System.out.println("done");
 	}
 	
 	
 	/**
 	 * Phase 1:
 	 * Make CoSE think that each cluster is a compound node, and run CoSE as it normally works.
+	 * 
+	 * Notes:
+	 * The Set<Cluster> contains all the nodes that are clustered, I would still need to find
+	 * all the unclustered nodes in the view to process them as well. So I just use 
+	 * partition.getNodeList() as the starting point.
 	 */
-	private void layoutPhase1(LayoutPartition partition, Set<Cluster> clusters) {
+	private void layoutPhase1(LayoutPartition partition, ClusterMap clusterMap) {
 		CoSELayout layout = new CoSELayout();
 		LGraphManager graphManager = layout.getGraphManager();
 		LGraph root = graphManager.addRoot();
@@ -131,7 +118,7 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		Map<LNode, LNode> nodeToParentNode = new HashMap<>();
 		
 		for(LayoutNode n : partition.getNodeList()) {
-			ClusterKey clusterKey = getClusterKey(clusters, n);
+			ClusterKey clusterKey = clusterMap.get(n);
 			if(clusterKey != null) {
 				Pair<LNode,LGraph> pair = clusterToGraph.get(clusterKey);
 				LNode parent;
@@ -156,7 +143,7 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		}
 		
 		// Create all CoSE edges
-		final Iterator<LayoutEdge> edgeIter = partition.edgeIterator();
+		Iterator<LayoutEdge> edgeIter = partition.edgeIterator();
 		while(edgeIter.hasNext() && !cancelled) {
 			LayoutEdge le = edgeIter.next();
 			
@@ -177,6 +164,70 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 			}
 		}
 		
+		runLayout(layout, partition);
+	}
+	
+	
+	/**
+	 * Phase 2:
+	 * Make CoSE think that each cluster is a single node, set size of nodes so that they make room for labels.
+	 */
+	private void layoutPhase2(LayoutPartition partition, ClusterMap clusterMap) {
+		CoSELayout layout = new CoSELayout();
+		LGraphManager graphManager = layout.getGraphManager();
+		LGraph root = graphManager.addRoot();
+
+		Map<ClusterKey,Pair<LNode,ClusterVNode>> clusterToNode = new HashMap<>();
+		
+		Map<CyNode,LNode> nodeToNode = new HashMap<>();
+		
+		for(LayoutNode n : partition.getNodeList()) {
+			ClusterKey clusterKey = clusterMap.get(n);
+			if(clusterKey != null) {
+				Pair<LNode,ClusterVNode> pair = clusterToNode.get(clusterKey);
+				if(pair == null) {
+					pair = createClusterLNode(clusterKey.getCluster(), root, layout);
+					clusterToNode.put(clusterKey, pair);
+				}
+				pair.getRight().addNode(n);
+			} else {
+				LNode ln = createLNode(n, root, layout);
+				nodeToNode.put(n.getNode(), ln);
+			}
+			if(cancelled)
+				return;
+		}
+		
+		Iterator<LayoutEdge> edgeIter = partition.edgeIterator();
+		while(edgeIter.hasNext() && !cancelled) {
+			LayoutEdge le = edgeIter.next();
+			
+			ClusterKey sourceCluster = clusterMap.get(le.getSource().getNode());
+			ClusterKey targetCluster = clusterMap.get(le.getTarget().getNode());
+			
+			LNode source = nodeToNode.get(le.getSource().getNode());
+			LNode target = nodeToNode.get(le.getTarget().getNode());
+			
+			if(sourceCluster == null && targetCluster == null) {
+				createLEdge(source, target, layout);
+			} else if(sourceCluster == null) {
+				LNode t = clusterToNode.get(targetCluster).getLeft();
+				createLEdge(source, t, layout);
+			} else if(targetCluster == null) {
+				LNode s = clusterToNode.get(sourceCluster).getLeft();
+				createLEdge(s, target, layout);
+			} else {
+				LNode t = clusterToNode.get(targetCluster).getLeft();
+				LNode s = clusterToNode.get(sourceCluster).getLeft();
+				createLEdge(s, t, layout);
+			}
+		}
+		
+		runLayout(layout, partition);
+	}
+	
+	
+	private void runLayout(CoSELayout layout, LayoutPartition partition) {
 		if(cancelled)
 			return;
 		
@@ -194,21 +245,8 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		// Move all Node Views to the new positions
 		for(LayoutNode n : partition.getNodeList())
 			partition.moveNodeToLocation(n);
-		
 	}
 	
-	
-	private ClusterKey getClusterKey(Set<Cluster> clusters, LayoutNode n) {
-		for(Cluster cluster : clusters) {
-			if(cluster.contains(n.getNode())) {
-				return new ClusterKey(cluster);
-			}
-		}
-		if(useCatchallCluster)
-			return new ClusterKey(null);
-		else
-			return null;
-	}
 	
 	
 	private static LNode createLNode(LayoutNode layoutNode, LGraph graph, CoSELayout layout) {
@@ -233,6 +271,20 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		return ln;
 	}
 	
+	private static Pair<LNode,ClusterVNode> createClusterLNode(Cluster cluster, LGraph graph, CoSELayout layout) {
+		// MKTODO add space for label
+		ClusterVNode vn = new ClusterVNode(cluster);
+		LNode ln = graph.add(layout.newNode(vn));
+		CoordinateData data = cluster.getCoordinateData();
+		double x = data.getCenterX() - data.getWidth()/2;
+		double y = data.getCenterY() - data.getHeight()/2;
+		y = y - 400;
+		x = x - 200;
+		ln.setLocation(x, y);
+		ln.setWidth(data.getWidth() + 400);
+		ln.setHeight(data.getHeight() + 400);
+		return Pair.of(ln, vn);
+	}
 	
 	
 	private static LEdge createLEdge(LNode source, LNode target, CoSELayout layout) {
@@ -242,6 +294,39 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 			return le;
 		}
 		return null;
+	}
+	
+	
+	
+	private static class ClusterVNode implements Updatable {
+
+		private Cluster cluster;
+		private List<LayoutNode> nodes = new ArrayList<>();
+		private double x, y; // center
+
+		ClusterVNode(Cluster cluster) {
+			this.cluster = cluster;
+			CoordinateData data = cluster.getCoordinateData();
+			this.x = data.getCenterX();
+			this.y = data.getCenterY();
+		}
+		
+		public void addNode(LayoutNode node) {
+			this.nodes.add(node);
+		}
+		
+		@Override
+		public void update(LGraphObject go) {
+			LNode ln = (LNode) go;
+			double deltaX = ln.getCenterX() - x;
+			double deltaY = ln.getCenterY() - y;
+			for(LayoutNode node : nodes) {
+				node.setX(node.getX() + deltaX);
+				node.setY(node.getY() + deltaY);
+			}
+			x = ln.getCenterX();
+			y = ln.getCenterY();
+		}
 	}
 	
 	
@@ -261,10 +346,6 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 				layoutNode.setY(ln.getCenterY());
 			}
 		}
-		
-		LayoutNode getLayoutNode() {
-			return layoutNode;
-		}
 	}
 	
 	
@@ -280,9 +361,7 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		public void update(final LGraphObject go) {
 			// TODO Update bend points
 		}
-		
-		LayoutEdge getLayoutEdge() {
-			return layoutEdge;
-		}
 	}
+	
+	
 }
