@@ -111,9 +111,9 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 	 * Make CoSE think that each cluster is a compound node, and run CoSE as it normally works.
 	 * 
 	 * Notes:
-	 * The Set<Cluster> contains all the nodes that are clustered, I would still need to find
-	 * all the unclustered nodes in the view to process them as well. So I just use 
-	 * partition.getNodeList() as the starting point.
+	 * Even though the Set<Cluster> contains all the nodes that are clustered, I would still need to find
+	 * all the unclustered nodes to process them as well, and the layout may run in partitioned mode. 
+	 * So I have to use partition.getNodeList() as the starting point.
 	 */
 	private void layoutPhase1(LayoutPartition partition, ClusterMap clusterMap) {
 		CoSELayout layout = new CoSELayout();
@@ -131,7 +131,7 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 				LNode parent;
 				LGraph subGraph;
 				if(pair == null) {
-					parent = createParentNode(clusterKey.getCoordinateData(), root, layout);
+					parent = createParentLNode(clusterKey.getCoordinateData(), root, layout);
 					subGraph = graphManager.add(layout.newGraph(clusterKey.toString()), parent);
 					clusterToGraph.put(clusterKey, Pair.of(parent,subGraph));
 				} else {
@@ -184,19 +184,15 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		LGraphManager graphManager = layout.getGraphManager();
 		LGraph root = graphManager.addRoot();
 
-		Map<ClusterKey,Pair<LNode,ClusterVNode>> clusterToNode = new HashMap<>();
+		
+		Map<ClusterKey,List<LayoutNode>> nodesInCluster = new HashMap<>();
 		
 		Map<CyNode,LNode> nodeToNode = new HashMap<>();
 		
 		for(LayoutNode n : partition.getNodeList()) {
 			ClusterKey clusterKey = clusterMap.get(n);
 			if(clusterKey != null) {
-				Pair<LNode,ClusterVNode> pair = clusterToNode.get(clusterKey);
-				if(pair == null) {
-					pair = createClusterLNode(clusterKey.getCluster(), root, layout);
-					clusterToNode.put(clusterKey, pair);
-				}
-				pair.getRight().addNode(n);
+				nodesInCluster.computeIfAbsent(clusterKey, k -> new ArrayList<>()).add(n);
 			} else {
 				LNode ln = createLNode(n, root, layout);
 				nodeToNode.put(n.getNode(), ln);
@@ -204,6 +200,15 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 			if(cancelled)
 				return;
 		}
+		
+		Map<ClusterKey,LNode> clusterToNode = new HashMap<>();
+		
+		for(ClusterKey key : nodesInCluster.keySet()) {
+			List<LayoutNode> nodes = nodesInCluster.get(key);
+			LNode clusterNode = createClusterLNode(key.getCluster(), nodes, root, layout);
+			clusterToNode.put(key, clusterNode);
+		}
+		
 		
 		Iterator<LayoutEdge> edgeIter = partition.edgeIterator();
 		while(edgeIter.hasNext() && !cancelled) {
@@ -218,14 +223,14 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 			if(sourceCluster == null && targetCluster == null) {
 				createLEdge(source, target, layout);
 			} else if(sourceCluster == null) {
-				LNode t = clusterToNode.get(targetCluster).getLeft();
+				LNode t = clusterToNode.get(targetCluster);
 				createLEdge(source, t, layout);
 			} else if(targetCluster == null) {
-				LNode s = clusterToNode.get(sourceCluster).getLeft();
+				LNode s = clusterToNode.get(sourceCluster);
 				createLEdge(s, target, layout);
 			} else {
-				LNode t = clusterToNode.get(targetCluster).getLeft();
-				LNode s = clusterToNode.get(sourceCluster).getLeft();
+				LNode t = clusterToNode.get(targetCluster);
+				LNode s = clusterToNode.get(sourceCluster);
 				createLEdge(s, t, layout);
 			}
 		}
@@ -288,7 +293,7 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		return ln;
 	}
 	
-	private static LNode createParentNode(CoordinateData data, LGraph graph, CoSELayout layout) {
+	private static LNode createParentLNode(CoordinateData data, LGraph graph, CoSELayout layout) {
 		VNode vn = new VNode(null);
 		LNode ln = graph.add(layout.newNode(vn));
 		double x = data.getCenterX() - data.getWidth()/2;
@@ -299,38 +304,65 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 		return ln;
 	}
 	
-	private Pair<LNode,ClusterVNode> createClusterLNode(Cluster cluster, LGraph graph, CoSELayout layout) {
-		ClusterVNode vn = new ClusterVNode(cluster);
+	private LNode createClusterLNode(Cluster cluster, List<LayoutNode> nodes, LGraph graph, CoSELayout layout) {
+		ClusterVNode vn = new ClusterVNode(nodes);
 		LNode ln = graph.add(layout.newNode(vn));
-		Rectangle2D bounds = getClusterBounds(cluster);
+		
+		Rectangle2D bounds;
+		if(cluster == null)
+			bounds = getClusterBounds(nodes);
+		else 
+			bounds = getClusterBounds(cluster);
+		
 		ln.setLocation(bounds.getX(), bounds.getY());
 		ln.setWidth(bounds.getWidth());
 		ln.setHeight(bounds.getHeight());
-		return Pair.of(ln, vn);
+		return ln;
 	}
 	
 	
 	private static Rectangle2D getClusterBounds(Cluster cluster) {
-		ArgsShape shapeArgs = ArgsShape.createFor(cluster, false);
-		List<ArgsLabel> labelArgsList = ArgsLabel.createFor(shapeArgs, cluster, false);
+		// For real clusters use the size of the annotations when computing the bounds
+		// This ensures that labels and shapes don't overlap.
+		ArgsShape shape = ArgsShape.createFor(cluster, false);
+		List<ArgsLabel> lables = ArgsLabel.createFor(shape, cluster, false);
 		
-		double x = shapeArgs.x;
-		double y = shapeArgs.y;
-		double w = shapeArgs.width;
-		double h = shapeArgs.height;
+		double x = shape.x, y = shape.y, w = shape.width, h = shape.height;
 		
-		for(ArgsLabel labelArgs : labelArgsList) {
-			if(labelArgs.y < y) {
-				h += y - labelArgs.y;
-				y = labelArgs.y;
+		for(ArgsLabel label : lables) {
+			if(label.y < y) {
+				h += y - label.y;
+				y = label.y;
 			}
-			if(labelArgs.x < x) {
-				w += (x - labelArgs.x) * 2;
-				x = labelArgs.x;
+			if(label.x < x) {
+				w += (x - label.x) * 2;
+				x = label.x;
 			}
 		}
 		
 		return new Rectangle2D.Double(x, y, w, h);
+	}
+	
+	
+	private static Rectangle2D getClusterBounds(List<LayoutNode> nodes) {
+		// MKTODO this doesn't take node size into account
+		double top = 0, bottom = 0, left = 0, right = 0;
+		
+		Iterator<LayoutNode> iter = nodes.iterator();
+		if(iter.hasNext()) {
+			LayoutNode ln = iter.next();
+			left = right = ln.getX();
+			top = bottom = ln.getY();
+		}
+		while(iter.hasNext()) {
+			LayoutNode ln = iter.next();
+			top = Math.min(top, ln.getY());
+			bottom = Math.max(bottom, ln.getY());
+			left = Math.min(left, ln.getX());
+			right = Math.max(right, ln.getX());
+		}
+		
+		return new Rectangle2D.Double(left, top, right-left, bottom-top);
 	}
 	
 	
@@ -347,32 +379,37 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 	
 	private static class ClusterVNode implements Updatable {
 
-		private Cluster cluster;
-		private List<LayoutNode> nodes = new ArrayList<>();
-		private double x, y; // center
-
-		ClusterVNode(Cluster cluster) {
-			this.cluster = cluster;
-			CoordinateData data = cluster.getCoordinateData();
-			this.x = data.getCenterX();
-			this.y = data.getCenterY();
-		}
+		private final List<LayoutNode> nodes;
+		private double x, y;
 		
-		public void addNode(LayoutNode node) {
-			this.nodes.add(node);
+		ClusterVNode(List<LayoutNode> nodes) {
+			this.nodes = nodes;
+			
+			Iterator<LayoutNode> iter = nodes.iterator();
+			if(iter.hasNext()) {
+				LayoutNode ln = iter.next();
+				x = ln.getX();
+				y = ln.getY();
+			}
+			while(iter.hasNext()) {
+				LayoutNode ln = iter.next();
+				x = Math.min(x, ln.getX());
+				y = Math.min(y, ln.getY());
+			}
 		}
 		
 		@Override
 		public void update(LGraphObject go) {
+			// move all the nodes in the cluster
 			LNode ln = (LNode) go;
-			double deltaX = ln.getCenterX() - x;
-			double deltaY = ln.getCenterY() - y;
+			double deltaX = ln.getLeft() - x;
+			double deltaY = ln.getTop() - y;
 			for(LayoutNode node : nodes) {
 				node.setX(node.getX() + deltaX);
 				node.setY(node.getY() + deltaY);
 			}
-			x = ln.getCenterX();
-			y = ln.getCenterY();
+			x = ln.getLeft();
+			y = ln.getTop();
 		}
 	}
 	
