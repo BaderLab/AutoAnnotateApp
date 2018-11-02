@@ -13,6 +13,4 @@ public interface ClusterLayoutAlgorithm<C> {
 	
 	C createLayoutContext();
 	
-	ClusterLayoutAlgorithmUI<C> createUI(C context);
-
 }

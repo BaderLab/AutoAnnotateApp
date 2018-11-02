@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.layout.cose;
+package org.baderlab.autoannotate.internal.layout;
 
 import java.util.HashMap;
 import java.util.Map;

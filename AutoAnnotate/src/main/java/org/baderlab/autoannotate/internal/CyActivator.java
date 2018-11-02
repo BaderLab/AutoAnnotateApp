@@ -19,7 +19,6 @@ import org.baderlab.autoannotate.internal.command.SummaryNetworkCommandTask;
 import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
-import org.baderlab.autoannotate.internal.layout.ClusterLayoutAlgorithmModule;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
@@ -57,7 +56,6 @@ public class CyActivator extends AbstractCyActivator {
 			new CytoscapeServiceModule(), 
 			new ApplicationModule(), 
 			new LabelFactoryModule(), 
-			new ClusterLayoutAlgorithmModule(), 
 			new WarnDialogModule()
 		);
 	}

@@ -1,7 +1,5 @@
-package org.baderlab.autoannotate.internal.layout.grid;
+package org.baderlab.autoannotate.internal.layout;
 
-import org.baderlab.autoannotate.internal.layout.ClusterLayoutAlgorithm;
-import org.baderlab.autoannotate.internal.layout.ClusterLayoutAlgorithmUI;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.cytoscape.work.TaskIterator;
 
@@ -23,11 +21,6 @@ public class GridLayoutAlgorithm implements ClusterLayoutAlgorithm<Void> {
 
 	@Override
 	public Void createLayoutContext() {
-		return null;
-	}
-
-	@Override
-	public ClusterLayoutAlgorithmUI<Void> createUI(Void context) {
 		return null;
 	}
 

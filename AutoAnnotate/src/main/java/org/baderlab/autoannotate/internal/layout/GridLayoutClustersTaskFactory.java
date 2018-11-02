@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.layout.grid;
+package org.baderlab.autoannotate.internal.layout;
 
 import java.util.Collection;
 import java.util.HashSet;

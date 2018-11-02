@@ -7,9 +7,9 @@ import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JPopupMenu;
 
-import org.baderlab.autoannotate.internal.layout.cose.CoseLayoutAlgorithm;
-import org.baderlab.autoannotate.internal.layout.cose.CoseLayoutContext;
-import org.baderlab.autoannotate.internal.layout.grid.GridLayoutAlgorithm;
+import org.baderlab.autoannotate.internal.layout.CoseLayoutAlgorithm;
+import org.baderlab.autoannotate.internal.layout.CoseLayoutContext;
+import org.baderlab.autoannotate.internal.layout.GridLayoutAlgorithm;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetDeleteAction;

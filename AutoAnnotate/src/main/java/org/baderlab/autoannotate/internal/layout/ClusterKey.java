@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.layout.cose;
+package org.baderlab.autoannotate.internal.layout;
 
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.CoordinateData;

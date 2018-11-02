@@ -1,11 +1,9 @@
-package org.baderlab.autoannotate.internal.layout.cose;
+package org.baderlab.autoannotate.internal.layout;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.baderlab.autoannotate.internal.layout.ClusterLayoutAlgorithm;
-import org.baderlab.autoannotate.internal.layout.ClusterLayoutAlgorithmUI;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.layout.AbstractLayoutAlgorithm;
@@ -54,11 +52,6 @@ public class CoseLayoutAlgorithm extends AbstractLayoutAlgorithm implements Clus
 	@Override
 	public CoseLayoutContext createLayoutContext() {
 		return new CoseLayoutContext();
-	}
-
-	@Override
-	public ClusterLayoutAlgorithmUI<CoseLayoutContext> createUI(CoseLayoutContext context) {
-		return new CoseLayoutAlgorithmUI(context);
 	}
 
 	@Override

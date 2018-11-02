@@ -3,7 +3,7 @@ package org.baderlab.autoannotate;
 import static org.baderlab.autoannotate.NetworkTestUtil.createNode;
 import static org.junit.Assert.assertEquals;
 
-import org.baderlab.autoannotate.internal.layout.cose.CoseLayoutAlgorithmTask;
+import org.baderlab.autoannotate.internal.layout.CoseLayoutAlgorithmTask;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
