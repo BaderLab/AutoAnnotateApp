@@ -344,7 +344,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		JPanel panel = new JPanel(new BorderLayout());
 		
 		clusterTable = new JTable(new ClusterTableModel()); // create with dummy model
-		setColumnWidths(clusterTable, 200, 15, 15);
+		setColumnWidths(clusterTable, 190, 20, 20);
 		clusterTable.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		clusterSelectionListener = selectionListenerProvider.get().init(clusterTable);
 		clusterTable.getSelectionModel().addListSelectionListener(clusterSelectionListener);
