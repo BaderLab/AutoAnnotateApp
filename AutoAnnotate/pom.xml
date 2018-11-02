@@ -5,14 +5,14 @@
 		<project.name>AutoAnnotate</project.name>
 		<bundle.symbolicName>org.baderlab.autoannotate</bundle.symbolicName>
 		<bundle.namespace>org.baderlab.autoannotate</bundle.namespace>
-		<cytoscape.version>3.7.0-SNAPSHOT</cytoscape.version>
+		<cytoscape.version>3.7.0</cytoscape.version>
 	</properties>
 
 	<name>AutoAnnotate</name>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.baderlab</groupId>
 	<artifactId>autoannotate</artifactId>
-	<version>1.3-SNAPSHOT</version>
+	<version>1.3-BETA</version>
 	<packaging>bundle</packaging>
 
 	<build>
