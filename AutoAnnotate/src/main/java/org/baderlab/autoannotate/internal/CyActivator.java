@@ -20,7 +20,6 @@ import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.layout.ClusterLayoutAlgorithmModule;
-import org.baderlab.autoannotate.internal.layout.cose.CoseLayoutAlgorithm;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
@@ -34,7 +33,6 @@ import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CyAction;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
-import org.cytoscape.view.layout.CyLayoutAlgorithm;
 import org.cytoscape.work.ServiceProperties;
 import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskFactory;
@@ -123,10 +121,6 @@ public class CyActivator extends AbstractCyActivator {
 		registerCommand(bc, "collapse", CollapseCommandTask.class, "Collapse all clusters");
 		registerCommand(bc, "expand", ExpandCommandTask.class, "Expand all clusters");
 		registerCommand(bc, "summary", SummaryNetworkCommandTask.class, "Create summary network");
-		
-		// Layout Algorithm
-		CoseLayoutAlgorithm clusterLayout = injector.getInstance(CoseLayoutAlgorithm.class);
-		registerService(bc, clusterLayout, CyLayoutAlgorithm.class);
 		
 		// If no session is loaded then this won't do anything, but if there is a session loaded 
 		// then we want to load the model immediately.

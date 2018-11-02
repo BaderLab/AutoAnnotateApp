@@ -26,6 +26,7 @@ import org.baderlab.autoannotate.internal.ui.render.UpdateClustersTask;
 import org.baderlab.autoannotate.internal.ui.view.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.ManageAnnotationSetsDialog;
 import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTask;
+import org.baderlab.autoannotate.internal.ui.view.action.LayoutClustersAction;
 import org.baderlab.autoannotate.internal.ui.view.copy.CopyAnnotationsDialog;
 import org.baderlab.autoannotate.internal.ui.view.copy.NetworkList;
 import org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialog;
@@ -61,7 +62,6 @@ public class ApplicationModule extends AbstractModule {
 		bind(new TypeLiteral<CyProperty<Properties>>(){}).toInstance(propsReader);
 	}
 	
-	/** For tests */
 	private void installFactories() {
 		installFactory(LabelOptionsPanel.Factory.class);
 		installFactory(ManageAnnotationSetsDialog.Factory.class);
@@ -87,6 +87,7 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(CopyAnnotationsTask.Factory.class);
 		installFactory(CreateAnnotationSetDialog.Factory.class);
 		installFactory(CoseLayoutAlgorithmTask.Factory.class);
+		installFactory(LayoutClustersAction.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {
