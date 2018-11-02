@@ -340,6 +340,12 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 			}
 		}
 		
+		// some extra padding
+		y -= 5;
+		h += 10;
+		x -= 5;
+		w += 10;
+		
 		return new Rectangle2D.Double(x, y, w, h);
 	}
 	
