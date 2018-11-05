@@ -44,6 +44,8 @@ Layout network to prevent cluster overlap
 Label Column
   Column used to generate the labels.
 
+.. note:: Quick start uses clusterMaker2 MCL algorithm, with the "Adjacent Words" label option.
+
 
 Advanced
 ~~~~~~~~
