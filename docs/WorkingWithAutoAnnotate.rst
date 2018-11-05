@@ -7,9 +7,9 @@ Panels
 When an Annotation Set is created the AutoAnnotate panels will be shown.
 
 .. note:: To show or hide the AutoAnnotate panels go to the main menu and 
-          select **Apps > AutoAnnotate > (Show/Hide) AutoAnnotate**. 
+          select **Apps > AutoAnnotate > (Show/Hide) AutoAnnotate Panels**. 
 
-.. image:: images/panels_red.png
+.. image:: images/panels_red2.png
 
 
 * In the **Control Panel** on the left side is the **Main AutoAnnotate Panel**.
@@ -26,10 +26,14 @@ Changing Display Options
 
 This AutoAnnotate Display panel shows display options for the currently selected Annotation Set.
 
-.. image:: images/display_options.png
-   :width: 300px
+.. image:: images/display_options2.png
+   :width: 220px
+   :align: right
 
 Shape Options
+
+  Shape
+    There are two available shapes: Ellipse or Rectangle
 
   Border width
     Slider that adjusts the width of the cluster annotation borders.
@@ -38,17 +42,14 @@ Shape Options
     Slider that adjusts the opacity of the cluster annotation fill color.
     Slide to the left for completely transparent. Slide to the right for completely opaque. 
 
-  Shape
-    There are two available shapes: Ellipse or Rectangle
-
-  Hide Shapes
-    Select to hide all cluster shape annotations. 
-
   Fill Color
     Opens a color picker for choosing the fill color.
 
   Border Color
     Opens a color picker for choosing the border color.
+
+  Hide Shapes
+    Select to hide all cluster shape annotations. 
 
 
 Label Options
@@ -64,6 +65,14 @@ Label Options
 
   Font Color
     Opens a color picker for choosing the font color.
+
+  Word Wrap
+    Allows long labels to be broken and wrap onto the next line.
+
+    Wrap Length
+      Defines the maximum width of the label in number of characters.
+      Individual words that are longer than the wrap length will not be broken.
+      Has no effect if Word Wrap is disabled.
 
   Hide Labels
     Select to hide all cluster labels. 
@@ -86,7 +95,11 @@ the Annotation Sets that have been created for the current network view.
 
   * Similarly when switching Annotation Sets any collapsed groups will be expanded. 
 
-.. image:: images/menu.png
+
+Annotation Set Menu
+-------------------
+
+.. image:: images/menu2.png
    :width: 400px
 
 .. |button_plus|   image:: images/button_plus.png
@@ -98,12 +111,15 @@ the Annotation Sets that have been created for the current network view.
 .. |button_redraw| image:: images/button_redraw.png
    :width: 25px
 
-
 Click the |button_menu| button to show the Annotation Set Menu.
 
-  New Annotation Set…
+  New Annotation Set...
     Opens the Create Annotation Set dialog. 
     The dialog can also be opened by clicking the |button_plus| button.
+
+  Copy Annotation Sets from Network...
+    Allows annotations to be copied from one network to another. See `Copying Annotations Between Networks`_ 
+    for more details.
 
   Rename
     Renames the current annotation set.
@@ -125,35 +141,40 @@ Click the |button_menu| button to show the Annotation Set Menu.
   Create Summary Network
     Generates a new network where each node represents a collapsed cluster in the original network.
     Very similar in functionality to "Collapse All", but runs significantly faster. 
+    See :ref:`summary_network` for more details.
 
   Layout Clusters
-    Runs a layout algorithm that will layout each cluster separately using the perfuse
-    layout (evenly spaced in a grid). Note: this operation cannot be undone. 
+    The submenu provides access to cluster-aware layout algorithms. See :ref:`cluster_aware_layouts`
+    for more details.
 
   Redraw annotations
-    Older versions of Cytoscape have a bug that cause annotations to occasionally be
+    Some versions of Cytoscape have a bug that cause annotations to occasionally be
     drawn in the wrong location. Redrawing the annotations can fix this problem.
     Annotations can also be redrawn by clicking the |button_redraw| button.
 
   Recalculate Labels
     Recalculates the labels for all of the clusters in the annotation set. 
-    Typically used when the WordCloud options or label algorithm changes. 
-    More on this later in this guide. (Note: to recalculate labels for a 
+    Typically used when the WordCloud options or label algorithm changes, or if the contets of 
+    one or more clusters change. See :ref:`label_options` for more details. 
+    (Note: to recalculate labels for a 
     subset of clusters please select the clusters in the table and right-click 
     to show the cluster context menu.) 
   
-  Display Creation Parameters...
-    Opens a dialog that shows the parameters that were chosen in the Create Annotation Set Dialog
-    for the current Annotation Set.
-
   Export Clusters to File...
     Creates a TXT file containing the labels of all the clusters.
 
-  Label Options
-    Opens a dialog where you can select the label algorithm that is used when recalculating labels. 
+  Settings
+    Display Creation Parameters...
+      Opens a dialog that shows the parameters that were chosen in the Create Annotation Set Dialog
+      for the current Annotation Set.
 
-  Settings...
-    Opens the AutoAnnotate settings dialog. 
+    Label Options...
+      Opens a dialog where you can select the label algorithm that is used when recalculating labels. 
+      See :ref:`label_options` for more details. 
+
+    Settings...
+      Opens a dialog where general AutoAnnotate settings can be changed.
+
 
 
 Managing Clusters
@@ -205,7 +226,7 @@ Right click with he mouse to show the cluster table context menu.
     Very similar in functionality to "Collapse", but runs significantly faster. 
 
   Recalculate Labels
-    Recalculates the labels for the selected clusters. 
+    Recalculates the labels for the selected clusters. See :ref:`label_options` for more details.
 
 
 Managing Clusters in the Network View
@@ -225,86 +246,34 @@ Deleting a node in an existing cluster will remove the node from the cluster. A 
 is calculated. 
 
 
-Collapsing and Expanding Clusters
----------------------------------
+Copying Annotations Between Networks
+------------------------------------
 
-AutoAnnotate can summarize a network by collapsing some or all of the clusters automatically.
+Annotations can be copied between networks in the same network collection only. 
 
-.. warning:: Depending on the number of clusters this function can be very slow. Consider using 
-             the **Generate Summary Network** option instead because it runs significantly faster. 
-             See the section below for more details.
+Start by selecting the destination network in the **Networks** panel. 
 
-.. image:: images/collapsed_network.png
-   :width: 500 px
+.. image:: images/copy_network_panel.png
+   :width: 450 px
 
-The Cytoscape "group nodes" feature is used to collapse and expand clusters. A group node is a 
-compound node that contains other nodes. 
+Then go to the **AutoAnnotate** panel and select **Copy Annotation Sets from Network...** 
+in the panel menu. 
 
-When AutoAnnotate collapses a cluster it first creates a group node that contains all the nodes 
-in the cluster and then the group node is collapsed. When the cluster is collapsed Cytoscape 
-will create "meta-edges" between the group node any other nodes it is connected to. The collapsed 
-group nodes and the meta-edges provide a summary of the network.
-
-When a cluster is expanded the group node is expanded and then deleted. The annotations are shown 
-again.
-
-.. note:: The annotation for a cluster is not shown when the cluster is collapsed. The label shown for a 
-   collapsed cluster is generated by Cytoscape and depends on the Group Preferences (explained below).
-
-.. warning:: It is not recommend to manually collapse or expand clusters using the Groups menu as this may 
-   confuse AutoAnnotate. When switching between Annotation Sets all collapsed clusters are 
-   automatically expanded.
-
-.. warning:: There are currently some limitations in Cytoscape with regards to saving and restoring 
-   annotations and groups in a session file. For this reason when you save your session all the clusters 
-   must be expanded first.
-
-Clusters can be collapsed or expanded from the Annotation Set Menu or the Cluster Table Context 
-Menu. Before collapsing clusters make sure that node aggregation is enabled. This will tell 
-Cytoscape to generate a label for the group node that aggregates the labels of the nodes in the 
-cluster.
-
-* In the main menu select **Edit > Preferences > Group Preferences**.
-* In the Group Preferences dialog select the option for Enable Attribute Aggregation. 
-
-.. image:: images/group_preferences.png
+.. image:: images/copy_menu_item.png
    :width: 400 px
 
+The **Copy Annotation Sets** dialog will be shown.
 
-Summary Network
----------------
+.. image:: images/copy_dialog.png
+   :width: 400 px
 
-Using group nodes to collapse clusters can be very slow when there are many clusters. As an alternative 
-a new option called **Generate Summary Network** has been added in AutoAnnotate 1.1. A new network is 
-generated where each node represents a collapsed cluster in the original network, and each edge represents 
-a meta-edge between clusters. The resulting network is very similar to the results you get from collapsing 
-the clusters.
+Select the source network to copy annotations from. A list of annotation sets for that network is shown.
+Select the annotation sets to copy. Finally click the **Copy Annotations** button.
 
-The main differences are:
-
-  * Nodes that are not contained in any cluster are ignored.
-  * There is no relationship maintained back to the original network. If the clusters in the 
-    original network change the summary network will not be updated. Create a new summary 
-    network at any time to reflect the current state of the clusters.
-  * A new visual style for the summary network is created based on the original visual style.
-
-A summary network can be created from the Annotation Set Menu or the Cluster Table Context Menu.
-
-Summary network uses the same attribute aggregation settings as collapsed group nodes. 
-Available from **Edit > Preferences > Group Preferences** then expand the Default Aggregation Settings 
-section. 
-
-
-Working with WordCloud
-----------------------
-
-Labels for clusters are generated by the WordCloud app.
-
-  * You may change the label generation options from the WordCloud panel.
-  * In the main menu select **Apps > WordCloud > Show WordCloud**.
-  * In the WordCloud panel you can change the label options, for example using the Normalize slider.
-  * Back in the AutoAnnotate panel select **Recalculate Labels** to regenerate labels using the updated 
-    WordCloud options. 
+If the destination network contains fewer nodes than the source network then only the 
+annotations for clusters that exist in the destination network will be copied. Select
+the **Include annotations for clusters that are incolmplete** option to copy annotations for
+clusters that do not have all their nodes present in the destination network.
 
 
 Additional Options

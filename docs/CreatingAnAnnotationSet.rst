@@ -6,7 +6,7 @@ Creating an Annotation Set
 * The Create Annotation Set dialog will open.
 
 .. image:: images/menu_action.png
-   :width: 400 px
+   :width: 450 px
 
 
 Create Annotation Set Dialog
@@ -29,7 +29,7 @@ Quick Start
 
 The quick start tab has a minimal set of basic options.
 
-.. image:: images/create_dialog_quick.png
+.. image:: images/create_dialog_quick3.png
    :width: 400 px
  
 Annotate the entire network
@@ -50,7 +50,7 @@ Advanced
 
 The Advanced tab provides full control over clustering and label options.
 
-.. image:: images/create_dialog_advanced.png
+.. image:: images/create_dialog_advanced2.png
    :width: 450 px
 
 
@@ -76,6 +76,13 @@ Cluster Options
     Any Node Column of may be used to identify the clusters. 
     If you select a column of List type then the clusters may overlap. 
 
+  Create Singleton Clusters
+    Sometimes the cluster algorithm will leave some nodes un-clustered. If the 
+    'create singleton clusters' option is selected then a cluster will be created 
+    for each un-clustered node.
+
+  Layout network to prevent cluster overlap
+    Runs a layout algorithm that separates the clusters so that they do not overlap.
 
 Label Options
 

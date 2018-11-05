@@ -55,7 +55,7 @@ public class ShowLabelOptionsDialogAction extends AbstractCyAction {
 		String title = BuildProperties.APP_NAME + ": Label Options";
 		JFrame jframe = jFrameProvider.get();
 		
-		int result = JOptionPane.showConfirmDialog(jframe, panel, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
+		int result = JOptionPane.showConfirmDialog(jframe, panel, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
 		if(result == JOptionPane.CANCEL_OPTION || result == JOptionPane.NO_OPTION)
 			return false;
 		
