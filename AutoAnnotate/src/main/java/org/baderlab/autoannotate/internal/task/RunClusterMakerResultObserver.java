@@ -11,20 +11,24 @@ import org.cytoscape.work.TaskObserver;
 
 public class RunClusterMakerResultObserver implements TaskObserver {
 
-	private Map<String,Collection<CyNode>> result;
+	private Map<String,Collection<CyNode>> result = new HashMap<>();
+	private boolean done = false;
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public void taskFinished(ObservableTask task) {
-		result = new HashMap<>();
+		// In clusterMaker 1.2 only the "getnetworkcluster" command returns a map, but in clusterMaker 1.3 both commands return maps
 		
 		Map results = task.getResults(Map.class);
 		if(results != null) {
 			Collection<Collection<CyNode>> clusters = (Collection<Collection<CyNode>>)results.get("networkclusters");
 			
-			int clusterNumber = 0;
-			for(Collection<CyNode> nodes : clusters) {
-				result.put(String.valueOf(clusterNumber++), nodes);
+			if(clusters != null && !done) {
+				int clusterNumber = 0;
+				for(Collection<CyNode> nodes : clusters) {
+					result.put(String.valueOf(clusterNumber++), nodes);
+				}
+				done = true;
 			}
 		}
 	}

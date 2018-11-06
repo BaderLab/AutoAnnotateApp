@@ -37,6 +37,7 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 	}
 	
 	public TaskIterator createTaskIterator(TaskObserver taskObserver) {
+		// MKTODO In clusterMaker2 v1.3.1 the second command should no longer be needed, but we keep it for backwards compatibility
 		String clusterCommand = getClusterCommand();
 		String networkCommand = getNetworkCommand();
 		return commandTaskFactory.createTaskIterator(taskObserver, clusterCommand, networkCommand);
