@@ -122,7 +122,7 @@ Click **Create Annotations** to create the new Annotation Set.
 ClusterMaker2 Algorithms
 ------------------------
 
-The following clusterMaker2 algorithms are made available in AutoAnnotate:
+The following clusterMaker2 algorithms are made available through AutoAnnotate:
 
 ============================= =========
 Algorithm                     Weighted?
@@ -137,5 +137,53 @@ SCPS Cluster                  Yes
 ============================= =========
 
 Weighted algorithms require an edge attribute to be used as the edge weight. 
+
+
+Using an External Clustering Algorithm
+--------------------------------------
+
+AutoAnnotate allows clusters to be defined using any node attribute via the **User-defined clusters**
+option on the Advanced panel. This allows clustering algorithms provided by other Cytoscape
+Apps or by external scripts to be used with AutoAnnotate.
+
+
+Using clusterMaker Manually
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You may use a clusterMaker algorithm not provided through the **New Annotation Set** dialog.
+
+Here is an example using the clusterMaker MCODE algorithm. 
+
+* Select **Apps > clusterMaker > MCODE Cluster**. 
+* A dialog with MCODE algorithm settings will be shown. 
+* Expand the **Cytoscape Advanced Settings** section and make note of the **Cluster Attribute Name**, in this case it is **__mcodeCluster**. 
+* Click **Ok** to run MCODE.
+* A node attribute (column) called **__mcodeCluster** is created where each node is assigned 
+  a cluster identifier.
+* Open the **New Annotation Set** dialog and choose the Advanced panel. 
+* Select **User-defined clusters** and then select the **__mcodeCluster** column. 
+* Click **Create Annotations**.
+
+
+Using External Scripts
+~~~~~~~~~~~~~~~~~~~~~~
+
+See the `Cytoscape Automation Manual Page`_ for details on how to automate Cytoscape using external scripts.
+
+.. _Cytoscape Automation Manual Page: http://manual.cytoscape.org/en/stable/Programmatic_Access_to_Cytoscape_Features_Scripting.html
+
+A script must do the following to provide clusters to AutoAnnotate:
+
+* Create a node attribute (column), any type may be used.
+* Use the node attribute to assign a cluster identifier to each node. The cluster identifier may be blank, 
+  those nodes will not be included in clusters.
+* Open the **New Annotation Set** dialog and choose the Advanced panel. 
+* Select **User-defined clusters** and then select the **__mcodeCluster** column. 
+* Click **Create Annotations**.
+
+
+
+
+
 
 
