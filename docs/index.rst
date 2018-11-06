@@ -39,6 +39,7 @@ New in AutoAnnotate 1.3
    WorkingWithAutoAnnotate
    GroupingAndLayout
    WordCloud
+   Automating
    FilingBugReports
   
 

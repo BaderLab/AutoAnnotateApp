@@ -168,9 +168,7 @@ Here is an example using the clusterMaker MCODE algorithm.
 Using External Scripts
 ~~~~~~~~~~~~~~~~~~~~~~
 
-See the `Cytoscape Automation Manual Page`_ for details on how to automate Cytoscape using external scripts.
-
-.. _Cytoscape Automation Manual Page: http://manual.cytoscape.org/en/stable/Programmatic_Access_to_Cytoscape_Features_Scripting.html
+See the :ref:`automating` for details on how to automate Cytoscape using external scripts.
 
 A script must do the following to provide clusters to AutoAnnotate:
 
