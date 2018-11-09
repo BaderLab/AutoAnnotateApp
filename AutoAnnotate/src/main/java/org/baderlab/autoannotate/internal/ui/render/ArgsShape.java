@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
@@ -62,17 +63,46 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 	@Override
 	public void updateAnnotation(ShapeAnnotation shape) {
 		// update an existing annotation
-		shape.moveAnnotation(new Point2D.Double(x, y));
-		shape.setZoom(zoom);
-		shape.setSize(width*zoom, height*zoom);
-		shape.setShapeType(shapeType.toString());
-		shape.setBorderWidth(borderWidth);
-		shape.setBorderColor(borderColor);
-		shape.setFillOpacity(fillOpacity);
-		shape.setBorderOpacity(borderOpacity);
-		shape.setFillColor(fillColor);
-		shape.setName("AutoAnnotate: " + name);
+		Map<String,String> args = shape.getArgMap();
+		
+		if(x != Double.parseDouble(args.get(Annotation.X)) || y != Double.parseDouble(args.get(Annotation.Y)))
+			shape.moveAnnotation(new Point2D.Double(x, y));
+		
+		if(zoom != shape.getZoom())
+			shape.setZoom(zoom);
+		
+		double w = width * zoom;
+		double h = height * zoom;
+		if(w != Double.parseDouble(args.get(ShapeAnnotation.WIDTH)) || h != Double.parseDouble(args.get(ShapeAnnotation.HEIGHT)))
+			shape.setSize(w, h);		
+		
+		if(!Objects.equals(shape.getShapeType(), shapeType.toString()))
+			shape.setShapeType(shapeType.toString());
+		
+		if(shape.getBorderWidth() != borderWidth)
+			shape.setBorderWidth(borderWidth);
+		
+		if(!Objects.equals(borderColor, shape.getBorderColor()))
+			shape.setBorderColor(borderColor);
+		
+		if(fillOpacity != shape.getFillOpacity())
+			shape.setFillOpacity(fillOpacity);
+		
+		if(borderOpacity != shape.getBorderOpacity())
+			shape.setBorderOpacity(borderOpacity);
+		
+		if(!Objects.equals(fillColor, shape.getFillColor()))
+			shape.setFillColor(fillColor);
+		
+		String name = getAnnotationName();
+		if(!Objects.equals(name, shape.getName()))
+			shape.setName(name);
+		
 		shape.update();
+	}
+	
+	private String getAnnotationName() {
+		return "AutoAnnotate: " + name;
 	}
 
 	
@@ -82,7 +112,7 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 		DisplayOptions displayOptions = annotationSet.getDisplayOptions();
 		
 		ShapeType shapeType = displayOptions.getShapeType();
-		int borderWidth = displayOptions.getBorderWidth() * (isSelected ? 3 : 1);
+		int borderWidth = displayOptions.getBorderWidth(); // * (isSelected ? 3 : 1);
 		int opacity = displayOptions.getOpacity();
 		Color borderColor = isSelected ? SELECTED_COLOR : displayOptions.getBorderColor();
 		Color fillColor = displayOptions.getFillColor();

@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.text.WordUtils;
 import org.baderlab.autoannotate.internal.model.Cluster;
@@ -57,13 +58,31 @@ public class ArgsLabel extends ArgsBase<TextAnnotation> {
 	
 	@Override
 	public void updateAnnotation(TextAnnotation text) {
+		// Every call to a set method on an annotation is slow because it updates the view, therefore
+		// we need to only call set methods if there will actually be a change.
+		
 		// update the existing annotation
-		text.moveAnnotation(new Point2D.Double(x, y));
-		text.setZoom(zoom);
-		text.setText(label);
-		text.setFontSize(fontSize);
-		text.setTextColor(fontColor);
-		text.setName(getAnnotationName());
+		Map<String,String> args = text.getArgMap();
+		
+		if(x != Double.parseDouble(args.get(Annotation.X)) || y != Double.parseDouble(args.get(Annotation.Y)))
+			text.moveAnnotation(new Point2D.Double(x, y));
+		
+		if(zoom != text.getZoom())
+			text.setZoom(zoom);
+		
+		if(!Objects.equals(label, text.getText()))
+			text.setText(label);
+		
+		if(fontSize != text.getFontSize())
+			text.setFontSize(fontSize);
+		
+		if(!Objects.equals(fontColor, text.getTextColor()))
+			text.setTextColor(fontColor);
+		
+		String name = getAnnotationName();
+		if(!Objects.equals(name, text.getName()))
+			text.setName(name);
+		
 		text.update();
 	}
 	
