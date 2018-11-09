@@ -1,13 +1,16 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
-import java.util.ArrayList;
+import java.awt.Color;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.Cluster;
+import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
+import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
@@ -20,6 +23,7 @@ public class UpdateClustersTask extends AbstractTask {
 	@Inject private AnnotationRenderer annotationRenderer;
 	@Inject private DrawClustersTask.Factory drawTaskProvider;
 	@Inject private EraseClustersTask.Factory eraseTaskProvider;
+	@Inject private VisualMappingManager visualMappingManager;
 	
 	private final Collection<Cluster> clusters;
 	
@@ -45,50 +49,66 @@ public class UpdateClustersTask extends AbstractTask {
 		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Drawing Annotations");
 		
-		List<Cluster> clustersToRedraw = new ArrayList<>();
+		// If we are updating one cluster then its better to update the existing annotations, there is less flicker.
+		// But if we are updating lots of clusters its actually much faster to just redraw them.
 		
-		for(Cluster cluster : clusters) {
-			AnnotationGroup group = annotationRenderer.getAnnotations(cluster);
-			if(group != null) {
-				boolean isSelected = annotationRenderer.isSelected(cluster);
-				
-				ArgsShape argsShape = ArgsShape.createFor(cluster, isSelected);
-				List<ArgsLabel> argsLabels = ArgsLabel.createFor(argsShape, cluster, isSelected);
-				
-				if(updateCompatible(group.getLabels(), argsLabels)) {
-					argsShape.updateAnnotation(group.getShape());
-					for(int i = 0; i < argsLabels.size(); i++) {
-						TextAnnotation text = group.getLabels().get(i);
-						ArgsLabel args = argsLabels.get(i);
-						args.updateAnnotation(text);
-					}
-				} else {
-					clustersToRedraw.add(cluster);
-				}
-			}
-		}
-		
-		// This shouldn't normally happen, more of a defensive thing.
-		// But this can happen if the user manually updates a label.
-		if(!clustersToRedraw.isEmpty()) {
-			EraseClustersTask eraseTask = eraseTaskProvider.create(clustersToRedraw);
-			DrawClustersTask drawTask = drawTaskProvider.create(clustersToRedraw);
-			insertTasksAfterCurrentTask(eraseTask, drawTask);
+		if(clusters.size() == 1) {
+			updateOneCluster(clusters.iterator().next());
+		} else {
+			redraw(clusters);
 		}
 	}
 	
-	private static boolean updateCompatible(List<TextAnnotation> textAnnotations, List<ArgsLabel> labelArgs) {
+	
+	private void updateOneCluster(Cluster cluster) {
+		AnnotationGroup group = annotationRenderer.getAnnotations(cluster);
+		if(group != null) {
+			CyNetworkView netView = cluster.getParent().getParent().getNetworkView();
+			boolean isSelected = annotationRenderer.isSelected(cluster);
+			Color selection = DrawClustersTask.getSelectionColor(visualMappingManager, netView);
+			
+			ArgsShape argsShape = ArgsShape.createFor(cluster, isSelected, selection);
+			List<ArgsLabel> argsLabels = ArgsLabel.createFor(argsShape, cluster, isSelected, selection);
+			
+			if(isUpdatePossible(group.getLabels(), argsLabels)) {
+				argsShape.updateAnnotation(group.getShape());
+				for(int i = 0; i < argsLabels.size(); i++) {
+					TextAnnotation text = group.getLabels().get(i);
+					ArgsLabel args = argsLabels.get(i);
+					args.updateAnnotation(text);
+				}
+			} else {
+				redraw(cluster);
+			}
+		}
+	}
+	
+	private static boolean isUpdatePossible(List<TextAnnotation> textAnnotations, List<ArgsLabel> labelArgs) {
+		// There has to be the same number of label annotations in order to do an update.
 		if(textAnnotations.size() != labelArgs.size())
 			return false;
-		
 		for(int i = 0; i < textAnnotations.size(); i++) {
 			String annotationText = textAnnotations.get(i).getText();
 			String argsText = labelArgs.get(i).label;
 			if(!annotationText.equals(argsText)) {
 				return false;
 			}
-		}
-		
+		}		
 		return true;
 	}
+	
+	
+	private void redraw(Collection<Cluster> clusters) {
+		if(!clusters.isEmpty()) {
+			EraseClustersTask eraseTask = eraseTaskProvider.create(clusters);
+			DrawClustersTask drawTask = drawTaskProvider.create(clusters);
+			insertTasksAfterCurrentTask(eraseTask, drawTask);
+		}
+	}
+	
+	
+	private void redraw(Cluster cluster) {
+		redraw(Arrays.asList(cluster));
+	}
+	
 }

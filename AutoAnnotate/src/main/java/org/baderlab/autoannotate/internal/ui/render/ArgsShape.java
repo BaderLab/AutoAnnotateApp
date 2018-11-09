@@ -106,7 +106,10 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 	}
 
 	
-	public static ArgsShape createFor(Cluster cluster, boolean isSelected) {
+	public static ArgsShape createFor(Cluster cluster, boolean isSelected, Color selectedColor) {
+		if(selectedColor == null)
+			selectedColor = Color.YELLOW;
+		
 		AnnotationSet annotationSet = cluster.getParent();
 		CyNetworkView view = annotationSet.getParent().getNetworkView();
 		DisplayOptions displayOptions = annotationSet.getDisplayOptions();
@@ -114,7 +117,7 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 		ShapeType shapeType = displayOptions.getShapeType();
 		int borderWidth = displayOptions.getBorderWidth(); // * (isSelected ? 3 : 1);
 		int opacity = displayOptions.getOpacity();
-		Color borderColor = isSelected ? SELECTED_COLOR : displayOptions.getBorderColor();
+		Color borderColor = isSelected ? selectedColor : displayOptions.getBorderColor();
 		Color fillColor = displayOptions.getFillColor();
 		
 		double zoom = view.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR);

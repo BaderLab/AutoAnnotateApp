@@ -94,7 +94,7 @@ public class ArgsLabel extends ArgsBase<TextAnnotation> {
 		}
 	}
 	
-	public static List<ArgsLabel> createFor(ArgsShape shapeArgs, Cluster cluster, boolean isSelected) {
+	public static List<ArgsLabel> createFor(ArgsShape shapeArgs, Cluster cluster, boolean isSelected, Color selectedColor) {
 		DisplayOptions options = cluster.getParent().getDisplayOptions();
 		
 		if(options.isUseWordWrap()) {
@@ -103,14 +103,14 @@ public class ArgsLabel extends ArgsBase<TextAnnotation> {
 			List<ArgsLabel> labels = new ArrayList<>(labelParts.length);
 			int adjust = labelParts.length - 1;
 			for(String labelPart : labelParts) {
-				ArgsLabel labelArgs = createFor(shapeArgs, cluster, labelPart, isSelected);
+				ArgsLabel labelArgs = createFor(shapeArgs, cluster, labelPart, isSelected, selectedColor);
 				labelArgs.y -= adjust * (labelArgs.height * 1.1); // the 1.1 add some space between the labels
 				adjust--;
 				labels.add(labelArgs);
 			}	
 			return labels;
 		} else {
-			ArgsLabel label = createFor(shapeArgs, cluster, cluster.getLabel(), isSelected);
+			ArgsLabel label = createFor(shapeArgs, cluster, cluster.getLabel(), isSelected, selectedColor);
 			return Arrays.asList(label);
 		}
 	}
@@ -122,7 +122,10 @@ public class ArgsLabel extends ArgsBase<TextAnnotation> {
 	}
 	
 	
-	private static ArgsLabel createFor(ArgsShape shape, Cluster cluster, String labelText, boolean isSelected) {
+	private static ArgsLabel createFor(ArgsShape shape, Cluster cluster, String labelText, boolean isSelected, Color selectedColor) {
+		if(selectedColor == null)
+			selectedColor = Color.YELLOW;
+		
 		DisplayOptions displayOptions = cluster.getParent().getDisplayOptions();
 
 		double labelFontSize;
@@ -142,7 +145,7 @@ public class ArgsLabel extends ArgsBase<TextAnnotation> {
 		double fontSize = 5 * shape.zoom * labelFontSize;
 		int fontSizeToUse = displayOptions.isShowLabels() ? (int)Math.round(fontSize) : 0;
 		
-		Color fontColor = isSelected ? SELECTED_COLOR : displayOptions.getFontColor();
+		Color fontColor = isSelected ? selectedColor : displayOptions.getFontColor();
 		
 		return new ArgsLabel(cluster.getLabel(), x, y, labelWidth, labelHeight, shape.zoom, labelText, fontSizeToUse, fontColor);
 	}

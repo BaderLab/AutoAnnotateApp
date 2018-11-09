@@ -1,5 +1,7 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
+import java.awt.Color;
+import java.awt.Paint;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,6 +17,9 @@ import org.cytoscape.view.presentation.annotations.AnnotationFactory;
 import org.cytoscape.view.presentation.annotations.AnnotationManager;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
+import org.cytoscape.view.presentation.property.BasicVisualLexicon;
+import org.cytoscape.view.vizmap.VisualMappingManager;
+import org.cytoscape.view.vizmap.VisualStyle;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
@@ -26,6 +31,7 @@ public class DrawClustersTask extends AbstractTask {
 
 	@Inject private AnnotationFactory<TextAnnotation> textFactory;
 	@Inject private AnnotationFactory<ShapeAnnotation> shapeFactory;
+	@Inject private VisualMappingManager visualMappingManager;
 	
 	@Inject private AnnotationManager annotationManager;
 	@Inject private AnnotationRenderer annotationRenderer;
@@ -67,15 +73,25 @@ public class DrawClustersTask extends AbstractTask {
 		annotationManager.addAnnotations(allAnnotations);
 	}
 	
+	static Color getSelectionColor(VisualMappingManager visualMappingManager, CyNetworkView netView) {
+		VisualStyle vs = visualMappingManager.getVisualStyle(netView);
+		if(vs == null)
+			return Color.YELLOW;
+		Paint p = vs.getDefaultValue(BasicVisualLexicon.NODE_SELECTED_PAINT);
+		if(p instanceof Color)
+			return (Color) p;
+		return null;
+	}
 	
 	private AnnotationGroup createClusterAnnotations(Cluster cluster, boolean isSelected) {
 		AnnotationSet annotationSet = cluster.getParent();
 		CyNetworkView networkView = annotationSet.getParent().getNetworkView();
 		
-		ArgsShape shapeArgs = ArgsShape.createFor(cluster, isSelected);
+		Color selection = getSelectionColor(visualMappingManager, networkView);
+		ArgsShape shapeArgs = ArgsShape.createFor(cluster, isSelected, selection);
 		ShapeAnnotation shape = shapeFactory.createAnnotation(ShapeAnnotation.class, networkView, shapeArgs.getArgMap());
 		
-		List<ArgsLabel> labelArgsList = ArgsLabel.createFor(shapeArgs, cluster, isSelected);
+		List<ArgsLabel> labelArgsList = ArgsLabel.createFor(shapeArgs, cluster, isSelected, selection);
 		
 		if(annotationSet.getDisplayOptions().isUseWordWrap()) {
 			int n = labelArgsList.size();
