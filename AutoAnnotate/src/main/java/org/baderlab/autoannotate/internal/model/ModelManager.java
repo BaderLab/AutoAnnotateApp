@@ -12,8 +12,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.swing.SwingUtilities;
-
 import org.baderlab.autoannotate.internal.model.ModelEvents.ModelEvent;
 import org.baderlab.autoannotate.internal.model.SafeRunner.EventType;
 import org.cytoscape.application.CyApplicationManager;
@@ -109,12 +107,12 @@ public class ModelManager implements CyDisposable, SetCurrentNetworkViewListener
 	}
 	
 	private void postEventOffEDT(ModelEvent event) {
-		if(SwingUtilities.isEventDispatchThread()) {
+//		if(SwingUtilities.isEventDispatchThread()) {
 			asyncEventService.execute(() -> postEvent(event)); // returns immediately and fires event on a separate thread
-		}
-		else {
-			postEvent(event); // fire on current thread
-		}
+//		}
+//		else {
+//			postEvent(event); // fire on current thread
+//		}
 	}
 	
 	public boolean isNetworkViewSetSelected(NetworkViewSet networkViewSet) {
@@ -187,7 +185,8 @@ public class ModelManager implements CyDisposable, SetCurrentNetworkViewListener
 					}
 				}
 				
-				postEventOffEDT(new ModelEvents.ClustersChanged(affectedClusters));
+				if(!affectedClusters.isEmpty())
+					postEventOffEDT(new ModelEvents.ClustersChanged(affectedClusters));
 			}
 		}
 	}
