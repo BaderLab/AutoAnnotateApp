@@ -64,13 +64,16 @@ public class DrawClustersTask extends AbstractTask {
 		List<Annotation> allAnnotations = new ArrayList<>();
 		
 		for(Cluster cluster : clusters) {
-			boolean isSelected = annotationRenderer.isSelected(cluster);
-			AnnotationGroup group = createClusterAnnotations(cluster, isSelected);
-			annotationRenderer.putAnnotations(cluster, group);
-			group.addTo(allAnnotations);
+			if(!cluster.isCollapsed()) {
+				boolean isSelected = annotationRenderer.isSelected(cluster);
+				AnnotationGroup group = createClusterAnnotations(cluster, isSelected);
+				annotationRenderer.putAnnotations(cluster, group);
+				group.addTo(allAnnotations);
+			}
 		}
 		
-		annotationManager.addAnnotations(allAnnotations);
+		if(!allAnnotations.isEmpty())
+			annotationManager.addAnnotations(allAnnotations);
 	}
 	
 	static Color getSelectionColor(VisualMappingManager visualMappingManager, CyNetworkView netView) {

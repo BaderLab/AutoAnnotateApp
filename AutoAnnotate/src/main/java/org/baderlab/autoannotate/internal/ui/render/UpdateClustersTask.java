@@ -61,6 +61,11 @@ public class UpdateClustersTask extends AbstractTask {
 	
 	
 	private void updateOneCluster(Cluster cluster) {
+		if(cluster.isCollapsed()) {
+			redraw(cluster);
+			return;
+		}
+		
 		AnnotationGroup group = annotationRenderer.getAnnotations(cluster);
 		if(group != null) {
 			CyNetworkView netView = cluster.getParent().getParent().getNetworkView();
@@ -80,6 +85,8 @@ public class UpdateClustersTask extends AbstractTask {
 			} else {
 				redraw(cluster);
 			}
+		} else {
+			redraw(cluster);
 		}
 	}
 	
