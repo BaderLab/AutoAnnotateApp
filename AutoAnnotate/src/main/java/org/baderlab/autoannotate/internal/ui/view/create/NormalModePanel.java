@@ -43,6 +43,9 @@ import com.google.inject.assistedinject.Assisted;
 @SuppressWarnings("serial")
 public class NormalModePanel extends JPanel implements TabPanel {
 
+	private static final ClusterAlgorithm DEFAULT_CLUSTER_ALG = ClusterAlgorithm.MCL;
+	private static final String EM_SIMILARITY_COLUMN_SUFFIX = "similarity_coefficient";
+	
 	@Inject private LabelOptionsPanel.Factory labelOptionsPanelFactory;
 	@Inject private Provider<CyColumnPresentationManager> presentationProvider;
 	
@@ -103,7 +106,7 @@ public class NormalModePanel extends JPanel implements TabPanel {
 		JRadioButton columnRadio = new JRadioButton("User-defined clusters");
 		
 		algorithmNameCombo = createComboBox(Arrays.asList(ClusterAlgorithm.values()), ClusterAlgorithm::toString);
-		algorithmNameCombo.setSelectedIndex(ClusterAlgorithm.MCL.ordinal());
+		algorithmNameCombo.setSelectedIndex(DEFAULT_CLUSTER_ALG.ordinal());
 		
 		List<CyColumn> edgeWeightColumns = getColumnsOfType(networkView.getModel(), Number.class, false, false);
 		edgeWeightColumns.add(0, null); // add the "-- None --" option at the front
@@ -122,7 +125,7 @@ public class NormalModePanel extends JPanel implements TabPanel {
 		
 		for(int i = 0; i < edgeWeightColumnCombo.getItemCount(); i++) {
 			CyColumn item = edgeWeightColumnCombo.getItemAt(i);
-			if(item != null && item.getName().endsWith("similarity_coefficient")) {
+			if(item != null && item.getName().endsWith(EM_SIMILARITY_COLUMN_SUFFIX)) {
 				edgeWeightColumnCombo.setSelectedIndex(i);
 				break;
 			}
@@ -198,7 +201,7 @@ public class NormalModePanel extends JPanel implements TabPanel {
 	@Override
 	public void resetButtonPressed() {
 		useClusterMakerRadio.setSelected(true);
-		algorithmNameCombo.setSelectedIndex(ClusterAlgorithm.MCL.ordinal());
+		algorithmNameCombo.setSelectedIndex(DEFAULT_CLUSTER_ALG.ordinal());
 		edgeWeightColumnCombo.setSelectedIndex(0);
 		clusterIdColumnCombo.setSelectedIndex(0);
 		singletonCheckBox.setSelected(false);

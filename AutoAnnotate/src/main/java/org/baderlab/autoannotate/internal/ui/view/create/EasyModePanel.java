@@ -36,6 +36,9 @@ import com.google.inject.assistedinject.Assisted;
 @SuppressWarnings("serial")
 public class EasyModePanel extends JPanel implements TabPanel {
 
+	private static final ClusterAlgorithm DEFAULT_CLUSTER_ALG = ClusterAlgorithm.MCL;
+	private static final String EM_SIMILARITY_COLUMN_SUFFIX = "similarity_coefficient";
+	
 	private final CyNetworkView networkView;
 	private final CreateAnnotationSetDialog parent;
 	
@@ -149,7 +152,7 @@ public class EasyModePanel extends JPanel implements TabPanel {
 	
 	private Optional<CyColumn> getDefaultClusterMakerEdgeAttribute() {
 		List<CyColumn> columns = getColumnsOfType(networkView.getModel(), Number.class, false, false);
-		return columns.stream().filter(c -> c.getName().endsWith("similarity_coefficient")).findAny();
+		return columns.stream().filter(c -> c.getName().endsWith(EM_SIMILARITY_COLUMN_SUFFIX)).findAny();
 	}
 	
 	@Override
@@ -161,7 +164,7 @@ public class EasyModePanel extends JPanel implements TabPanel {
 			new AnnotationSetTaskParamters.Builder(networkView)
 			.setLabelColumn(getLabelColumn().getName())
 			.setUseClusterMaker(true)
-			.setClusterAlgorithm(ClusterAlgorithm.MCL)
+			.setClusterAlgorithm(DEFAULT_CLUSTER_ALG)
 			.setLabelMakerFactory(labelMakerFactory)
 			.setLabelMakerContext(labelMakerContext)
 			.setCreateGroups(false)
