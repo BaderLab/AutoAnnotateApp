@@ -7,16 +7,13 @@ import javax.swing.Action;
 import javax.swing.JMenu;
 import javax.swing.JPopupMenu;
 
-import org.baderlab.autoannotate.internal.layout.CoseLayoutAlgorithm;
-import org.baderlab.autoannotate.internal.layout.CoseLayoutContext;
-import org.baderlab.autoannotate.internal.layout.GridLayoutAlgorithm;
+import org.baderlab.autoannotate.internal.layout.ClusterLayoutManager;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetDeleteAction;
 import org.baderlab.autoannotate.internal.ui.view.action.AnnotationSetRenameAction;
 import org.baderlab.autoannotate.internal.ui.view.action.CollapseAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ExportClustersAction;
-import org.baderlab.autoannotate.internal.ui.view.action.LayoutClustersAction;
 import org.baderlab.autoannotate.internal.ui.view.action.RedrawAction;
 import org.baderlab.autoannotate.internal.ui.view.action.RelabelAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCopyAnnotationsDialog;
@@ -49,14 +46,10 @@ public class AnnotationSetMenu {
 	@Inject private Provider<ShowCreationParamsAction> showCreationParamsProvider;
 	@Inject private Provider<ExportClustersAction> exportClusterProvider;
 	@Inject private Provider<ShowCopyAnnotationsDialog> copyActionProvider;
-	@Inject private LayoutClustersAction.Factory layoutClustersActionFactory;
-	
 	@Inject private Provider<CopyAnnotationsEnabler> copyEnablerProvider;
 	@Inject private Provider<CyApplicationManager> applicationManagerProvider;
 	
-	//layouts
-	@Inject private Provider<CoseLayoutAlgorithm> coseLayoutProvider;
-	@Inject private Provider<GridLayoutAlgorithm> gridLayoutProvider;
+	@Inject private ClusterLayoutManager clusterLayoutManager;
 	
 	
 	private boolean shouldEnableCopyAction() {
@@ -132,24 +125,7 @@ public class AnnotationSetMenu {
 	
 	
 	private void createLayoutSubMenu(JMenu layoutMenu) {
-		CoseLayoutAlgorithm coseLayout = coseLayoutProvider.get();
-		
-		CoseLayoutContext ctx1 = coseLayout.createLayoutContext();
-		Action coseLayoutAction1 = layoutClustersActionFactory.create(coseLayout, ctx1);
-		coseLayoutAction1.putValue(Action.NAME, "CoSE Layout");
-		
-		CoseLayoutContext ctx2 = coseLayout.createLayoutContext();
-		ctx2.useCatchallCluster = true;
-		Action coseLayoutAction2 = layoutClustersActionFactory.create(coseLayout, ctx2);
-		coseLayoutAction2.putValue(Action.NAME, "CoSE Layout (Group single nodes)");
-		
-		GridLayoutAlgorithm gridLayout = gridLayoutProvider.get();
-		Action gridLayoutAction = layoutClustersActionFactory.create(gridLayout, gridLayout.createLayoutContext());
-		gridLayoutAction.putValue(Action.NAME, "Grid Layout");
-		
-		layoutMenu.add(coseLayoutAction1);
-		layoutMenu.add(coseLayoutAction2);
-		layoutMenu.add(gridLayoutAction);
+		clusterLayoutManager.getActions().forEach(layoutMenu::add);
 	}
 	
 	

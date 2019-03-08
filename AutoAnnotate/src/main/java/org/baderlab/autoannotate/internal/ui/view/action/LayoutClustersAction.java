@@ -23,27 +23,41 @@ public class LayoutClustersAction extends AbstractCyAction {
 	@Inject private ModelManager modelManager;
 	
 	private final ClusterLayoutAlgorithm algorithm;
-	private final Object context;
+	private final @Nullable Object context;
+	private final @Nullable AnnotationSet annotationSet;
 	
 	public static interface Factory {
-		LayoutClustersAction create(ClusterLayoutAlgorithm<?> algorithm, @Nullable Object context);
+		LayoutClustersAction create(ClusterLayoutAlgorithm<?> algorithm, @Nullable Object context, @Nullable AnnotationSet annotationSet);
 	}
 	
 	@Inject
-	public LayoutClustersAction(@Assisted ClusterLayoutAlgorithm<?> algorithm, @Nullable @Assisted Object context) {
+	public LayoutClustersAction(@Assisted ClusterLayoutAlgorithm<?> algorithm, @Nullable @Assisted Object context, @Nullable @Assisted AnnotationSet annotationSet) {
 		super(algorithm.getDisplayName());
 		this.algorithm = algorithm;
 		this.context = context;
+		this.annotationSet = annotationSet;
 	}
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		Optional<AnnotationSet> annotationSet = modelManager.getActiveNetworkViewSet().flatMap(NetworkViewSet::getActiveAnnotationSet);
+		runLayout();
+	}
+	
+	private Object getContext() {
+		return context == null ? algorithm.createLayoutContext() : context;
+	}
+	
+	private Optional<AnnotationSet> getAnnotationSet() {
+		if(annotationSet == null) {
+			return modelManager.getActiveNetworkViewSet().flatMap(NetworkViewSet::getActiveAnnotationSet);
+		}
+		return Optional.of(annotationSet);
+	}
+	
+	public void runLayout() {
+		Optional<AnnotationSet> annotationSet = getAnnotationSet();
 		if(annotationSet.isPresent()) {
-			Object c = this.context;
-			if(c == null) 
-				c = algorithm.createLayoutContext();
-			TaskIterator tasks = algorithm.createTaskIterator(annotationSet.get(), c);
+			TaskIterator tasks = algorithm.createTaskIterator(annotationSet.get(), getContext());
 			dialogTaskManager.execute(tasks);
 		}
 	}
