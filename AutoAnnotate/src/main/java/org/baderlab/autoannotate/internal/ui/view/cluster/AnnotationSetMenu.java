@@ -22,6 +22,7 @@ import org.baderlab.autoannotate.internal.ui.view.action.ShowCreationParamsActio
 import org.baderlab.autoannotate.internal.ui.view.action.ShowLabelOptionsDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowManageDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowSettingsDialogAction;
+import org.baderlab.autoannotate.internal.ui.view.action.ShowWordcloudDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowWordcloudDialogActionFactory;
 import org.baderlab.autoannotate.internal.ui.view.action.SummaryNetworkAction;
 import org.baderlab.autoannotate.internal.ui.view.copy.CopyAnnotationsEnabler;
@@ -58,7 +59,6 @@ public class AnnotationSetMenu {
 		CyNetworkView currentNetView = applicationManagerProvider.get().getCurrentNetworkView();
 		return copyEnablerProvider.get().hasCompatibleNetworkViews(currentNetView);
 	}
-	
 	
 	public void show(Optional<AnnotationSet> annotationSet, Component parent, int x, int y) {
 		Action createAction = showActionProvider.get();
@@ -135,17 +135,20 @@ public class AnnotationSetMenu {
 		Action showCreationParamsAction = showCreationParamsProvider.get();
 		Action showLabelOptionsAction = showLabelOptionsProvider.get();
 		Action settingsAction = showSettingsProvider.get();
-		Action wordcloudWordsAction = wordcloudFactoryProvider.get().createWordsAction();
-		Action wordcloudDelimitersAction = wordcloudFactoryProvider.get().createDelimitersAction();
 		
 		showCreationParamsAction.setEnabled(enabled);
 		showLabelOptionsAction.setEnabled(enabled);
 		
+		ShowWordcloudDialogAction wcWordsAction = wordcloudFactoryProvider.get().createWordsAction();
+		ShowWordcloudDialogAction wcDelimiterAction = wordcloudFactoryProvider.get().createDelimitersAction();
+		
+		wcWordsAction.update();
+		wcDelimiterAction.update();
+		
 		settingsMenu.add(showCreationParamsAction);
 		settingsMenu.add(showLabelOptionsAction);
-		settingsMenu.add(wordcloudWordsAction);
-		settingsMenu.add(wordcloudDelimitersAction);
+		settingsMenu.add(wcWordsAction);
+		settingsMenu.add(wcDelimiterAction);
 		settingsMenu.add(settingsAction);
-		
 	}
 }

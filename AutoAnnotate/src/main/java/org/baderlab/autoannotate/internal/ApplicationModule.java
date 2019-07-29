@@ -27,6 +27,7 @@ import org.baderlab.autoannotate.internal.ui.view.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.ManageAnnotationSetsDialog;
 import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTask;
 import org.baderlab.autoannotate.internal.ui.view.action.LayoutClustersAction;
+import org.baderlab.autoannotate.internal.ui.view.action.ShowWordcloudDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.copy.CopyAnnotationsDialog;
 import org.baderlab.autoannotate.internal.ui.view.copy.NetworkList;
 import org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialog;
@@ -88,6 +89,7 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(CreateAnnotationSetDialog.Factory.class);
 		installFactory(CoseLayoutAlgorithmTask.Factory.class);
 		installFactory(LayoutClustersAction.Factory.class);
+		installFactory(ShowWordcloudDialogAction.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {
