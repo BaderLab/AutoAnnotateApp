@@ -22,6 +22,7 @@ import org.baderlab.autoannotate.internal.ui.view.action.ShowCreationParamsActio
 import org.baderlab.autoannotate.internal.ui.view.action.ShowLabelOptionsDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowManageDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowSettingsDialogAction;
+import org.baderlab.autoannotate.internal.ui.view.action.ShowWordcloudDialogActionFactory;
 import org.baderlab.autoannotate.internal.ui.view.action.SummaryNetworkAction;
 import org.baderlab.autoannotate.internal.ui.view.copy.CopyAnnotationsEnabler;
 import org.cytoscape.application.CyApplicationManager;
@@ -41,6 +42,7 @@ public class AnnotationSetMenu {
 	@Inject private Provider<SummaryNetworkAction> summaryActionProvider;
 	@Inject private Provider<RedrawAction> redrawActionProvider;
 	@Inject private Provider<RelabelAction> relabelActionProvider;
+	@Inject private Provider<ShowWordcloudDialogActionFactory> wordcloudFactoryProvider;
 	@Inject private Provider<ShowSettingsDialogAction> showSettingsProvider;
 	@Inject private Provider<ShowLabelOptionsDialogAction> showLabelOptionsProvider;
 	@Inject private Provider<ShowCreationParamsAction> showCreationParamsProvider;
@@ -133,10 +135,17 @@ public class AnnotationSetMenu {
 		Action showCreationParamsAction = showCreationParamsProvider.get();
 		Action showLabelOptionsAction = showLabelOptionsProvider.get();
 		Action settingsAction = showSettingsProvider.get();
+		Action wordcloudWordsAction = wordcloudFactoryProvider.get().createWordsAction();
+		Action wordcloudDelimitersAction = wordcloudFactoryProvider.get().createDelimitersAction();
+		
 		showCreationParamsAction.setEnabled(enabled);
 		showLabelOptionsAction.setEnabled(enabled);
+		
 		settingsMenu.add(showCreationParamsAction);
 		settingsMenu.add(showLabelOptionsAction);
+		settingsMenu.add(wordcloudWordsAction);
+		settingsMenu.add(wordcloudDelimitersAction);
 		settingsMenu.add(settingsAction);
+		
 	}
 }
