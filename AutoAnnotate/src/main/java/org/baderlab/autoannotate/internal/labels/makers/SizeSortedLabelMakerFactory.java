@@ -14,7 +14,8 @@ public class SizeSortedLabelMakerFactory implements LabelMakerFactory<SizeSorted
 
 	public static final String ID = "sizeSorted";
 	
-	@Inject private Provider<WordCloudAdapter> wordCloudProvider; 
+	@Inject private Provider<WordCloudAdapter> wordCloudProvider;
+	@Inject private SizeSortedLabelMakerUI.Factory uiProvider;
 	
 	@Override
 	public String getID() {
@@ -38,7 +39,7 @@ public class SizeSortedLabelMakerFactory implements LabelMakerFactory<SizeSorted
 	
 	@Override
 	public LabelMakerUI<SizeSortedOptions> createUI(SizeSortedOptions context) {
-		return new SizeSortedLabelMakerUI(context);
+		return uiProvider.create(context);
 	}
 
 	@Override

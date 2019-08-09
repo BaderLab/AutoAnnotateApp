@@ -191,7 +191,7 @@ public class LabelOptionsPanel extends JPanel {
 			cardLayout.show(algorithmPanel, getLabelMakerFactory().getName());
 		});
 		
-		add(algorithmPanel, GBCFactory.grid(0,y).gridwidth(2).anchor(GridBagConstraints.WEST).get());
+		add(algorithmPanel, GBCFactory.grid(0,y).gridwidth(2).anchor(GridBagConstraints.NORTHWEST).get());
 	}
 	
 	

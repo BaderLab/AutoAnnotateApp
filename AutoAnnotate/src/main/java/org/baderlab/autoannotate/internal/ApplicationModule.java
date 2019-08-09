@@ -5,6 +5,8 @@ import java.util.Properties;
 import org.baderlab.autoannotate.internal.command.AnnotateCommandTask;
 import org.baderlab.autoannotate.internal.command.LabelClusterCommandTask;
 import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
+import org.baderlab.autoannotate.internal.labels.makers.ClusterBoostedLabelMakerUI;
+import org.baderlab.autoannotate.internal.labels.makers.SizeSortedLabelMakerUI;
 import org.baderlab.autoannotate.internal.layout.CoseLayoutAlgorithmTask;
 import org.baderlab.autoannotate.internal.layout.GridLayoutAnnotationSetTaskFactory;
 import org.baderlab.autoannotate.internal.layout.GridLayoutClustersTaskFactory;
@@ -90,6 +92,8 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(CoseLayoutAlgorithmTask.Factory.class);
 		installFactory(LayoutClustersAction.Factory.class);
 		installFactory(ShowWordcloudDialogAction.Factory.class);
+		installFactory(SizeSortedLabelMakerUI.Factory.class);
+		installFactory(ClusterBoostedLabelMakerUI.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {

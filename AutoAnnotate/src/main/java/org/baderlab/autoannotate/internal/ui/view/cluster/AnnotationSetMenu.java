@@ -22,7 +22,6 @@ import org.baderlab.autoannotate.internal.ui.view.action.ShowCreationParamsActio
 import org.baderlab.autoannotate.internal.ui.view.action.ShowLabelOptionsDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowManageDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowSettingsDialogAction;
-import org.baderlab.autoannotate.internal.ui.view.action.ShowWordcloudDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowWordcloudDialogActionFactory;
 import org.baderlab.autoannotate.internal.ui.view.action.SummaryNetworkAction;
 import org.baderlab.autoannotate.internal.ui.view.copy.CopyAnnotationsEnabler;
@@ -71,6 +70,8 @@ public class AnnotationSetMenu {
 		Action redrawAction = redrawActionProvider.get();
 		Action relabelAction = relabelActionProvider.get();
 		Action exportClustersAction = exportClusterProvider.get();
+		Action wcWordsAction = wordcloudFactoryProvider.get().createWordsAction();
+		Action wcDelimiterAction = wordcloudFactoryProvider.get().createDelimitersAction();
 		
 		boolean enabled = annotationSet.isPresent();
 		renameAction.setEnabled(enabled);
@@ -110,6 +111,8 @@ public class AnnotationSetMenu {
 		menu.add(relabelAction);
 		menu.add(exportClustersAction);
 		menu.addSeparator();
+		menu.add(wcWordsAction);
+		menu.add(wcDelimiterAction);
 		menu.add(settingsMenu);
 		
 		menu.show(parent, x, y);
@@ -139,16 +142,8 @@ public class AnnotationSetMenu {
 		showCreationParamsAction.setEnabled(enabled);
 		showLabelOptionsAction.setEnabled(enabled);
 		
-		ShowWordcloudDialogAction wcWordsAction = wordcloudFactoryProvider.get().createWordsAction();
-		ShowWordcloudDialogAction wcDelimiterAction = wordcloudFactoryProvider.get().createDelimitersAction();
-		
-		wcWordsAction.update();
-		wcDelimiterAction.update();
-		
 		settingsMenu.add(showCreationParamsAction);
 		settingsMenu.add(showLabelOptionsAction);
-		settingsMenu.add(wcWordsAction);
-		settingsMenu.add(wcDelimiterAction);
 		settingsMenu.add(settingsAction);
 	}
 }

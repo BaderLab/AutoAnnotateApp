@@ -18,7 +18,7 @@ public class ShowSettingsDialogAction extends AbstractCyAction {
 	@Inject private Provider<SettingsDialog> dialogProvider;
 	
 	public ShowSettingsDialogAction() {
-		super("Settings...");
+		super("Advanced Settings...");
 	}
 	
 	@Override

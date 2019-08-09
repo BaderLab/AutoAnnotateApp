@@ -6,7 +6,6 @@ import org.baderlab.autoannotate.internal.labels.LabelMaker;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
 import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
-import org.cytoscape.util.swing.IconManager;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -16,8 +15,7 @@ public class ClusterBoostedLabelMakerFactory implements LabelMakerFactory<Cluste
 	public static final String ID = "clusterBoosted";
 	
 	@Inject private Provider<WordCloudAdapter> wordCloudProvider; 
-	@Inject private Provider<IconManager> iconManagerProvider;
-	
+	@Inject private ClusterBoostedLabelMakerUI.Factory uiFactory;
 	
 	@Override
 	public String getID() {
@@ -41,7 +39,7 @@ public class ClusterBoostedLabelMakerFactory implements LabelMakerFactory<Cluste
 
 	@Override
 	public LabelMakerUI<ClusterBoostedOptions> createUI(ClusterBoostedOptions context) {
-		return new ClusterBoostedLabelMakerUI(context, iconManagerProvider.get());
+		return uiFactory.create(context);
 	}
 
 	@Override
