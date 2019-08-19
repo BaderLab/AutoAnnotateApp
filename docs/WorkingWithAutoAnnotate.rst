@@ -99,7 +99,7 @@ the Annotation Sets that have been created for the current network view.
 Annotation Set Menu
 -------------------
 
-.. image:: images/menu2.png
+.. image:: images/menu3.png
    :width: 400px
 
 .. |button_plus|   image:: images/button_plus.png
@@ -162,6 +162,13 @@ Click the |button_menu| button to show the Annotation Set Menu.
   
   Export Clusters to File...
     Creates a TXT file containing the labels of all the clusters.
+
+  Set Excluded Words...
+    Opens a dialog that allows you to exclude words from cluster labels.
+    See :ref:`label_options_words` for more details.
+
+  Set Delimiters
+    Opens a dialog that allows you to add word delimiters.
 
   Settings
     Display Creation Parameters...

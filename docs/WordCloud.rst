@@ -65,8 +65,41 @@ The **adjacent word bonus** option is used to decide how much of a size bonus to
 give to words that are adjacent to the largest workds. The default value is 8.
 
 
-WordCloud Options
------------------
+.. _label_options_words:
+
+Removing Words from Labels
+--------------------------
+
+If you do not want certain words to appear in cluster labels they may be removed.
+
+To remove words before creating an Annotation Set click the **Set Excluded Words** button
+in the Create Annotation Set Dialog.
+
+.. image:: images/exclude_words_button.png
+   :width: 450 px
+
+If you have already created an Annotation Set you can exclude words and generate new labels. 
+Select **Set Excluded Words** from the Annotation Set menu. After adding words you must
+go back to the menu and select **Recalculate Labels**. The labels will
+be regenerated and the excluded words will no longer be chosen.
+
+.. image:: images/menu_exclude_words.png
+   :width: 300 px
+
+Either of these actions will open the Excluded Words Dialog.
+
+.. image:: images/exclude_words_dialog.png
+   :width: 300 px
+
+.. warning:: If the **Set Excluded Words** button or menu option is not available then please 
+             upgrade the WordCloud plugin. WordCloud version 3.1.3 or higher is required to 
+             enable this functionality.
+
+
+Advanced WordCloud Options
+--------------------------
+
+Several options in WordCloud effect how cluster labels are generated.
 
 In the main menu select **Apps > WordCloud > Show WordCloud**.
 
@@ -77,18 +110,7 @@ Back in the AutoAnnotate panel select **Recalculate Labels** to regenerate label
 WordCloud options. 
 
 
-Removing Words from Labels
---------------------------
 
-If you do not want certain words to appear in labels they can be removed using WordCloud.
-
-* Expand the **Advanced Options** section in the WordCloud panel.
-* Click the **Excluded Words** button.
-* A dialog will show.
-* Enter the word that should be excluded, then click **Add**.
-* Click **Ok**.
-* Go back to the AutoAnnotate panel and select **Recalculate Labels** from the menu. The labels will
-  be regenerated and the excluded words will no longer be chosen.
 
 
 

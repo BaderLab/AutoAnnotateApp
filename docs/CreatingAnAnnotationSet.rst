@@ -52,7 +52,7 @@ Advanced
 
 The Advanced tab provides full control over clustering and label options.
 
-.. image:: images/create_dialog_advanced2.png
+.. image:: images/create_dialog_advanced3.png
    :width: 450 px
 
 
@@ -111,6 +111,14 @@ Label Options
 
            Basically the same algorithm that is used by the "Cloud Style: No Clustering" option in WordCloud.
            Words in the label are chosen from the most frequent words in the cluster. 
+
+  Set Excluded Words
+    Opens a dialog that allows you to exclude words from cluster labels.
+    See :ref:`label_options_words` for more details.
+
+  Set Delimiters
+    Opens a dialog that allows you to add word delimiters.
+  
 
 Click **Create Annotations** to create the new Annotation Set. 
 
