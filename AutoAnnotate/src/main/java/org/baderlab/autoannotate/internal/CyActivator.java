@@ -24,6 +24,7 @@ import org.baderlab.autoannotate.internal.model.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
 import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTaskFactory;
+import org.baderlab.autoannotate.internal.ui.view.action.SelectClusterTaskFactory;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowAboutDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowHelpAction;
@@ -32,6 +33,7 @@ import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CyAction;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
+import org.cytoscape.task.NodeViewTaskFactory;
 import org.cytoscape.work.ServiceProperties;
 import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskFactory;
@@ -75,19 +77,15 @@ public class CyActivator extends AbstractCyActivator {
 		registerAction(bc, 3.0f, injector.getInstance(ShowHelpAction.class));
 		registerAction(bc, 4.0f, injector.getInstance(ShowAboutDialogAction.class));
 		
-		// Context menu action in network view
-		CreateClusterTaskFactory createClusterTaskFactory = injector.getInstance(CreateClusterTaskFactory.class);
-		Properties createClusterProps = new Properties();
-		createClusterProps.setProperty(IN_MENU_BAR, "false");
-		createClusterProps.setProperty(PREFERRED_MENU, APPS_MENU);
-		createClusterProps.setProperty(TITLE, "AutoAnnotate - Create Cluster");
-		registerAllServices(bc, createClusterTaskFactory, createClusterProps);
+		// Context menu actions in network view
+		registerContextMenuAction(bc, CreateClusterTaskFactory.class, "AutoAnnotate - Create Cluster");
+		registerContextMenuAction(bc, SelectClusterTaskFactory.class, "AutoAnnotate - Select Cluster");
 		
-		// ModelTablePersistor listents to session save/load events
+		// ModelTablePersistor listens to session save/load events
 		ModelTablePersistor persistor = injector.getInstance(ModelTablePersistor.class);
 		registerAllServices(bc, persistor);
 		
-		// Dialog manager also needs to listen to cytoscape events
+		// Dialog manager needs to listen to cytoscape events
 		CreateAnnotationSetDialogManager dialogManager = injector.getInstance(CreateAnnotationSetDialogManager.class);
 		registerAllServices(bc, dialogManager);
 		
@@ -139,6 +137,15 @@ public class CyActivator extends AbstractCyActivator {
 		}
 	}
 	
+	
+	private void registerContextMenuAction(BundleContext bc, Class<? extends NodeViewTaskFactory> taskFactoryClass, String title) {
+		NodeViewTaskFactory taskFactory = injector.getInstance(taskFactoryClass);
+		Properties props = new Properties();
+		props.setProperty(IN_MENU_BAR, "false");
+		props.setProperty(PREFERRED_MENU, APPS_MENU);
+		props.setProperty(TITLE, title);
+		registerAllServices(bc, taskFactory, props);
+	}
 	
 	private void registerAction(BundleContext bc, float gravity, AbstractCyAction action) {
 		action.setPreferredMenu("Apps." + BuildProperties.APP_NAME);

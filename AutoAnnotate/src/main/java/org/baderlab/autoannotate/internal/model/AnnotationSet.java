@@ -96,6 +96,10 @@ public class AnnotationSet {
 		return clusters.size();
 	}
 	
+	public Optional<Cluster> getCluster(CyNode node) {
+		return clusters.stream().filter(c -> c.contains(node)).findFirst();
+	}
+	
 	public NetworkViewSet getParent() {
 		return parent;
 	}
