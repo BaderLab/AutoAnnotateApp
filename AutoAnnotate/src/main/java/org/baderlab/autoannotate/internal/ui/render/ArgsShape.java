@@ -15,7 +15,6 @@ import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
-import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 
 public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 	
@@ -120,7 +119,7 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 		Color borderColor = isSelected ? selectedColor : displayOptions.getBorderColor();
 		Color fillColor = displayOptions.getFillColor();
 		
-		double zoom = view.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR);
+		double zoom = 1; //view.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR);
 
 		CoordinateData coordinateData = cluster.getCoordinateData();
 		double centreX = coordinateData.getCenterX();
