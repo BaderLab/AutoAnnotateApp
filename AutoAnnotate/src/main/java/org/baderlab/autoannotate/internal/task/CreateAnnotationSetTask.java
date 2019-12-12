@@ -356,6 +356,9 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 		if(JSONResult.class.equals(type)) {
 			return type.cast((JSONResult)this::generateCommandResponseJson);
 		}
+		if(String.class.equals(type)) {
+			return type.cast(generateCommandResponseJson());
+		}
 		return null;
 	}
 	
