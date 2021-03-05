@@ -96,6 +96,10 @@ public class NormalModePanel extends JPanel implements TabPanel {
 		return labelOptionsPanel;
 	}
 	
+	public void onShow() {
+		labelOptionsPanel.updateColumns();
+	}
+	
 	
 	private JPanel createParametersPanel_ClusterRadioPanel() {
 		JLabel algLabel = new JLabel("           Cluster algorithm:");

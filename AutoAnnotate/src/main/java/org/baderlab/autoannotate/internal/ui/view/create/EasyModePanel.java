@@ -126,6 +126,10 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		return labelPanel;
 	}
 	
+	public void onShow() {
+		LabelOptionsPanel.updateColumns(labelCombo, networkView.getModel());
+	}
+	
 	
 	@Override
 	public void resetButtonPressed() {

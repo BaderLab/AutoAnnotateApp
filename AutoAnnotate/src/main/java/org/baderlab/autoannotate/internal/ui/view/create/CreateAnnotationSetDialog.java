@@ -63,6 +63,9 @@ public class CreateAnnotationSetDialog extends JDialog {
 	@Inject private NormalModePanel.Factory normalModePanelFactory;
 	@Inject private EasyModePanel.Factory easyModePanelFactory;
 	
+	private NormalModePanel normalModePanel;
+	private EasyModePanel easyModePanel;
+	
 	private final CyNetworkView networkView;
 	private JTabbedPane tabPane;
 	
@@ -110,6 +113,12 @@ public class CreateAnnotationSetDialog extends JDialog {
 	}
 	
 	
+	public void onShow() {
+		normalModePanel.onShow();
+		easyModePanel.onShow();
+	}
+	
+	
 	private JPanel createTopPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
 		JPanel messagePanel = new JPanel(new GridBagLayout());
@@ -138,11 +147,11 @@ public class CreateAnnotationSetDialog extends JDialog {
 	private JTabbedPane createTabbedPane() {
 		JTabbedPane tabbedPane = new JTabbedPane();
 		
-		EasyModePanel easyModePanel = easyModePanelFactory.create(this);
+		easyModePanel = easyModePanelFactory.create(this);
 		easyModePanel.setOpaque(false);
 		tabbedPane.addTab("Quick Start", easyModePanel);
 		
-		NormalModePanel normalModePanel = normalModePanelFactory.create(this);
+		normalModePanel = normalModePanelFactory.create(this);
 		normalModePanel.setOpaque(false);
 		tabbedPane.addTab("Advanced", normalModePanel);
 		

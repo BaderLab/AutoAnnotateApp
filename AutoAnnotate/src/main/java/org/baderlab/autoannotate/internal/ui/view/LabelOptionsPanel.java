@@ -83,6 +83,19 @@ public class LabelOptionsPanel extends JPanel {
 		return combo;
 	}
 	
+	public static void updateColumns(CyColumnComboBox columnCombo, CyNetwork network) {
+		CyColumn curCol = columnCombo.getSelectedItem();
+		List<CyColumn> columns = getColumnsOfType(network, String.class, true, true);
+		columnCombo.removeAllItems();
+		columns.forEach(columnCombo::addItem);
+		if(curCol != null)
+			columnCombo.setSelectedItem(curCol);
+	}
+	
+	public void updateColumns() {
+		updateColumns(labelColumnNameCombo, network);
+	}
+	
 	
 	public static void setDefault(CyColumnComboBox combo) {
 		// Select the best choice for label column, with special case for EnrichmentMap

@@ -39,6 +39,8 @@ public class CreateAnnotationSetDialogManager implements NetworkViewAboutToBeDes
 			dialogs.put(networkView, dialog);
 		}
 		
+		dialog.onShow();
+		
 		dialog.setLocationRelativeTo(jFrameProvider.get());
 		dialog.setVisible(true);
 	}
