@@ -19,7 +19,7 @@ public class CoseLayoutAlgorithm extends AbstractLayoutAlgorithm implements Clus
 
 	@Inject private CoseLayoutAlgorithmTask.Factory taskFactory;
 	
-	public static final String DISPLAY_NAME = "AutoAnnotate: Cose Cluster Layout";
+	public static final String DISPLAY_NAME = "AutoAnnotate: CoSE Cluster Layout";
 	public static final String ID = "autoannotate-cose-cluster";
 	
 	

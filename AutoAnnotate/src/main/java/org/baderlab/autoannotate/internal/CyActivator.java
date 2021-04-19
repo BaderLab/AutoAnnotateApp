@@ -1,10 +1,7 @@
 package org.baderlab.autoannotate.internal;
 
 import static org.baderlab.autoannotate.internal.util.TaskTools.taskFactory;
-import static org.cytoscape.work.ServiceProperties.APPS_MENU;
-import static org.cytoscape.work.ServiceProperties.IN_MENU_BAR;
-import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
-import static org.cytoscape.work.ServiceProperties.TITLE;
+import static org.cytoscape.work.ServiceProperties.*;
 
 import java.util.Arrays;
 import java.util.Properties;
@@ -19,6 +16,7 @@ import org.baderlab.autoannotate.internal.command.SummaryNetworkCommandTask;
 import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
+import org.baderlab.autoannotate.internal.layout.CoseLayoutAlgorithm;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
@@ -34,6 +32,7 @@ import org.cytoscape.application.swing.CyAction;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.task.NodeViewTaskFactory;
+import org.cytoscape.view.layout.CyLayoutAlgorithm;
 import org.cytoscape.work.ServiceProperties;
 import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskFactory;
@@ -117,6 +116,15 @@ public class CyActivator extends AbstractCyActivator {
 		registerCommand(bc, "collapse", CollapseCommandTask.class, "Collapse all clusters");
 		registerCommand(bc, "expand", ExpandCommandTask.class, "Expand all clusters");
 		registerCommand(bc, "summary", SummaryNetworkCommandTask.class, "Create summary network");
+		
+		// CoSE layout
+		var coseLayout = injector.getInstance(CoseLayoutAlgorithm.class);
+        Properties layoutProps = new Properties();
+        layoutProps.setProperty("preferredTaskManager","menu");
+        layoutProps.setProperty(MENU_GRAVITY, "32.0"); // This puts it after the Cy3D layouts.
+        layoutProps.setProperty(INSERT_SEPARATOR_BEFORE, "true");
+        layoutProps.setProperty(INSERT_SEPARATOR_AFTER, "true");
+		registerService(bc, coseLayout, CyLayoutAlgorithm.class, layoutProps);
 		
 		// If no session is loaded then this won't do anything, but if there is a session loaded 
 		// then we want to load the model immediately.
