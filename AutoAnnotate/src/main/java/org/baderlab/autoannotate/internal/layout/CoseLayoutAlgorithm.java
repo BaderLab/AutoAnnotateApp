@@ -63,4 +63,9 @@ public class CoseLayoutAlgorithm extends AbstractLayoutAlgorithm implements Clus
 	public String getDisplayName() {
 		return DISPLAY_NAME;
 	}
+	
+	@Override
+	public boolean getSupportsSelectedOnly() {
+		return true;
+	}
 }
