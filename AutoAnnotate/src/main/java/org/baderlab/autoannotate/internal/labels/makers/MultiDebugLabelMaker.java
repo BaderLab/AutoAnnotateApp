@@ -25,8 +25,8 @@ public class MultiDebugLabelMaker implements LabelMaker {
 	@Override
 	public String makeLabel(CyNetwork network, Collection<CyNode> nodes, String labelColumn) {
 		LabelMaker heuristic = new HeuristicLabelMaker(wordCloudAdapter, HeuristicLabelOptions.defaults());
-		LabelMaker sizeSorted = new SizeSortedLabelMaker(wordCloudAdapter, new SizeSortedOptions(4));
-		LabelMaker clusterBoost = new ClusterBoostedLabelMaker(wordCloudAdapter, new ClusterBoostedOptions(4, 8));
+		LabelMaker sizeSorted = new SizeSortedLabelMaker(wordCloudAdapter, SizeSortedOptions.defaults());
+		LabelMaker clusterBoost = new ClusterBoostedLabelMaker(wordCloudAdapter, ClusterBoostedOptions.defaults());
 		
 		Collection<CyNode> nodesFinal = Collections.unmodifiableCollection(nodes);
 		

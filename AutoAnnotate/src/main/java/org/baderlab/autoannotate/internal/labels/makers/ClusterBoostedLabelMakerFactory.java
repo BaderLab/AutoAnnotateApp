@@ -58,22 +58,30 @@ public class ClusterBoostedLabelMakerFactory implements LabelMakerFactory<Cluste
 
 	@Override
 	public String serializeContext(ClusterBoostedOptions context) {
-		return context.getMaxWords() + "," + context.getClusterBonus();
+		return context.getMaxWords() + "," + context.getClusterBonus() + "," + context.getMinimumWordOccurrences();
 	}
 
 	@Override
 	public ClusterBoostedOptions deserializeContext(String s) {
 		String[] args = s.split(",");
-		if(args.length != 2)
-			return null;
 		
-		try {
-			int maxWords = Integer.parseInt(args[0]);
-			int boost = Integer.parseInt(args[1]);
-			return new ClusterBoostedOptions(maxWords, boost);
-		} catch (Exception e) {
-			return null;
+		if(args.length == 2) {
+			try {
+				int maxWords = Integer.parseInt(args[0]);
+				int boost = Integer.parseInt(args[1]);
+				return new ClusterBoostedOptions(maxWords, boost, ClusterBoostedOptions.DEFAULT_MIN_OCCURS);
+			} catch (Exception e) { }
 		}
+		else if(args.length == 3) {
+			try {
+				int maxWords = Integer.parseInt(args[0]);
+				int boost = Integer.parseInt(args[1]);
+				int minOccurs = Integer.parseInt(args[2]);
+				return new ClusterBoostedOptions(maxWords, boost, minOccurs);
+			} catch (Exception e) { }
+		}
+		
+		return null;
 	}
 
 }

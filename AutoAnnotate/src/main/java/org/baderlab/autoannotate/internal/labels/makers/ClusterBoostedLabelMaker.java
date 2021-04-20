@@ -48,6 +48,11 @@ public class ClusterBoostedLabelMaker implements LabelMaker {
 		wcResults = wordCloudAdapter.runWordCloud(nodes, network, labelColumn);
 		Collection<WordInfo> wordInfos = wcResults.getWordInfos();
 		
+		// First filter out words that don't match the occurrence count;
+		if(wcResults.getSelectedCounts() != null) {
+			wordInfos = wordInfos.stream().filter(this::meetsOccurenceCount).collect(toList());
+		}
+		
 		if(wordInfos.size() <= maxWords) {
 			// no need to filter out words in this case, just sort and return
 			return wordInfos
@@ -56,7 +61,6 @@ public class ClusterBoostedLabelMaker implements LabelMaker {
 					.map(WordInfo::getWord)
 					.collect(Collectors.joining(" "));
 		}
-		
 		
 		Map<Integer, Integer> biggestSizes = new HashMap<>();
 		
@@ -90,6 +94,13 @@ public class ClusterBoostedLabelMaker implements LabelMaker {
 		
 		return label;
 	}
+	
+	
+	private boolean meetsOccurenceCount(WordInfo wordInfo) {
+		int minOccurs = options.getMinimumWordOccurrences();
+		return wcResults.meetsOccurrenceCount(wordInfo.getWord(), minOccurs);
+	}
+	
 	
 	@Override
 	public List<CreationParameter> getCreationParameters() {

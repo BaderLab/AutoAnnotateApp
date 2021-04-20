@@ -15,6 +15,7 @@ public class RunWordCloudResultObserver implements TaskObserver {
 
 	private Map<String,List<WordInfo>> result = new HashMap<>();
 	private List<CreationParameter> params = new ArrayList<>();
+	private Map<String,Integer> selectedCounts = null;
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -42,6 +43,8 @@ public class RunWordCloudResultObserver implements TaskObserver {
 		addCp(results, "maxWords", "Max Words per Cloud");
 		addCp(results, "clusterCutoff", "Cluster Cutoff");
 		addCp(results, "minWordOccurrence", "Min Word Occurrence");
+		
+		selectedCounts = (Map<String,Integer>) results.get("selectedCounts");
 	}
 	
 	private void addCp(Map<String,?> results, String key, String display) {
@@ -63,5 +66,12 @@ public class RunWordCloudResultObserver implements TaskObserver {
 	
 	public List<CreationParameter> getCreationParamters() {
 		return params;
+	}
+	
+	/**
+	 * May return null for versions of wordcloud before 3.1.4.
+	 */
+	public Map<String,Integer> getSelectedCounts() {
+		return selectedCounts;
 	}
 }

@@ -1,5 +1,7 @@
 package org.baderlab.autoannotate.internal.labels.makers;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -35,6 +37,10 @@ public class SizeSortedLabelMaker implements LabelMaker {
 		wcResults = wordCloudAdapter.runWordCloud(nodes, network, labelColumn);
 		Collection<WordInfo> wordInfos = wcResults.getWordInfos();
 		
+		if(wcResults.getSelectedCounts() != null) {
+			wordInfos = wordInfos.stream().filter(this::meetsOccurenceCount).collect(toList());
+		}
+		
 		return
 			wordInfos
 			.stream()
@@ -44,6 +50,11 @@ public class SizeSortedLabelMaker implements LabelMaker {
 			.collect(Collectors.joining(" "));
 	}
 
+	private boolean meetsOccurenceCount(WordInfo wordInfo) {
+		int minOccurs = options.getMinimumWordOccurrences();
+		return wcResults.meetsOccurrenceCount(wordInfo.getWord(), minOccurs);
+	}
+	
 	@Override
 	public List<CreationParameter> getCreationParameters() {
 		return wcResults.getCreationParams();

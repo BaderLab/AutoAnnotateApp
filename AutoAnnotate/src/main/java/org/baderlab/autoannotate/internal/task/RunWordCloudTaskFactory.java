@@ -22,6 +22,7 @@ public class RunWordCloudTaskFactory implements TaskFactory {
 	private CyNetwork network;
 	private String labelColumn;
 	
+	
 	public void setClusters(Map<?,Collection<CyNode>> clusters) {
 		this.clusters = clusters;
 	}

@@ -57,16 +57,27 @@ public class SizeSortedLabelMakerFactory implements LabelMakerFactory<SizeSorted
 
 	@Override
 	public String serializeContext(SizeSortedOptions context) {
-		return Integer.toString(context.getMaxWords());
+		return context.getMaxWords() + "," + context.getMinimumWordOccurrences();
 	}
 
 	@Override
 	public SizeSortedOptions deserializeContext(String s) {
-		try {
-			int maxWords = Integer.parseInt(s);
-			return new SizeSortedOptions(maxWords);
-		} catch (Exception e) {
-			return null;
+		String[] args = s.split(",");
+		
+		if(args.length == 1) {
+			try {
+				int maxWords = Integer.parseInt(args[0]);
+				return new SizeSortedOptions(maxWords, SizeSortedOptions.DEFAULT_MIN_OCCURS);
+			} catch (Exception e) { }
 		}
+		else if(args.length == 2) {
+			try {
+				int maxWords = Integer.parseInt(args[0]);
+				int minOccurs = Integer.parseInt(args[2]);
+				return new SizeSortedOptions(maxWords, minOccurs);
+			} catch (Exception e) { }
+		}
+		
+		return null;
 	}
 }

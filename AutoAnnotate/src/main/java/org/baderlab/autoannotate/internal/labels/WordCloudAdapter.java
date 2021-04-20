@@ -29,6 +29,7 @@ import com.google.inject.Provider;
 public class WordCloudAdapter {
 
 	public static final Version WORDCLOUD_MINIMUM = new Version(3,0,2);
+	public static final Version SUPPORTS_MIN_OCCURRS_MINIMUM = new Version(3,1,4);
 	
 	@Inject private CommandExecutorTaskFactory commandTaskFactory;
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
@@ -37,10 +38,20 @@ public class WordCloudAdapter {
 	
 	
 	public boolean isWordcloudRequiredVersionInstalled() {
+		Version version = getWordCloudVersion();
+		return version != null && version.compareTo(WORDCLOUD_MINIMUM) >= 0;
+	}	
+	
+	public boolean supportsMinOccurrs() {
+		Version version = getWordCloudVersion();
+		return version != null && version.compareTo(SUPPORTS_MIN_OCCURRS_MINIMUM) >= 0;
+	}
+	
+	public Version getWordCloudVersion() {
 		if(!availableCommands.getNamespaces().contains("wordcloud"))
-			return false;
+			return null;
 		if(!availableCommands.getCommands("wordcloud").contains("version"))
-			return false;
+			return null;
 		
 		String command = "wordcloud version";
 		VersionTaskObserver observer = new VersionTaskObserver();
@@ -49,16 +60,14 @@ public class WordCloudAdapter {
 		syncTaskManager.execute(taskIterator);
 		
 		if(!observer.hasResult())
-			return false;
+			return null;
 		
 		int major = observer.version[0];
 		int minor = observer.version[1];
 		int micro = observer.version[2];
 		
-		Version actual = new Version(major, minor, micro);
-		return actual.compareTo(WORDCLOUD_MINIMUM) >= 0;
-	}	
-	
+		return new Version(major, minor, micro);
+	}
 	
 	private static class VersionTaskObserver implements TaskObserver {
 		int[] version = null;
@@ -84,12 +93,13 @@ public class WordCloudAdapter {
 		wordCloudTaskFactory.setClusters(clusters);
 		wordCloudTaskFactory.setParameters(network, labelColumn);
 		
-		RunWordCloudResultObserver cloudResultObserver = new RunWordCloudResultObserver();
-		syncTaskManager.execute(wordCloudTaskFactory.createTaskIterator(cloudResultObserver));
+		RunWordCloudResultObserver observer = new RunWordCloudResultObserver();
+		syncTaskManager.execute(wordCloudTaskFactory.createTaskIterator(observer));
 		
-		List<WordInfo> wordInfos = cloudResultObserver.getResults().get("myCluster");
+		Map<String, List<WordInfo>> results = observer.getResults();
+		List<WordInfo> wordInfos = results.get("myCluster");
 		wordInfos = wordInfos == null ? Collections.emptyList() : wordInfos;
 		
-		return new WordCloudResults(wordInfos, cloudResultObserver.getCreationParamters());
+		return new WordCloudResults(wordInfos, observer.getCreationParamters(), observer.getSelectedCounts());
 	}
 }
