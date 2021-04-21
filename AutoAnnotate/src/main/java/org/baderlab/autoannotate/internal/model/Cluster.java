@@ -17,11 +17,18 @@ public class Cluster {
 	private Set<CyNode> nodes;
 	private boolean collapsed;
 	
-	Cluster(AnnotationSet parent, Collection<CyNode> nodes, String label, boolean collapsed) {
+	/**
+	 * Flag indicating if the cluster label was manually renamed by the user.
+	 * @since 1.3.4
+	 */
+	private boolean manual;
+	
+	Cluster(AnnotationSet parent, Collection<CyNode> nodes, String label, boolean collapsed, boolean manual) {
 		this.parent = parent;
 		this.nodes = new HashSet<>(nodes);
 		this.label = label;
 		this.collapsed = collapsed;
+		this.manual = manual;
 	}
 	
 	private ModelManager getRoot() {
@@ -98,15 +105,21 @@ public class Cluster {
 		}
 	}
 	
-	public void setLabel(String newLabel) {
+	public void setLabel(String newLabel, boolean manual) {
+		this.manual |= manual;
 		if(!newLabel.equals(label)) {
 			label = newLabel;
 			getRoot().postEvent(new ModelEvents.ClustersChanged(this));
 		}
 	}
 	
+	public boolean isManual() {
+		return manual;
+	}
+	
 	boolean updateLabel(String newLabel) {
 		// don't fire event
+		this.manual = false;
 		if(!newLabel.equals(label)) {
 			label = newLabel;
 			return true;

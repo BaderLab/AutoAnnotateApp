@@ -51,7 +51,7 @@ public class AnnotationSet {
 		this.creationParameters = new ArrayList<>(builder.getCreationParameters());
 		
 		for(AnnotationSetBuilder.ClusterBuilder cb : builder.getClusters()) {
-			Cluster cluster = new Cluster(this, cb.nodes, cb.label, cb.collapsed);
+			Cluster cluster = new Cluster(this, cb.nodes, cb.label, cb.collapsed, cb.manual);
 			clusters.add(cluster);
 			
 			cb.clusterCallback.ifPresent(consumer -> consumer.accept(cluster));
@@ -59,7 +59,7 @@ public class AnnotationSet {
 	}
 	
 	public Cluster createCluster(Collection<CyNode> nodes, String label, boolean collapsed) {
-		Cluster cluster = new Cluster(this, nodes, label, collapsed);
+		Cluster cluster = new Cluster(this, nodes, label, collapsed, false);
 		clusters.add(cluster);
 		parent.getParent().postEvent(new ModelEvents.ClusterAdded(cluster));
 		return cluster;
@@ -131,6 +131,10 @@ public class AnnotationSet {
 		// MKTODO should I also test if the NetworkViewSet is active?
 		Optional<AnnotationSet> active = getParent().getActiveAnnotationSet();
 		return active.isPresent() && active.get() == this;
+	}
+	
+	public int getClustersWithManualLabelsCount() {
+		return (int) clusters.stream().filter(Cluster::isManual).count();
 	}
 	
 	public void updateLabels(Map<Cluster, String> newLabels) {

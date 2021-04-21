@@ -1,12 +1,7 @@
 package org.baderlab.autoannotate;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -150,7 +145,7 @@ public class TestRenderer {
 		AnnotationSet as = nvs.getAnnotationSets().iterator().next();
 		
 		Cluster cluster = as.getClusters().iterator().next();
-		cluster.setLabel("new_label");
+		cluster.setLabel("new_label", false);
 		
 		InOrder inOrder = inOrder(eraseTaskFactory, updateTaskFactory);
 		inOrder.verify(eraseTaskFactory, times(0)).create(any(Cluster.class));

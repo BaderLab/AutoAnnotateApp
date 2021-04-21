@@ -91,7 +91,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		SHAPE_ID = "shapeID",
 		TEXT_ID = "textID",
 		// Added word wrap which means multiple text IDs, but need separate column for backwards compatibility
-		TEXT_ID_ADDITIONAL = "textID_additional";  
+		TEXT_ID_ADDITIONAL = "textID_additional",
+		MANUAL = "manual";  
 	
 	
 	@Inject private Provider<AnnotationPersistor> annotationPersistorProvider;
@@ -280,6 +281,12 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				continue;
 			}
 			
+			// This column is optional
+			Boolean manual = clusterRow.get(MANUAL, Boolean.class);
+			if(manual == null) {
+				manual = false;
+			}
+			
 			Optional<UUID> shapeID = safeUUID(clusterRow.get(SHAPE_ID, String.class));
 			Optional<UUID> textID  = safeUUID(clusterRow.get(TEXT_ID, String.class));
 			Optional<List<UUID>> textIDAdditional = safeUUID(clusterRow.getList(TEXT_ID_ADDITIONAL, String.class));
@@ -288,7 +295,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			AnnotationPersistor annotationPersistor = annotationPersistorProvider.get();
 			
 			AnnotationSetBuilder builder = builders.get(asId);
-			builder.addCluster(nodes, label, collapsed, cluster -> {
+			builder.addCluster(nodes, label, collapsed, manual, cluster -> {
 				annotationPersistor.restoreCluster(cluster, shapeID, textID, textIDAdditional);
 			});
 		}
@@ -378,6 +385,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				CyRow clusterRow = clusterTable.getRow(ids.clusterId);
 				clusterRow.set(LABEL, cluster.getLabel());
 				clusterRow.set(COLLAPSED, cluster.isCollapsed());
+				clusterRow.set(MANUAL, cluster.isManual());
 				clusterRow.set(NODES_SUID, cluster.getNodes().stream().map(CyNode::getSUID).collect(Collectors.toList()));
 				clusterRow.set(ANNOTATION_SET_ID, ids.asId);
 				
@@ -443,6 +451,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		CyTable table = createTable(network, CLUSTER_TABLE, CLUSTER_ID);
 		createColumn(table, LABEL, String.class);
 		createColumn(table, COLLAPSED, Boolean.class);
+		createColumn(table, MANUAL, Boolean.class);
 		createListColumn(table, NODES_SUID, Long.class);
 		createColumn(table, ANNOTATION_SET_ID, Long.class);
 		createColumn(table, SHAPE_ID, String.class);

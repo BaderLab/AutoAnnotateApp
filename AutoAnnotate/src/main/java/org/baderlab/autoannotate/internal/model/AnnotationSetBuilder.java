@@ -55,17 +55,19 @@ public class AnnotationSetBuilder {
 		final Collection<CyNode> nodes;
 		final String label;
 		final boolean collapsed;
+		final boolean manual;
 		final Optional<Consumer<Cluster>> clusterCallback;
 		
-		ClusterBuilder(Collection<CyNode> nodes, String label, boolean collapsed, Consumer<Cluster> callback) {
+		ClusterBuilder(Collection<CyNode> nodes, String label, boolean collapsed, boolean manual, Consumer<Cluster> callback) {
 			this.nodes = nodes;
 			this.label = label;
 			this.collapsed = collapsed;
+			this.manual = manual;
 			this.clusterCallback = Optional.ofNullable(callback);
 		}
 		
-		public ClusterBuilder(Collection<CyNode> nodes, String label, boolean collapsed) {
-			this(nodes, label, collapsed, null);
+		public ClusterBuilder(Collection<CyNode> nodes, String label, boolean collapsed, boolean manual) {
+			this(nodes, label, collapsed, manual, null);
 		}
 		
 		public String getLabel() {
@@ -198,11 +200,15 @@ public class AnnotationSetBuilder {
 	}
 
 	public void addCluster(Collection<CyNode> nodes, String label, boolean collapsed) {
-		clusters.add(new ClusterBuilder(nodes, label, collapsed));
+		clusters.add(new ClusterBuilder(nodes, label, collapsed, false));
 	}
 	
-	public void addCluster(Collection<CyNode> nodes, String label, boolean collapsed, Consumer<Cluster> callback) {
-		clusters.add(new ClusterBuilder(nodes, label, collapsed, callback));
+	public void addCluster(Collection<CyNode> nodes, String label, boolean collapsed, boolean manual) {
+		clusters.add(new ClusterBuilder(nodes, label, collapsed, manual));
+	}
+	
+	public void addCluster(Collection<CyNode> nodes, String label, boolean collapsed, boolean manual, Consumer<Cluster> callback) {
+		clusters.add(new ClusterBuilder(nodes, label, collapsed, manual, callback));
 	}
 	
 	public Collection<ClusterBuilder> getClusters() {

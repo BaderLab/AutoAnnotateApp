@@ -23,16 +23,18 @@ public class RecalculateLabelsTask extends AbstractTask {
 
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	
-	private AnnotationSet annotationSet;
+	private final AnnotationSet annotationSet;
+	private final boolean overwrite;
 	
 	
 	public static interface Factory {
-		RecalculateLabelsTask create(AnnotationSet annotationSet);
+		RecalculateLabelsTask create(AnnotationSet annotationSet, boolean overwrite);
 	}
 	
 	@AssistedInject
-	public RecalculateLabelsTask(@Assisted AnnotationSet annotationSet) {
+	public RecalculateLabelsTask(@Assisted AnnotationSet annotationSet, @Assisted boolean overwrite) {
 		this.annotationSet = annotationSet;
+		this.overwrite = overwrite;
 	}
 	
 	@Override
@@ -48,9 +50,14 @@ public class RecalculateLabelsTask extends AbstractTask {
 		Map<Cluster,String> newLabels = new HashMap<>();
 		
 		for(Cluster cluster : annotationSet.getClusters()) {
-			Collection<CyNode> nodes = cluster.getNodes();
-			String label = labelMaker.makeLabel(network, nodes, labelColumn);
-			newLabels.put(cluster, label);
+			if(overwrite || !cluster.isManual()) {
+				Collection<CyNode> nodes = cluster.getNodes();
+				String label = labelMaker.makeLabel(network, nodes, labelColumn);
+				newLabels.put(cluster, label);
+			}
+			if(cancelled) {
+				return;
+			}
 		}
 		
 		// Fires a single event

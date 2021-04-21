@@ -31,6 +31,6 @@ public class ClusterRenameAction extends ClusterAction {
 		if(result == null)
 			return;
 		String label = result.toString().trim();
-		cluster.setLabel(label);
+		cluster.setLabel(label, true);
 	}
 }

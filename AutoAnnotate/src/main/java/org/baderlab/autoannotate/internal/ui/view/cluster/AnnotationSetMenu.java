@@ -72,6 +72,9 @@ public class AnnotationSetMenu {
 		Action exportClustersAction = exportClusterProvider.get();
 		Action wcWordsAction = wordcloudFactoryProvider.get().createWordsAction();
 		Action wcDelimiterAction = wordcloudFactoryProvider.get().createDelimitersAction();
+		Action showCreationParamsAction = showCreationParamsProvider.get();
+		Action showLabelOptionsAction = showLabelOptionsProvider.get();
+		Action settingsAction = showSettingsProvider.get();
 		
 		boolean enabled = annotationSet.isPresent();
 		renameAction.setEnabled(enabled);
@@ -83,6 +86,8 @@ public class AnnotationSetMenu {
 		relabelAction.setEnabled(enabled);
 		exportClustersAction.setEnabled(enabled);
 		copyAction.setEnabled(shouldEnableCopyAction());
+		showCreationParamsAction.setEnabled(enabled);
+		showLabelOptionsAction.setEnabled(enabled);
 		
 		JMenu summaryMenu = new JMenu(SummaryNetworkAction.TITLE);
 		createSummarySubMenu(summaryMenu);
@@ -91,9 +96,6 @@ public class AnnotationSetMenu {
 		JMenu layoutMenu = new JMenu("Layout Clusters");
 		createLayoutSubMenu(layoutMenu);
 		layoutMenu.setEnabled(enabled);
-		
-		JMenu settingsMenu = new JMenu("Settings");
-		createSettingsSubMenu(settingsMenu, enabled);
 		
 		JPopupMenu menu = new JPopupMenu();
 		menu.add(createAction);
@@ -113,7 +115,9 @@ public class AnnotationSetMenu {
 		menu.addSeparator();
 		menu.add(wcWordsAction);
 		menu.add(wcDelimiterAction);
-		menu.add(settingsMenu);
+		menu.add(showCreationParamsAction);
+		menu.add(showLabelOptionsAction);
+		menu.add(settingsAction);
 		
 		menu.show(parent, x, y);
 	}
@@ -133,17 +137,4 @@ public class AnnotationSetMenu {
 		clusterLayoutManager.getActions().forEach(layoutMenu::add);
 	}
 	
-	
-	private void createSettingsSubMenu(JMenu settingsMenu, boolean enabled) {
-		Action showCreationParamsAction = showCreationParamsProvider.get();
-		Action showLabelOptionsAction = showLabelOptionsProvider.get();
-		Action settingsAction = showSettingsProvider.get();
-		
-		showCreationParamsAction.setEnabled(enabled);
-		showLabelOptionsAction.setEnabled(enabled);
-		
-		settingsMenu.add(showCreationParamsAction);
-		settingsMenu.add(showLabelOptionsAction);
-		settingsMenu.add(settingsAction);
-	}
 }
