@@ -43,6 +43,7 @@ public class DisplayOptions {
 	private boolean showLabels = SHOW_LABELS_DEFAULT;
 	private boolean useConstantFontSize = USE_CONSTANT_FONT_SIZE_DEFAULT;
 	private int	fontScale = FONT_SCALE_DEFAULT; 
+	private int minFontSizeForScale = FONT_SIZE_MIN;
 	private int opacity = OPACITY_DEFAULT;
 	private int borderWidth = WIDTH_DEFAULT;
 	private int fontSize = FONT_SIZE_DEFAULT;
@@ -65,6 +66,7 @@ public class DisplayOptions {
 		this.useConstantFontSize = builder.isUseConstantFontSize();
 		this.fontScale = builder.getFontScale();
 		this.fontSize = builder.getFontSize();
+		this.minFontSizeForScale = builder.getMinFontSize();
 		this.opacity = builder.getOpacity();
 		this.borderWidth = builder.getBorderWidth();
 		this.fillColor = Objects.requireNonNull(builder.getFillColor());
@@ -116,6 +118,15 @@ public class DisplayOptions {
 
 	public void setFontScale(int fontScale) {
 		this.fontScale = fontScale;
+		postEvent(Option.FONT_SCALE);
+	}
+	
+	public int getMinFontSizeForScale() {
+		return minFontSizeForScale;
+	}
+	
+	public void setMinFontSizeForScale(int minFontSizeForScale) {
+		this.minFontSizeForScale = minFontSizeForScale;
 		postEvent(Option.FONT_SCALE);
 	}
 	

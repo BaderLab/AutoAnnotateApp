@@ -3,18 +3,7 @@ package org.baderlab.autoannotate.internal.ui.view.display;
 import static java.awt.GridBagConstraints.NONE;
 import static javax.swing.GroupLayout.DEFAULT_SIZE;
 import static javax.swing.GroupLayout.PREFERRED_SIZE;
-import static org.baderlab.autoannotate.internal.model.DisplayOptions.FONT_SCALE_DEFAULT;
-import static org.baderlab.autoannotate.internal.model.DisplayOptions.FONT_SCALE_MAX;
-import static org.baderlab.autoannotate.internal.model.DisplayOptions.FONT_SCALE_MIN;
-import static org.baderlab.autoannotate.internal.model.DisplayOptions.FONT_SIZE_DEFAULT;
-import static org.baderlab.autoannotate.internal.model.DisplayOptions.FONT_SIZE_MAX;
-import static org.baderlab.autoannotate.internal.model.DisplayOptions.FONT_SIZE_MIN;
-import static org.baderlab.autoannotate.internal.model.DisplayOptions.OPACITY_DEFAULT;
-import static org.baderlab.autoannotate.internal.model.DisplayOptions.OPACITY_MAX;
-import static org.baderlab.autoannotate.internal.model.DisplayOptions.OPACITY_MIN;
-import static org.baderlab.autoannotate.internal.model.DisplayOptions.WIDTH_DEFAULT;
-import static org.baderlab.autoannotate.internal.model.DisplayOptions.WIDTH_MAX;
-import static org.baderlab.autoannotate.internal.model.DisplayOptions.WIDTH_MIN;
+import static org.baderlab.autoannotate.internal.model.DisplayOptions.*;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -51,6 +40,7 @@ import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
+import org.cytoscape.event.DebounceTimer;
 import org.cytoscape.model.CyDisposable;
 import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.LookAndFeelUtil;
@@ -64,6 +54,8 @@ import com.google.inject.Inject;
 public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, CyDisposable {
 	
 	@Inject private IconManager iconManager;
+	
+	private DebounceTimer debouncer = new DebounceTimer();
 	
 	private volatile DisplayOptions displayOptions;
 	private EventBus eventBus;
@@ -83,6 +75,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	// Label controls
 	private SliderWithLabel fontScaleSlider;
 	private SliderWithLabel fontSizeSlider;
+	private SliderWithLabel minFontSizeSlider;
 	private JCheckBox fontByClusterCheckbox;
 	private JPanel fontPanel;
 	private JCheckBox hideLabelsCheckBox;
@@ -101,6 +94,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	// Label listeners
 	private ChangeListener fontScaleListener;
 	private ChangeListener fontSizeListener;
+	private ChangeListener minFontSizeListener;
 	private ActionListener fontByClusterListener;
 	private ActionListener hideLabelsListener;
 	private PropertyChangeListener fontColorListener;
@@ -110,6 +104,10 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 
 	private static final String CARD_NULL = "card_null";
 	private static final String CARD_AS = "card_as";
+	
+	private static final String CARD_SIZE = "size";
+	private static final String CARD_SCALE = "scale";
+	
 	
 	@Inject
 	public void registerForEvents(EventBus eventBus) {
@@ -154,6 +152,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			opacitySlider.getSlider().removeChangeListener(opacityListener);
 			fontScaleSlider.getSlider().removeChangeListener(fontScaleListener);
 			fontSizeSlider.getSlider().removeChangeListener(fontSizeListener);
+			minFontSizeSlider.getSlider().removeChangeListener(minFontSizeListener);
 			hideClustersCheckBox.removeActionListener(hideClustersListener);
 			hideLabelsCheckBox.removeActionListener(hideLabelsListener);
 			fontByClusterCheckbox.removeActionListener(fontByClusterListener);
@@ -169,6 +168,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			opacitySlider.setValue(displayOptions.getOpacity());
 			fontScaleSlider.setValue(displayOptions.getFontScale());
 			fontSizeSlider.setValue(displayOptions.getFontSize());
+			minFontSizeSlider.setValue(displayOptions.getMinFontSizeForScale());
 			hideClustersCheckBox.setSelected(!displayOptions.isShowClusters());
 			hideLabelsCheckBox.setSelected(!displayOptions.isShowLabels());
 			fontByClusterCheckbox.setSelected(!displayOptions.isUseConstantFontSize());
@@ -181,13 +181,14 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			wordWrapLengthSpinner.setEnabled(displayOptions.isUseWordWrap());
 			
 			CardLayout fontCardLayout = (CardLayout) fontPanel.getLayout();
-			fontCardLayout.show(fontPanel, displayOptions.isUseConstantFontSize() ? fontSizeSlider.getLabel() : fontScaleSlider.getLabel());
+			fontCardLayout.show(fontPanel, displayOptions.isUseConstantFontSize() ? CARD_SIZE : CARD_SCALE);
 			
 			// add listeners back
 			borderWidthSlider.getSlider().addChangeListener(borderWidthListener);
 			opacitySlider.getSlider().addChangeListener(opacityListener);
 			fontScaleSlider.getSlider().addChangeListener(fontScaleListener);
 			fontSizeSlider.getSlider().addChangeListener(fontSizeListener);
+			minFontSizeSlider.getSlider().addChangeListener(minFontSizeListener);
 			hideClustersCheckBox.addActionListener(hideClustersListener);
 			hideLabelsCheckBox.addActionListener(hideLabelsListener);
 			fontByClusterCheckbox.addActionListener(fontByClusterListener);
@@ -238,11 +239,11 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		JPanel panel = new JPanel();
 		
 		borderWidthSlider = new SliderWithLabel("Border Width", false, WIDTH_MIN, WIDTH_MAX, WIDTH_DEFAULT);
-		borderWidthSlider.getSlider().addChangeListener(borderWidthListener = e -> displayOptions.setBorderWidth(borderWidthSlider.getValue()));
+		borderWidthSlider.getSlider().addChangeListener(borderWidthListener = e -> debounceSetBorderWidth());
 		borderWidthSlider.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
 		
 		opacitySlider = new SliderWithLabel("Opacity", true, OPACITY_MIN, OPACITY_MAX, OPACITY_DEFAULT);
-		opacitySlider.getSlider().addChangeListener(opacityListener = e -> displayOptions.setOpacity(opacitySlider.getValue()));
+		opacitySlider.getSlider().addChangeListener(opacityListener = e -> debounceSetOpacity());
 		
 		hideClustersCheckBox = new JCheckBox("Hide Shapes");
 		hideClustersCheckBox.addActionListener(hideClustersListener = e -> {
@@ -291,29 +292,45 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	}
 	
 	
-	private JPanel createLabelPanel() {
-		JPanel panel = new JPanel();
-		
-		CardLayout cardLayout = new CardLayout();
-		fontPanel = new JPanel(cardLayout);
-		fontPanel.setOpaque(false);
-		
+	private JPanel createFontSizePanel() {
 		fontSizeSlider = new SliderWithLabel("Font Size", false, FONT_SIZE_MIN, FONT_SIZE_MAX, FONT_SIZE_DEFAULT);
-		fontSizeSlider.getSlider().addChangeListener(fontSizeListener = e -> displayOptions.setFontSize(fontSizeSlider.getValue()));
-		fontPanel.add(fontSizeSlider, fontSizeSlider.getLabel());
+		fontSizeSlider.getSlider().addChangeListener(fontSizeListener = e -> debounceSetFontSize());
 		fontSizeSlider.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
 		
 		fontScaleSlider = new SliderWithLabel("Font Scale", true, FONT_SCALE_MIN, FONT_SCALE_MAX, FONT_SCALE_DEFAULT);
-		fontScaleSlider.getSlider().addChangeListener(fontScaleListener = e -> displayOptions.setFontScale(fontScaleSlider.getValue()));
-		fontPanel.add(fontScaleSlider, fontScaleSlider.getLabel());
-
+		fontScaleSlider.getSlider().addChangeListener(fontScaleListener = e -> debounceSetFontScale());
+		fontScaleSlider.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
+		
+		minFontSizeSlider = new SliderWithLabel("Min Font Size", false, FONT_SIZE_MIN, FONT_SIZE_MAX, FONT_SIZE_MIN);
+		minFontSizeSlider.getSlider().addChangeListener(minFontSizeListener = e -> debounceSetMinFontSize());
+		minFontSizeSlider.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
+		
+		JPanel fontScalePanel = new JPanel(new GridBagLayout());
+		fontScalePanel.setOpaque(false);
+		fontScalePanel.add(fontScaleSlider,   GBCFactory.grid(0,0).weightx(1.0).get());
+		fontScalePanel.add(minFontSizeSlider, GBCFactory.grid(0,1).weightx(1.0).get());
+		
+		JPanel fontPanel = new JPanel(new CardLayout());
+		fontPanel.setOpaque(false);
+		fontPanel.add(fontSizeSlider, CARD_SIZE);
+		fontPanel.add(fontScalePanel, CARD_SCALE);
+		return fontPanel;
+	}
+	
+	
+	private JPanel createLabelPanel() {
+		JPanel panel = new JPanel();
+		
+		fontPanel = createFontSizePanel();
+		CardLayout cardLayout = (CardLayout) fontPanel.getLayout();
+		
 		fontByClusterCheckbox = new JCheckBox("Scale font by cluster size");
 		fontByClusterCheckbox.addActionListener(fontByClusterListener = e -> {
 			boolean useConstantFontSize = !fontByClusterCheckbox.isSelected();
 			// Firing event twice is a workaround for a bug in Cytoscape where the text annotations don't update properly.
 			displayOptions.setUseConstantFontSize(useConstantFontSize);
 			displayOptions.setUseConstantFontSize(useConstantFontSize);
-			cardLayout.show(fontPanel, useConstantFontSize ? fontSizeSlider.getLabel() : fontScaleSlider.getLabel());
+			cardLayout.show(fontPanel, useConstantFontSize ? CARD_SIZE : CARD_SCALE);
 		});
 		
 		JLabel fontColorLabel = new JLabel("Font Color:");
@@ -344,8 +361,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		SwingUtil.makeSmall(wordWrapCheckBox, wordWrapLengthLabel, wordWrapLengthSpinner);
 		
 		panel.setLayout(new GridBagLayout());
-		panel.add(fontPanel,             GBCFactory.grid(0,0).gridwidth(2).get());
-		panel.add(fontByClusterCheckbox, GBCFactory.grid(0,1).weightx(1.0).fill(NONE).gridwidth(2).get());
+		panel.add(fontByClusterCheckbox, GBCFactory.grid(0,0).weightx(1.0).fill(NONE).gridwidth(2).get());
+		panel.add(fontPanel,             GBCFactory.grid(0,1).gridwidth(2).get());
 		panel.add(fontColorLabel,        GBCFactory.grid(0,2).get());
 		panel.add(fontColorButton,       GBCFactory.grid(1,2).fill(NONE).get());
 		panel.add(wordWrapCheckBox,      GBCFactory.grid(0,3).gridwidth(2).get());
@@ -353,6 +370,42 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		panel.add(wordWrapLengthSpinner, GBCFactory.grid(1,4).get());
 		panel.add(hideLabelsCheckBox,    GBCFactory.grid(0,5).fill(NONE).gridwidth(2).get());
 		return panel;
+	}
+	
+	
+	private void debounceSetFontSize() {
+		int size = fontSizeSlider.getValue();
+		debouncer.debounce("size", () -> {
+			displayOptions.setFontSize(size);
+		});
+	}
+	
+	private void debounceSetMinFontSize() {
+		int size = minFontSizeSlider.getValue();
+		debouncer.debounce("minSize", () -> {
+			displayOptions.setMinFontSizeForScale(size);
+		});
+	}
+	
+	private void debounceSetFontScale() {
+		int scale = fontScaleSlider.getValue();
+		debouncer.debounce("scale", () -> {
+			displayOptions.setFontScale(scale);
+		});
+	}
+	
+	private void debounceSetOpacity() {
+		var opacity = opacitySlider.getValue();
+		debouncer.debounce("opacity", () -> {
+			displayOptions.setOpacity(opacity);
+		});
+	}
+	
+	private void debounceSetBorderWidth() {
+		var width = borderWidthSlider.getValue();
+		debouncer.debounce("borderWidth", () -> {
+			displayOptions.setBorderWidth(width);
+		});
 	}
 	
 	

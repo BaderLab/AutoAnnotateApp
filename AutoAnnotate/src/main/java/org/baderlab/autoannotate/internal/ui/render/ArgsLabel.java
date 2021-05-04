@@ -134,6 +134,7 @@ public class ArgsLabel extends ArgsBase<TextAnnotation> {
 		} else {
 			int baseFontSize = 2 * (int) Math.round(5 * Math.pow(cluster.getNodeCount(), 0.4));
 			labelFontSize = (int) Math.round(((double)displayOptions.getFontScale()/DisplayOptions.FONT_SCALE_MAX) * baseFontSize);
+			labelFontSize = Math.max(labelFontSize, displayOptions.getMinFontSizeForScale());
 		}
 		
 		double labelWidth  = 2.3 * labelFontSize * labelText.length();

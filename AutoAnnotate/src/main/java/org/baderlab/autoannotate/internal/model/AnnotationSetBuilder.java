@@ -39,6 +39,7 @@ public class AnnotationSetBuilder {
 	private boolean useConstantFontSize = DisplayOptions.USE_CONSTANT_FONT_SIZE_DEFAULT;
 	private int	fontScale = DisplayOptions.FONT_SCALE_DEFAULT; 
 	private int	fontSize = DisplayOptions.FONT_SIZE_DEFAULT; 
+	private int	minFontSize = DisplayOptions.FONT_SIZE_MIN; 
 	private int opacity = DisplayOptions.OPACITY_DEFAULT;
 	private int borderWidth = DisplayOptions.WIDTH_DEFAULT;
 	private Color fillColor = DisplayOptions.FILL_COLOR_DEFAULT;
@@ -141,6 +142,14 @@ public class AnnotationSetBuilder {
 
 	public void setFontSize(int fontSize) {
 		this.fontSize = fontSize;
+	}
+	
+	public int getMinFontSize() {
+		return minFontSize;
+	}
+
+	public void setMinFontSize(int minFontSize) {
+		this.minFontSize = minFontSize;
 	}
 
 	public int getOpacity() {
