@@ -11,6 +11,7 @@ import java.awt.Component;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeListener;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.Optional;
 
@@ -25,6 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JToggleButton;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeListener;
 
@@ -376,35 +378,60 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private void debounceSetFontSize() {
 		int size = fontSizeSlider.getValue();
 		debouncer.debounce("size", () -> {
-			displayOptions.setFontSize(size);
+			try {
+				SwingUtilities.invokeAndWait(() -> {
+					displayOptions.setFontSize(size);
+				});
+			} catch (InvocationTargetException | InterruptedException e) {
+			}
 		});
 	}
 	
 	private void debounceSetMinFontSize() {
 		int size = minFontSizeSlider.getValue();
 		debouncer.debounce("minSize", () -> {
-			displayOptions.setMinFontSizeForScale(size);
+			try {
+				SwingUtilities.invokeAndWait(() -> {
+					displayOptions.setMinFontSizeForScale(size);
+				});
+			} catch (InvocationTargetException | InterruptedException e) {
+			}
 		});
 	}
 	
 	private void debounceSetFontScale() {
 		int scale = fontScaleSlider.getValue();
 		debouncer.debounce("scale", () -> {
-			displayOptions.setFontScale(scale);
+			try {
+				SwingUtilities.invokeAndWait(() -> {
+					displayOptions.setFontScale(scale);
+				});
+			} catch (InvocationTargetException | InterruptedException e) {
+			}
 		});
 	}
 	
 	private void debounceSetOpacity() {
 		var opacity = opacitySlider.getValue();
 		debouncer.debounce("opacity", () -> {
-			displayOptions.setOpacity(opacity);
+			try {
+				SwingUtilities.invokeAndWait(() -> {
+					displayOptions.setOpacity(opacity);
+				});
+			} catch (InvocationTargetException | InterruptedException e) {
+			}
 		});
 	}
 	
 	private void debounceSetBorderWidth() {
 		var width = borderWidthSlider.getValue();
 		debouncer.debounce("borderWidth", () -> {
-			displayOptions.setBorderWidth(width);
+			try {
+				SwingUtilities.invokeAndWait(() -> {
+					displayOptions.setBorderWidth(width);
+				});
+			} catch (InvocationTargetException | InterruptedException e) {
+			}
 		});
 	}
 	
