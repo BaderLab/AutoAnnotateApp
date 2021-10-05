@@ -44,7 +44,7 @@ import com.google.inject.assistedinject.Assisted;
 public class NormalModePanel extends JPanel implements TabPanel {
 
 	private static final ClusterAlgorithm DEFAULT_CLUSTER_ALG = ClusterAlgorithm.MCL;
-	private static final String EM_SIMILARITY_COLUMN_SUFFIX = "similarity_coefficient";
+//	private static final String EM_SIMILARITY_COLUMN_SUFFIX = "similarity_coefficient";
 	
 	@Inject private LabelOptionsPanel.Factory labelOptionsPanelFactory;
 	@Inject private Provider<CyColumnPresentationManager> presentationProvider;
@@ -127,13 +127,14 @@ public class NormalModePanel extends JPanel implements TabPanel {
 		group.add(useClusterMakerRadio);
 		group.add(columnRadio);
 		
-		for(int i = 0; i < edgeWeightColumnCombo.getItemCount(); i++) {
-			CyColumn item = edgeWeightColumnCombo.getItemAt(i);
-			if(item != null && item.getName().endsWith(EM_SIMILARITY_COLUMN_SUFFIX)) {
-				edgeWeightColumnCombo.setSelectedIndex(i);
-				break;
-			}
-		}
+		// Bug 168: Sometimes the similarity column doesn't work with clustermaker, so let none be the default.
+//		for(int i = 0; i < edgeWeightColumnCombo.getItemCount(); i++) {
+//			CyColumn item = edgeWeightColumnCombo.getItemAt(i);
+//			if(item != null && item.getName().endsWith(EM_SIMILARITY_COLUMN_SUFFIX)) {
+//				edgeWeightColumnCombo.setSelectedIndex(i);
+//				break;
+//			}
+//		}
 		
 		ActionListener enableListener = e -> {
 			boolean useAlg = useClusterMakerRadio.isSelected();
