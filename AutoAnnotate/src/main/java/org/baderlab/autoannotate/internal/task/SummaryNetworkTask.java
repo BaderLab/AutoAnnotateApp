@@ -19,6 +19,8 @@ import org.baderlab.autoannotate.internal.ui.view.action.SummaryNetworkAction;
 import org.cytoscape.group.CyGroup;
 import org.cytoscape.group.CyGroupSettingsManager;
 import org.cytoscape.group.data.Aggregator;
+import org.cytoscape.group.data.AttributeHandlingType;
+import org.cytoscape.group.data.CyGroupAggregationManager;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyEdge.Type;
@@ -56,6 +58,7 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 	@Inject private VisualMappingManager visualMappingManager;
 	
 	@Inject private CyGroupSettingsManager groupSettingsManager;
+	@Inject private CyGroupAggregationManager groupAggregationManager;
 	
 	private final AnnotationSet annotationSet;
 	private final Collection<Cluster> clusters;
@@ -353,13 +356,7 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 		CyTable originNodeTable = originNetwork.getDefaultNodeTable();
 		CyColumn originColumn = originNodeTable.getColumn(columnName);
 		
-		Aggregator<?> aggregator;
-		Class<?> listElementType = originColumn.getListElementType();
-		if(listElementType == null)
-			aggregator = groupSettingsManager.getDefaultAggregation(originColumn.getType());
-		else
-			aggregator = groupSettingsManager.getDefaultListAggregation(listElementType);
-		
+		Aggregator<?> aggregator = getAggregator(originColumn);
 		if(aggregator == null)
 			return null;
 		
@@ -391,6 +388,26 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 			// anything could go wrong when using mocks to hack the aggregator
 			return null;
 		}
+	}
+	
+	
+	private Aggregator<?> getAggregator(CyColumn originColumn) {
+		// Special handling for EnrichmentMap dataset chart column.
+		if("EnrichmentMap::Dataset_Chart".equals(originColumn.getName())) {
+			List<Aggregator<?>> aggregators = groupAggregationManager.getListAggregators(Integer.class);
+			for(Aggregator<?> a : aggregators) {
+				if(a.toString().equals(AttributeHandlingType.MAX.toString())) {
+					return a;
+				}
+			}
+		}
+		
+		// TODO this ignores aggregation overrides
+		Class<?> listElementType = originColumn.getListElementType();
+		if(listElementType == null)
+			return groupSettingsManager.getDefaultAggregation(originColumn.getType());
+		else
+			return groupSettingsManager.getDefaultListAggregation(listElementType);
 	}
 	
 	
