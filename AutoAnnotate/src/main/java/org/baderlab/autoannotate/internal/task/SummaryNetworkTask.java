@@ -207,15 +207,23 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 		
 		CyNetwork originNetwork = annotationSet.getParent().getNetwork();
 		List<SummaryCluster> summaryClusters = getSummaryClusters();
+		if(cancelled || summaryClusters == null)
+			return;
 		
 		// create summary network
 		SummaryNetwork summaryNetwork = createSummaryNetwork(originNetwork, summaryClusters);
+		if(cancelled || summaryNetwork == null)
+			return;
 		
 		// create summary network view
 		CyNetworkView summaryNetworkView = createNetworkView(summaryNetwork);
+		if(cancelled)
+			return;
 		
 		// apply visual style
 		applyVisualStyle(annotationSet.getParent().getNetworkView(), summaryNetworkView, summaryNetwork);
+		if(cancelled)
+			return;
 		
 		// register
 		summaryNetwork.network.getRow(summaryNetwork.network).set(CyNetwork.NAME, "AutoAnnotate - Summary Network");
@@ -232,6 +240,8 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 		
 		// Add all the clusters regular clusters
 		for(Cluster cluster : clusters) {
+			if(cancelled)
+				return null;
 			summaryClusters.add(new NormalCluster(cluster));
 		}
 		
@@ -239,8 +249,13 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 			Set<CyNode> clusteredNodes = clusters.stream().flatMap(c->c.getNodes().stream()).collect(Collectors.toSet());
 			Set<CyNode> allNodes = new HashSet<>(annotationSet.getParent().getNetwork().getNodeList());
 			Set<CyNode> unclusteredNodes = Sets.difference(allNodes, clusteredNodes);
+			if(cancelled)
+				return null;
 			
 			for(CyNode node : unclusteredNodes) {
+				if(cancelled)
+					return null;
+				
 				summaryClusters.add(new SingletonCluster(node));
 			}
 		}
@@ -249,10 +264,25 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 	
 	
 	private SummaryNetwork createSummaryNetwork(CyNetwork originNetwork, Collection<SummaryCluster> clusters) {
+		if(cancelled)
+			return null;
+		
 		Set<MetaEdge> metaEdges = findMetaEdges(originNetwork, clusters);
+		
+		if(cancelled)
+			return null;
+		
 		SummaryNetwork summaryNetwork = new SummaryNetwork();
 		clusters.forEach(summaryNetwork::addNode);
+		
+		if(cancelled)
+			return null;
+		
 		metaEdges.forEach(summaryNetwork::addEdge);
+		
+		if(cancelled)
+			return null;
+		
 		aggregateAttributes(originNetwork, summaryNetwork);
 		return summaryNetwork;
 	}
@@ -324,6 +354,8 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 		
 		List<String> columnsToAggregate = new ArrayList<>();
 		for(CyColumn column : originNodeTable.getColumns()) {
+			
+			
 			String name = column.getName();
 			if(summaryNodeTable.getColumn(name) == null) {
 				columnsToAggregate.add(name);
@@ -338,6 +370,9 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 		}
 		
 		for(SummaryCluster cluster : summaryNetwork.getClusters()) {
+			if(cancelled)
+				return;
+			
 			CyNode summaryNode = summaryNetwork.getNodeFor(cluster);
 			CyRow row = summaryNodeTable.getRow(summaryNode.getSUID());
 			
@@ -345,6 +380,9 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 			row.set("cluster node count", cluster.getNodes().size());
 			
 			for(String columnName : columnsToAggregate) {
+				if(cancelled)
+					return;
+				
 				Object result = aggregate(originNetwork, cluster, columnName);
 				row.set(columnName, result);
 			}
