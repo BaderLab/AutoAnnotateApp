@@ -417,7 +417,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			networkTableManager.removeTable(network, CyNetwork.class, namespace);
 		}
 		
-		CyTable table = tableFactory.createTable(namespace, id, Long.class, true, true);
+		CyTable table = tableFactory.createTable(namespace, id, Long.class, false, false);
 		networkTableManager.setTable(network, CyNetwork.class, namespace, table);
 		tableManager.addTable(table);
 		return table;
