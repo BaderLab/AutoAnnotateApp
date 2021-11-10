@@ -12,11 +12,22 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
+import org.baderlab.autoannotate.internal.data.aggregators.AbstractAggregator;
+import org.baderlab.autoannotate.internal.data.aggregators.BooleanAggregator;
+import org.baderlab.autoannotate.internal.data.aggregators.DoubleAggregator;
+import org.baderlab.autoannotate.internal.data.aggregators.DoubleListAggregator;
+import org.baderlab.autoannotate.internal.data.aggregators.IntegerAggregator;
+import org.baderlab.autoannotate.internal.data.aggregators.IntegerListAggregator;
+import org.baderlab.autoannotate.internal.data.aggregators.ListAggregator;
+import org.baderlab.autoannotate.internal.data.aggregators.LongAggregator;
+import org.baderlab.autoannotate.internal.data.aggregators.LongListAggregator;
+import org.baderlab.autoannotate.internal.data.aggregators.NoneAggregator;
+import org.baderlab.autoannotate.internal.data.aggregators.StringAggregator;
+import org.baderlab.autoannotate.internal.data.aggregators.StringListAggregator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.CoordinateData;
 import org.baderlab.autoannotate.internal.ui.view.action.SummaryNetworkAction;
-import org.cytoscape.group.CyGroup;
 import org.cytoscape.group.CyGroupSettingsManager;
 import org.cytoscape.group.data.Aggregator;
 import org.cytoscape.group.data.AttributeHandlingType;
@@ -40,8 +51,6 @@ import org.cytoscape.view.vizmap.VisualStyle;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskMonitor;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -378,9 +387,6 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": aggregating attributes");
 		
 		Collection<SummaryCluster> clusters = summaryNetwork.getClusters();
-		int count = clusters.size() * columnsToAggregate.size();
-		int i = 0;
-		
 		for(SummaryCluster cluster : clusters) {
 			if(cancelled)
 				return;
@@ -395,8 +401,6 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 				if(cancelled)
 					return;
 				
-				String message = String.format("aggregating attributes (%d of %d)", ++i, count);
-				taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": " + message);
 				Object result = aggregate(originNetwork, cluster, columnName);
 				row.set(columnName, result);
 			}
@@ -408,59 +412,79 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 		CyTable originNodeTable = originNetwork.getDefaultNodeTable();
 		CyColumn originColumn = originNodeTable.getColumn(columnName);
 		
-		Aggregator<?> aggregator = getAggregator(originColumn);
+		AbstractAggregator<?> aggregator = getAggregator(originColumn);
 		if(aggregator == null)
 			return null;
 		
-		// HACK ATTACK!
-		// ... but seriously, why does aggregator.aggregate() take a CyGroup parameter???, 
-		// it should just be Collection<CyNode>!!, then Aggregators would be more general
-		
-		final Long mockSuid = Long.MAX_VALUE - 1;
-		
-		// mock the CyGroup
-		CyGroup mockGroup = Mockito.mock(CyGroup.class);
-		Mockito.when(mockGroup.getNodeList()).thenReturn(new ArrayList<>(cluster.getNodes()));
-		CyNode mockGroupNode = Mockito.mock(CyNode.class);
-		Mockito.when(mockGroupNode.getSUID()).thenReturn(mockSuid);
-		Mockito.when(mockGroup.getGroupNode()).thenReturn(mockGroupNode);
-		
-		// need to return a mock CyRow when the aggregator asks for the group node row
-		CyTable mockTable = Mockito.mock(CyTable.class);
-		CyRow mockRow = Mockito.mock(CyRow.class);
-		Mockito.when(mockTable.getRow(Matchers.any())).thenAnswer(invocation -> {
-			Long suid = (Long) invocation.getArguments()[0];
-			return suid.equals(mockSuid) ? mockRow : originNodeTable.getRow(suid);
-		});
-		
 		try {
-			return aggregator.aggregate(mockTable, mockGroup, originColumn);
-		}
-		catch(Exception e) {
-			// anything could go wrong when using mocks to hack the aggregator
+			ArrayList<CyNode> nodes = new ArrayList<>(cluster.getNodes());
+			return aggregator.aggregate(originNodeTable, nodes, originColumn);
+		} catch(Exception e) {
 			return null;
 		}
 	}
 	
 	
-	private Aggregator<?> getAggregator(CyColumn originColumn) {
+	private AbstractAggregator<?> getAggregator(CyColumn originColumn) {
 		// Special handling for EnrichmentMap dataset chart column.
 		if("EnrichmentMap::Dataset_Chart".equals(originColumn.getName())) {
-			List<Aggregator<?>> aggregators = groupAggregationManager.getListAggregators(Integer.class);
-			for(Aggregator<?> a : aggregators) {
-				if(a.toString().equals(AttributeHandlingType.MAX.toString())) {
-					return a;
-				}
-			}
+			return new IntegerListAggregator(AttributeHandlingType.MAX);
 		}
 		
-		// TODO this ignores aggregation overrides
 		Class<?> listElementType = originColumn.getListElementType();
+		
+		// TODO this ignores aggregation overrides
+		Aggregator<?> aggregator;
 		if(listElementType == null)
-			return groupSettingsManager.getDefaultAggregation(originColumn.getType());
+			aggregator = groupSettingsManager.getDefaultAggregation(originColumn.getType());
 		else
-			return groupSettingsManager.getDefaultListAggregation(listElementType);
+			aggregator = groupSettingsManager.getDefaultListAggregation(listElementType);
+		
+		if(aggregator == null)
+			return null;
+
+		AttributeHandlingType type = getAttributeHandlingType(aggregator);
+		if(type == null)
+			return null;
+		
+		String name = aggregator.getClass().getSimpleName();
+		
+		if("IntegerAggregator".equals(name)) {
+			return new IntegerAggregator(type);
+		} else if("LongAggregator".equals(name)) {
+			return new LongAggregator(type);
+		} else if("BooleanAggregator".equals(name)) {
+			return new BooleanAggregator(type);
+		} else if("DoubleAggregator".equals(name)) {
+			return new DoubleAggregator(type);
+		} else if("StringAggregator".equals(name)) {
+			return new StringAggregator(type);
+		} else if("NoneAggregator".equals(name)) {
+			return new NoneAggregator(type);
+		} else if("IntegerListAggregator".equals(name)) {
+			return new IntegerListAggregator(type);
+		} else if("LongListAggregator".equals(name)) {
+			return new LongListAggregator(type);
+		} else if("DoubleListAggregator".equals(name)) {
+			return new DoubleListAggregator(type);
+		} else if("StringListAggregator".equals(name)) {
+			return new StringListAggregator(type);
+		} else if("ListAggregator".equals(name)) {
+			return new ListAggregator(type);
+		} 
+		
+		return null;
 	}
+	
+	private static AttributeHandlingType getAttributeHandlingType(Aggregator<?> aggregator) {
+		for(AttributeHandlingType type : AttributeHandlingType.values()) {
+			if(type.toString().equals(aggregator.toString())) {
+				return type;
+			}
+		}
+		return null;
+	}
+	
 	
 	
 	private void applyVisualStyle(CyNetworkView originNetworkView, CyNetworkView summaryNetworkView, SummaryNetwork summaryNetwork) {
