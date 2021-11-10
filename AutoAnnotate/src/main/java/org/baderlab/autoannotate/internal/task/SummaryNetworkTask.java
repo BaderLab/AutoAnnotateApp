@@ -202,35 +202,38 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 	@Override
 	public void run(TaskMonitor taskMonitor) {
 		taskMonitor.setTitle(BuildProperties.APP_NAME);
-		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE);
 		
-		
+		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": collecting clusters");		
 		CyNetwork originNetwork = annotationSet.getParent().getNetwork();
 		List<SummaryCluster> summaryClusters = getSummaryClusters();
 		if(cancelled || summaryClusters == null)
 			return;
 		
 		// create summary network
-		SummaryNetwork summaryNetwork = createSummaryNetwork(originNetwork, summaryClusters);
+		SummaryNetwork summaryNetwork = createSummaryNetwork(originNetwork, summaryClusters, taskMonitor);
 		if(cancelled || summaryNetwork == null)
 			return;
 		
 		// create summary network view
+		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": creating network view");
 		CyNetworkView summaryNetworkView = createNetworkView(summaryNetwork);
 		if(cancelled)
 			return;
 		
 		// apply visual style
+		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": apply visual style");
 		applyVisualStyle(annotationSet.getParent().getNetworkView(), summaryNetworkView, summaryNetwork);
 		if(cancelled)
 			return;
 		
 		// register
+		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": register summary network");
 		summaryNetwork.network.getRow(summaryNetwork.network).set(CyNetwork.NAME, "AutoAnnotate - Summary Network");
 		networkManager.addNetwork(summaryNetwork.network);
 		networkViewManager.addNetworkView(summaryNetworkView);
 		summaryNetworkView.fitContent();
 		
+		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": done");
 		resultNetwork = summaryNetwork.network;
 	}
 	
@@ -263,27 +266,30 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 	}
 	
 	
-	private SummaryNetwork createSummaryNetwork(CyNetwork originNetwork, Collection<SummaryCluster> clusters) {
+	private SummaryNetwork createSummaryNetwork(CyNetwork originNetwork, Collection<SummaryCluster> clusters, TaskMonitor taskMonitor) {
 		if(cancelled)
 			return null;
 		
+		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": create meta edges");
 		Set<MetaEdge> metaEdges = findMetaEdges(originNetwork, clusters);
 		
 		if(cancelled)
 			return null;
 		
+		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": add nodes to summary network");
 		SummaryNetwork summaryNetwork = new SummaryNetwork();
 		clusters.forEach(summaryNetwork::addNode);
 		
 		if(cancelled)
 			return null;
 		
+		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": add edges to summary network");
 		metaEdges.forEach(summaryNetwork::addEdge);
 		
 		if(cancelled)
 			return null;
 		
-		aggregateAttributes(originNetwork, summaryNetwork);
+		aggregateAttributes(originNetwork, summaryNetwork, taskMonitor);
 		return summaryNetwork;
 	}
 	
@@ -346,16 +352,16 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 	
 	
 	
-	private void aggregateAttributes(CyNetwork originNetwork, SummaryNetwork summaryNetwork) {
+	private void aggregateAttributes(CyNetwork originNetwork, SummaryNetwork summaryNetwork, TaskMonitor taskMonitor) {
 		CyTable originNodeTable = originNetwork.getDefaultNodeTable();
 		
 		CyTable summaryNodeTable = summaryNetwork.network.getDefaultNodeTable();
 		summaryNodeTable.createColumn("cluster node count", Integer.class, false);
 		
 		List<String> columnsToAggregate = new ArrayList<>();
+		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": creating columns in node table");
+		
 		for(CyColumn column : originNodeTable.getColumns()) {
-			
-			
 			String name = column.getName();
 			if(summaryNodeTable.getColumn(name) == null) {
 				columnsToAggregate.add(name);
@@ -369,7 +375,13 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 			}
 		}
 		
-		for(SummaryCluster cluster : summaryNetwork.getClusters()) {
+		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": aggregating attributes");
+		
+		Collection<SummaryCluster> clusters = summaryNetwork.getClusters();
+		int count = clusters.size() * columnsToAggregate.size();
+		int i = 0;
+		
+		for(SummaryCluster cluster : clusters) {
 			if(cancelled)
 				return;
 			
@@ -383,6 +395,8 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 				if(cancelled)
 					return;
 				
+				String message = String.format("aggregating attributes (%d of %d)", ++i, count);
+				taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": " + message);
 				Object result = aggregate(originNetwork, cluster, columnName);
 				row.set(columnName, result);
 			}
