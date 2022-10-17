@@ -2,9 +2,7 @@ package org.baderlab.autoannotate.internal.task;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyEdge;
@@ -26,24 +24,37 @@ public class CreateSubnetworkTask extends AbstractTask implements ObservableTask
 
 	@Inject private CyRootNetworkManager rootNetMgr;
 	
-	private final CyNetwork parentNetwork;
+	private final CyNetwork network;
 	private final Collection<CyNode> nodes;
+	private final Collection<CyEdge> edges;
+	
 	private CySubNetwork resultNetwork;
-
+	
 	
 	public interface Factory {
-		CreateSubnetworkTask create(CyNetwork parentNetwork, Collection<CyNode> nodes);
+		CreateSubnetworkTask create(
+			CyNetwork network, 
+			@Assisted("nodes") Collection<CyNode> nodes, 
+			@Assisted("edges") Collection<CyEdge> edge
+		);
 	}
 	
+	
 	@Inject
-	public CreateSubnetworkTask(@Assisted CyNetwork parentNetwork, @Assisted Collection<CyNode> nodes) {
-		this.parentNetwork = parentNetwork;
+	public CreateSubnetworkTask(
+			@Assisted CyNetwork network, 
+			@Assisted("nodes") Collection<CyNode> nodes, 
+			@Assisted("edges") Collection<CyEdge> edges
+	) {
+		this.network = network;
 		this.nodes = nodes;
+		this.edges = edges;
 	}
 
+	
 	@Override
 	public void run(TaskMonitor tm) {
-		if (parentNetwork == null) {
+		if (network == null) {
 			tm.showMessage(TaskMonitor.Level.ERROR, "Source network must be specified.");
 			return;
 		}
@@ -51,27 +62,27 @@ public class CreateSubnetworkTask extends AbstractTask implements ObservableTask
 		tm.setProgress(0.2);
 
 		// create subnetwork and add selected nodes and appropriate edges
-		final CySubNetwork newNet = rootNetMgr.getRootNetwork(parentNetwork).addSubNetwork();
+		final CySubNetwork newNet = rootNetMgr.getRootNetwork(network).addSubNetwork();
 		
 		//We need to cpy the columns to local tables, since copying them to default table will duplicate the virtual columns.
-		addColumns(parentNetwork.getTable(CyNode.class, CyNetwork.LOCAL_ATTRS), newNet.getTable(CyNode.class, CyNetwork.LOCAL_ATTRS));
-		addColumns(parentNetwork.getTable(CyEdge.class, CyNetwork.LOCAL_ATTRS), newNet.getTable(CyEdge.class, CyNetwork.LOCAL_ATTRS) );
-		addColumns(parentNetwork.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS), newNet.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS));
+		addColumns(network.getTable(CyNode.class, CyNetwork.LOCAL_ATTRS), newNet.getTable(CyNode.class, CyNetwork.LOCAL_ATTRS));
+		addColumns(network.getTable(CyEdge.class, CyNetwork.LOCAL_ATTRS), newNet.getTable(CyEdge.class, CyNetwork.LOCAL_ATTRS) );
+		addColumns(network.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS), newNet.getTable(CyNetwork.class, CyNetwork.LOCAL_ATTRS));
 
 		tm.setProgress(0.3);
 		
 		for(CyNode node : nodes) {
 			newNet.addNode(node);
-			cloneRow(parentNetwork.getRow(node), newNet.getRow(node));
+			cloneRow(network.getRow(node), newNet.getRow(node));
 			//Set rows and edges to not selected state to avoid conflicts with table browser
 			newNet.getRow(node).set(CyNetwork.SELECTED, false);
 		}
 
 		tm.setProgress(0.4);
 		
-		for (final CyEdge edge : getEdges(parentNetwork, nodes)) {
+		for(CyEdge edge : edges) {
 			newNet.addEdge(edge);
-			cloneRow(parentNetwork.getRow(edge), newNet.getRow(edge));
+			cloneRow(network.getRow(edge), newNet.getRow(edge));
 			//Set rows and edges to not selected state to avoid conflicts with table browser
 			newNet.getRow(edge).set(CyNetwork.SELECTED, false);
 		}
@@ -134,19 +145,19 @@ public class CreateSubnetworkTask extends AbstractTask implements ObservableTask
 		return "AutoAnnotate_Temp";
 	}
 	
-	/**
-	 * Returns all edges that connect the selected nodes.
-	 */
-	private static Set<CyEdge> getEdges(CyNetwork net, Collection<CyNode> nodes) {
-		Set<CyEdge> edges = new HashSet<CyEdge>();
-
-		for (final CyNode n1 : nodes) {
-			for (final CyNode n2 : nodes)
-				edges.addAll(net.getConnectingEdgeList(n1, n2, CyEdge.Type.ANY));
-		}
-		
-		return edges;
-	}
+//	/**
+//	 * Returns all edges that connect the selected nodes.
+//	 */
+//	private static Set<CyEdge> getEdges(CyNetwork net, Collection<CyNode> nodes) {
+//		Set<CyEdge> edges = new HashSet<CyEdge>();
+//
+//		for (final CyNode n1 : nodes) {
+//			for (final CyNode n2 : nodes)
+//				edges.addAll(net.getConnectingEdgeList(n1, n2, CyEdge.Type.ANY));
+//		}
+//		
+//		return edges;
+//	}
 
 	@Override
 	public <R> R getResults(Class<? extends R> type) {
