@@ -39,8 +39,12 @@ public class Cluster {
 		return parent;
 	}
 	
+	public CoordinateData getCoordinateData(boolean includeHiddenNodes) {
+		return CoordinateData.forNodes(parent.getParent().getNetworkView(), nodes, includeHiddenNodes);
+	}
+	
 	public CoordinateData getCoordinateData() {
-		return CoordinateData.forNodes(parent.getParent().getNetworkView(), nodes);
+		return getCoordinateData(true);
 	}
 
 	public String getLabel() {

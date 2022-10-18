@@ -18,7 +18,7 @@ import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 
 public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 	
-	private static final int minSize = 50; // Minimum size of the ellipse
+	private static final int MIN_SIZE = 50; // Minimum size of the ellipse
 	
 	public final ShapeType shapeType;
 	public final double borderWidth;
@@ -121,11 +121,11 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 		
 		double zoom = 1; //view.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR);
 
-		CoordinateData coordinateData = cluster.getCoordinateData();
+		CoordinateData coordinateData = cluster.getCoordinateData(false); // do not include hidden nodes
 		double centreX = coordinateData.getCenterX();
 		double centreY = coordinateData.getCenterY();
-		double width  = Double.max(coordinateData.getWidth(),  minSize);
-		double height = Double.max(coordinateData.getHeight(), minSize);
+		double width  = Double.max(coordinateData.getWidth(),  MIN_SIZE);
+		double height = Double.max(coordinateData.getHeight(), MIN_SIZE);
 		
 		if (shapeType == ShapeType.ELLIPSE) {
 			while (nodesOutOfCluster(coordinateData, width, height, centreX, centreY, borderWidth)) {
@@ -150,6 +150,7 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 		return new ArgsShape(cluster.getLabel(), xPos, yPos, width, height, zoom, shapeType, borderWidth, 
 				opacity, fillColor, borderColor, fillOpacity, borderOpacity);
 	}
+	
 	
 	private static boolean nodesOutOfCluster(CoordinateData data, double width, double height, double centreX, double centreY, int ellipseWidth) {
 		double semimajor_axis = width / 2;

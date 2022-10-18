@@ -1,5 +1,9 @@
 package org.baderlab.autoannotate.internal.model;
 
+import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NODE_VISIBLE;
+import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NODE_X_LOCATION;
+import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NODE_Y_LOCATION;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,13 +36,11 @@ import org.cytoscape.model.events.SelectedNodesAndEdgesEvent;
 import org.cytoscape.model.events.SelectedNodesAndEdgesListener;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
-import org.cytoscape.view.model.VisualProperty;
 import org.cytoscape.view.model.events.NetworkViewAboutToBeDestroyedEvent;
 import org.cytoscape.view.model.events.NetworkViewAboutToBeDestroyedListener;
 import org.cytoscape.view.model.events.ViewChangeRecord;
 import org.cytoscape.view.model.events.ViewChangedEvent;
 import org.cytoscape.view.model.events.ViewChangedListener;
-import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
@@ -169,8 +171,8 @@ public class ModelManager implements
 					if(!(vcr.getView().getModel() instanceof CyNode))
 						continue;
 		
-					VisualProperty<?> property =  vcr.getVisualProperty();
-					if(property.equals(BasicVisualLexicon.NODE_X_LOCATION) || property.equals(BasicVisualLexicon.NODE_Y_LOCATION)) {
+					var prop = vcr.getVisualProperty();
+					if(prop.equals(NODE_X_LOCATION) || prop.equals(NODE_Y_LOCATION) || prop.equals(NODE_VISIBLE)) {
 		
 						View<CyNode> nodeView = vcr.getView();
 						CyNode node = nodeView.getModel();

@@ -20,7 +20,6 @@ import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
-import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.swing.DialogTaskManager;
 
 import com.google.common.eventbus.EventBus;
@@ -36,7 +35,7 @@ public class AnnotationRenderer {
 	
 	@Inject private DrawClustersTask.Factory drawTaskProvider;
 	@Inject private EraseClustersTask.Factory eraseTaskProvider;
-	@Inject private UpdateClustersTask.Factory updateTastProvider;
+	@Inject private UpdateClustersTask.Factory updateTaskProvider;
 	
 	private Map<Cluster,AnnotationGroup> clusterAnnotations = new HashMap<>();
 	private Set<Cluster> selectedClusters = new HashSet<>();
@@ -83,9 +82,13 @@ public class AnnotationRenderer {
 		
 		TaskIterator tasks = new TaskIterator();
 		tasks.append(eraseTaskProvider.create(clusters));
-		selectedAnnotationSet.map(AnnotationSet::getClusters).map(drawTaskProvider::create).ifPresent(tasks::append);
 		
-		TaskManager<?,?> taskManager = sync ? syncTaskManager : dialogTaskManager;
+		selectedAnnotationSet
+			.map(AnnotationSet::getClusters)
+			.map(drawTaskProvider::create)
+			.ifPresent(tasks::append);
+		
+		var taskManager = sync ? syncTaskManager : dialogTaskManager;
 		taskManager.execute(tasks);
 	}
 	
@@ -93,11 +96,22 @@ public class AnnotationRenderer {
 	
 	@Subscribe
 	public void handle(ModelEvents.ClustersChanged event) {
-		Collection<Cluster> clusters = event.getClusters();
-		if(!clusters.isEmpty() && clusters.iterator().next().getParent().isActive()) {
-			UpdateClustersTask task = updateTastProvider.create(clusters);
-			syncTaskManager.execute(new TaskIterator(task));
-		}
+		var clusters = event.getClusters();
+		if(clusters.isEmpty())
+			return;
+		
+		// Assume all clusters are from the same AnnotationSet
+		Cluster first = clusters.iterator().next();
+		if(!first.getParent().isActive())
+			return;
+		
+		var netView = first.getNetworkView();
+		
+		var clusterUpdateTask = updateTaskProvider.create(clusters);
+		var updateNetworkViewTask = new UpdateNetworkViewTask(netView);
+		
+		var taskIterator = new TaskIterator(clusterUpdateTask, updateNetworkViewTask);
+		syncTaskManager.execute(taskIterator);
 	}
 	
 	
@@ -148,7 +162,7 @@ public class AnnotationRenderer {
 		case FONT_SIZE:
 		case USE_CONSTANT_FONT_SIZE:
 			// when changing font size the label position must also be recalculated
-			UpdateClustersTask task = updateTastProvider.create(as.getClusters());
+			UpdateClustersTask task = updateTaskProvider.create(as.getClusters());
 			syncTaskManager.execute(new TaskIterator(task));
 			break;
 		case USE_WORD_WRAP:
@@ -200,7 +214,7 @@ public class AnnotationRenderer {
 		
 		selectedClusters = new HashSet<>(select);
 		
-		UpdateClustersTask task = updateTastProvider.create(clustersToRedraw);
+		UpdateClustersTask task = updateTaskProvider.create(clustersToRedraw);
 		syncTaskManager.execute(new TaskIterator(task));
 	}
 

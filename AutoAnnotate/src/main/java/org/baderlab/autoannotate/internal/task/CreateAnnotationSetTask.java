@@ -1,8 +1,12 @@
 package org.baderlab.autoannotate.internal.task;
 
+import static org.baderlab.autoannotate.internal.util.HiddenTools.getVisibleEdges;
+import static org.baderlab.autoannotate.internal.util.HiddenTools.getVisibleNodes;
+import static org.baderlab.autoannotate.internal.util.HiddenTools.hasHiddenNodesOrEdges;
+import static org.baderlab.autoannotate.internal.util.HiddenTools.isHiddenNode;
+
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,8 +41,6 @@ import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
-import org.cytoscape.view.model.View;
-import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.SynchronousTaskManager;
@@ -334,60 +336,6 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 		return nodes;
 	}
 	
-	
-	private static boolean isHiddenNode(View<CyNode> nv) {
-		return nv == null ? false : Boolean.FALSE.equals(nv.getVisualProperty(BasicVisualLexicon.NODE_VISIBLE));
-	}
-	
-	private static boolean isHiddenNode(CyNode node, CyNetworkView networkView) {
-		return isHiddenNode(networkView.getNodeView(node));
-	}
-	
-	private static boolean isHiddenEdge(View<CyEdge> ev) {
-		return ev == null ? false : Boolean.FALSE.equals(ev.getVisualProperty(BasicVisualLexicon.EDGE_VISIBLE));
-	}
-	
-	private static boolean isHiddenEdge(CyEdge edge, CyNetworkView networkView) {
-		return isHiddenEdge(networkView.getEdgeView(edge));
-	}
-
-	private static boolean hasHiddenNodesOrEdges(CyNetworkView view) {
-		return view.getNodeViews().stream().anyMatch(CreateAnnotationSetTask::isHiddenNode)
-			|| view.getEdgeViews().stream().anyMatch(CreateAnnotationSetTask::isHiddenEdge);
-	}
-	
-	
-	private static Collection<CyNode> getVisibleNodes(CyNetworkView view) {
-		List<CyNode> nodes = new ArrayList<>();
-		for(var nv : view.getNodeViews()) {
-			if(!isHiddenNode(nv)) {
-				nodes.add(nv.getModel());
-			}
-		}
-		return nodes;
-	}
-
-	/**
-	 * Returns all edges that connect the selected nodes.
-	 */
-	private static Set<CyEdge> getVisibleEdges(CyNetworkView view, Collection<CyNode> visibleNodes) {
-		Set<CyEdge> edges = new HashSet<>();
-		CyNetwork net = view.getModel();
-		
-		for(CyNode n1 : visibleNodes) {
-			for(CyNode n2 : visibleNodes) {
-				List<CyEdge> connectingEdges = net.getConnectingEdgeList(n1, n2, CyEdge.Type.ANY);
-				for(var edge : connectingEdges) {
-					var ev = view.getEdgeView(edge);
-					if(!isHiddenEdge(ev)) {
-						edges.add(edge);
-					}
-				}
-			}
-		}
-		
-		return edges;
-	}
 	
 	
 	@Override

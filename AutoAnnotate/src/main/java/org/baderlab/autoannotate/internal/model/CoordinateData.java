@@ -6,9 +6,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.baderlab.autoannotate.internal.util.HiddenTools;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
-import org.cytoscape.view.model.View;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 
 public class CoordinateData {
@@ -23,7 +23,7 @@ public class CoordinateData {
 	
 	
 	
-	public static CoordinateData forNodes(CyNetworkView networkView, Collection<CyNode> nodes) {
+	public static CoordinateData forNodes(CyNetworkView networkView, Collection<CyNode> nodes, boolean includeHiddenNodes) {
 		double xmin = 100000000;
 		double xmax = -100000000;
 		double ymin = 100000000;
@@ -32,24 +32,33 @@ public class CoordinateData {
 		Map<CyNode,double[]> coordinates = new HashMap<>();
 		Map<CyNode,Double> radii = new HashMap<>();
 		
-		for(CyNode node : nodes) {
-			View<CyNode> nodeView = networkView.getNodeView(node);
-			if(nodeView != null) {
-				double x = nodeView.getVisualProperty(BasicVisualLexicon.NODE_X_LOCATION);
-				double y = nodeView.getVisualProperty(BasicVisualLexicon.NODE_Y_LOCATION);
-				double radius = nodeView.getVisualProperty(BasicVisualLexicon.NODE_WIDTH);
-				
-				coordinates.put(node, new double[]{x,y});
-				radii.put(node, radius);
-				
-				xmin = Double.min(xmin, x);
-				xmax = Double.max(xmax, x);
-				ymin = Double.min(ymin, y);
-				ymax = Double.max(ymax, y);
-			}
+		for(var node : nodes) {
+			var nodeView = networkView.getNodeView(node);
+			
+			if(nodeView == null)
+				continue;
+			if(!includeHiddenNodes && HiddenTools.isHiddenNode(nodeView))
+				continue;
+			
+			double x = nodeView.getVisualProperty(BasicVisualLexicon.NODE_X_LOCATION);
+			double y = nodeView.getVisualProperty(BasicVisualLexicon.NODE_Y_LOCATION);
+			double radius = nodeView.getVisualProperty(BasicVisualLexicon.NODE_WIDTH);
+			
+			coordinates.put(node, new double[] {x, y});
+			radii.put(node, radius);
+			
+			xmin = Double.min(xmin, x);
+			xmax = Double.max(xmax, x);
+			ymin = Double.min(ymin, y);
+			ymax = Double.max(ymax, y);
 		}
 		
 		return new CoordinateData(xmin, xmax, ymin, ymax, coordinates, radii);
+	}
+	
+	
+	public static CoordinateData forNodes(CyNetworkView networkView, Collection<CyNode> nodes) {
+		return forNodes(networkView, nodes, true);
 	}
 	
 	

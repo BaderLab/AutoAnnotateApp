@@ -11,6 +11,7 @@ import java.util.Map;
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
+import org.baderlab.autoannotate.internal.util.HiddenTools;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.presentation.annotations.AnnotationFactory;
@@ -64,7 +65,7 @@ public class DrawClustersTask extends AbstractTask {
 		List<Annotation> allAnnotations = new ArrayList<>();
 		
 		for(Cluster cluster : clusters) {
-			if(!cluster.isCollapsed()) {
+			if(!cluster.isCollapsed() && !HiddenTools.allNodesHidden(cluster)) {
 				boolean isSelected = annotationRenderer.isSelected(cluster);
 				AnnotationGroup group = createClusterAnnotations(cluster, isSelected);
 				annotationRenderer.putAnnotations(cluster, group);

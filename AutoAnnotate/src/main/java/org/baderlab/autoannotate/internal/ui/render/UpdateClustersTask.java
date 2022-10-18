@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.Cluster;
+import org.baderlab.autoannotate.internal.util.HiddenTools;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
 import org.cytoscape.view.vizmap.VisualMappingManager;
@@ -61,7 +62,7 @@ public class UpdateClustersTask extends AbstractTask {
 	
 	
 	private void updateOneCluster(Cluster cluster) {
-		if(cluster.isCollapsed()) {
+		if(cluster.isCollapsed() || HiddenTools.hasHiddenNodes(cluster)) {
 			redraw(cluster);
 			return;
 		}
