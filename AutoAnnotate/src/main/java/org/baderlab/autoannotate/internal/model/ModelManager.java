@@ -45,9 +45,10 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
-public class ModelManager implements CyDisposable, SetCurrentNetworkViewListener, NetworkViewAboutToBeDestroyedListener,
-									ViewChangedListener, AboutToRemoveNodesListener, SelectedNodesAndEdgesListener, GroupAboutToCollapseListener,
-									GroupCollapsedListener {
+public class ModelManager implements 
+		CyDisposable, SetCurrentNetworkViewListener, NetworkViewAboutToBeDestroyedListener,
+		ViewChangedListener, AboutToRemoveNodesListener, SelectedNodesAndEdgesListener, 
+		GroupAboutToCollapseListener, GroupCollapsedListener {
 
 	@Inject private CyApplicationManager applicationManager;
 	@Inject private CyGroupManager groupManager;
@@ -191,16 +192,17 @@ public class ModelManager implements CyDisposable, SetCurrentNetworkViewListener
 		}
 	}
 
+	
 	@Override
 	public void handleEvent(AboutToRemoveNodesEvent e) {
-		// only remove nodes from the active annotation set
-		getActiveNetworkViewSet()
-		.filter(nvs -> nvs.getNetwork().equals(e.getSource()))
-		.flatMap(NetworkViewSet::getActiveAnnotationSet)
-		.map(AnnotationSet::getClusters)
-		.orElse(Collections.emptySet())
-		.stream()
-		.forEach(cluster -> cluster.removeNodes(e.getNodes()));
+		var net = e.getSource();
+		var nodes = e.getNodes();
+		
+		getNetworkViewSets().stream()
+			.filter(nvs -> nvs.getNetwork().equals(net))
+			.flatMap(nvs -> nvs.getAnnotationSets().stream())
+			.flatMap(as -> as.getClusters().stream())
+			.forEach(c -> c.removeNodes(nodes));
 	}
 	
 	

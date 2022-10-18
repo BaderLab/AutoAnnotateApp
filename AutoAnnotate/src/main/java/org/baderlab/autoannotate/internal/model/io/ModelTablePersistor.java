@@ -385,12 +385,16 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(CREATION_PARAMS, cpJson);
 			
 			for(Cluster cluster : as.getClusters()) {
+				List<Long> nodeSuids = getNodeSUIDs(cluster);
+				if(nodeSuids.isEmpty())
+					continue;
+				
 				CyRow clusterRow = clusterTable.getRow(ids.clusterId);
 				clusterRow.set(LABEL, cluster.getLabel());
 				clusterRow.set(COLLAPSED, cluster.isCollapsed());
 				clusterRow.set(MANUAL, cluster.isManual());
-				clusterRow.set(NODES_SUID, cluster.getNodes().stream().map(CyNode::getSUID).collect(Collectors.toList()));
 				clusterRow.set(ANNOTATION_SET_ID, ids.asId);
+				clusterRow.set(NODES_SUID, nodeSuids);
 				
 				Optional<UUID> shapeID = annotationPersistor.getShapeID(cluster);
 				clusterRow.set(SHAPE_ID, shapeID.map(UUID::toString).orElse(null));
@@ -409,6 +413,17 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			ids.asId++;
 		}
 	}
+	
+	private static List<Long> getNodeSUIDs(Cluster cluster) {
+		var nodeSuids = new ArrayList<Long>(cluster.getNodeCount());
+		for(var node : cluster.getNodes()) {
+			if(node != null) {  // This can happen because older versions of AA didn't handle deleted nodes properly.
+				nodeSuids.add(node.getSUID());
+			}
+		}
+		return nodeSuids;
+	}
+	
 	
 	private CyTable createTable(CyNetwork network, String namespace, String id) {
 		CyTable existingTable = networkTableManager.getTable(network, CyNetwork.class, namespace);
