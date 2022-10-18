@@ -9,6 +9,7 @@ import java.util.Properties;
 import org.baderlab.autoannotate.internal.command.AnnotateCommandTask;
 import org.baderlab.autoannotate.internal.command.CollapseCommandTask;
 import org.baderlab.autoannotate.internal.command.ExpandCommandTask;
+import org.baderlab.autoannotate.internal.command.ExportModelCommandTask;
 import org.baderlab.autoannotate.internal.command.LabelClusterCommandTask;
 import org.baderlab.autoannotate.internal.command.LayoutCommandTask;
 import org.baderlab.autoannotate.internal.command.RedrawCommandTask;
@@ -116,6 +117,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerCommand(bc, "collapse", CollapseCommandTask.class, "Collapse all clusters");
 		registerCommand(bc, "expand", ExpandCommandTask.class, "Expand all clusters");
 		registerCommand(bc, "summary", SummaryNetworkCommandTask.class, "Create summary network");
+		registerCommand(bc, "export model", ExportModelCommandTask.class, "Export table model (this is for debugging)");
 		
 		// CoSE layout
 		var coseLayout = injector.getInstance(CoseLayoutAlgorithm.class);
