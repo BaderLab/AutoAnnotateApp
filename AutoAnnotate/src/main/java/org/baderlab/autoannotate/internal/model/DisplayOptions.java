@@ -3,7 +3,10 @@ package org.baderlab.autoannotate.internal.model;
 import java.awt.Color;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
+
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
+import org.cytoscape.util.color.Palette;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 
 
@@ -14,6 +17,8 @@ public class DisplayOptions {
 	public static final boolean SHOW_LABELS_DEFAULT = true;
 	public static final boolean USE_CONSTANT_FONT_SIZE_DEFAULT = false;
 	public static final Color FILL_COLOR_DEFAULT = Color.getHSBColor(0.19f, 1.25f, 0.95f);
+	public static final Palette FILL_COLOR_PALETTE_DEFAULT = null;
+	public static final boolean USE_FILL_PALETTE_DEFAULT = false;
 	public static final Color BORDER_COLOR_DEFAULT = Color.DARK_GRAY;
 	public static final Color FONT_COLOR_DEFAULT = Color.BLACK;
 	public static final boolean USE_WORD_WRAP_DEFAULT = false;
@@ -48,6 +53,8 @@ public class DisplayOptions {
 	private int borderWidth = WIDTH_DEFAULT;
 	private int fontSize = FONT_SIZE_DEFAULT;
 	private Color fillColor = FILL_COLOR_DEFAULT;
+	private Palette fillColorPalette = FILL_COLOR_PALETTE_DEFAULT;
+	private boolean useFillPalette = USE_FILL_PALETTE_DEFAULT;
 	private Color borderColor = BORDER_COLOR_DEFAULT;
 	private Color fontColor = FONT_COLOR_DEFAULT;
 	private boolean useWordWrap = USE_WORD_WRAP_DEFAULT;
@@ -70,6 +77,8 @@ public class DisplayOptions {
 		this.opacity = builder.getOpacity();
 		this.borderWidth = builder.getBorderWidth();
 		this.fillColor = Objects.requireNonNull(builder.getFillColor());
+		this.fillColorPalette = builder.getFillColorPalette();
+		this.useFillPalette = builder.isUseFillPalette();
 		this.borderColor = Objects.requireNonNull(builder.getBorderColor());
 		this.fontColor = Objects.requireNonNull(builder.getFontColor());
 		this.useWordWrap = builder.isUseWordWrap();
@@ -172,6 +181,32 @@ public class DisplayOptions {
 	
 	public void setFillColor(Color fillColor) {
 		this.fillColor = Objects.requireNonNull(fillColor);
+		postEvent(Option.FILL_COLOR);
+	}
+	
+	public Palette getFillColorPalette() {
+		return fillColorPalette;
+	}
+	
+	public void setFillColorPalette(@Nullable Palette fillColorPalette) {
+		this.fillColorPalette = fillColorPalette;
+		postEvent(Option.FILL_COLOR);
+	}
+	
+	public boolean isUseFillPalette() {
+		return useFillPalette;
+	}
+	
+	public void setUseFillColorPalette(boolean useFillPalette) {
+		this.useFillPalette = useFillPalette;
+		postEvent(Option.FILL_COLOR);
+	}
+	
+	// Use to avoid extra events.
+	public void setFillColors(Color fillColor, Palette fillColorPalette, boolean useFillPalette) {
+		this.fillColor = Objects.requireNonNull(fillColor);
+		this.fillColorPalette = fillColorPalette;
+		this.useFillPalette = useFillPalette;
 		postEvent(Option.FILL_COLOR);
 	}
 	

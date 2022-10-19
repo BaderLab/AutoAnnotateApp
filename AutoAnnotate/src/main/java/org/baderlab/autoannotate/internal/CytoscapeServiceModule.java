@@ -23,6 +23,8 @@ import org.cytoscape.model.CyTableManager;
 import org.cytoscape.model.subnetwork.CyRootNetworkManager;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.session.CySessionManager;
+import org.cytoscape.util.color.Palette;
+import org.cytoscape.util.color.PaletteProviderManager;
 import org.cytoscape.util.swing.FileUtil;
 import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.OpenBrowser;
@@ -42,6 +44,7 @@ import org.cytoscape.work.undo.UndoSupport;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
+import com.google.inject.name.Named;
 
 /**
  * Guice module, binds Cytoscape services using Peaberry.
@@ -81,6 +84,7 @@ public class CytoscapeServiceModule extends AbstractModule {
 		bindService(CyColumnPresentationManager.class);
 		bindService(UndoSupport.class);
 		bindService(PanelTaskManager.class);
+		bindService(PaletteProviderManager.class);
 		
 		bindService(DialogTaskManager.class);
 		TypeLiteral<SynchronousTaskManager<?>> synchronousManager = new TypeLiteral<SynchronousTaskManager<?>>(){};
@@ -101,5 +105,21 @@ public class CytoscapeServiceModule extends AbstractModule {
 	public JFrame getJFrame(CySwingApplication swingApplication) {
 		return swingApplication.getJFrame();
 	}
-
+	
+	@Provides @Named("default")
+	public Palette getDefaultPalette(PaletteProviderManager manager) {
+		var providers = manager.getPaletteProviders();
+		for(var provider : providers) {
+			var p = provider.getPalette(getDefaultPaletteName());
+			if(p != null) {
+				return p;
+			}
+		}
+		return null;
+	}
+	
+	private static String getDefaultPaletteName() {
+		// Copied from AbstractChartEditor
+		return "Set3 colors";
+	}
 }

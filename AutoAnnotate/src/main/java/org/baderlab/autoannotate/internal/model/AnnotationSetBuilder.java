@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import org.baderlab.autoannotate.internal.model.io.CreationParameter;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.util.color.Palette;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 
 /**
@@ -25,6 +26,7 @@ public class AnnotationSetBuilder {
 	
 	// Its ok for now to put everything here, if it gets more complicated then
 	// consider creating separate builders.
+	
 	
 	private final NetworkViewSet nvs;
 	private final String name;
@@ -43,6 +45,8 @@ public class AnnotationSetBuilder {
 	private int opacity = DisplayOptions.OPACITY_DEFAULT;
 	private int borderWidth = DisplayOptions.WIDTH_DEFAULT;
 	private Color fillColor = DisplayOptions.FILL_COLOR_DEFAULT;
+	private Palette fillColorPalette = DisplayOptions.FILL_COLOR_PALETTE_DEFAULT;
+	private boolean useFillPalette = DisplayOptions.USE_FILL_PALETTE_DEFAULT;
 	private Color borderColor = DisplayOptions.BORDER_COLOR_DEFAULT;
 	private Color fontColor = DisplayOptions.FONT_COLOR_DEFAULT;
 	private boolean useWordWrap = DisplayOptions.USE_WORD_WRAP_DEFAULT;
@@ -174,6 +178,22 @@ public class AnnotationSetBuilder {
 
 	public void setFillColor(Color fillColor) {
 		this.fillColor = fillColor;
+	}
+	
+	public Palette getFillColorPalette() {
+		return fillColorPalette;
+	}
+
+	public void setFillColorPalette(Palette fillColorPalette) {
+		this.fillColorPalette = fillColorPalette;
+	}
+
+	public boolean isUseFillPalette() {
+		return useFillPalette;
+	}
+
+	public void setUseFillPalette(boolean useFillPalette) {
+		this.useFillPalette = useFillPalette;
 	}
 
 	public Color getBorderColor() {

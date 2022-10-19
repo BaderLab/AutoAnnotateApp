@@ -1,8 +1,10 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +18,7 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.cytoscape.util.color.Palette;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.SynchronousTaskManager;
@@ -147,15 +150,15 @@ public class AnnotationRenderer {
 		case BORDER_COLOR:
 			forEachCluster(as, (c,a) -> a.setBorderColor(options.getBorderColor()));
 			break;
-		case FILL_COLOR:
-			forEachCluster(as, (c,a) -> a.setFillColor(options.getFillColor()));
-			break;
 		case FONT_COLOR:
 			forEachCluster(as, (c,a) -> a.setTextColor(options.getFontColor()));
 			break;
 		case OPACITY:
 		case SHOW_CLUSTERS:
 			forEachCluster(as, (c,a) -> a.setShowShapes(options.isShowClusters(), options.getOpacity()));
+			break;
+		case FILL_COLOR:
+			setColors(as, options);
 			break;
 		case SHOW_LABELS:
 		case FONT_SCALE:
@@ -187,6 +190,41 @@ public class AnnotationRenderer {
 			if(annotations != null) {
 				consumer.accept(cluster, annotations);
 				annotations.update();
+			}
+		}
+	}
+	
+	
+	private void setColors(AnnotationSet as, DisplayOptions options) {
+		var color = options.getFillColor();
+		var palette = options.getFillColorPalette();
+		
+		if(options.isUseFillPalette()) {
+			applyPalette(as, palette);
+		} else {
+			forEachCluster(as, (c,a) -> a.setFillColor(color));
+		}
+	}
+	
+	/*
+	 * We need to sort the clusters in some consistent way so that the colors don't change seemingly randomly.
+	 * Clusters don't have an identifier, so we will take the same approach as the cluster panel and sort by number of nodes first then label.
+	 * This sorting isn't totally stable, because the user can delete nodes and change the labels, but its good enough for now.
+	 */
+	private void applyPalette(AnnotationSet as, Palette palette) {
+		List<Cluster> clusters = new ArrayList<>(as.getClusters());
+		clusters.sort(Comparator.comparing(Cluster::getNodeCount).thenComparing(Comparator.comparing(Cluster::getLabel)));
+		
+		Color[] colors = (palette == null)
+			? new Color[] { Color.LIGHT_GRAY, Color.GRAY, Color.DARK_GRAY }
+			: palette.getColors();
+		
+		int index = 0;
+		for(var cluster : clusters) {
+			var ag = clusterAnnotations.get(cluster);
+			if(ag != null) {
+				var color = colors[index++ % colors.length];
+				ag.setFillColor(color);
 			}
 		}
 	}
