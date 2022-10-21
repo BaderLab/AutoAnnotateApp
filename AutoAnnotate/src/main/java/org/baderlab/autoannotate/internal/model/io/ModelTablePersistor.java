@@ -39,6 +39,7 @@ import org.cytoscape.session.events.SessionAboutToBeSavedEvent;
 import org.cytoscape.session.events.SessionAboutToBeSavedListener;
 import org.cytoscape.session.events.SessionLoadedEvent;
 import org.cytoscape.session.events.SessionLoadedListener;
+import org.cytoscape.util.color.PaletteProviderManager;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
@@ -75,6 +76,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		SHOW_CLUSTERS = "showClusters",
 		SHAPE_TYPE = "shapeType",
 		FILL_COLOR = "fillColor",
+		FILL_COLOR_PALETTE = "fillColorPalette",
+		USE_FILL_PALETTE = "useFillPalette",
 		BORDER_COLOR = "borderColor",
 		FONT_COLOR = "fontColor",
 		WORD_WRAP = "wordWrap",
@@ -100,6 +103,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	@Inject private Provider<ModelManager> modelManagerProvider;
 	@Inject private Provider<PanelManager> panelManagerProvider;
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
+	@Inject private Provider<PaletteProviderManager> paletteManagerProvider;
 	
 	@Inject private CyNetworkTableManager networkTableManager;
 	@Inject private CyNetworkManager networkManager;
@@ -228,6 +232,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			safeGet(asRow, SHOW_LABELS, Boolean.class, builder::setShowLabels);
 			safeGet(asRow, USE_CONSTANT_FONT_SIZE, Boolean.class, builder::setUseConstantFontSize);
 			safeGet(asRow, FILL_COLOR, Integer.class, rgb -> builder.setFillColor(new Color(rgb)));
+			safeGet(asRow, FILL_COLOR_PALETTE, String.class, palID -> parsePalette(palID, builder));
+			safeGet(asRow, USE_FILL_PALETTE, Boolean.class, builder::setUseFillPalette);
 			safeGet(asRow, BORDER_COLOR, Integer.class, rgb -> builder.setBorderColor(new Color(rgb)));
 			safeGet(asRow, FONT_COLOR, Integer.class, rgb -> builder.setFontColor(new Color(rgb)));
 			safeGet(asRow, WORD_WRAP, Boolean.class, builder::setUseWordWrap);
@@ -354,6 +360,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(ACTIVE, as.isActive());
 			
 			DisplayOptions disp = as.getDisplayOptions();
+			var palette = disp.getFillColorPalette();
+			
 			asRow.set(SHAPE_TYPE, disp.getShapeType().name());
 			asRow.set(SHOW_CLUSTERS, disp.isShowClusters());
 			asRow.set(SHOW_LABELS, disp.isShowLabels());
@@ -364,6 +372,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(OPACITY, disp.getOpacity());
 			asRow.set(BORDER_WIDTH, disp.getBorderWidth());
 			asRow.set(FILL_COLOR, disp.getFillColor().getRGB());
+			asRow.set(FILL_COLOR_PALETTE, palette == null ? null : palette.getIdentifier().toString());
+			asRow.set(USE_FILL_PALETTE, disp.isUseFillPalette());
 			asRow.set(BORDER_COLOR, disp.getBorderColor().getRGB());
 			asRow.set(FONT_COLOR, disp.getFontColor().getRGB());
 			asRow.set(WORD_WRAP, disp.isUseWordWrap());
@@ -455,6 +465,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, OPACITY, Integer.class);
 		createColumn(table, BORDER_WIDTH, Integer.class);
 		createColumn(table, FILL_COLOR, Integer.class); // store as RGB int value
+		createColumn(table, FILL_COLOR_PALETTE, String.class); // store as RGB int value
+		createColumn(table, USE_FILL_PALETTE, Boolean.class); // store as RGB int value
 		createColumn(table, BORDER_COLOR, Integer.class);
 		createColumn(table, FONT_COLOR, Integer.class);
 		createColumn(table, WORD_WRAP, Boolean.class);
@@ -525,6 +537,22 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		} catch(ClassCastException e) { 
 			System.err.println("AutoAnnotate.importModel - Error loading display options for " + column);
 			e.printStackTrace();
+		}
+	}
+	
+	
+	private void parsePalette(String id, AnnotationSetBuilder builder) {
+		if(id == null || id.isBlank())
+			return;
+		
+		var manager = paletteManagerProvider.get();
+		
+		for(var provider : manager.getPaletteProviders()) {
+			var palette = provider.getPalette(id);
+			if (palette != null) {
+				builder.setFillColorPalette(palette);
+				return;
+			}
 		}
 	}
 	
