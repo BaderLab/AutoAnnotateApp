@@ -66,6 +66,9 @@
 							!org.apache.tools.ant.*,
 							!sun.reflect,
 							!org.mockito.asm.signature,
+							<!-- https://github.com/google/guava/wiki/UseGuavaInYourBuild#what-about-guavas-own-dependencies -->
+							!com.google.errorprone.*,
+							!com.google.j2objc.*,
 							*
 						</Import-Package>
 						<Embed-Dependency>
@@ -76,6 +79,7 @@
 							guice-multibindings,
 							guice-assistedinject,
 							guava,
+							failureaccess, <!-- Required by Guava -->
 							gson,
 							commons-text,
 							commons-lang3,
@@ -248,9 +252,9 @@
 		
 		<!-- additional libraries -->
 		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>18.0</version>
+		    <groupId>com.google.guava</groupId>
+		    <artifactId>guava</artifactId>
+		    <version>31.1-jre</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
