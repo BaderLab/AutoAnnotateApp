@@ -1,8 +1,8 @@
 package org.baderlab.autoannotate.internal.model;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Events that are fired over the EventBus.
@@ -89,14 +89,14 @@ public class ModelEvents {
 	
 	
 	public static class ClustersChanged implements ModelEvent {
-		private final Collection<Cluster> clusters;
-		ClustersChanged(Collection<Cluster> clusters) {
+		private final Set<Cluster> clusters;
+		ClustersChanged(Set<Cluster> clusters) {
 			this.clusters = clusters;
 		}
 		ClustersChanged(Cluster cluster) {
-			this.clusters = Collections.singleton(cluster);
+			this.clusters = Set.of(cluster);
 		}
-		public Collection<Cluster> getClusters() {
+		public Set<Cluster> getClusters() {
 			return clusters;
 		}
 	}

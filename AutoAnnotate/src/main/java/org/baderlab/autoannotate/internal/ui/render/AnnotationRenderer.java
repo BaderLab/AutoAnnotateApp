@@ -18,6 +18,7 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.cytoscape.event.DebounceTimer;
 import org.cytoscape.util.color.Palette;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
@@ -39,6 +40,8 @@ public class AnnotationRenderer {
 	@Inject private DrawClustersTask.Factory drawTaskProvider;
 	@Inject private EraseClustersTask.Factory eraseTaskProvider;
 	@Inject private UpdateClustersTask.Factory updateTaskProvider;
+	
+	private final DebounceTimer debouncer = new DebounceTimer();
 	
 	private Map<Cluster,AnnotationGroup> clusterAnnotations = new HashMap<>();
 	private Set<Cluster> selectedClusters = new HashSet<>();
@@ -99,7 +102,8 @@ public class AnnotationRenderer {
 	
 	@Subscribe
 	public void handle(ModelEvents.ClustersChanged event) {
-		var clusters = event.getClusters();
+		// 'clusters' needs to be a Set and not a Collection so that it can safely be used as a key to the debounce() method.
+		Set<Cluster> clusters = event.getClusters(); 
 		if(clusters.isEmpty())
 			return;
 		
@@ -110,11 +114,12 @@ public class AnnotationRenderer {
 		
 		var netView = first.getNetworkView();
 		
-		var clusterUpdateTask = updateTaskProvider.create(clusters);
-		var updateNetworkViewTask = new UpdateNetworkViewTask(netView);
-		
-		var taskIterator = new TaskIterator(clusterUpdateTask, updateNetworkViewTask);
-		syncTaskManager.execute(taskIterator);
+		debouncer.debounce(clusters, () -> {
+			var clusterUpdateTask = updateTaskProvider.create(clusters);
+			var updateNetworkViewTask = new UpdateNetworkViewTask(netView);
+			var taskIterator = new TaskIterator(clusterUpdateTask, updateNetworkViewTask);
+			syncTaskManager.execute(taskIterator);
+		});
 	}
 	
 	
