@@ -1,6 +1,6 @@
 package org.baderlab.autoannotate;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
@@ -149,7 +149,8 @@ public class TestRenderer {
 		
 		InOrder inOrder = inOrder(eraseTaskFactory, updateTaskFactory);
 		inOrder.verify(eraseTaskFactory, times(0)).create(any(Cluster.class));
-		inOrder.verify(updateTaskFactory).create(any(Collection.class));
+		// This is debounced now, so ignore.
+//		inOrder.verify(updateTaskFactory).create(any(Collection.class));
 	}
 	
 	

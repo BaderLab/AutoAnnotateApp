@@ -1,5 +1,7 @@
 package org.baderlab.autoannotate.internal.data.aggregators;
 
+import java.util.ArrayList;
+
 /*
  * #%L
  * Cytoscape Group Data Impl (group-data-impl)
@@ -25,15 +27,12 @@ package org.baderlab.autoannotate.internal.data.aggregators;
  */
 
 import java.util.Arrays;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-import org.cytoscape.group.CyGroup;
-import org.cytoscape.group.data.Aggregator;
-import org.cytoscape.group.data.CyGroupAggregationManager;
 import org.cytoscape.group.data.AttributeHandlingType;
 import org.cytoscape.model.CyColumn;
-import org.cytoscape.model.CyNode;
+import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyTable;
 
 public class LongAggregator extends AbstractAggregator<Long> {
@@ -52,7 +51,13 @@ public class LongAggregator extends AbstractAggregator<Long> {
 
 		public Class getSupportedType() {return Long.class;}
 
-		public Long aggregate(CyTable table, List<CyNode> nodes, CyColumn column) {
+		@Override
+		public AttributeHandlingType[] getAttributeHandlingTypes() {
+			return supportedTypes;
+		}
+		
+		@Override
+		public Long aggregate(CyTable table, Collection<? extends CyIdentifiable> eles, CyColumn column) {
 			double aggregation = 0.0;
 			int count = 0;
 			List<Long> valueList = null;
@@ -73,8 +78,8 @@ public class LongAggregator extends AbstractAggregator<Long> {
 			}
 
 			// Loop processing
-			for (CyNode node: nodes) {
-				Long v = table.getRow(node.getSUID()).get(column.getName(), Long.class);
+			for (var ele : eles) {
+				Long v = table.getRow(ele.getSUID()).get(column.getName(), Long.class);
 				if (v == null) continue;
 				count++;
 				double value = v.doubleValue();

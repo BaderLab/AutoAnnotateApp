@@ -11,27 +11,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.baderlab.autoannotate.internal.BuildProperties;
-import org.baderlab.autoannotate.internal.data.aggregators.AbstractAggregator;
-import org.baderlab.autoannotate.internal.data.aggregators.BooleanAggregator;
-import org.baderlab.autoannotate.internal.data.aggregators.DoubleAggregator;
-import org.baderlab.autoannotate.internal.data.aggregators.DoubleListAggregator;
-import org.baderlab.autoannotate.internal.data.aggregators.IntegerAggregator;
-import org.baderlab.autoannotate.internal.data.aggregators.IntegerListAggregator;
-import org.baderlab.autoannotate.internal.data.aggregators.ListAggregator;
-import org.baderlab.autoannotate.internal.data.aggregators.LongAggregator;
-import org.baderlab.autoannotate.internal.data.aggregators.LongListAggregator;
-import org.baderlab.autoannotate.internal.data.aggregators.NoneAggregator;
-import org.baderlab.autoannotate.internal.data.aggregators.StringAggregator;
-import org.baderlab.autoannotate.internal.data.aggregators.StringListAggregator;
+import org.baderlab.autoannotate.internal.data.aggregators.AggregatorSet;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.CoordinateData;
 import org.baderlab.autoannotate.internal.ui.view.action.SummaryNetworkAction;
-import org.cytoscape.group.CyGroupSettingsManager;
-import org.cytoscape.group.data.Aggregator;
-import org.cytoscape.group.data.AttributeHandlingType;
-import org.cytoscape.group.data.CyGroupAggregationManager;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyEdge.Type;
@@ -66,26 +52,38 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 	@Inject private CyNetworkViewManager networkViewManager;
 	@Inject private VisualMappingManager visualMappingManager;
 	
-	@Inject private CyGroupSettingsManager groupSettingsManager;
-	@Inject private CyGroupAggregationManager groupAggregationManager;
-	
 	private final AnnotationSet annotationSet;
 	private final Collection<Cluster> clusters;
+	private final AggregatorSet nodeAggregators;
+	private final AggregatorSet edgeAggregators;
 	private final boolean includeUnclustered;
 	
 	private CyNetwork resultNetwork;
 	
+	
 	public static interface Factory {
-		SummaryNetworkTask create(Collection<Cluster> clusters, boolean includeUnclustered);
+		SummaryNetworkTask create(
+			Collection<Cluster> clusters,
+			@Assisted("node") AggregatorSet nodeAggregators, 
+			@Assisted("edge") AggregatorSet edgeAggregators,
+			boolean includeUnclustered
+		);
 	}
 	
 	@Inject
-	public SummaryNetworkTask(@Assisted Collection<Cluster> clusters, @Assisted boolean includeUnclustered) {
+	public SummaryNetworkTask(
+			@Assisted Collection<Cluster> clusters,
+			@Assisted("node") AggregatorSet nodeAggregators, 
+			@Assisted("edge") AggregatorSet edgeAggregators,
+			@Assisted boolean includeUnclustered
+	) {
 		if(clusters.isEmpty())
 			throw new IllegalArgumentException("Clusters is empty");
+		
 		this.clusters = clusters;
-		// There's at least one cluster, assume they all come from the same AnnotationSet
-		this.annotationSet = clusters.iterator().next().getParent();
+		this.annotationSet = clusters.iterator().next().getParent(); // Assume all clusters come from the same AnnotationSet
+		this.nodeAggregators = nodeAggregators;
+		this.edgeAggregators = edgeAggregators;
 		this.includeUnclustered = includeUnclustered;
 	}
 	
@@ -164,44 +162,58 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 	}
 	
 	
-	/**
-	 * Represents a summary CyNetwork where each node corresponds to a Cluster in the origin network.
-	 */
+	
 	private class SummaryNetwork {
 		final CyNetwork network;
 		// One-to-one mapping between Clusters in the origin network and CyNodes in the summary network.
 		private final BiMap<SummaryCluster,CyNode> clusterToSummaryNetworkNode;
+		private final Map<MetaEdge,CyEdge> metaEdgeToSummaryNetworkEdge;
+		private final Map<MetaEdge,Set<CyEdge>> metaEdges;
 		
-		SummaryNetwork() {
+		public SummaryNetwork(Collection<SummaryCluster> clusters, Map<MetaEdge,Set<CyEdge>> metaEdges) {
 			this.network = networkFactory.createNetwork();
 			this.clusterToSummaryNetworkNode = HashBiMap.create();
+			this.metaEdgeToSummaryNetworkEdge = new HashMap<>();
+			this.metaEdges = metaEdges;
+			
+			clusters.forEach(cluster -> {
+				CyNode node = network.addNode();
+				clusterToSummaryNetworkNode.put(cluster, node);
+			});
+			
+			metaEdges.forEach((metaEdge, originEdges) -> {
+				CyNode source = clusterToSummaryNetworkNode.get(metaEdge.source);
+				CyNode target = clusterToSummaryNetworkNode.get(metaEdge.target);
+				CyEdge edge = network.addEdge(source, target, false);
+				metaEdgeToSummaryNetworkEdge.put(metaEdge, edge);
+			});
 		}
 		
-		void addNode(SummaryCluster cluster) {
-			CyNode node = network.addNode();
-			clusterToSummaryNetworkNode.put(cluster, node);
+		Collection<SummaryCluster> getClusters() {
+			return clusterToSummaryNetworkNode.keySet();
 		}
 		
-		void addEdge(MetaEdge metaEdge) {
-			CyNode source = clusterToSummaryNetworkNode.get(metaEdge.source);
-			CyNode target = clusterToSummaryNetworkNode.get(metaEdge.target);
-			network.addEdge(source, target, false);
+		Collection<MetaEdge> getMetaEdges() {
+			return metaEdges.keySet();
+		}
+		
+		Set<CyEdge> getOriginEdges(MetaEdge metaEdge) {
+			return metaEdges.get(metaEdge);
 		}
 		
 		CyNode getNodeFor(SummaryCluster cluster) {
 			return clusterToSummaryNetworkNode.get(cluster);
 		}
 		
+		CyEdge getEdgeFor(MetaEdge metaEdge) {
+			return metaEdgeToSummaryNetworkEdge.get(metaEdge);
+		}
+		
 		SummaryCluster getClusterFor(CyNode node) {
 			return clusterToSummaryNetworkNode.inverse().get(node);
 		}
 		
-		Collection<SummaryCluster> getClusters() {
-			return clusterToSummaryNetworkNode.keySet();
-		}
 	}
-	
-	
 	
 	
 	/**
@@ -280,30 +292,26 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 			return null;
 		
 		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": create meta edges");
-		Set<MetaEdge> metaEdges = findMetaEdges(originNetwork, clusters);
+		var metaEdges = findMetaEdges(originNetwork, clusters);
 		
 		if(cancelled)
 			return null;
 		
-		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": add nodes to summary network");
-		SummaryNetwork summaryNetwork = new SummaryNetwork();
-		clusters.forEach(summaryNetwork::addNode);
+		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": create summary network");
+		SummaryNetwork summaryNetwork = new SummaryNetwork(clusters, metaEdges);
 		
 		if(cancelled)
 			return null;
 		
-		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": add edges to summary network");
-		metaEdges.forEach(summaryNetwork::addEdge);
+		aggregateNodeAttributes(originNetwork, summaryNetwork);
+		aggregateEdgeAttributes(originNetwork, summaryNetwork);
 		
-		if(cancelled)
-			return null;
-		
-		aggregateAttributes(originNetwork, summaryNetwork, taskMonitor);
 		return summaryNetwork;
 	}
 	
 	
-	private Set<MetaEdge> findMetaEdges(CyNetwork originNetwork, Collection<SummaryCluster> clusters) {
+
+	private Map<MetaEdge,Set<CyEdge>> findMetaEdges(CyNetwork originNetwork, Collection<SummaryCluster> clusters) {
 		Map<CyNode, SummaryCluster> nodeToCluster = new HashMap<>();
 		for(SummaryCluster cluster : clusters) {
 			for(CyNode node : cluster.getNodes()) {
@@ -311,39 +319,51 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 			}
 		}
 		
-		Set<MetaEdge> metaEdges = new HashSet<>();
+		Map<MetaEdge,Set<CyEdge>> metaEdges = new HashMap<>();
+		
 		for(SummaryCluster sourceCluster : clusters) {
-			Set<CyNode> targets = getAllTargets(originNetwork, sourceCluster);
-			for(CyNode target : targets) {
+			var targets = getAllTargets(originNetwork, sourceCluster);
+			var targetNodes = targets.getLeft();
+			var edges = targets.getRight();
+			
+			for(CyNode target : targetNodes) {
 				SummaryCluster targetCluster = nodeToCluster.get(target);
+				
 				if(targetCluster != null) {
-					metaEdges.add(new MetaEdge(sourceCluster, targetCluster));
+					var metaEdge = new MetaEdge(sourceCluster, targetCluster);
+					metaEdges.put(metaEdge, edges);
 				}
 			}
 		}
+		
 		return metaEdges;
 	}
 	
 	/**
 	 * Returns all nodes outside the cluster that are connected to a node in the cluster.
 	 */
-	private Set<CyNode> getAllTargets(CyNetwork network, SummaryCluster c) {
-		Set<CyNode> targets = new HashSet<>();
-		Collection<CyNode> nodes = c.getNodes();
-		for(CyNode node : nodes) {
+	private Pair<Set<CyNode>,Set<CyEdge>> getAllTargets(CyNetwork network, SummaryCluster cluster) {
+		Set<CyNode> targetNodes = new HashSet<>();
+		Set<CyEdge> edges = new HashSet<>();
+		
+		Collection<CyNode> clusterNodes = cluster.getNodes();
+		
+		for(CyNode node : clusterNodes) {
 			for(CyEdge edge : network.getAdjacentEdgeIterable(node, Type.ANY)) {
 				CyNode source = edge.getSource();
 				CyNode target = edge.getTarget();
 				
-				if(!nodes.contains(source)) {
-					targets.add(source);
-				}
-				else if(!nodes.contains(target)) {
-					targets.add(target);
+				if(!clusterNodes.contains(source)) {
+					targetNodes.add(source);
+					edges.add(edge);
+				} else if(!clusterNodes.contains(target)) {
+					targetNodes.add(target);
+					edges.add(edge);
 				}
 			}
 		}
-		return targets;
+		
+		return Pair.of(targetNodes, edges);
 	}
 	
 	
@@ -361,131 +381,66 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 	
 	
 	
-	private void aggregateAttributes(CyNetwork originNetwork, SummaryNetwork summaryNetwork, TaskMonitor taskMonitor) {
-		CyTable originNodeTable = originNetwork.getDefaultNodeTable();
-		
-		CyTable summaryNodeTable = summaryNetwork.network.getDefaultNodeTable();
-		summaryNodeTable.createColumn("cluster node count", Integer.class, false);
-		
+	private static List<String> createColumnsInSummaryTable(CyTable originTable, CyTable summaryTable) {
 		List<String> columnsToAggregate = new ArrayList<>();
-		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": creating columns in node table");
 		
-		for(CyColumn column : originNodeTable.getColumns()) {
+		// Create columns in summary network table.
+		for(CyColumn column : originTable.getColumns()) {
 			String name = column.getName();
-			if(summaryNodeTable.getColumn(name) == null) {
+			if(summaryTable.getColumn(name) == null) {
 				columnsToAggregate.add(name);
 				Class<?> listElementType = column.getListElementType();
 				if(listElementType == null) {
-					summaryNodeTable.createColumn(name, column.getType(), false);
+					summaryTable.createColumn(name, column.getType(), false);
 				}
 				else {
-					summaryNodeTable.createListColumn(name, listElementType, false);
+					summaryTable.createListColumn(name, listElementType, false);
 				}
 			}
 		}
+		return columnsToAggregate;
+	}
+	
+	
+	private void aggregateNodeAttributes(CyNetwork originNetwork, SummaryNetwork summaryNetwork) {
+		CyTable originNodeTable  = originNetwork.getDefaultNodeTable();
+		CyTable summaryNodeTable = summaryNetwork.network.getDefaultNodeTable();
 		
-		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": aggregating attributes");
+		List<String> columnsToAggregate = createColumnsInSummaryTable(originNodeTable, summaryNodeTable);
 		
-		Collection<SummaryCluster> clusters = summaryNetwork.getClusters();
-		for(SummaryCluster cluster : clusters) {
-			if(cancelled)
-				return;
-			
+		var clusters = summaryNetwork.getClusters();
+		for(var cluster : clusters) {
 			CyNode summaryNode = summaryNetwork.getNodeFor(cluster);
 			CyRow row = summaryNodeTable.getRow(summaryNode.getSUID());
 			
-			row.set("name", cluster.getLabel());
-			row.set("cluster node count", cluster.getNodes().size());
-			
 			for(String columnName : columnsToAggregate) {
-				if(cancelled)
-					return;
-				
-				Object result = aggregate(originNetwork, cluster, columnName);
+				var originNodes = cluster.getNodes();
+				Object result = nodeAggregators.aggregate(columnName, originNodes);
 				row.set(columnName, result);
 			}
 		}
 	}
 	
 	
-	private Object aggregate(CyNetwork originNetwork, SummaryCluster cluster, String columnName) {
-		CyTable originNodeTable = originNetwork.getDefaultNodeTable();
-		CyColumn originColumn = originNodeTable.getColumn(columnName);
+	private void aggregateEdgeAttributes(CyNetwork originNetwork, SummaryNetwork summaryNetwork) {
+		CyTable originEdgeTable  = originNetwork.getDefaultEdgeTable();
+		CyTable summaryEdgeTable = summaryNetwork.network.getDefaultEdgeTable();
 		
-		AbstractAggregator<?> aggregator = getAggregator(originColumn);
-		if(aggregator == null)
-			return null;
+		List<String> columnsToAggregate = createColumnsInSummaryTable(originEdgeTable, summaryEdgeTable);
+		columnsToAggregate.add(CyEdge.INTERACTION);
 		
-		try {
-			ArrayList<CyNode> nodes = new ArrayList<>(cluster.getNodes());
-			return aggregator.aggregate(originNodeTable, nodes, originColumn);
-		} catch(Exception e) {
-			return null;
-		}
-	}
-	
-	
-	private AbstractAggregator<?> getAggregator(CyColumn originColumn) {
-		// Special handling for EnrichmentMap dataset chart column.
-		if("EnrichmentMap::Dataset_Chart".equals(originColumn.getName())) {
-			return new IntegerListAggregator(AttributeHandlingType.MAX);
-		}
-		
-		Class<?> listElementType = originColumn.getListElementType();
-		
-		// TODO this ignores aggregation overrides
-		Aggregator<?> aggregator;
-		if(listElementType == null)
-			aggregator = groupSettingsManager.getDefaultAggregation(originColumn.getType());
-		else
-			aggregator = groupSettingsManager.getDefaultListAggregation(listElementType);
-		
-		if(aggregator == null)
-			return null;
-
-		AttributeHandlingType type = getAttributeHandlingType(aggregator);
-		if(type == null)
-			return null;
-		
-		String name = aggregator.getClass().getSimpleName();
-		
-		if("IntegerAggregator".equals(name)) {
-			return new IntegerAggregator(type);
-		} else if("LongAggregator".equals(name)) {
-			return new LongAggregator(type);
-		} else if("BooleanAggregator".equals(name)) {
-			return new BooleanAggregator(type);
-		} else if("DoubleAggregator".equals(name)) {
-			return new DoubleAggregator(type);
-		} else if("StringAggregator".equals(name)) {
-			return new StringAggregator(type);
-		} else if("NoneAggregator".equals(name)) {
-			return new NoneAggregator(type);
-		} else if("IntegerListAggregator".equals(name)) {
-			return new IntegerListAggregator(type);
-		} else if("LongListAggregator".equals(name)) {
-			return new LongListAggregator(type);
-		} else if("DoubleListAggregator".equals(name)) {
-			return new DoubleListAggregator(type);
-		} else if("StringListAggregator".equals(name)) {
-			return new StringListAggregator(type);
-		} else if("ListAggregator".equals(name)) {
-			return new ListAggregator(type);
-		} 
-		
-		return null;
-	}
-	
-	private static AttributeHandlingType getAttributeHandlingType(Aggregator<?> aggregator) {
-		for(AttributeHandlingType type : AttributeHandlingType.values()) {
-			if(type.toString().equals(aggregator.toString())) {
-				return type;
+		var metaEdges = summaryNetwork.getMetaEdges();
+		for(var metaEdge : metaEdges) {
+			CyEdge summaryEdge = summaryNetwork.getEdgeFor(metaEdge);
+			CyRow row = summaryEdgeTable.getRow(summaryEdge.getSUID());
+			
+			for(String columnName : columnsToAggregate) {
+				var originEdges = summaryNetwork.getOriginEdges(metaEdge);
+				Object result = edgeAggregators.aggregate(columnName, originEdges);
+				row.set(columnName, result);
 			}
 		}
-		return null;
 	}
-	
-	
 	
 	private void applyVisualStyle(CyNetworkView originNetworkView, CyNetworkView summaryNetworkView, SummaryNetwork summaryNetwork) {
 		VisualStyle vs = visualMappingManager.getVisualStyle(originNetworkView);

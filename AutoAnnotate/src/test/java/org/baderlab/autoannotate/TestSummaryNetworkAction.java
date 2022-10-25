@@ -3,6 +3,8 @@ package org.baderlab.autoannotate;
 import static org.baderlab.autoannotate.NetworkTestUtil.createNode;
 import static org.junit.Assert.assertEquals;
 
+import org.baderlab.autoannotate.internal.data.aggregators.AggregatorSet;
+import org.baderlab.autoannotate.internal.data.aggregators.AggregatorSetFactory;
 import org.baderlab.autoannotate.internal.layout.CoseLayoutAlgorithmTask;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
@@ -38,6 +40,7 @@ public class TestSummaryNetworkAction {
 	@Inject CyNetworkManager networkManager;
 	@Inject UndoSupport undoSupport;
 	@Inject CoseLayoutAlgorithmTask.Factory coseTaskFactory;
+	@Inject AggregatorSetFactory aggregatorFactory;
 	
 	private CyNetworkView networkView;
 	
@@ -80,7 +83,12 @@ public class TestSummaryNetworkAction {
 		
 		AnnotationSet as = NetworkTestUtil.createAnnotationSet(params, taskFactory, modelManager);
 		
-		SummaryNetworkTask summaryTask = summaryTaskFactory.create(as.getClusters(), includeUnclustered);
+		CyNetwork network = as.getParent().getNetwork();
+		
+		AggregatorSet nodeAggSet = aggregatorFactory.createFor(network.getDefaultNodeTable());
+		AggregatorSet edgeAggSet = aggregatorFactory.createFor(network.getDefaultNodeTable());
+		
+		SummaryNetworkTask summaryTask = summaryTaskFactory.create(as.getClusters(), nodeAggSet, edgeAggSet, includeUnclustered);
 		SerialTestTaskManager taskManager = new SerialTestTaskManager();
 		taskManager.execute(summaryTask);
 		CyNetwork summaryNetwork = summaryTask.getResults(CyNetwork.class);

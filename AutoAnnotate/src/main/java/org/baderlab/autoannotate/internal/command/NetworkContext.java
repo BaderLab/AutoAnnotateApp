@@ -68,6 +68,9 @@ public class NetworkContext {
 			.orElseThrow(iae("No annotation set available for given network."));
 	}
 
+	public CyNetwork getNetwork() {
+		return network;
+	}
 	
 	private static Supplier<? extends IllegalArgumentException> iae(String message) {
 		return () -> new IllegalArgumentException(message);

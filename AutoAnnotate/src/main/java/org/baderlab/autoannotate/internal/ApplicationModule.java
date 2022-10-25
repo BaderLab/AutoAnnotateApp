@@ -36,6 +36,8 @@ import org.baderlab.autoannotate.internal.ui.view.copy.NetworkList;
 import org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialog;
 import org.baderlab.autoannotate.internal.ui.view.create.EasyModePanel;
 import org.baderlab.autoannotate.internal.ui.view.create.NormalModePanel;
+import org.baderlab.autoannotate.internal.ui.view.summary.AttributeAggregationPanel;
+import org.baderlab.autoannotate.internal.ui.view.summary.SummaryNetworkDialog;
 import org.cytoscape.property.AbstractConfigDirPropsReader;
 import org.cytoscape.property.CyProperty;
 
@@ -96,6 +98,8 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(SizeSortedLabelMakerUI.Factory.class);
 		installFactory(ClusterBoostedLabelMakerUI.Factory.class);
 		installFactory(SelectClusterTask.Factory.class);
+		installFactory(SummaryNetworkDialog.Factory.class);
+		installFactory(AttributeAggregationPanel.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {

@@ -1,5 +1,7 @@
 package org.baderlab.autoannotate.internal.data.aggregators;
 
+import java.util.ArrayList;
+
 /*
  * #%L
  * Cytoscape Group Data Impl (group-data-impl)
@@ -25,17 +27,14 @@ package org.baderlab.autoannotate.internal.data.aggregators;
  */
 
 import java.util.Arrays;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.cytoscape.group.CyGroup;
-import org.cytoscape.group.data.Aggregator;
-import org.cytoscape.group.data.CyGroupAggregationManager;
 import org.cytoscape.group.data.AttributeHandlingType;
 import org.cytoscape.model.CyColumn;
-import org.cytoscape.model.CyNode;
+import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyTable;
 
 public class IntegerListAggregator extends AbstractAggregator<List<Integer>> {
@@ -58,7 +57,13 @@ public class IntegerListAggregator extends AbstractAggregator<List<Integer>> {
 
 		public Class<?> getSupportedListType() {return Integer.class;}
 
-		public List<Integer>  aggregate(CyTable table, List<CyNode> nodes, CyColumn column) {
+		@Override
+		public AttributeHandlingType[] getAttributeHandlingTypes() {
+			return supportedTypes;
+		}
+		
+		@Override
+		public List<Integer>  aggregate(CyTable table, Collection<? extends CyIdentifiable> eles, CyColumn column) {
 			Class<?> listType = column.getListElementType();
 			List <Integer> agg = new ArrayList<Integer>();
 			List <List<Integer>> aggMed = new ArrayList<>();
@@ -72,8 +77,8 @@ public class IntegerListAggregator extends AbstractAggregator<List<Integer>> {
 
 			// Loop processing
 			int nodeCount = 0;
-			for (CyNode node: nodes) {
-				List<?> list = table.getRow(node.getSUID()).getList(column.getName(), listType);
+			for (var ele : eles) {
+				List<?> list = table.getRow(ele.getSUID()).getList(column.getName(), listType);
 				if (list == null) continue;
 				int index = 0;
 				nodeCount++;

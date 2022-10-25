@@ -1,14 +1,16 @@
 package org.baderlab.autoannotate.internal.data.aggregators;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.cytoscape.group.data.AttributeHandlingType;
 import org.cytoscape.model.CyColumn;
-import org.cytoscape.model.CyNode;
+import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyTable;
 
 public abstract class AbstractAggregator<T> {
-	AttributeHandlingType type;
+	
+	protected AttributeHandlingType type;
+	
 
 	public void setAttributeHandlingType(AttributeHandlingType type) {
 		this.type = type;
@@ -18,6 +20,8 @@ public abstract class AbstractAggregator<T> {
 		return type;
 	}
 
-	abstract public T aggregate(CyTable table, List<CyNode> group, CyColumn column);
+	abstract public T aggregate(CyTable table, Collection<? extends CyIdentifiable> group, CyColumn column);
+	
+	abstract public AttributeHandlingType[] getAttributeHandlingTypes();
 
 }

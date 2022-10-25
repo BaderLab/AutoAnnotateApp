@@ -2,6 +2,7 @@ package org.baderlab.autoannotate.internal.command;
 
 import java.util.Collection;
 
+import org.baderlab.autoannotate.internal.data.aggregators.AggregatorSetFactory;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.task.SummaryNetworkTask;
 import org.cytoscape.work.AbstractTask;
@@ -21,12 +22,21 @@ public class SummaryNetworkCommandTask extends AbstractTask {
 	
 	
 	@Inject private SummaryNetworkTask.Factory summaryTaskFactory;
+	@Inject private AggregatorSetFactory aggregatorFactory;
 	
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) {
 		Collection<Cluster> clusters = networkContext.getClusters();
-		SummaryNetworkTask task = summaryTaskFactory.create(clusters, includeUnclustered);
+		if(clusters.isEmpty())
+			return;
+		
+		var network = networkContext.getNetwork();
+		
+		var nodeAggregators = aggregatorFactory.createFor(network.getDefaultNodeTable());
+		var edgeAggregators = aggregatorFactory.createFor(network.getDefaultEdgeTable());
+		
+		var task = summaryTaskFactory.create(clusters, nodeAggregators, edgeAggregators, includeUnclustered);
 		insertTasksAfterCurrentTask(task);
 	}
 }

@@ -67,6 +67,7 @@ public class AnnotationSetMenu {
 		Action showManageAction = showManageProvider.get();
 		Action collapseAction = collapseActionProvider.get().setAction(Grouping.COLLAPSE);
 		Action expandAction = collapseActionProvider.get().setAction(Grouping.EXPAND);
+		Action summaryAction = summaryActionProvider.get();
 		Action redrawAction = redrawActionProvider.get();
 		Action relabelAction = relabelActionProvider.get();
 		Action exportClustersAction = exportClusterProvider.get();
@@ -82,16 +83,13 @@ public class AnnotationSetMenu {
 		collapseAction.setEnabled(enabled);
 		showManageAction.setEnabled(enabled);
 		expandAction.setEnabled(enabled);
+		summaryAction.setEnabled(enabled);
 		redrawAction.setEnabled(enabled);
 		relabelAction.setEnabled(enabled);
 		exportClustersAction.setEnabled(enabled);
 		copyAction.setEnabled(shouldEnableCopyAction());
 		showCreationParamsAction.setEnabled(enabled);
 		showLabelOptionsAction.setEnabled(enabled);
-		
-		JMenu summaryMenu = new JMenu(SummaryNetworkAction.TITLE);
-		createSummarySubMenu(summaryMenu);
-		summaryMenu.setEnabled(enabled);
 		
 		JMenu layoutMenu = new JMenu("Layout Clusters");
 		createLayoutSubMenu(layoutMenu);
@@ -106,7 +104,7 @@ public class AnnotationSetMenu {
 		menu.addSeparator();
 		menu.add(collapseAction);
 		menu.add(expandAction);
-		menu.add(summaryMenu);
+		menu.add(summaryAction);
 		menu.addSeparator();
 		menu.add(layoutMenu);
 		menu.add(redrawAction);
@@ -120,16 +118,6 @@ public class AnnotationSetMenu {
 		menu.add(settingsAction);
 		
 		menu.show(parent, x, y);
-	}
-	
-	
-	private void createSummarySubMenu(JMenu summaryMenu) {
-		Action summaryAction = summaryActionProvider.get();
-		Action summaryIncludeAction = summaryActionProvider.get().setIncludeUnclustered(true);
-		summaryAction.putValue(Action.NAME, "Clusters Only");
-		summaryIncludeAction.putValue(Action.NAME, "Clusters and Unclustered Nodes");
-		summaryMenu.add(summaryAction);
-		summaryMenu.add(summaryIncludeAction);
 	}
 	
 	
