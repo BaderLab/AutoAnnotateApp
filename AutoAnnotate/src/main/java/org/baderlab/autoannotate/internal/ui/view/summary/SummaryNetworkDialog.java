@@ -11,7 +11,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
-import org.baderlab.autoannotate.internal.data.aggregators.AggregatorSet;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
@@ -34,8 +33,7 @@ public class SummaryNetworkDialog extends JDialog {
 	@Inject private DialogTaskManager dialogTaskManager;
 	
 	private final CyNetworkView networkView;
-	private final AggregatorSet nodeAggregators;
-	private final AggregatorSet edgeAggregators;
+	private final SummaryNetworkDialogSettings settings;
 	
 	private JCheckBox includeUnclusteredCheckBox;
 	
@@ -43,8 +41,7 @@ public class SummaryNetworkDialog extends JDialog {
 	public static interface Factory {
 		SummaryNetworkDialog create(
 			CyNetworkView networkView, 
-			@Assisted("node") AggregatorSet nodeAggregators, 
-			@Assisted("edge") AggregatorSet edgeAggregators
+			SummaryNetworkDialogSettings settings
 		);
 	}
 	
@@ -52,16 +49,14 @@ public class SummaryNetworkDialog extends JDialog {
 	@Inject
 	public SummaryNetworkDialog(
 			@Assisted CyNetworkView networkView, 
-			@Assisted("node") AggregatorSet nodeAggregators, 
-			@Assisted("edge") AggregatorSet edgeAggregators, 
+			@Assisted SummaryNetworkDialogSettings settings, 
 			JFrame jFrame
 	) {
 		super(jFrame, true);
 		setTitle("AutoAnnotate: Create Summary Network");
 		
 		this.networkView = networkView;
-		this.nodeAggregators = nodeAggregators;
-		this.edgeAggregators = edgeAggregators;
+		this.settings = settings;
 		
 		setMinimumSize(new Dimension(700, 500));
 		setMaximumSize(new Dimension(900, 700));
@@ -72,9 +67,13 @@ public class SummaryNetworkDialog extends JDialog {
 	@AfterInjection
 	private void createContents() {
 		includeUnclusteredCheckBox = new JCheckBox("Include unclustered nodes");
+		includeUnclusteredCheckBox.setSelected(settings.isIncludeUnclustered());
+		includeUnclusteredCheckBox.addActionListener(e -> {
+			settings.setIncludeUnclustered(includeUnclusteredCheckBox.isSelected());
+		});
 		
-		var nodeSettingsPanel = attrPanelFactory.create("Node Attribute Aggregation", nodeAggregators);
-		var edgeSettingsPanel = attrPanelFactory.create("Edge Attribute Aggregation", edgeAggregators);
+		var nodeSettingsPanel = attrPanelFactory.create("Node Attribute Aggregation", settings.getNodeAggregators());
+		var edgeSettingsPanel = attrPanelFactory.create("Edge Attribute Aggregation", settings.getEdgeAggregators());
 		var buttonPanel = createButtonPanel();
 		
 		
@@ -86,8 +85,11 @@ public class SummaryNetworkDialog extends JDialog {
 		
 		layout.setVerticalGroup(layout.createSequentialGroup()
 			.addComponent(includeUnclusteredCheckBox)
+			.addGap(15)
 			.addComponent(nodeSettingsPanel, 0, 400, Short.MAX_VALUE)
+			.addGap(15)
 			.addComponent(edgeSettingsPanel, 0, 400, Short.MAX_VALUE)
+			.addGap(15)
 			.addComponent(buttonPanel)
 		);
 		
@@ -122,7 +124,9 @@ public class SummaryNetworkDialog extends JDialog {
 			return;
 		
 		boolean includeUnclustered = includeUnclusteredCheckBox.isSelected();
-		var task = summaryNetworkTaskFactory.create(clusters, nodeAggregators, edgeAggregators, includeUnclustered);
+		
+		var task = summaryNetworkTaskFactory.create(
+				clusters, settings.getNodeAggregators(), settings.getEdgeAggregators(), includeUnclustered);
 		
 		dialogTaskManager.execute(new TaskIterator(task));
 		dispose();

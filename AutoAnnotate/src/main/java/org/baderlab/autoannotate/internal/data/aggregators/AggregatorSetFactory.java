@@ -6,6 +6,7 @@ import org.cytoscape.group.CyGroupSettingsManager;
 import org.cytoscape.group.data.Aggregator;
 import org.cytoscape.group.data.AttributeHandlingType;
 import org.cytoscape.model.CyColumn;
+import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyTable;
 
 import com.google.inject.Inject;
@@ -15,7 +16,7 @@ public class AggregatorSetFactory {
 	@Inject private CyGroupSettingsManager groupSettingsManager;
 	
 	
-	public AggregatorSet createFor(CyTable table) {
+	public AggregatorSet create(CyTable table) {
 		var aggregators = new HashMap<String,AbstractAggregator<?>>();
 		for(var col : table.getColumns()) {
 			var aggregator = getAggregator(col);
@@ -25,21 +26,14 @@ public class AggregatorSetFactory {
 	}
 	
 	
-	private AbstractAggregator<?> getAggregator(CyColumn originColumn) {
-		// Special handling for EnrichmentMap dataset chart column.
-		if ("EnrichmentMap::Dataset_Chart".equals(originColumn.getName())) {
+	private AbstractAggregator<?> getAggregator(CyColumn column) {
+		// Special handling for certain columns
+		if ("EnrichmentMap::Dataset_Chart".equals(column.getName()))
 			return new IntegerListAggregator(AttributeHandlingType.MAX);
-		}
+		if(CyEdge.INTERACTION.equals(column.getName()))
+			return new StringAggregator(AttributeHandlingType.UNIQUE);
 
-		Class<?> listElementType = originColumn.getListElementType();
-
-		// TODO this ignores aggregation overrides
-		Aggregator<?> aggregator;
-		if (listElementType == null)
-			aggregator = groupSettingsManager.getDefaultAggregation(originColumn.getType());
-		else
-			aggregator = groupSettingsManager.getDefaultListAggregation(listElementType);
-
+		Aggregator<?> aggregator = getGroupSettingsAggregator(column);
 		if (aggregator == null)
 			return null;
 
@@ -74,6 +68,13 @@ public class AggregatorSetFactory {
 		}
 
 		return null;
+	}
+	
+	private Aggregator<?> getGroupSettingsAggregator(CyColumn column) {
+		var listElementType = column.getListElementType();
+		return listElementType == null
+			? groupSettingsManager.getDefaultAggregation(column.getType())
+			: groupSettingsManager.getDefaultListAggregation(listElementType);
 	}
 
 	public static AttributeHandlingType getAttributeHandlingType(Aggregator<?> aggregator) {

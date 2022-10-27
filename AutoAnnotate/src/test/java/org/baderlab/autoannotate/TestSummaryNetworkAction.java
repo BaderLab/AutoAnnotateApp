@@ -85,8 +85,8 @@ public class TestSummaryNetworkAction {
 		
 		CyNetwork network = as.getParent().getNetwork();
 		
-		AggregatorSet nodeAggSet = aggregatorFactory.createFor(network.getDefaultNodeTable());
-		AggregatorSet edgeAggSet = aggregatorFactory.createFor(network.getDefaultNodeTable());
+		AggregatorSet nodeAggSet = aggregatorFactory.create(network.getDefaultNodeTable());
+		AggregatorSet edgeAggSet = aggregatorFactory.create(network.getDefaultNodeTable());
 		
 		SummaryNetworkTask summaryTask = summaryTaskFactory.create(as.getClusters(), nodeAggSet, edgeAggSet, includeUnclustered);
 		SerialTestTaskManager taskManager = new SerialTestTaskManager();
