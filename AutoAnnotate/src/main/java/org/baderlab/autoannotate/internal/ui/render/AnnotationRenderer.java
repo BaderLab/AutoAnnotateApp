@@ -175,6 +175,7 @@ public class AnnotationRenderer {
 			break;
 		case USE_WORD_WRAP:
 		case WORD_WRAP_LENGTH:
+		case PADDING_ADJUST:
 			// when changing word wrap we need to re-create the label annotation objects
 			redrawAnnotations(as.getParent(), Optional.of(as), true);
 			break;

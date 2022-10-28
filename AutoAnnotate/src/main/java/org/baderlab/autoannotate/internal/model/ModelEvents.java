@@ -180,6 +180,7 @@ public class ModelEvents {
 			FONT_SIZE,
 			OPACITY, 
 			BORDER_WIDTH,
+			PADDING_ADJUST,
 			FILL_COLOR,
 			BORDER_COLOR,
 			FONT_COLOR,

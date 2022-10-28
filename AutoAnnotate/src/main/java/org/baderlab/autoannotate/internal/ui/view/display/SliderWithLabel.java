@@ -4,6 +4,7 @@ import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.function.Function;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -15,12 +16,12 @@ import org.baderlab.autoannotate.internal.util.GBCFactory;
 public class SliderWithLabel extends JPanel {
  
 	private JSlider slider;
-	private boolean percentage;
 	private String title;
+	private Function<Integer,String> valueToLabel;
 	
-	public SliderWithLabel(String title, boolean showPercentage, int min, int max, int defaultValue) {
-		this.percentage = showPercentage;
+	public SliderWithLabel(String title, int min, int max, int defaultValue, Function<Integer,String> valueToLabel) {
 		this.title = title;
+		this.valueToLabel = valueToLabel;
 		
 		setLayout(new GridBagLayout());
 		
@@ -41,8 +42,12 @@ public class SliderWithLabel extends JPanel {
 		setOpaque(false);
 	}
 	
+	public SliderWithLabel(String title, int min, int max, int defaultValue) {
+		this(title, min, max, defaultValue, null);
+	}
+	
 	private String show(int value) {
-		return percentage ? value + "%" : String.valueOf(value);
+		return valueToLabel == null ? String.valueOf(value) : valueToLabel.apply(value);
 	}
 	
 	public String getLabel() {

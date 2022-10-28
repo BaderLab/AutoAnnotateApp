@@ -67,6 +67,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		ACTIVE = "active",
 		LABEL_COLUMN = "labelColumn",
 		BORDER_WIDTH = "borderWidth",
+		PADDING_ADJUST = "paddingAdjust",
 		OPACITY = "opacity",
 		FONT_SCALE = "fontScale",
 		FONT_SIZE = "fontSize",
@@ -223,6 +224,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			
 			// DisplayOptions
 			safeGet(asRow, BORDER_WIDTH, Integer.class, builder::setBorderWidth);
+			safeGet(asRow, PADDING_ADJUST, Integer.class, builder::setPaddingAdjust);
 			safeGet(asRow, OPACITY, Integer.class, builder::setOpacity);
 			safeGet(asRow, FONT_SCALE, Integer.class, builder::setFontScale);
 			safeGet(asRow, FONT_SIZE, Integer.class, builder::setFontSize);
@@ -371,6 +373,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(MIN_FONT_SIZE, disp.getMinFontSizeForScale());
 			asRow.set(OPACITY, disp.getOpacity());
 			asRow.set(BORDER_WIDTH, disp.getBorderWidth());
+			asRow.set(PADDING_ADJUST, disp.getPaddingAdjust());
 			asRow.set(FILL_COLOR, disp.getFillColor().getRGB());
 			asRow.set(FILL_COLOR_PALETTE, palette == null ? null : palette.getIdentifier().toString());
 			asRow.set(USE_FILL_PALETTE, disp.isUseFillPalette());
@@ -464,6 +467,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, MIN_FONT_SIZE, Integer.class);
 		createColumn(table, OPACITY, Integer.class);
 		createColumn(table, BORDER_WIDTH, Integer.class);
+		createColumn(table, PADDING_ADJUST, Integer.class);
 		createColumn(table, FILL_COLOR, Integer.class); // store as RGB int value
 		createColumn(table, FILL_COLOR_PALETTE, String.class); // store as RGB int value
 		createColumn(table, USE_FILL_PALETTE, Boolean.class); // store as RGB int value

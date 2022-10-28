@@ -32,6 +32,10 @@ public class DisplayOptions {
 	public static final int WIDTH_MIN = 1;
 	public static final int WIDTH_MAX = 10;
 	
+	public static final int PADDING_ADJUST_DEFAULT = 0;
+	public static final int PADDING_ADJUST_MIN = -25;
+	public static final int PADDING_ADJUST_MAX = 25;
+	
 	public static final int FONT_SCALE_DEFAULT = 50;
 	public static final int FONT_SCALE_MIN = 1;
 	public static final int FONT_SCALE_MAX = 100;
@@ -51,6 +55,7 @@ public class DisplayOptions {
 	private int minFontSizeForScale = FONT_SIZE_MIN;
 	private int opacity = OPACITY_DEFAULT;
 	private int borderWidth = WIDTH_DEFAULT;
+	private int paddingAdjust = PADDING_ADJUST_DEFAULT;
 	private int fontSize = FONT_SIZE_DEFAULT;
 	private Color fillColor = FILL_COLOR_DEFAULT;
 	private Palette fillColorPalette = FILL_COLOR_PALETTE_DEFAULT;
@@ -76,6 +81,7 @@ public class DisplayOptions {
 		this.minFontSizeForScale = builder.getMinFontSize();
 		this.opacity = builder.getOpacity();
 		this.borderWidth = builder.getBorderWidth();
+		this.paddingAdjust = builder.getPaddingAdjust();
 		this.fillColor = Objects.requireNonNull(builder.getFillColor());
 		this.fillColorPalette = builder.getFillColorPalette();
 		this.useFillPalette = builder.isUseFillPalette();
@@ -173,6 +179,15 @@ public class DisplayOptions {
 	public void setBorderWidth(int borderWidth) {
 		this.borderWidth = borderWidth;
 		postEvent(Option.BORDER_WIDTH);
+	}
+	
+	public int getPaddingAdjust() {
+		return paddingAdjust;
+	}
+
+	public void setPaddingAdjust(int paddingAdjust) {
+		this.paddingAdjust = paddingAdjust;
+		postEvent(Option.PADDING_ADJUST);
 	}
 	
 	public Color getFillColor() {

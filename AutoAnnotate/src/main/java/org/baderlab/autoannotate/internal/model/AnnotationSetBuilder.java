@@ -44,6 +44,7 @@ public class AnnotationSetBuilder {
 	private int	minFontSize = DisplayOptions.FONT_SIZE_MIN; 
 	private int opacity = DisplayOptions.OPACITY_DEFAULT;
 	private int borderWidth = DisplayOptions.WIDTH_DEFAULT;
+	private int paddingAdjust = DisplayOptions.PADDING_ADJUST_DEFAULT;
 	private Color fillColor = DisplayOptions.FILL_COLOR_DEFAULT;
 	private Palette fillColorPalette = DisplayOptions.FILL_COLOR_PALETTE_DEFAULT;
 	private boolean useFillPalette = DisplayOptions.USE_FILL_PALETTE_DEFAULT;
@@ -170,6 +171,14 @@ public class AnnotationSetBuilder {
 
 	public void setBorderWidth(int borderWidth) {
 		this.borderWidth = borderWidth;
+	}
+	
+	public int getPaddingAdjust() {
+		return paddingAdjust;
+	}
+
+	public void setPaddingAdjust(int paddingAdjust) {
+		this.paddingAdjust = paddingAdjust;
 	}
 
 	public Color getFillColor() {

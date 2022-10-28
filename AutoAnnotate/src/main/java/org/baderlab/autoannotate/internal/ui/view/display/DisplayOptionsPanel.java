@@ -15,6 +15,8 @@ import java.beans.PropertyChangeListener;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -76,6 +78,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	
 	// Shape controls
 	private SliderWithLabel borderWidthSlider;
+	private SliderWithLabel paddingAdjustSlider;
 	private SliderWithLabel opacitySlider;
 	private JCheckBox hideClustersCheckBox;
 	private JCheckBox usePaletteCheckBox;
@@ -97,6 +100,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	
 	// Shape listeners
 	private ChangeListener borderWidthListener;
+	private ChangeListener paddingAdjustListener;
 	private ChangeListener opacityListener;
 	private ActionListener hideClustersListener;
 	private ActionListener ellipseListener;
@@ -163,6 +167,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			
 			// temporarily remove listeners
 			borderWidthSlider.getSlider().removeChangeListener(borderWidthListener);
+			paddingAdjustSlider.getSlider().removeChangeListener(paddingAdjustListener);
 			opacitySlider.getSlider().removeChangeListener(opacityListener);
 			fontScaleSlider.getSlider().removeChangeListener(fontScaleListener);
 			fontSizeSlider.getSlider().removeChangeListener(fontSizeListener);
@@ -181,6 +186,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			
 			// set values
 			borderWidthSlider.setValue(displayOptions.getBorderWidth());
+			paddingAdjustSlider.setValue(displayOptions.getPaddingAdjust());
 			opacitySlider.setValue(displayOptions.getOpacity());
 			fontScaleSlider.setValue(displayOptions.getFontScale());
 			fontSizeSlider.setValue(displayOptions.getFontSize());
@@ -204,6 +210,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			
 			// add listeners back
 			borderWidthSlider.getSlider().addChangeListener(borderWidthListener);
+			paddingAdjustSlider.getSlider().addChangeListener(paddingAdjustListener);
 			opacitySlider.getSlider().addChangeListener(opacityListener);
 			fontScaleSlider.getSlider().addChangeListener(fontScaleListener);
 			fontSizeSlider.getSlider().addChangeListener(fontSizeListener);
@@ -259,12 +266,16 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private JPanel createShapePanel() {
 		JPanel panel = new JPanel();
 		
-		borderWidthSlider = new SliderWithLabel("Border Width", false, WIDTH_MIN, WIDTH_MAX, WIDTH_DEFAULT);
+		borderWidthSlider = new SliderWithLabel("Border Width", WIDTH_MIN, WIDTH_MAX, WIDTH_DEFAULT);
 		borderWidthSlider.getSlider().addChangeListener(borderWidthListener = e -> debounceSetBorderWidth());
 		borderWidthSlider.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
 		
-		opacitySlider = new SliderWithLabel("Opacity", true, OPACITY_MIN, OPACITY_MAX, OPACITY_DEFAULT);
+		opacitySlider = new SliderWithLabel("Opacity", OPACITY_MIN, OPACITY_MAX, OPACITY_DEFAULT, x -> "%" + x);
 		opacitySlider.getSlider().addChangeListener(opacityListener = e -> debounceSetOpacity());
+		opacitySlider.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
+		
+		paddingAdjustSlider = new SliderWithLabel("Padding", PADDING_ADJUST_MIN, PADDING_ADJUST_MAX, PADDING_ADJUST_DEFAULT, x -> "");
+		paddingAdjustSlider.getSlider().addChangeListener(paddingAdjustListener = e -> debounceSetPaddingAdjust());
 		
 		hideClustersCheckBox = new JCheckBox("Hide Shapes");
 		hideClustersCheckBox.addActionListener(hideClustersListener = e -> {
@@ -313,26 +324,27 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		panel.add(shapePanel,     		GBCFactory.grid(1,0).fill(NONE).gridwidth(2).get());
 		panel.add(borderWidthSlider,    GBCFactory.grid(0,1).gridwidth(3).weightx(1.0).get());
 		panel.add(opacitySlider,        GBCFactory.grid(0,2).gridwidth(3).weightx(1.0).get());
-		panel.add(fillColorLabel,       GBCFactory.grid(0,3).get());
-		panel.add(fillColorButton,      GBCFactory.grid(1,3).fill(NONE).get());
-		panel.add(usePaletteCheckBox,   GBCFactory.grid(2,3).fill(NONE).gridwidth(2).get());
-		panel.add(borderColorLabel,     GBCFactory.grid(0,4).get());
-		panel.add(borderColorButton,    GBCFactory.grid(1,4).fill(NONE).gridwidth(2).get());
-		panel.add(hideClustersCheckBox, GBCFactory.grid(0,5).gridwidth(3).weightx(1.0).get());
+		panel.add(paddingAdjustSlider,  GBCFactory.grid(0,3).gridwidth(3).weightx(1.0).get());
+		panel.add(fillColorLabel,       GBCFactory.grid(0,4).get());
+		panel.add(fillColorButton,      GBCFactory.grid(1,4).fill(NONE).get());
+		panel.add(usePaletteCheckBox,   GBCFactory.grid(2,4).fill(NONE).gridwidth(2).get());
+		panel.add(borderColorLabel,     GBCFactory.grid(0,5).get());
+		panel.add(borderColorButton,    GBCFactory.grid(1,5).fill(NONE).gridwidth(2).get());
+		panel.add(hideClustersCheckBox, GBCFactory.grid(0,6).gridwidth(3).weightx(1.0).get());
 		return panel;
 	}
 	
 
 	private JPanel createFontSizePanel() {
-		fontSizeSlider = new SliderWithLabel("Font Size", false, FONT_SIZE_MIN, FONT_SIZE_MAX, FONT_SIZE_DEFAULT);
+		fontSizeSlider = new SliderWithLabel("Font Size", FONT_SIZE_MIN, FONT_SIZE_MAX, FONT_SIZE_DEFAULT);
 		fontSizeSlider.getSlider().addChangeListener(fontSizeListener = e -> debounceSetFontSize());
 		fontSizeSlider.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
 		
-		fontScaleSlider = new SliderWithLabel("Font Scale", true, FONT_SCALE_MIN, FONT_SCALE_MAX, FONT_SCALE_DEFAULT);
+		fontScaleSlider = new SliderWithLabel("Font Scale", FONT_SCALE_MIN, FONT_SCALE_MAX, FONT_SCALE_DEFAULT, x -> "%" + x);
 		fontScaleSlider.getSlider().addChangeListener(fontScaleListener = e -> debounceSetFontScale());
 		fontScaleSlider.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
 		
-		minFontSizeSlider = new SliderWithLabel("Min Font Size", false, FONT_SIZE_MIN, FONT_SIZE_MAX, FONT_SIZE_MIN);
+		minFontSizeSlider = new SliderWithLabel("Min Font Size", FONT_SIZE_MIN, FONT_SIZE_MAX, FONT_SIZE_MIN);
 		minFontSizeSlider.getSlider().addChangeListener(minFontSizeListener = e -> debounceSetMinFontSize());
 		minFontSizeSlider.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
 		
@@ -420,63 +432,39 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		fillColorButton.setMode(usePalette ? Mode.PALETTE : Mode.SINGLE_COLOR);
 	}
 	
+	
 	private void debounceSetFontSize() {
-		int size = fontSizeSlider.getValue();
-		debouncer.debounce("size", () -> {
-			try {
-				SwingUtilities.invokeAndWait(() -> {
-					displayOptions.setFontSize(size);
-				});
-			} catch (InvocationTargetException | InterruptedException e) {
-			}
-		});
+		debounce("fontsize", fontSizeSlider::getValue, displayOptions::setFontSize);
 	}
 	
 	private void debounceSetMinFontSize() {
-		int size = minFontSizeSlider.getValue();
-		debouncer.debounce("minSize", () -> {
-			try {
-				SwingUtilities.invokeAndWait(() -> {
-					displayOptions.setMinFontSizeForScale(size);
-				});
-			} catch (InvocationTargetException | InterruptedException e) {
-			}
-		});
+		debounce("minsize", minFontSizeSlider::getValue, displayOptions::setMinFontSizeForScale);
 	}
 	
 	private void debounceSetFontScale() {
-		int scale = fontScaleSlider.getValue();
-		debouncer.debounce("scale", () -> {
-			try {
-				SwingUtilities.invokeAndWait(() -> {
-					displayOptions.setFontScale(scale);
-				});
-			} catch (InvocationTargetException | InterruptedException e) {
-			}
-		});
+		debounce("scale", fontScaleSlider::getValue, displayOptions::setFontScale);
 	}
 	
 	private void debounceSetOpacity() {
-		var opacity = opacitySlider.getValue();
-		debouncer.debounce("opacity", () -> {
-			try {
-				SwingUtilities.invokeAndWait(() -> {
-					displayOptions.setOpacity(opacity);
-				});
-			} catch (InvocationTargetException | InterruptedException e) {
-			}
-		});
+		debounce("opacity", opacitySlider::getValue, displayOptions::setOpacity);
 	}
 	
 	private void debounceSetBorderWidth() {
-		var width = borderWidthSlider.getValue();
-		debouncer.debounce("borderWidth", () -> {
+		debounce("border", borderWidthSlider::getValue, displayOptions::setBorderWidth);
+	}
+	
+	private void debounceSetPaddingAdjust() {
+		debounce("padding", paddingAdjustSlider::getValue, displayOptions::setPaddingAdjust);
+	}
+	
+	private void debounce(String key, Supplier<Integer> getValue, Consumer<Integer> setValue) {
+		int value = getValue.get();
+		debouncer.debounce(key, () -> {
 			try {
 				SwingUtilities.invokeAndWait(() -> {
-					displayOptions.setBorderWidth(width);
+					setValue.accept(value);
 				});
-			} catch (InvocationTargetException | InterruptedException e) {
-			}
+			} catch (InvocationTargetException | InterruptedException e) { }
 		});
 	}
 	

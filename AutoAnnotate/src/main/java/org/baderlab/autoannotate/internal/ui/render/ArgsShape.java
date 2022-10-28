@@ -11,7 +11,6 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.CoordinateData;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.cytoscape.model.CyNode;
-import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
@@ -110,7 +109,6 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 			selectedColor = Color.YELLOW;
 		
 		AnnotationSet annotationSet = cluster.getParent();
-		CyNetworkView view = annotationSet.getParent().getNetworkView();
 		DisplayOptions displayOptions = annotationSet.getDisplayOptions();
 		
 		ShapeType shapeType = displayOptions.getShapeType();
@@ -138,6 +136,9 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 			width += 50;
 			height += 50;
 		}
+		
+		width  += displayOptions.getPaddingAdjust();
+		height += displayOptions.getPaddingAdjust();
 		
 		// Set the position of the top-left corner of the ellipse
 		Integer xPos = (int) Math.round(centreX - width/2);
