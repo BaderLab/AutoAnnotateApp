@@ -18,6 +18,7 @@ import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 	
 	private static final int MIN_SIZE = 50; // Minimum size of the ellipse
+	private static final Color[] DEFAULT_PALETTE = new Color[] { Color.LIGHT_GRAY, Color.GRAY, Color.DARK_GRAY };
 	
 	public final ShapeType shapeType;
 	public final double borderWidth;
@@ -103,7 +104,7 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 		return "AutoAnnotate: " + name;
 	}
 
-	
+
 	public static ArgsShape createFor(Cluster cluster, boolean isSelected, Color selectedColor) {
 		if(selectedColor == null)
 			selectedColor = Color.YELLOW;
@@ -115,7 +116,16 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 		int borderWidth = displayOptions.getBorderWidth(); // * (isSelected ? 3 : 1);
 		int opacity = displayOptions.getOpacity();
 		Color borderColor = isSelected ? selectedColor : displayOptions.getBorderColor();
-		Color fillColor = displayOptions.getFillColor();
+		
+		Color fillColor;
+		if(displayOptions.isUseFillPalette()) {
+			int index = annotationSet.getClusterIndex(cluster);
+			var palette = displayOptions.getFillColorPalette();
+			Color[] colors = palette == null ? DEFAULT_PALETTE : palette.getColors();
+			fillColor = colors[index % colors.length];
+		} else {
+			fillColor = displayOptions.getFillColor();
+		}
 		
 		double zoom = 1; //view.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR);
 
@@ -137,12 +147,13 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 			height += 50;
 		}
 		
-		width  += displayOptions.getPaddingAdjust();
-		height += displayOptions.getPaddingAdjust();
+		var adjust = displayOptions.getPaddingAdjust();
+		width  += adjust;
+		height += adjust;
 		
 		// Set the position of the top-left corner of the ellipse
-		Integer xPos = (int) Math.round(centreX - width/2);
-		Integer yPos = (int) Math.round(centreY - height/2);
+		int xPos = (int) Math.round(centreX - width/2);
+		int yPos = (int) Math.round(centreY - height/2);
 		
 		// MKTODO add these as fields
 		double fillOpacity = annotationSet.getDisplayOptions().isShowClusters() ? opacity : 0;

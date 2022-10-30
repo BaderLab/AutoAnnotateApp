@@ -1,10 +1,8 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -19,7 +17,6 @@ import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.cytoscape.event.DebounceTimer;
-import org.cytoscape.util.color.Palette;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.SynchronousTaskManager;
@@ -163,14 +160,17 @@ public class AnnotationRenderer {
 			forEachCluster(as, (c,a) -> a.setShowShapes(options.isShowClusters(), options.getOpacity()));
 			break;
 		case FILL_COLOR:
-			setColors(as, options);
-			break;
+			if(!options.isUseFillPalette()) {
+				forEachCluster(as, (c,a) -> a.setFillColor(options.getFillColor()));
+				break;
+			}
+			// Fall through to use updateTaskProvider
 		case SHOW_LABELS:
 		case FONT_SCALE:
 		case FONT_SIZE:
 		case USE_CONSTANT_FONT_SIZE:
 			// when changing font size the label position must also be recalculated
-			UpdateClustersTask task = updateTaskProvider.create(as.getClusters());
+			var task = updateTaskProvider.create(as.getClusters());
 			syncTaskManager.execute(new TaskIterator(task));
 			break;
 		case USE_WORD_WRAP:
@@ -201,39 +201,39 @@ public class AnnotationRenderer {
 	}
 	
 	
-	private void setColors(AnnotationSet as, DisplayOptions options) {
-		var color = options.getFillColor();
-		var palette = options.getFillColorPalette();
-		
-		if(options.isUseFillPalette()) {
-			applyPalette(as, palette);
-		} else {
-			forEachCluster(as, (c,a) -> a.setFillColor(color));
-		}
-	}
+//	private void setColors(AnnotationSet as, DisplayOptions options) {
+//		var color = options.getFillColor();
+//		var palette = options.getFillColorPalette();
+//		
+//		if(options.isUseFillPalette()) {
+//			applyPalette(as, palette);
+//		} else {
+//			forEachCluster(as, (c,a) -> a.setFillColor(color));
+//		}
+//	}
 	
 	/*
 	 * We need to sort the clusters in some consistent way so that the colors don't change seemingly randomly.
 	 * Clusters don't have an identifier, so we will take the same approach as the cluster panel and sort by number of nodes first then label.
 	 * This sorting isn't totally stable, because the user can delete nodes and change the labels, but its good enough for now.
 	 */
-	private void applyPalette(AnnotationSet as, Palette palette) {
-		List<Cluster> clusters = new ArrayList<>(as.getClusters());
-		clusters.sort(Comparator.comparing(Cluster::getNodeCount).thenComparing(Comparator.comparing(Cluster::getLabel)));
-		
-		Color[] colors = (palette == null)
-			? new Color[] { Color.LIGHT_GRAY, Color.GRAY, Color.DARK_GRAY }
-			: palette.getColors();
-		
-		int index = 0;
-		for(var cluster : clusters) {
-			var ag = clusterAnnotations.get(cluster);
-			if(ag != null) {
-				var color = colors[index++ % colors.length];
-				ag.setFillColor(color);
-			}
-		}
-	}
+//	private void applyPalette(AnnotationSet as, Palette palette) {
+//		List<Cluster> clusters = new ArrayList<>(as.getClusters());
+//		clusters.sort(Comparator.comparing(Cluster::getNodeCount).thenComparing(Comparator.comparing(Cluster::getLabel)));
+//		
+//		Color[] colors = (palette == null)
+//			? new Color[] { Color.LIGHT_GRAY, Color.GRAY, Color.DARK_GRAY }
+//			: palette.getColors();
+//		
+//		int index = 0;
+//		for(var cluster : clusters) {
+//			var ag = clusterAnnotations.get(cluster);
+//			if(ag != null) {
+//				var color = colors[index++ % colors.length];
+//				ag.setFillColor(color);
+//			}
+//		}
+//	}
 	
 	
 	@Subscribe

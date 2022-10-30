@@ -33,8 +33,8 @@ public class DisplayOptions {
 	public static final int WIDTH_MAX = 10;
 	
 	public static final int PADDING_ADJUST_DEFAULT = 0;
-	public static final int PADDING_ADJUST_MIN = -25;
-	public static final int PADDING_ADJUST_MAX = 25;
+	public static final int PADDING_ADJUST_MIN = -30;
+	public static final int PADDING_ADJUST_MAX = 30;
 	
 	public static final int FONT_SCALE_DEFAULT = 50;
 	public static final int FONT_SCALE_MIN = 1;
