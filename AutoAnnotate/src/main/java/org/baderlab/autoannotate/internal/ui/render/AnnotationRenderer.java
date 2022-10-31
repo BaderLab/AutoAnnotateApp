@@ -168,15 +168,14 @@ public class AnnotationRenderer {
 		case SHOW_LABELS:
 		case FONT_SCALE:
 		case FONT_SIZE:
-		case USE_CONSTANT_FONT_SIZE:
-			// when changing font size the label position must also be recalculated
+		case USE_CONSTANT_FONT_SIZE: // when changing font size the label position must also be recalculated
 			var task = updateTaskProvider.create(as.getClusters());
 			syncTaskManager.execute(new TaskIterator(task));
 			break;
-		case USE_WORD_WRAP:
+		case USE_WORD_WRAP: // when changing word wrap we need to re-create the label annotation objects
 		case WORD_WRAP_LENGTH:
-		case PADDING_ADJUST:
-			// when changing word wrap we need to re-create the label annotation objects
+		case PADDING_ADJUST: // MKTODO: We might not need to do a full redraw for this.
+		case RESET:
 			redrawAnnotations(as.getParent(), Optional.of(as), true);
 			break;
 		default:
@@ -199,41 +198,6 @@ public class AnnotationRenderer {
 			}
 		}
 	}
-	
-	
-//	private void setColors(AnnotationSet as, DisplayOptions options) {
-//		var color = options.getFillColor();
-//		var palette = options.getFillColorPalette();
-//		
-//		if(options.isUseFillPalette()) {
-//			applyPalette(as, palette);
-//		} else {
-//			forEachCluster(as, (c,a) -> a.setFillColor(color));
-//		}
-//	}
-	
-	/*
-	 * We need to sort the clusters in some consistent way so that the colors don't change seemingly randomly.
-	 * Clusters don't have an identifier, so we will take the same approach as the cluster panel and sort by number of nodes first then label.
-	 * This sorting isn't totally stable, because the user can delete nodes and change the labels, but its good enough for now.
-	 */
-//	private void applyPalette(AnnotationSet as, Palette palette) {
-//		List<Cluster> clusters = new ArrayList<>(as.getClusters());
-//		clusters.sort(Comparator.comparing(Cluster::getNodeCount).thenComparing(Comparator.comparing(Cluster::getLabel)));
-//		
-//		Color[] colors = (palette == null)
-//			? new Color[] { Color.LIGHT_GRAY, Color.GRAY, Color.DARK_GRAY }
-//			: palette.getColors();
-//		
-//		int index = 0;
-//		for(var cluster : clusters) {
-//			var ag = clusterAnnotations.get(cluster);
-//			if(ag != null) {
-//				var color = colors[index++ % colors.length];
-//				ag.setFillColor(color);
-//			}
-//		}
-//	}
 	
 	
 	@Subscribe

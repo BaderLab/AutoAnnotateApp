@@ -47,31 +47,36 @@ public class DisplayOptions {
 	
 	private final AnnotationSet parent;
 	
-	private ShapeType shapeType = SHAPE_DEFAULT;
-	private boolean showClusters = SHOW_CLUSTERS_DEFAULT;
-	private boolean showLabels = SHOW_LABELS_DEFAULT;
-	private boolean useConstantFontSize = USE_CONSTANT_FONT_SIZE_DEFAULT;
-	private int	fontScale = FONT_SCALE_DEFAULT; 
-	private int minFontSizeForScale = FONT_SIZE_MIN;
-	private int opacity = OPACITY_DEFAULT;
-	private int borderWidth = WIDTH_DEFAULT;
-	private int paddingAdjust = PADDING_ADJUST_DEFAULT;
-	private int fontSize = FONT_SIZE_DEFAULT;
-	private Color fillColor = FILL_COLOR_DEFAULT;
-	private Palette fillColorPalette = FILL_COLOR_PALETTE_DEFAULT;
-	private boolean useFillPalette = USE_FILL_PALETTE_DEFAULT;
-	private Color borderColor = BORDER_COLOR_DEFAULT;
-	private Color fontColor = FONT_COLOR_DEFAULT;
-	private boolean useWordWrap = USE_WORD_WRAP_DEFAULT;
-	private int wordWrapLength = WORD_WRAP_LENGTH_DEFAULT;
+	private ShapeType shapeType;
+	private boolean showClusters;
+	private boolean showLabels;
+	private boolean useConstantFontSize;
+	private int	fontScale;
+	private int minFontSizeForScale;
+	private int opacity;
+	private int borderWidth;
+	private int paddingAdjust;
+	private int fontSize;
+	private Color fillColor;
+	private Palette fillColorPalette;
+	private boolean useFillPalette;
+	private Color borderColor;
+	private Color fontColor;
+	private boolean useWordWrap;
+	private int wordWrapLength;
 	
 	
 	DisplayOptions(AnnotationSet parent) {
 		this.parent = parent;
+		setDefaults();
 	}
 	
 	DisplayOptions(AnnotationSet parent, AnnotationSetBuilder builder) {
 		this.parent = parent;
+		initFromBuilder(builder);
+	}
+	
+	private void initFromBuilder(AnnotationSetBuilder builder) {
 		this.shapeType = builder.getShapeType();
 		this.showClusters = builder.isShowClusters();
 		this.showLabels = builder.isShowLabels();
@@ -90,6 +95,17 @@ public class DisplayOptions {
 		this.useWordWrap = builder.isUseWordWrap();
 		this.wordWrapLength = builder.getWordWrapLength();
 	}
+	
+	private void setDefaults() {
+		var defaults = new AnnotationSetBuilder(null, null, null);
+		initFromBuilder(defaults);
+	}
+	
+	public void reset() {
+		setDefaults();
+		postEvent(Option.RESET);
+	}
+	
 	
 	public AnnotationSet getParent() {
 		return parent;

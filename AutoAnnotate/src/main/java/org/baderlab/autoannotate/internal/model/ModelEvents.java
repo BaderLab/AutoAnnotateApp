@@ -185,7 +185,8 @@ public class ModelEvents {
 			BORDER_COLOR,
 			FONT_COLOR,
 			USE_WORD_WRAP,
-			WORD_WRAP_LENGTH
+			WORD_WRAP_LENGTH,
+			RESET
 		}
 		
 		private final Option option;

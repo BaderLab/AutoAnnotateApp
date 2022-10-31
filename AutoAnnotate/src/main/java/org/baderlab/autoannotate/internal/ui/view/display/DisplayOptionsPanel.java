@@ -21,10 +21,14 @@ import java.util.function.Supplier;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JToggleButton;
@@ -39,6 +43,7 @@ import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
+import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.util.ColorButton;
 import org.baderlab.autoannotate.internal.util.ColorPaletteButton;
@@ -67,6 +72,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	@Inject private IconManager iconManager;
 	@Inject private CyServiceRegistrar registrar;
  	@Inject private @Named("default") Provider<Palette> defaultPaletteProvider;
+ 	@Inject private Provider<JFrame> jframeProvider;
 	
 	private DebounceTimer debouncer = new DebounceTimer();
 	
@@ -119,6 +125,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private ActionListener wordWrapListener;
 	private ChangeListener wordWrapLengthListener;
 	
+	private JButton resetButton;
 
 	private static final String CARD_NULL = "card_null";
 	private static final String CARD_AS = "card_as";
@@ -141,14 +148,22 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	
 	@Subscribe
 	public void handle(ModelEvents.NetworkViewSetSelected event) {
-		Optional<AnnotationSet> as = event.getNetworkViewSet().flatMap(NetworkViewSet::getActiveAnnotationSet);
+		var as = event.getNetworkViewSet().flatMap(NetworkViewSet::getActiveAnnotationSet);
 		setAnnotationSet(as);
 	}
 	
 	@Subscribe
 	public void handle(ModelEvents.AnnotationSetSelected event) {
-		Optional<AnnotationSet> as = event.getAnnotationSet();
+		var as = event.getAnnotationSet();
 		setAnnotationSet(as);
+	}
+	
+	@Subscribe
+	public void handle(ModelEvents.DisplayOptionChanged event) {
+		if(event.getOption() == Option.RESET) {
+			var as = event.getDisplayOptions().getParent();
+			setAnnotationSet(Optional.of(as));
+		}
 	}
 
 	
@@ -243,9 +258,6 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	
 	
 	private JPanel createAnnotationSetPanel() {
-		JPanel panel = new JPanel(new GridBagLayout());
-		panel.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
-		
 		shapePanel = createShapePanel();
 		labelPanel = createLabelPanel();
 		
@@ -255,8 +267,28 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		shapePanel.setBorder(LookAndFeelUtil.createPanelBorder());
 		labelPanel.setBorder(LookAndFeelUtil.createPanelBorder());
 		
-		panel.add(shapePanel, GBCFactory.grid(0,0).weightx(1.0).get());
-		panel.add(labelPanel, GBCFactory.grid(0,1).get());
+		resetButton = new JButton("Reset");
+		LookAndFeelUtil.makeSmall(resetButton);
+		resetButton.addActionListener(e -> handleReset());
+		
+		JPanel panel = new JPanel(new GridBagLayout());
+		panel.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+		
+		var layout = new GroupLayout(panel);
+		panel.setLayout(layout);
+		
+		layout.setVerticalGroup(layout.createSequentialGroup()
+			.addComponent(shapePanel)
+			.addComponent(labelPanel)
+			.addGap(15)
+			.addComponent(resetButton)
+		);
+		
+		layout.setHorizontalGroup(layout.createParallelGroup()
+			.addComponent(shapePanel)
+			.addComponent(labelPanel)
+			.addComponent(resetButton, Alignment.TRAILING)
+		);
 		
 		JPanel parent = new JPanel(new BorderLayout());
 		parent.add(panel, BorderLayout.NORTH);
@@ -430,6 +462,19 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		
 		displayOptions.setFillColors(color, palette, usePalette);
 		fillColorButton.setMode(usePalette ? Mode.PALETTE : Mode.SINGLE_COLOR);
+	}
+	
+	
+	private void handleReset() {
+		int result = JOptionPane.showConfirmDialog(
+				jframeProvider.get(), 
+				"Restore display options to their default values?", 
+				"AutoAnnotate", 
+				JOptionPane.OK_CANCEL_OPTION);
+		
+		if(result == JOptionPane.OK_OPTION) {
+			displayOptions.reset();
+		}
 	}
 	
 	
