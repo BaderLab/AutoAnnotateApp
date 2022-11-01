@@ -3,7 +3,7 @@ package org.baderlab.autoannotate.internal.model;
 public enum ClusterAlgorithm {
 
 	AFFINITY_PROPAGATION("ap", "Affinity Propagation Cluster", "__APCluster"),
-	CLUSTER_FIZZIFIER("fuzzifier", "Cluster Fuzzifier", "__fuzzifierCluster"),
+//	CLUSTER_FIZZIFIER("fuzzifier", "Cluster Fuzzifier", "__fuzzifierCluster"), // https://github.com/BaderLab/AutoAnnotateApp/issues/174
 	GLAY("glay", "Community cluster (GLay)", "__glayCluster", false),
 	CONNECTED_COMPONENTS("connectedcomponents", "ConnectedComponents Cluster", "__ccCluster"),
 //	FUZZY_C_MEANS("fcml", "Fuzzy C-Means Cluster", "__fcmlCluster"),
