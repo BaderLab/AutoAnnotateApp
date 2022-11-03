@@ -1,11 +1,8 @@
 package org.baderlab.autoannotate.internal.ui.view.action;
 
 import java.awt.event.ActionEvent;
-import java.util.Optional;
 
-import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
-import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.cytoscape.application.swing.AbstractCyAction;
 
@@ -24,15 +21,14 @@ public class RedrawAction extends AbstractCyAction {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		ModelManager modelManager = managerProvider.get();
+		var modelManager = managerProvider.get();
 		
-		Optional<NetworkViewSet> nvsOpt = modelManager.getActiveNetworkViewSet();
+		var nvsOpt = modelManager.getActiveNetworkViewSet();
 		if(nvsOpt.isPresent()) {
-			NetworkViewSet nvs = nvsOpt.get();
-			Optional<AnnotationSet> asOpt = nvs.getActiveAnnotationSet();
+			var nvs = nvsOpt.get();
+			var asOpt = nvs.getActiveAnnotationSet();
 			
-			AnnotationRenderer annotationRenderer = rendererProvider.get();
-			annotationRenderer.redrawAnnotations(nvs, asOpt);
+			rendererProvider.get().redrawAnnotations(nvs, asOpt);
 		}
 	}
 

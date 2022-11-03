@@ -1,9 +1,9 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.Cluster;
@@ -22,10 +22,16 @@ public class EraseClustersTask extends AbstractTask {
 	@Inject private AnnotationManager annotationManager;
 	
 	private final Collection<Cluster> clusters;
+	private boolean eraseAll = false;
+	
 	
 	public static interface Factory {
 		EraseClustersTask create(Collection<Cluster> clusters);
 		EraseClustersTask create(Cluster cluster);
+	}
+	
+	public void setEraseAll(boolean eraseAll) {
+		this.eraseAll = eraseAll;
 	}
 	
 	@AssistedInject
@@ -43,16 +49,34 @@ public class EraseClustersTask extends AbstractTask {
 		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Removing Annotations");
 		
-		List<Annotation> allAnnotations = new ArrayList<>();
+		if(clusters.isEmpty())
+			return;
 		
-		for(Cluster cluster : clusters) {
-			AnnotationGroup annotations = annotationRenderer.removeAnnotations(cluster);
+		Set<Annotation> annotationsToRemove = new HashSet<>();
+		
+		for(var cluster : clusters) {
+			var annotations = annotationRenderer.removeAnnotations(cluster);
 			if(annotations != null) {
-				annotations.addTo(allAnnotations);
+				annotations.addTo(annotationsToRemove);
 			}
 		}
 		
-		annotationManager.removeAnnotations(allAnnotations);
+		if(eraseAll) {
+			// Sometimes "ghost" annotations are left behind, i.e. not deleted properly, due to bugs in Cytoscape.
+			// This ensures that all annotations are deleted before the clusters are redrawn.
+			
+			var netView = clusters.iterator().next().getParent().getParent().getNetworkView();
+			
+			var annotations = annotationManager.getAnnotations(netView);
+			for(var a : annotations) {
+				var name = a.getName();
+				if(name != null && name.startsWith(ArgsLabel.ANNOTATION_NAME_PREFIX)) {
+					annotationsToRemove.add(a);
+				}
+			}
+		}
+		
+		annotationManager.removeAnnotations(annotationsToRemove);
 	}
 
 }

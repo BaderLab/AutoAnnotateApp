@@ -2,6 +2,7 @@ package org.baderlab.autoannotate.internal.ui.render;
 
 import java.awt.Color;
 import java.awt.Paint;
+import java.util.Collection;
 import java.util.List;
 
 import org.cytoscape.view.presentation.annotations.Annotation;
@@ -33,7 +34,7 @@ public class AnnotationGroup {
 		return labels;
 	}
 	
-	public void addTo(List<Annotation> annotations) {
+	public void addTo(Collection<Annotation> annotations) {
 		annotations.add(shape);
 		annotations.addAll(labels);
 	}

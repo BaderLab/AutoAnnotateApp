@@ -18,6 +18,8 @@ import org.cytoscape.view.presentation.annotations.TextAnnotation;
 
 public class ArgsLabel extends ArgsBase<TextAnnotation> {
 	
+	public static final String ANNOTATION_NAME_PREFIX = "AutoAnnotate:";
+	
 	public static final String FONT_FAMILY_DEFAULT = "Arial";
 	public static final int FONT_STYLE_DEFAULT = Font.PLAIN;
 	
@@ -87,11 +89,10 @@ public class ArgsLabel extends ArgsBase<TextAnnotation> {
 	}
 	
 	private String getAnnotationName() {
-		if(index > 0 && total > 0) {
-			return "AutoAnnotate: " + name + " (" + index + "/" + total + ")";
-		} else {
-			return "AutoAnnotate: " + name;
-		}
+		if(index > 0 && total > 0)
+			return ANNOTATION_NAME_PREFIX + " " + name + " (" + index + "/" + total + ")";
+		else
+			return ANNOTATION_NAME_PREFIX + " " + name;
 	}
 	
 	public static List<ArgsLabel> createFor(ArgsShape shapeArgs, Cluster cluster, boolean isSelected, Color selectedColor) {

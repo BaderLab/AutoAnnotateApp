@@ -1,9 +1,5 @@
 package org.baderlab.autoannotate.internal.command;
 
-import java.util.Optional;
-
-import org.baderlab.autoannotate.internal.model.AnnotationSet;
-import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ContainsTunables;
@@ -21,10 +17,9 @@ public class RedrawCommandTask extends AbstractTask {
 	
 	@Override
 	public void run(TaskMonitor tm)  {
-		NetworkViewSet nvs = networkContext.getNetworkViewSet();
-		Optional<AnnotationSet> asOpt = nvs.getActiveAnnotationSet();
-		AnnotationRenderer annotationRenderer = rendererProvider.get();
-		annotationRenderer.redrawAnnotations(nvs, asOpt);
+		var nvs = networkContext.getNetworkViewSet();
+		var asOpt = nvs.getActiveAnnotationSet();
+		rendererProvider.get().redrawAnnotations(nvs, asOpt);
 	}
 	
 }

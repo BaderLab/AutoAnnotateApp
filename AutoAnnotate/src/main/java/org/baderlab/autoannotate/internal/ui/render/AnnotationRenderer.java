@@ -84,7 +84,10 @@ public class AnnotationRenderer {
 		Set<Cluster> clusters = getClusters(networkViewSet);
 		
 		TaskIterator tasks = new TaskIterator();
-		tasks.append(eraseTaskProvider.create(clusters));
+		
+		var eraseTask = eraseTaskProvider.create(clusters);
+		eraseTask.setEraseAll(true);
+		tasks.append(eraseTask);
 		
 		selectedAnnotationSet
 			.map(AnnotationSet::getClusters)
