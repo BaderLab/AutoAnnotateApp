@@ -33,8 +33,10 @@ public class SummaryNetworkCommandTask extends AbstractTask {
 		
 		var network = networkContext.getNetwork();
 		
-		var nodeAggregators = aggregatorFactory.create(network.getDefaultNodeTable());
-		var edgeAggregators = aggregatorFactory.create(network.getDefaultEdgeTable());
+		var annotationSet = networkContext.getNetworkViewSet().getActiveAnnotationSet().orElse(null);
+		
+		var nodeAggregators = aggregatorFactory.create(network.getDefaultNodeTable(), annotationSet);
+		var edgeAggregators = aggregatorFactory.create(network.getDefaultEdgeTable(), annotationSet);
 		
 		var task = summaryTaskFactory.create(clusters, nodeAggregators, edgeAggregators, includeUnclustered);
 		insertTasksAfterCurrentTask(task);

@@ -33,11 +33,9 @@ public enum AggregatorOperator {
 	DEFAULT("(no override)"),
 	
 	// These are custom to AutoAnnotate...
-	GS_SIZE("Union Gene Set Size")
+	GS_SIZE("Size of Unioned Geneset"),
 	
-	;
-	
-	
+	CLUSTER_LABEL("Cluster Label");
 	
 
 	private final String label;

@@ -3,34 +3,33 @@ package org.baderlab.autoannotate.internal.data.aggregators;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyTable;
 
 public class GSSizeAggregator extends AbstractAggregator<Integer> {
 
-	static AggregatorOperator[] supportedTypes = {
-		AggregatorOperator.GS_SIZE,
-		AggregatorOperator.NONE,
-		AggregatorOperator.AVG,
-		AggregatorOperator.MIN,
-		AggregatorOperator.MAX,
-		AggregatorOperator.MEDIAN,
-		AggregatorOperator.SUM
-	};
+	static AggregatorOperator[] supportedTypes = 
+			ArrayUtils.addAll(IntegerAggregator.supportedTypes, AggregatorOperator.GS_SIZE);
 	
 	private final String gsColName;
 	
-	public GSSizeAggregator(String gsColName) {
-		super(AggregatorOperator.GS_SIZE);
+	
+	public GSSizeAggregator(AggregatorOperator op, String gsColName) {
+		super(op);
 		this.gsColName = gsColName;
 	}
+	
+	public GSSizeAggregator(String gsColName) {
+		this(AggregatorOperator.GS_SIZE, gsColName);
+	}
+	
 
 	@Override
 	public AggregatorOperator[] getAggregatorOperators() {
 		return supportedTypes;
 	}
-
 	
 	@Override
 	public Integer aggregate(CyTable table, Collection<? extends CyIdentifiable> group, CyColumn column) {

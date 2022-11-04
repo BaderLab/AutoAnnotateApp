@@ -1,7 +1,6 @@
 package org.baderlab.autoannotate.internal.ui.view.summary;
 
 import java.awt.Dimension;
-import java.util.Collections;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -11,51 +10,36 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
-import org.baderlab.autoannotate.internal.model.AnnotationSet;
-import org.baderlab.autoannotate.internal.model.ModelManager;
-import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.SummaryNetworkTask;
 import org.cytoscape.util.swing.LookAndFeelUtil;
-import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.swing.DialogTaskManager;
 
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
 @SuppressWarnings("serial")
 public class SummaryNetworkDialog extends JDialog {
 
-	@Inject private Provider<ModelManager> modelManagerProvider;
 	@Inject private AttributeAggregationPanel.Factory attrPanelFactory;
 	@Inject private SummaryNetworkTask.Factory summaryNetworkTaskFactory;
 	@Inject private DialogTaskManager dialogTaskManager;
 	
-	private final CyNetworkView networkView;
 	private final SummaryNetworkDialogSettings settings;
 	
 	private JCheckBox includeUnclusteredCheckBox;
 	
 	
 	public static interface Factory {
-		SummaryNetworkDialog create(
-			CyNetworkView networkView, 
-			SummaryNetworkDialogSettings settings
-		);
+		SummaryNetworkDialog create(SummaryNetworkDialogSettings settings);
 	}
 	
 	
 	@Inject
-	public SummaryNetworkDialog(
-			@Assisted CyNetworkView networkView, 
-			@Assisted SummaryNetworkDialogSettings settings, 
-			JFrame jFrame
-	) {
+	public SummaryNetworkDialog(@Assisted SummaryNetworkDialogSettings settings, JFrame jFrame) {
 		super(jFrame, true);
 		setTitle("AutoAnnotate: Create Summary Network");
 		
-		this.networkView = networkView;
 		this.settings = settings;
 		
 		setMinimumSize(new Dimension(700, 500));
@@ -114,19 +98,15 @@ public class SummaryNetworkDialog extends JDialog {
 	
 	
 	private void createSummaryNetwork() {
-		var clusters = modelManagerProvider.get()
-			.getExistingNetworkViewSet(networkView)
-			.flatMap(NetworkViewSet::getActiveAnnotationSet)
-			.map(AnnotationSet::getClusters)
-			.orElse(Collections.emptySet());
-		
-		if(clusters.isEmpty())
-			return;
+		var annotationSet = settings.getAnnotationSet();
 		
 		boolean includeUnclustered = includeUnclusteredCheckBox.isSelected();
 		
 		var task = summaryNetworkTaskFactory.create(
-				clusters, settings.getNodeAggregators(), settings.getEdgeAggregators(), includeUnclustered);
+				annotationSet.getClusters(), 
+				settings.getNodeAggregators(), 
+				settings.getEdgeAggregators(), 
+				includeUnclustered);
 		
 		dialogTaskManager.execute(new TaskIterator(task));
 		dispose();

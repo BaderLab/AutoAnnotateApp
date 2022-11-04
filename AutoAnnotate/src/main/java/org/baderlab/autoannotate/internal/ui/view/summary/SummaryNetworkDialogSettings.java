@@ -1,6 +1,7 @@
 package org.baderlab.autoannotate.internal.ui.view.summary;
 
 import org.baderlab.autoannotate.internal.data.aggregators.AggregatorSet;
+import org.baderlab.autoannotate.internal.model.AnnotationSet;
 
 public class SummaryNetworkDialogSettings {
 
@@ -8,10 +9,12 @@ public class SummaryNetworkDialogSettings {
 	
 	private final AggregatorSet nodeAggregators;
 	private final AggregatorSet edgeAggregators;
+	private final AnnotationSet annotationSet;
 	
-	public SummaryNetworkDialogSettings(AggregatorSet nodeAggregators, AggregatorSet edgeAggregators) {
+	public SummaryNetworkDialogSettings(AggregatorSet nodeAggregators, AggregatorSet edgeAggregators, AnnotationSet annotationSet) {
 		this.nodeAggregators = nodeAggregators;
 		this.edgeAggregators = edgeAggregators;
+		this.annotationSet = annotationSet;
 	}
 
 	public boolean isIncludeUnclustered() {
@@ -30,5 +33,8 @@ public class SummaryNetworkDialogSettings {
 		return edgeAggregators;
 	}
 	
+	public AnnotationSet getAnnotationSet() {
+		return annotationSet;
+	}
 	
 }

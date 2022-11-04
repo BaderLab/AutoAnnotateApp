@@ -9,6 +9,8 @@ import javax.swing.JOptionPane;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.data.aggregators.AggregatorSetFactory;
+import org.baderlab.autoannotate.internal.model.ModelManager;
+import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.view.summary.SummaryNetworkDialog;
 import org.baderlab.autoannotate.internal.ui.view.summary.SummaryNetworkDialogSettings;
 import org.cytoscape.application.CyApplicationManager;
@@ -27,6 +29,7 @@ public class SummaryNetworkAction extends ClusterAction {
 	@Inject private Provider<JFrame> jFrameProvider;
 	@Inject private SummaryNetworkDialog.Factory summaryDialogFactory;
 	@Inject private AggregatorSetFactory aggregatorFactory;
+	@Inject private Provider<ModelManager> modelManagerProvider;
 	
 	private final Map<Long,SummaryNetworkDialogSettings> dialogSettingsMap = new HashMap<>();
 	
@@ -47,13 +50,18 @@ public class SummaryNetworkAction extends ClusterAction {
 		
 		var net = networkView.getModel();
 		
+		var annotationSet = modelManagerProvider.get()
+			.getExistingNetworkViewSet(networkView)
+			.flatMap(NetworkViewSet::getActiveAnnotationSet)
+			.orElse(null);
+		
 		var settings = dialogSettingsMap.computeIfAbsent(net.getSUID(), k -> {
-			var nodeAggs = aggregatorFactory.create(net.getDefaultNodeTable());
-			var edgeAggs = aggregatorFactory.create(net.getDefaultEdgeTable());
-			return new SummaryNetworkDialogSettings(nodeAggs, edgeAggs);
+			var nodeAggs = aggregatorFactory.create(net.getDefaultNodeTable(), annotationSet);
+			var edgeAggs = aggregatorFactory.create(net.getDefaultEdgeTable(), annotationSet);
+			return new SummaryNetworkDialogSettings(nodeAggs, edgeAggs, annotationSet);
 		});
 		
-		var dialog = summaryDialogFactory.create(networkView, settings);
+		var dialog = summaryDialogFactory.create(settings);
 		dialog.setModal(true);
 		dialog.setVisible(true);
 	}
