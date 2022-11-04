@@ -17,56 +17,91 @@ public class AggregatorSetFactory {
 	
 	
 	public AggregatorSet create(CyTable table) {
-		var aggregators = new HashMap<String,AbstractAggregator<?>>();
+		var aggregators = new HashMap<String,AttributeAggregator<?>>();
 		for(var col : table.getColumns()) {
 			var aggregator = getAggregator(col);
-			aggregators.put(col.getName(), aggregator);
+			if(aggregator != null) {
+				aggregators.put(col.getName(), aggregator);
+			}
 		}
 		return new AggregatorSet(table, aggregators);
 	}
 	
 	
-	private AbstractAggregator<?> getAggregator(CyColumn column) {
-		// Special handling for certain columns
-		if ("EnrichmentMap::Dataset_Chart".equals(column.getName()))
-			return new IntegerListAggregator(AttributeHandlingType.MAX);
-		if(CyEdge.INTERACTION.equals(column.getName()))
-			return new StringAggregator(AttributeHandlingType.UNIQUE);
-
+	private AttributeAggregator<?> getAggregator(CyColumn column) {
+		AttributeAggregator<?> special = getSpecialAggregator(column);
+		if(special != null)
+			return special;
+		
 		Aggregator<?> aggregator = getGroupSettingsAggregator(column);
 		if (aggregator == null)
 			return null;
 
-		AttributeHandlingType type = getAttributeHandlingType(aggregator);
-		if (type == null)
+		AggregatorOperator op = getAttributeHandlingType(aggregator);
+		if (op == null)
 			return null;
 
-		String name = aggregator.getClass().getSimpleName();
-
-		if ("IntegerAggregator".equals(name)) {
-			return new IntegerAggregator(type);
-		} else if ("LongAggregator".equals(name)) {
-			return new LongAggregator(type);
-		} else if ("BooleanAggregator".equals(name)) {
-			return new BooleanAggregator(type);
-		} else if ("DoubleAggregator".equals(name)) {
-			return new DoubleAggregator(type);
-		} else if ("StringAggregator".equals(name)) {
-			return new StringAggregator(type);
-		} else if ("NoneAggregator".equals(name)) {
-			return new NoneAggregator(type);
-		} else if ("IntegerListAggregator".equals(name)) {
-			return new IntegerListAggregator(type);
-		} else if ("LongListAggregator".equals(name)) {
-			return new LongListAggregator(type);
-		} else if ("DoubleListAggregator".equals(name)) {
-			return new DoubleListAggregator(type);
-		} else if ("StringListAggregator".equals(name)) {
-			return new StringListAggregator(type);
-		} else if ("ListAggregator".equals(name)) {
-			return new ListAggregator(type);
+		switch(aggregator.getClass().getSimpleName()) {
+			case "IntegerAggregator":
+				return new IntegerAggregator(op);
+			case "LongAggregator":
+				return new LongAggregator(op);
+			case "BooleanAggregator":
+				return new BooleanAggregator(op);
+			case "DoubleAggregator":
+				return new DoubleAggregator(op);
+			case "StringAggregator":
+				return new StringAggregator(op);
+			case "NoneAggregator":
+				return new NoneAggregator(op);
+			case "IntegerListAggregator":
+				return new IntegerListAggregator(op);
+			case "LongListAggregator":
+				return new LongListAggregator(op);
+			case "DoubleListAggregator":
+				return new DoubleListAggregator(op);
+			case "StringListAggregator":
+				return new StringListAggregator(op);
+			case "ListAggregator":
+				return new ListAggregator(op);
+			default:
+				return null;
 		}
-
+	}
+	
+	private AttributeAggregator<?> getSpecialAggregator(CyColumn column) {
+		var name = column.getName();
+		if(name == null)
+			return null;
+		
+		if(name.equals(CyEdge.INTERACTION))
+			return new StringAggregator(AggregatorOperator.UNIQUE);
+		
+		if(name.equals("EnrichmentMap::Dataset_Chart"))
+			return new IntegerListAggregator(AggregatorOperator.MAX);
+		
+		if(name.equals("EnrichmentMap::GS_Type"))
+			return new StringAggregator(AggregatorOperator.UNIQUE);
+		
+		if(name.equals("EnrichmentMap::Genes"))
+			return new StringListAggregator(AggregatorOperator.UNIQUE);
+		
+		if(name.startsWith("EnrichmentMap::pvalue"))
+			return new DoubleAggregator(AggregatorOperator.MIN);
+		
+		if(name.startsWith("EnrichmentMap::fdr_qvalue"))
+			return new DoubleAggregator(AggregatorOperator.MIN);
+		
+		if(name.startsWith("EnrichmentMap::fwer_qvalue"))
+			return new DoubleAggregator(AggregatorOperator.MIN);
+		
+		// This also needs to be done for edge Overlap_size
+		if(name.equals("EnrichmentMap::gs_size"))
+			return new GSSizeAggregator("EnrichmentMap::Genes");
+		
+		// TODO Name should be the cluster label
+		// TODO ES, NES, And Colouring should be max if red, min if blue
+		
 		return null;
 	}
 	
@@ -77,10 +112,13 @@ public class AggregatorSetFactory {
 			: groupSettingsManager.getDefaultListAggregation(listElementType);
 	}
 
-	public static AttributeHandlingType getAttributeHandlingType(Aggregator<?> aggregator) {
+	public static AggregatorOperator getAttributeHandlingType(Aggregator<?> aggregator) {
 		for (AttributeHandlingType type : AttributeHandlingType.values()) {
 			if (type.toString().equals(aggregator.toString())) {
-				return type;
+				var op = AggregatorOperator.valueOf(type.name());
+				if(op != null) {
+					return op;
+				}
 			}
 		}
 		return null;

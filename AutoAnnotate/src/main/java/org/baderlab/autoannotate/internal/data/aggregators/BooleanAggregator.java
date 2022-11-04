@@ -2,34 +2,30 @@ package org.baderlab.autoannotate.internal.data.aggregators;
 
 import java.util.Collection;
 
-import org.cytoscape.group.data.AttributeHandlingType;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyTable;
 
 public class BooleanAggregator extends AbstractAggregator<Boolean> {
 	
-	static AttributeHandlingType[] supportedTypes = { 
-			AttributeHandlingType.NONE, 
-			AttributeHandlingType.AND,
-			AttributeHandlingType.OR };
+	static AggregatorOperator[] supportedTypes = { 
+		AggregatorOperator.NONE, 
+		AggregatorOperator.AND,
+		AggregatorOperator.OR 
+	};
 
-	public BooleanAggregator(AttributeHandlingType type) {
-		this.type = type;
-	}
-
-	public Class getSupportedType() {
-		return Boolean.class;
+	public BooleanAggregator(AggregatorOperator op) {
+		super(op);
 	}
 
 	@Override
-	public AttributeHandlingType[] getAttributeHandlingTypes() {
+	public AggregatorOperator[] getAggregatorOperators() {
 		return supportedTypes;
 	}
 	
 	@Override
 	public Boolean aggregate(CyTable table, Collection<? extends CyIdentifiable> eles, CyColumn column) {
-		if (type == AttributeHandlingType.NONE)
+		if (op == AggregatorOperator.NONE)
 			return null;
 
 		// Initialization
@@ -48,7 +44,7 @@ public class BooleanAggregator extends AbstractAggregator<Boolean> {
 				continue;
 			}
 
-			switch (type) {
+			switch (op) {
 			case AND:
 				aggregation = aggregation & value;
 				break;

@@ -1,27 +1,22 @@
 package org.baderlab.autoannotate.internal.data.aggregators;
 
-import java.util.Collection;
+public abstract class AbstractAggregator<T> implements AttributeAggregator<T> {
 
-import org.cytoscape.group.data.AttributeHandlingType;
-import org.cytoscape.model.CyColumn;
-import org.cytoscape.model.CyIdentifiable;
-import org.cytoscape.model.CyTable;
-
-public abstract class AbstractAggregator<T> {
+	protected AggregatorOperator op;
 	
-	protected AttributeHandlingType type;
-	
-
-	public void setAttributeHandlingType(AttributeHandlingType type) {
-		this.type = type;
+	public AbstractAggregator(AggregatorOperator op) {
+		this.op = op;
 	}
 
-	public AttributeHandlingType getAttributeHandlingType() {
-		return type;
+	
+	@Override
+	public void setOperator(AggregatorOperator op) {
+		this.op = op;
 	}
 
-	abstract public T aggregate(CyTable table, Collection<? extends CyIdentifiable> group, CyColumn column);
-	
-	abstract public AttributeHandlingType[] getAttributeHandlingTypes();
+	@Override
+	public AggregatorOperator getOperator() {
+		return op;
+	}
 
 }

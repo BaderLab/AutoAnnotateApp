@@ -3,16 +3,15 @@ package org.baderlab.autoannotate.internal.data.aggregators;
 import java.util.Collection;
 import java.util.Map;
 
-import org.cytoscape.group.data.AttributeHandlingType;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyTable;
 
 public class AggregatorSet {
 	
 	private final CyTable table;
-	private final Map<String,AbstractAggregator<?>> aggregators;
+	private final Map<String,AttributeAggregator<?>> aggregators;
 	
-	AggregatorSet(CyTable table, Map<String,AbstractAggregator<?>> aggregators) {
+	AggregatorSet(CyTable table, Map<String,AttributeAggregator<?>> aggregators) {
 		this.table = table;
 		this.aggregators = aggregators;
 	}
@@ -28,24 +27,24 @@ public class AggregatorSet {
 		return table;
 	}
 
-	public AttributeHandlingType[] getSupportedHandlers(String columnName) {
+	public AggregatorOperator[] getAggregatorOperators(String columnName) {
 		var aggregator = aggregators.get(columnName);
 		if(aggregator == null)
 			return null;
-		return aggregator.getAttributeHandlingTypes();
+		return aggregator.getAggregatorOperators();
 	}
 	
-	public AttributeHandlingType getHandler(String columnName) {
+	public AggregatorOperator getOperator(String columnName) {
 		var aggregator = aggregators.get(columnName);
 		if(aggregator == null)
 			return null;
-		return aggregator.getAttributeHandlingType();
+		return aggregator.getOperator();
 	}
 
-	public void setHandler(String name, AttributeHandlingType handler) {
+	public void setOperator(String name, AggregatorOperator op) {
 		var aggregator = aggregators.get(name);
 		if(aggregator == null)
 			return;
-		aggregator.setAttributeHandlingType(handler);
+		aggregator.setOperator(op);
 	}
 }

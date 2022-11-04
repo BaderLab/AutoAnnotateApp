@@ -11,11 +11,11 @@ import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
+import org.baderlab.autoannotate.internal.data.aggregators.AggregatorOperator;
 import org.baderlab.autoannotate.internal.data.aggregators.AggregatorSet;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.swing.CyColumnPresentationManager;
-import org.cytoscape.group.data.AttributeHandlingType;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 
@@ -87,17 +87,17 @@ public class AttributeAggregationPanel extends JPanel {
 		return new JLabel(attr.getType().getSimpleName());
 	}
 	
-	private JComboBox<AttributeHandlingType> createAggregateCombo(CyColumn attr) {
+	private JComboBox<AggregatorOperator> createAggregateCombo(CyColumn attr) {
 		var name = attr.getName();
-		var handlers = aggregators.getSupportedHandlers(name);
-		var selected = aggregators.getHandler(name);
+		var handlers = aggregators.getAggregatorOperators(name);
+		var selected = aggregators.getOperator(name);
 		
 		var combo = new JComboBox<>(handlers);
 		combo.setSelectedItem(selected);
 		
 		combo.addActionListener(e -> {
 			var handler = combo.getItemAt(combo.getSelectedIndex());
-			aggregators.setHandler(name, handler);
+			aggregators.setOperator(name, handler);
 		});
 		
 		return combo;
