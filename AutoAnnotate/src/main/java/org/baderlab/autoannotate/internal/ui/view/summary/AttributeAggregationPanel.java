@@ -1,7 +1,12 @@
 package org.baderlab.autoannotate.internal.ui.view.summary;
 
+import static org.baderlab.autoannotate.internal.util.GBCFactory.grid;
+
 import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
@@ -13,7 +18,6 @@ import javax.swing.ScrollPaneConstants;
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.data.aggregators.AggregatorOperator;
 import org.baderlab.autoannotate.internal.data.aggregators.AggregatorSet;
-import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.swing.CyColumnPresentationManager;
 import org.cytoscape.model.CyColumn;
@@ -57,20 +61,41 @@ public class AttributeAggregationPanel extends JPanel {
 		add(scrollPane, BorderLayout.CENTER);
 		
 		int row = 0;
-		for(var attr : aggregators.getTable().getColumns()) {
-			if(CyNetwork.SUID.equals(attr.getName()))
-				continue;
+		var columns = aggregators.getTable().getColumns();
+		columns = sortAndFilter(columns);
+		
+		for(var col : columns) {
+			var nameLabel = createAttrLabel(col);
+			var typeLabel = createTypeLabel(col);
+			var aggCombo  = createAggregateCombo(col);
 			
-			var nameLabel = createAttrLabel(attr);
-			var typeLabel = createTypeLabel(attr);
-			var aggCombo  = createAggregateCombo(attr);
-			
-			panel.add(nameLabel, GBCFactory.grid(0,row).weightx(1.0).get());
-			panel.add(typeLabel, GBCFactory.grid(1,row).get());
-			panel.add(aggCombo,  GBCFactory.grid(2,row).get());
+			panel.add(nameLabel, grid(0,row).weightx(1.0).get());
+			panel.add(typeLabel, grid(1,row).get());
+			panel.add(aggCombo,  grid(2,row).get());
 			row++;
 		}
 	}
+	
+	
+	private static Collection<CyColumn> sortAndFilter(Collection<CyColumn> columns) {
+		Set<CyColumn> sorted = new LinkedHashSet<>(); // Maintains insertion order
+		
+		// EM columns first
+		for(var col : columns) {
+			if("EnrichmentMap".equals(col.getNamespace())) {
+				sorted.add(col);
+			}
+		}
+		
+		for(var col : columns) {
+			if(CyNetwork.SUID.equals(col.getName()))
+				continue;
+			sorted.add(col); // duplicates ignored
+		}
+		
+		return sorted;
+	}
+	
 	
 	private JLabel createAttrLabel(CyColumn attr) {
 		var fullName = attr.getName();
