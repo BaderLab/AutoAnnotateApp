@@ -35,10 +35,8 @@ public class ClusterLabelAggregator extends AbstractAggregator<String> {
 
 	@Override
 	public String aggregate(CyTable table, Collection<? extends CyIdentifiable> group, CyColumn column) {
-		if(op != AggregatorOperator.CLUSTER_LABEL) {
-			var delegate = new StringAggregator(op);
-			return delegate.aggregate(table, group, column);
-		}
+		if(op != AggregatorOperator.CLUSTER_LABEL)
+			return new StringAggregator(op).aggregate(table, group, column);
 		
 		if(group.isEmpty())
 			return null;

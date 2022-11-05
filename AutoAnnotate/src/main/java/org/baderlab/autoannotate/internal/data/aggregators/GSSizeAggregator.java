@@ -33,10 +33,8 @@ public class GSSizeAggregator extends AbstractAggregator<Integer> {
 	
 	@Override
 	public Integer aggregate(CyTable table, Collection<? extends CyIdentifiable> group, CyColumn column) {
-		if(op != AggregatorOperator.GS_SIZE) {
-			var delegate = new IntegerAggregator(op);
-			return delegate.aggregate(table, group, column);
-		}
+		if(op != AggregatorOperator.GS_SIZE)
+			return new IntegerAggregator(op).aggregate(table, group, column);
 		
 		CyColumn gsCol = table.getColumn(gsColName);
 		if(gsCol == null)

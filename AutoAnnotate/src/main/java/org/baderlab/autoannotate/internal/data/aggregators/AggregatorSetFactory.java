@@ -63,8 +63,6 @@ public class AggregatorSetFactory {
 	
 	private AttributeAggregator<?> getSpecialAggregator(CyColumn column, AnnotationSet as) {
 		var name = column.getName();
-		if(name == null)
-			return null;
 		
 		// Node table columns
 		if(name.equals("EnrichmentMap::Dataset_Chart"))
@@ -83,16 +81,18 @@ public class AggregatorSetFactory {
 			return new GSSizeAggregator("EnrichmentMap::Genes");
 		if(name.equals("EnrichmentMap::GS_DESCR"))
 			return new ClusterLabelAggregator(as);
+		if(name.startsWith("EnrichmentMap::ES"))
+			return new DoubleMagnitudeAggregator();
+		if(name.startsWith("EnrichmentMap::NES"))
+			return new DoubleMagnitudeAggregator();
+		if(name.startsWith("EnrichmentMap::Colouring"))
+			return new DoubleMagnitudeAggregator();
 		
 		// Edge table columns
 		if(name.equals(CyEdge.INTERACTION))
 			return new StringAggregator(AggregatorOperator.UNIQUE);
 		if(name.equals("EnrichmentMap::Overlap_size"))
 			return new GSSizeAggregator("EnrichmentMap::Overlap_genes");
-		
-		
-		// TODO Name should be the cluster label
-		// TODO ES, NES, And Colouring should be max if red, min if blue
 		
 		return null;
 	}

@@ -34,7 +34,7 @@ public enum AggregatorOperator {
 	
 	// These are custom to AutoAnnotate...
 	GS_SIZE("Size of Unioned Geneset"),
-	
+	MAGNITUDE("Greatest Magnitude"),
 	CLUSTER_LABEL("Cluster Label");
 	
 
