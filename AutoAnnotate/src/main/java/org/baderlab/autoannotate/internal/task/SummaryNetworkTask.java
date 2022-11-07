@@ -33,7 +33,6 @@ import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.view.model.View;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.view.vizmap.VisualMappingManager;
-import org.cytoscape.view.vizmap.VisualStyle;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskMonitor;
@@ -241,7 +240,7 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 		if(cancelled)
 			return;
 		
-		// apply visual style
+//		// apply visual style
 		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": apply visual style");
 		applyVisualStyle(annotationSet.getParent().getNetworkView(), summaryNetworkView, summaryNetwork);
 		if(cancelled)
@@ -443,21 +442,9 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 	}
 	
 	private void applyVisualStyle(CyNetworkView originNetworkView, CyNetworkView summaryNetworkView, SummaryNetwork summaryNetwork) {
-		VisualStyle vs = visualMappingManager.getVisualStyle(originNetworkView);
-		
-		for(View<CyNode> nodeView : summaryNetworkView.getNodeViews()) {
-			// Label
-			String name = summaryNetworkView.getModel().getRow(nodeView.getModel()).get("name", String.class);
-			nodeView.setLockedValue(BasicVisualLexicon.NODE_LABEL, name);
-			
-			// Node size
-//			CyNode node = nodeView.getModel();
-//			SummaryCluster cluster = summaryNetwork.getClusterFor(node);
-//			int numNodes = cluster.getNodes().size();
-			nodeView.setLockedValue(BasicVisualLexicon.NODE_SIZE, 100.0);
-		}
-		
-		visualMappingManager.setVisualStyle(vs, summaryNetworkView);
+		// Apply the same style as the origin network.
+		var style = visualMappingManager.getVisualStyle(originNetworkView);
+		visualMappingManager.setVisualStyle(style, summaryNetworkView);
 	}
 
 
