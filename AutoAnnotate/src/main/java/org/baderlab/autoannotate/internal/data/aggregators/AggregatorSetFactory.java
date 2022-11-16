@@ -20,18 +20,30 @@ public class AggregatorSetFactory {
 	
 	
 	public AggregatorSet create(CyTable table, @Nullable AnnotationSet as) {
+		return create(table, as, null);
+	}
+	
+	public AggregatorSet create(CyTable table, @Nullable AnnotationSet as, @Nullable AggregatorSet prevSet) {
 		var aggregators = new HashMap<String,AttributeAggregator<?>>();
+		
 		for(var col : table.getColumns()) {
-			var aggregator = getAggregator(col, as);
+			var name = col.getName();
+			var aggregator = prevSet == null ? null : prevSet.getAggregator(name);
+			
+			if(aggregator == null) {
+				aggregator = createAggregator(col, as);
+			}
+			
 			if(aggregator != null) {
-				aggregators.put(col.getName(), aggregator);
+				aggregators.put(name, aggregator);
 			}
 		}
+		
 		return new AggregatorSet(table, aggregators);
 	}
 	
 	
-	private AttributeAggregator<?> getAggregator(CyColumn column, AnnotationSet as) {
+	private AttributeAggregator<?> createAggregator(CyColumn column, AnnotationSet as) {
 		AttributeAggregator<?> special = getSpecialAggregator(column, as);
 		if(special != null)
 			return special;

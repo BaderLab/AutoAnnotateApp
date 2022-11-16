@@ -50,6 +50,7 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 	@Inject private CyNetworkViewFactory networkViewFactory;
 	@Inject private CyNetworkViewManager networkViewManager;
 	@Inject private VisualMappingManager visualMappingManager;
+	@Inject private RunEMAssociateTaskFactory.Factory associateTaskFactoryFactory;
 	
 	private final AnnotationSet annotationSet;
 	private final Collection<Cluster> clusters;
@@ -252,6 +253,11 @@ public class SummaryNetworkTask extends AbstractTask implements ObservableTask {
 		networkManager.addNetwork(summaryNetwork.network);
 		networkViewManager.addNetworkView(summaryNetworkView);
 		summaryNetworkView.fitContent();
+		
+		var atf = associateTaskFactoryFactory.create(originNetwork, summaryNetwork.network);
+		if(atf != null) {
+			insertTasksAfterCurrentTask(atf.createTaskIterator());
+		}
 		
 		taskMonitor.setStatusMessage(SummaryNetworkAction.TITLE + ": done");
 		resultNetwork = summaryNetwork.network;

@@ -4,16 +4,19 @@ import java.awt.event.ActionEvent;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.data.aggregators.AggregatorSetFactory;
+import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.view.summary.SummaryNetworkDialog;
 import org.baderlab.autoannotate.internal.ui.view.summary.SummaryNetworkDialogSettings;
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.model.CyNetwork;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -50,20 +53,34 @@ public class SummaryNetworkAction extends ClusterAction {
 		
 		var net = networkView.getModel();
 		
-		var annotationSet = modelManagerProvider.get()
+		var as = modelManagerProvider.get()
 			.getExistingNetworkViewSet(networkView)
 			.flatMap(NetworkViewSet::getActiveAnnotationSet)
 			.orElse(null);
 		
-		var settings = dialogSettingsMap.computeIfAbsent(net.getSUID(), k -> {
-			var nodeAggs = aggregatorFactory.create(net.getDefaultNodeTable(), annotationSet);
-			var edgeAggs = aggregatorFactory.create(net.getDefaultEdgeTable(), annotationSet);
-			return new SummaryNetworkDialogSettings(nodeAggs, edgeAggs, annotationSet);
-		});
+		var settings = getSettings(net, as);
 		
 		var dialog = summaryDialogFactory.create(settings);
 		dialog.setModal(true);
 		dialog.setVisible(true);
 	}
 
+	
+	private SummaryNetworkDialogSettings getSettings(CyNetwork net, @Nullable AnnotationSet as) {
+		var settings = dialogSettingsMap.get(net.getSUID());
+		
+		if(settings == null) {
+			var nodeAggs = aggregatorFactory.create(net.getDefaultNodeTable(), as);
+			var edgeAggs = aggregatorFactory.create(net.getDefaultEdgeTable(), as);
+			settings = new SummaryNetworkDialogSettings(nodeAggs, edgeAggs, as);
+		} else {
+			var nodeAggs = aggregatorFactory.create(net.getDefaultNodeTable(), as, settings.getNodeAggregators());
+			var edgeAggs = aggregatorFactory.create(net.getDefaultEdgeTable(), as, settings.getEdgeAggregators());
+			settings = new SummaryNetworkDialogSettings(nodeAggs, edgeAggs, as, settings.isIncludeUnclustered());
+		}
+		
+		dialogSettingsMap.put(net.getSUID(), settings);
+		
+		return settings;
+	}
 }

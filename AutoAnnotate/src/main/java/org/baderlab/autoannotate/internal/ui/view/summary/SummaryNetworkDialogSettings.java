@@ -12,9 +12,14 @@ public class SummaryNetworkDialogSettings {
 	private final AnnotationSet annotationSet;
 	
 	public SummaryNetworkDialogSettings(AggregatorSet nodeAggregators, AggregatorSet edgeAggregators, AnnotationSet annotationSet) {
+		this(nodeAggregators, edgeAggregators, annotationSet, true);
+	}
+	
+	public SummaryNetworkDialogSettings(AggregatorSet nodeAggregators, AggregatorSet edgeAggregators, AnnotationSet annotationSet, boolean includeUnclustered) {
 		this.nodeAggregators = nodeAggregators;
 		this.edgeAggregators = edgeAggregators;
 		this.annotationSet = annotationSet;
+		this.includeUnclustered = includeUnclustered;
 	}
 
 	public boolean isIncludeUnclustered() {

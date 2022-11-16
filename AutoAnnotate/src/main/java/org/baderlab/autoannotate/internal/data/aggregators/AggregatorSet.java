@@ -47,4 +47,9 @@ public class AggregatorSet {
 			return;
 		aggregator.setOperator(op);
 	}
+	
+	public AttributeAggregator<?> getAggregator(String colName) {
+		return aggregators.get(colName);
+	}
+	
 }
