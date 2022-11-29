@@ -44,7 +44,7 @@ Layout network to prevent cluster overlap
 Label Column
   Column used to generate the labels.
 
-.. note:: Quick start uses clusterMaker2 MCL algorithm, with the "Adjacent Words" label option.
+.. note:: Quick start uses the clusterMaker2 MCL algorithm, with the "Adjacent Words" label option.
 
 
 Advanced
@@ -136,60 +136,12 @@ The following clusterMaker2 algorithms are made available through AutoAnnotate:
 Algorithm                     Weighted?
 ============================= =========
 Affinity Propagation Cluster  Yes
-Cluster Fuzzifier             Yes
 Community cluster (GLay)      No
 ConnectedComponents Cluster   Yes
-Fuzzy C-Means Cluster         Yes
 MCL Cluster                   Yes
 SCPS Cluster                  Yes
 ============================= =========
 
 Weighted algorithms require an edge attribute to be used as the edge weight. 
-
-
-Using an External Clustering Algorithm
---------------------------------------
-
-AutoAnnotate allows clusters to be defined using any node attribute via the **User-defined clusters**
-option on the Advanced panel. This allows clustering algorithms provided by other Cytoscape
-Apps or by external scripts to be used with AutoAnnotate.
-
-
-Using clusterMaker Manually
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You may use a clusterMaker algorithm not provided through the **New Annotation Set** dialog.
-
-Here is an example using the clusterMaker MCODE algorithm. 
-
-* Select **Apps > clusterMaker > MCODE Cluster**. 
-* A dialog with MCODE algorithm settings will be shown. 
-* Expand the **Cytoscape Advanced Settings** section and make note of the **Cluster Attribute Name**, in this case it is **__mcodeCluster**. 
-* Click **Ok** to run MCODE.
-* A node attribute (column) called **__mcodeCluster** is created where each node is assigned 
-  a cluster identifier.
-* Open the **New Annotation Set** dialog and choose the Advanced panel. 
-* Select **User-defined clusters** and then select the **__mcodeCluster** column. 
-* Click **Create Annotations**.
-
-
-Using External Scripts
-~~~~~~~~~~~~~~~~~~~~~~
-
-See the :ref:`automating` for details on how to automate Cytoscape using external scripts.
-
-A script must do the following to provide clusters to AutoAnnotate:
-
-* Create a node attribute (column), any type may be used.
-* Use the node attribute to assign a cluster identifier to each node. The cluster identifier may be blank, 
-  those nodes will not be included in clusters.
-* Open the **New Annotation Set** dialog and choose the Advanced panel. 
-* Select **User-defined clusters** and then select the **__mcodeCluster** column. 
-* Click **Create Annotations**.
-
-
-
-
-
 
 

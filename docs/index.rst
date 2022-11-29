@@ -1,4 +1,4 @@
-AutoAnnotate Cytoscape App 1.3
+AutoAnnotate Cytoscape App 1.4
 ==============================
 
 AutoAnnotate is a Cytoscape App that identifies clusters of nodes and automatically draws shape 
@@ -15,27 +15,15 @@ potentially large sections of the network into single nodes.
 
 .. image:: images/panels.png
 
-New in AutoAnnotate 1.3
------------------------
-
-* Requires Cytoscape 3.7 
-* Drawing annotations is much faster
-* Word Wrap feature for cluster labels
-* New Feature: copy annotations to another network
-* Support for column namespaces
-* “annotate” command now returns JSON
-* Cleaner layout for “quick start” panel
-* Cleaner layout for “display options” panel
-* Cleaner menu layouts
-* Several bug fixes
-
 
 .. toctree::
    :maxdepth: 2
    :caption: User Guide
 
    Installing
+   WhatsNew
    CreatingAnAnnotationSet
+   External
    WorkingWithAutoAnnotate
    GroupingAndLayout
    WordCloud
@@ -49,5 +37,6 @@ New in AutoAnnotate 1.3
 
    Cytoscape.org <http://cytoscape.org>
    Cytoscape App Store <http://apps.cytoscape.org/apps/autoannotate>
+   F1000 Article <https://f1000research.com/articles/5-1717>
    Baderlab.org <http://baderlab.org>
    GitHub <https://github.com/BaderLab/AutoAnnotateApp>
