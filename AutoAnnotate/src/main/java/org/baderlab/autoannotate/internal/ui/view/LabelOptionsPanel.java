@@ -24,6 +24,7 @@ import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
+import org.baderlab.autoannotate.internal.ui.view.create.NormalModePanel;
 import org.baderlab.autoannotate.internal.util.ComboItem;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.cytoscape.application.swing.CyColumnComboBox;
@@ -84,12 +85,8 @@ public class LabelOptionsPanel extends JPanel {
 	}
 	
 	public static void updateColumns(CyColumnComboBox columnCombo, CyNetwork network) {
-		CyColumn curCol = columnCombo.getSelectedItem();
 		List<CyColumn> columns = getColumnsOfType(network, String.class, true, true);
-		columnCombo.removeAllItems();
-		columns.forEach(columnCombo::addItem);
-		if(curCol != null)
-			columnCombo.setSelectedItem(curCol);
+		NormalModePanel.updateColumns(columnCombo, columns);
 	}
 	
 	public void updateColumns() {

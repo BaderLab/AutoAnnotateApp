@@ -39,7 +39,7 @@ public class CreateAnnotationSetDialogManager implements NetworkViewAboutToBeDes
 			dialogs.put(networkView, dialog);
 		}
 		
-		dialog.onShow();
+		dialog.onShow(); // updates the column combo boxes
 		
 		dialog.setLocationRelativeTo(jFrameProvider.get());
 		dialog.setVisible(true);

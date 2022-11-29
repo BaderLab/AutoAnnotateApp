@@ -98,6 +98,26 @@ public class NormalModePanel extends JPanel implements TabPanel {
 	
 	public void onShow() {
 		labelOptionsPanel.updateColumns();
+		this.updateColumns();
+	}
+	
+	private void updateColumns() {
+		var network = networkView.getModel();
+		
+		List<CyColumn> edgeWeightColumns = getColumnsOfType(network, Number.class, false, false);
+		edgeWeightColumns.add(0, null); // add the "-- None --" option at the front
+		updateColumns(edgeWeightColumnCombo, edgeWeightColumns);
+		
+		List<CyColumn> labelColumns = getLabelColumns(network);
+		updateColumns(clusterIdColumnCombo, labelColumns);
+	}
+	
+	public static void updateColumns(CyColumnComboBox columnCombo, List<CyColumn> columns) {
+		CyColumn curCol = columnCombo.getSelectedItem();
+		columnCombo.removeAllItems();
+		columns.forEach(columnCombo::addItem);
+		if(curCol != null)
+			columnCombo.setSelectedItem(curCol);
 	}
 	
 	
@@ -112,12 +132,9 @@ public class NormalModePanel extends JPanel implements TabPanel {
 		algorithmNameCombo = createComboBox(Arrays.asList(ClusterAlgorithm.values()), ClusterAlgorithm::toString);
 		algorithmNameCombo.setSelectedIndex(DEFAULT_CLUSTER_ALG.ordinal());
 		
-		List<CyColumn> edgeWeightColumns = getColumnsOfType(networkView.getModel(), Number.class, false, false);
-		edgeWeightColumns.add(0, null); // add the "-- None --" option at the front
-		edgeWeightColumnCombo = new CyColumnComboBox(presentationProvider.get(), edgeWeightColumns);
-		
-		List<CyColumn> labelColumns = getLabelColumns(networkView.getModel());
-		clusterIdColumnCombo = new CyColumnComboBox(presentationProvider.get(), labelColumns);
+		edgeWeightColumnCombo = new CyColumnComboBox(presentationProvider.get(), List.of());
+		clusterIdColumnCombo  = new CyColumnComboBox(presentationProvider.get(), List.of());
+		updateColumns();
 		
 		singletonCheckBox = new JCheckBox("Create singleton clusters");
 		singletonCheckBox.setToolTipText("Nodes not included in a cluster will be annotated as a singleton cluster.");
