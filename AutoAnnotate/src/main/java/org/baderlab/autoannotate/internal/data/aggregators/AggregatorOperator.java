@@ -35,7 +35,8 @@ public enum AggregatorOperator {
 	// These are custom to AutoAnnotate...
 	GS_SIZE("Size of Unioned Geneset"),
 	MAGNITUDE("Greatest Magnitude"),
-	CLUSTER_LABEL("Cluster Label");
+	CLUSTER_LABEL("Cluster Label"),
+	MOST_SIGNIFICANT("Most Significant Gene Set(s)");
 	
 
 	private final String label;
