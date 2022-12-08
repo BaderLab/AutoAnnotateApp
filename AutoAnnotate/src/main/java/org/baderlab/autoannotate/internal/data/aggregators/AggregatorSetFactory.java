@@ -61,13 +61,13 @@ public class AggregatorSetFactory {
 			case "LongAggregator":        return new LongAggregator(op);
 			case "BooleanAggregator":     return new BooleanAggregator(op);
 			case "DoubleAggregator":      return new DoubleAggregator(op);
-			case "StringAggregator":      return new StringAggregator(op);
 			case "NoneAggregator":        return new NoneAggregator(op);
 			case "IntegerListAggregator": return new IntegerListAggregator(op);
 			case "LongListAggregator":    return new LongListAggregator(op);
 			case "DoubleListAggregator":  return new DoubleListAggregator(op);
 			case "StringListAggregator":  return new StringListAggregator(op);
 			case "ListAggregator":        return new ListAggregator(op);
+			case "StringAggregator":      return new ClusterLabelAggregator(op, as); // All String columns could use cluster labels
 		}
 		
 		return null;
@@ -91,14 +91,14 @@ public class AggregatorSetFactory {
 			return new DoubleAggregator(AggregatorOperator.MIN);
 		if(name.equals("EnrichmentMap::gs_size"))
 			return new GSSizeAggregator("EnrichmentMap::Genes");
-		if(name.equals("EnrichmentMap::GS_DESCR"))
-			return new ClusterLabelAggregator(as);
 		if(name.startsWith("EnrichmentMap::ES"))
 			return new DoubleMagnitudeAggregator();
 		if(name.startsWith("EnrichmentMap::NES"))
 			return new DoubleMagnitudeAggregator();
 		if(name.startsWith("EnrichmentMap::Colouring"))
 			return new DoubleMagnitudeAggregator();
+		if(name.equals("EnrichmentMap::GS_DESCR"))
+			return new EMClusterLabelAggregator(AggregatorOperator.CLUSTER_LABEL, as);
 		
 		// Edge table columns
 		if(name.equals(CyEdge.INTERACTION))

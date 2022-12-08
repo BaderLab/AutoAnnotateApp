@@ -1,14 +1,9 @@
 package org.baderlab.autoannotate.internal.data.aggregators;
 
 import static org.baderlab.autoannotate.internal.data.aggregators.AggregatorOperator.CLUSTER_LABEL;
-import static org.baderlab.autoannotate.internal.data.aggregators.AggregatorOperator.MOST_SIGNIFICANT;
 import static org.baderlab.autoannotate.internal.data.aggregators.AggregatorOperator.UNIQUE;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
@@ -20,7 +15,7 @@ import org.cytoscape.model.CyTable;
 public class ClusterLabelAggregator extends AbstractAggregator<String> {
 	
 	static final AggregatorOperator[] supportedTypes = 
-			ArrayUtils.addAll(StringAggregator.supportedTypes, CLUSTER_LABEL, MOST_SIGNIFICANT);
+			ArrayUtils.addAll(StringAggregator.supportedTypes, CLUSTER_LABEL);
 	
 	
 	private final AnnotationSet annotationSet;
@@ -31,10 +26,6 @@ public class ClusterLabelAggregator extends AbstractAggregator<String> {
 		this.annotationSet = as;
 	}
 	
-	public ClusterLabelAggregator(AnnotationSet as) {
-		this(CLUSTER_LABEL, as);
-	}
-
 	
 	@Override
 	public AggregatorOperator[] getAggregatorOperators() {
@@ -48,8 +39,6 @@ public class ClusterLabelAggregator extends AbstractAggregator<String> {
 		
 		if(op == CLUSTER_LABEL)
 			return aggregateClusterLabel(table, group, column);
-		if(op == MOST_SIGNIFICANT)
-			return aggregateMostSignificant(table, group, column);
 		
 		return new StringAggregator(op).aggregate(table, group, column);
 	}
@@ -70,51 +59,5 @@ public class ClusterLabelAggregator extends AbstractAggregator<String> {
 		return cluster.getLabel();
 	}
 	
-
-	private String aggregateMostSignificant(CyTable table, Collection<? extends CyIdentifiable> group, CyColumn column) {
-		List<CyColumn> fdrColumns = getFDRColumns(table);
-		if(fdrColumns.isEmpty())
-			return null;
-		
-		SortedSet<String> gsNames = new TreeSet<>();
-		Double mostSigFdr = null;
-		
-		for(var ele : group) {
-			var row = table.getRow(ele.getSUID());
-			for(var fdrCol : fdrColumns) {
-				Double fdr = row.get(fdrCol.getName(), Double.class);
-				if(fdr != null && Double.isFinite(fdr)) {
-					if(mostSigFdr == null || fdr < mostSigFdr) {
-						String label = row.get(column.getName(), String.class);
-						gsNames.clear();
-						gsNames.add(label);
-						mostSigFdr = fdr;
-					} else if(fdr.equals(mostSigFdr)) {
-						String label = row.get(column.getName(), String.class);
-						gsNames.add(label);
-					}
-				}
-			}
-		}
-		
-		if(gsNames.isEmpty())
-			return null;
-		
-		return String.join(",", gsNames);
-	}
-	
-	
-	private static List<CyColumn> getFDRColumns(CyTable table) {
-		List<CyColumn> fdrColumns = new ArrayList<>();
-		
-		for(var col : table.getColumns()) {
-			var name = col.getName();
-			if(name != null && name.startsWith("EnrichmentMap::fdr_qvalue")) {
-				fdrColumns.add(col);
-			}
-		}
-		
-		return fdrColumns;
-	}
 }
 
