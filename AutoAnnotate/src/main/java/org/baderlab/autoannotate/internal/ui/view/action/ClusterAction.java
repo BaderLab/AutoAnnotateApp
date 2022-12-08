@@ -13,6 +13,11 @@ import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
+/**
+ * Note, none of the subclasses of this class should be singletons.
+ * There needs to be separate instances for the annotation set menu 
+ * and the cluster menu.
+ */
 @SuppressWarnings("serial")
 public abstract class ClusterAction extends AbstractAction {
 
@@ -34,11 +39,18 @@ public abstract class ClusterAction extends AbstractAction {
 			return clusters;
 		
 		return 
-			modelManagerProvider
-			.get()
-			.getActiveNetworkViewSet()
-			.flatMap(NetworkViewSet::getActiveAnnotationSet)
-			.map(AnnotationSet::getClusters)
-			.orElse(Collections.emptySet());
+			modelManagerProvider.get()
+				.getActiveNetworkViewSet()
+				.flatMap(NetworkViewSet::getActiveAnnotationSet)
+				.map(AnnotationSet::getClusters)
+				.orElse(Collections.emptySet());
+	}
+	
+	protected AnnotationSet getAnnotationSet() {
+		return 
+			modelManagerProvider.get()
+				.getActiveNetworkViewSet()
+				.flatMap(NetworkViewSet::getActiveAnnotationSet)
+				.orElse(null);
 	}
 }

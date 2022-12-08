@@ -52,9 +52,13 @@ public class SummaryNetworkDialog extends JDialog {
 	private void createContents() {
 		includeUnclusteredCheckBox = new JCheckBox("Include unclustered nodes");
 		includeUnclusteredCheckBox.setSelected(settings.isIncludeUnclustered());
-		includeUnclusteredCheckBox.addActionListener(e -> {
-			settings.setIncludeUnclustered(includeUnclusteredCheckBox.isSelected());
-		});
+		includeUnclusteredCheckBox.addActionListener(e ->
+			settings.setIncludeUnclustered(includeUnclusteredCheckBox.isSelected())
+		);
+		
+		if(!settings.isShowIncludeUnclustered()) {
+			includeUnclusteredCheckBox.setVisible(false);
+		}
 		
 		var nodeSettingsPanel = attrPanelFactory.create("Node Attribute Aggregation", settings.getNodeAggregators());
 		var edgeSettingsPanel = attrPanelFactory.create("Edge Attribute Aggregation", settings.getEdgeAggregators());
@@ -98,12 +102,11 @@ public class SummaryNetworkDialog extends JDialog {
 	
 	
 	private void createSummaryNetwork() {
-		var annotationSet = settings.getAnnotationSet();
-		
+		var clusters = settings.getClusters();
 		boolean includeUnclustered = includeUnclusteredCheckBox.isSelected();
 		
 		var task = summaryNetworkTaskFactory.create(
-				annotationSet.getClusters(), 
+				clusters, 
 				settings.getNodeAggregators(), 
 				settings.getEdgeAggregators(), 
 				includeUnclustered);

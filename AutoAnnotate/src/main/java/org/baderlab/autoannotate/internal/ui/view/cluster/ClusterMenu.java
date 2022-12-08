@@ -39,7 +39,7 @@ public class ClusterMenu {
 		ClusterAction extractAction  = extractActionProvider.get().setClusters(clusters);
 		ClusterAction collapseAction = collapseActionProvider.get().setAction(Grouping.COLLAPSE).setClusters(clusters);
 		ClusterAction expandAction   = collapseActionProvider.get().setAction(Grouping.EXPAND).setClusters(clusters);
-		ClusterAction summaryAction  = summaryActionProvider.get().setClusters(clusters);
+		ClusterAction summaryAction  = summaryActionProvider.get().setClusterContextMenu(true).setClusters(clusters);
 		
 		int count = clusters.size();
 		renameAction.setEnabled(count == 1);

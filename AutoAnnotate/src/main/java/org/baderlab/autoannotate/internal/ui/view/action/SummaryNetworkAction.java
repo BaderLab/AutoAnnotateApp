@@ -1,18 +1,16 @@
 package org.baderlab.autoannotate.internal.ui.view.action;
 
 import java.awt.event.ActionEvent;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collection;
 
-import javax.annotation.Nullable;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
+import org.baderlab.autoannotate.internal.data.aggregators.AggregatorSet;
 import org.baderlab.autoannotate.internal.data.aggregators.AggregatorSetFactory;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
-import org.baderlab.autoannotate.internal.model.ModelManager;
-import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.ui.view.summary.SummaryNetworkDialog;
 import org.baderlab.autoannotate.internal.ui.view.summary.SummaryNetworkDialogSettings;
 import org.cytoscape.application.CyApplicationManager;
@@ -20,10 +18,8 @@ import org.cytoscape.model.CyNetwork;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.google.inject.Singleton;
 
 @SuppressWarnings("serial")
-@Singleton
 public class SummaryNetworkAction extends ClusterAction {
 
 	public static final String TITLE = "Create Summary Network...";
@@ -32,15 +28,21 @@ public class SummaryNetworkAction extends ClusterAction {
 	@Inject private Provider<JFrame> jFrameProvider;
 	@Inject private SummaryNetworkDialog.Factory summaryDialogFactory;
 	@Inject private AggregatorSetFactory aggregatorFactory;
-	@Inject private Provider<ModelManager> modelManagerProvider;
 	
-	private final Map<Long,SummaryNetworkDialogSettings> dialogSettingsMap = new HashMap<>();
+	@Inject private SummaryNetworkActionSettings settingsCache;
 	
+	private boolean clusterContextMenu;
 	
 	public SummaryNetworkAction() {
 		super(TITLE);
 	}
+	
+	public SummaryNetworkAction setClusterContextMenu(boolean menu) {
+		this.clusterContextMenu = menu;
+		return this;
+	}
 
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		var networkView = applicationManager.getCurrentNetworkView();
@@ -53,12 +55,10 @@ public class SummaryNetworkAction extends ClusterAction {
 		
 		var net = networkView.getModel();
 		
-		var as = modelManagerProvider.get()
-			.getExistingNetworkViewSet(networkView)
-			.flatMap(NetworkViewSet::getActiveAnnotationSet)
-			.orElse(null);
+		var as = super.getAnnotationSet();
+		var clusters = super.getClusters();
 		
-		var settings = getSettings(net, as);
+		var settings = createSettings(net, as, clusters);
 		
 		var dialog = summaryDialogFactory.create(settings);
 		dialog.setModal(true);
@@ -66,20 +66,30 @@ public class SummaryNetworkAction extends ClusterAction {
 	}
 
 	
-	private SummaryNetworkDialogSettings getSettings(CyNetwork net, @Nullable AnnotationSet as) {
-		var settings = dialogSettingsMap.get(net.getSUID());
+	private SummaryNetworkDialogSettings createSettings(CyNetwork net, AnnotationSet as, Collection<Cluster> clusters) {
+		var settings = settingsCache.get(net.getSUID());
 		
-		if(settings == null) {
-			var nodeAggs = aggregatorFactory.create(net.getDefaultNodeTable(), as);
-			var edgeAggs = aggregatorFactory.create(net.getDefaultEdgeTable(), as);
-			settings = new SummaryNetworkDialogSettings(nodeAggs, edgeAggs, as);
+		boolean includeUnclustered, showIncludeUnclustered;
+		if(clusterContextMenu) {
+			includeUnclustered = false;
+			showIncludeUnclustered = false;
 		} else {
-			var nodeAggs = aggregatorFactory.create(net.getDefaultNodeTable(), as, settings.getNodeAggregators());
-			var edgeAggs = aggregatorFactory.create(net.getDefaultEdgeTable(), as, settings.getEdgeAggregators());
-			settings = new SummaryNetworkDialogSettings(nodeAggs, edgeAggs, as, settings.isIncludeUnclustered());
+			includeUnclustered = settings == null ? true : settings.isIncludeUnclustered();
+			showIncludeUnclustered = true;
 		}
 		
-		dialogSettingsMap.put(net.getSUID(), settings);
+		AggregatorSet nodeAggs, edgeAggs;
+		if(settings == null) {
+			nodeAggs = aggregatorFactory.create(net.getDefaultNodeTable(), as);
+			edgeAggs = aggregatorFactory.create(net.getDefaultEdgeTable(), as);
+		} else {
+			nodeAggs = aggregatorFactory.create(net.getDefaultNodeTable(), as, settings.getNodeAggregators());
+			edgeAggs = aggregatorFactory.create(net.getDefaultEdgeTable(), as, settings.getEdgeAggregators());
+		}
+		
+		settings = new SummaryNetworkDialogSettings(nodeAggs, edgeAggs, as, clusters, includeUnclustered, showIncludeUnclustered);
+		
+		settingsCache.put(net.getSUID(), settings);
 		
 		return settings;
 	}
