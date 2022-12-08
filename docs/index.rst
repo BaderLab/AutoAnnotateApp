@@ -13,7 +13,7 @@ to experiment with different clustering algorithms and label generation strategi
 AutoAnnotate allows clusters to be collapsed, which can simplify large networks by reducing 
 potentially large sections of the network into single nodes.
 
-.. image:: images/panels.png
+.. image:: images/aa_panels.png
 
 
 .. toctree::
@@ -26,6 +26,7 @@ potentially large sections of the network into single nodes.
    External
    WorkingWithAutoAnnotate
    GroupingAndLayout
+   SummaryNetwork
    WordCloud
    Automating
    FilingBugReports

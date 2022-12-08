@@ -15,7 +15,7 @@ panel menu.
 CoSE Layout
 ~~~~~~~~~~~
 
-.. image:: images/layout_cose_1.png
+.. image:: images/layout_cose_3.png
    :width: 550 px
 
 The CoSE (Compound Spring Embedded) layout is a force-directed layout that is cluster-aware.
@@ -29,10 +29,18 @@ There are two versions of CoSE available. The standard version will allow unclus
 to be placed about the graph. The **CoSE Layout (Group Single Nodes)** version will group 
 all unclustered nodes together rather than allowing them to be spread about the graph.
 
+If you would like to increase or decrease the spacing between clusters this can be done from the
+**Layout Tools** panel after running the layout. The **Layout Tools** panel is available near the
+bottom-left of the Cytoscape window. Use the **Scale** slider to increase or decrease the cluster 
+spacing.
+
+.. image:: images/layout_tools.png
+   :width: 350 px
+
 Grid Layout
 ~~~~~~~~~~~
 
-.. image:: images/layout_grid.png
+.. image:: images/layout_grid_2.png
    :width: 550 px
 
 The clusters are laid out in a grid pattern. The nodes within each cluster are laid out
@@ -49,8 +57,8 @@ Collapsing and Expanding Clusters
 AutoAnnotate can summarize a network by collapsing some or all of the clusters automatically.
 
 .. warning:: Depending on the number of clusters this function can be very slow. Consider using 
-             the **Generate Summary Network** option instead because it runs significantly faster. 
-             See the section below for more details.
+             the **Create Summary Network** option instead because it runs significantly faster. 
+             See :ref:`summary_network` for more details.
 
 .. image:: images/collapsed_network.png
    :width: 500 px
@@ -89,27 +97,13 @@ cluster.
    :width: 400 px
 
 
-.. _summary_network:
-
-Summary Network
----------------
+Create Summary Network
+----------------------
 
 Using group nodes to collapse clusters can be very slow when there are many clusters. As an alternative 
-a new option called **Generate Summary Network** has been added in AutoAnnotate 1.1. A new network is 
+a new option called **Create Summary Network** has been added in AutoAnnotate 1.1. A new network is 
 generated where each node represents a collapsed cluster in the original network, and each edge represents 
 a meta-edge between clusters. The resulting network is very similar to the results you get from collapsing 
 the clusters.
 
-The main differences are:
-
-  * Nodes that are not contained in any cluster are ignored.
-  * There is no relationship maintained back to the original network. If the clusters in the 
-    original network change the summary network will not be updated. Create a new summary 
-    network at any time to reflect the current state of the clusters.
-  * A new visual style for the summary network is created based on the original visual style.
-
-A summary network can be created from the Annotation Set Menu or the Cluster Table Context Menu.
-
-Summary network uses the same attribute aggregation settings as collapsed group nodes. 
-Available from **Edit > Preferences > Group Preferences** then expand the Default Aggregation Settings 
-section. 
+See :ref:`summary_network` for more details.

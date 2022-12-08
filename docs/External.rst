@@ -9,13 +9,13 @@ Apps or by external scripts to be used with AutoAnnotate.
 Using clusterMaker Manually
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You may use some clusterMaker algorithm not provided through the **New Annotation Set** dialog.
+You may use some clusterMaker algorithms not provided through the **New Annotation Set** dialog.
 
 Here is an example using the clusterMaker Transitivity Clustering algorithm. 
 
 * Select **Apps > clusterMaker Cluster Network > Transitivity Clustering**. 
 * A dialog with algorithm settings will be shown. 
-* Expand the **Cytoscape Advanced Settings** section and make note of the **Cluster Attribute Name**, in this case it is **__transclustCluster**. 
+* Expand the **Cytoscape Advanced Settings** section and take note of the **Cluster Attribute Name**, in this case it is **__transclustCluster**. 
 * Click **Ok** to run the algorithm.
 * A node attribute (column) called **__transclustCluster** is created where each node is assigned a cluster identifier.
 * Open the **New Annotation Set** dialog and choose the Advanced panel. 

@@ -9,7 +9,7 @@ When an Annotation Set is created the AutoAnnotate panels will be shown.
 .. note:: To show or hide the AutoAnnotate panels go to the main menu and 
           select **Apps > AutoAnnotate > (Show/Hide) AutoAnnotate Panels**. 
 
-.. image:: images/panels_red2.png
+.. image:: images/aa_panels_red.png
 
 
 * In the **Control Panel** on the left side is the **Main AutoAnnotate Panel**.
@@ -26,7 +26,7 @@ Changing Display Options
 
 This AutoAnnotate Display panel shows display options for the currently selected Annotation Set.
 
-.. image:: images/display_options2.png
+.. image:: images/display_options_3.png
    :width: 220px
    :align: right
 
@@ -41,6 +41,13 @@ Shape Options
   Opacity
     Slider that adjusts the opacity of the cluster annotation fill color.
     Slide to the left for completely transparent. Slide to the right for completely opaque. 
+
+  Padding
+    Slider that adjust the space between the content of a cluster and the annotation border.
+
+  Palette
+    When selected the annotations will have multiple colors from a color palette. 
+    The color of each annotation is chosen automatically from the palette.
 
   Fill Color
     Opens a color picker for choosing the fill color.
@@ -76,6 +83,10 @@ Label Options
 
   Hide Labels
     Select to hide all cluster labels. 
+
+Reset Button
+
+  Sets all the display options back to their defaults.
 
 
 Managing Annotation Sets
@@ -227,10 +238,9 @@ Right click with he mouse to show the cluster table context menu.
   Expand
     Expands the selected clusters.
 
-  Generate Summary Network
-    Generates a new network where each node represents a collapsed cluster that is 
-    selected in the original network.
-    Very similar in functionality to "Collapse", but runs significantly faster. 
+  Create Summary Network
+    Generates a summary network from the selected clusters.
+    See :ref:`summary_network` for more details.
 
   Recalculate Labels
     Recalculates the labels for the selected clusters. See :ref:`label_options` for more details.
@@ -289,9 +299,18 @@ Additional Options
 AutoAnnotate has various warning dialogs that can be dismissed permanently by selecting "don’t show this 
 again". If you would like to see these warnings again they can be re-enabled. In the main menu 
 select **Edit > Preferences > Properties**, then select **org.baderlab.autoannotate** in the Properties 
-Dialog. ￼ ￼
+Dialog.
 
 .. image:: images/cytoscape_preferences.png
    :width: 400 px
+
+
+Creating Summary Network
+------------------------
+
+Using group nodes to collapse clusters can be very slow when there are many clusters. As an alternative 
+a new option called **Create Summary Network** has been added in AutoAnnotate 1.1.
+
+See :ref:`summary_network` for more details.
 
 
