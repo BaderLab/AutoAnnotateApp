@@ -9,7 +9,7 @@ Minimum versions (latest versions are recommended):
 ============== ===============
 Package        Minimum Version
 ============== ===============
-Cytoscape      3.8.0
+Cytoscape      3.9.0
 WordClound     3.1.0
 clusterMaker2  0.9.5
 ============== ===============

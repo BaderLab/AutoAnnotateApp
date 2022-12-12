@@ -4,7 +4,7 @@ What's New
 New in AutoAnnotate 1.4
 -----------------------
 
-* Requires Cytoscape 3.8 
+* Requires Cytoscape 3.9 
 * Display option for fill color palettes.
 * Display option for cluster padding.
 * Summary networks have improved attribute aggregation.
