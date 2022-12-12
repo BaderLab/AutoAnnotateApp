@@ -73,6 +73,8 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	private boolean isClusterMakerInstalled;
 	private boolean isWordCloudInstalled;
+	private JPanel clusterMakerWarnPanel;
+	private JPanel wordCloudWarnPanel;
 
 	
 	public static interface Factory {
@@ -91,9 +93,6 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	@AfterInjection
 	private void createContents() {
-		isClusterMakerInstalled = availableCommands.getNamespaces().contains("cluster");
-		isWordCloudInstalled = wordCloudAdapterProvider.get().isWordcloudRequiredVersionInstalled();
-		
 		setLayout(new BorderLayout());
 		JPanel parent = new JPanel();
 		parent.setLayout(new BorderLayout());
@@ -114,6 +113,13 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	
 	public void onShow() {
+		isClusterMakerInstalled = availableCommands.getNamespaces().contains("cluster");
+		isWordCloudInstalled = wordCloudAdapterProvider.get().isWordcloudRequiredVersionInstalled();
+		
+		clusterMakerWarnPanel.setVisible(!isClusterMakerInstalled);
+		wordCloudWarnPanel.setVisible(!isWordCloudInstalled);
+		okButtonStateChanged();
+		
 		normalModePanel.onShow();
 		easyModePanel.onShow();
 	}
@@ -123,21 +129,11 @@ public class CreateAnnotationSetDialog extends JDialog {
 		JPanel panel = new JPanel(new BorderLayout());
 		JPanel messagePanel = new JPanel(new GridBagLayout());
 		
-		int y = 0;
-		if(!isClusterMakerInstalled) {
-			String message = "clusterMaker2 app is not installed ";
-			String app = "clusterMaker2";
-			String url = "http://apps.cytoscape.org/apps/clustermaker2";
-			JPanel warnPanel = createMessage(message, app, url, true);
-			messagePanel.add(warnPanel, GBCFactory.grid(0,y++).weightx(1.0).get());
-		}
-		if(!isWordCloudInstalled)  {
-			String message = "WordCloud app is not installed ";
-			String app = "WordCloud";
-			String url = "http://apps.cytoscape.org/apps/wordcloud";
-			JPanel warnPanel = createMessage(message, app, url, true);
-			messagePanel.add(warnPanel, GBCFactory.grid(0,y++).weightx(1.0).get());
-		}
+		clusterMakerWarnPanel = createMessage("clusterMaker2 app is not installed ", "clusterMaker2", "http://apps.cytoscape.org/apps/clustermaker2");
+		messagePanel.add(clusterMakerWarnPanel, GBCFactory.grid(0,0).weightx(1.0).get());
+		
+		wordCloudWarnPanel = createMessage("WordCloud app is not installed ", "WordCloud", "http://apps.cytoscape.org/apps/wordcloud");
+		messagePanel.add(wordCloudWarnPanel, GBCFactory.grid(0,1).weightx(1.0).get());
 		
 		panel.add(messagePanel, BorderLayout.WEST);
 		return panel;
@@ -167,6 +163,9 @@ public class CreateAnnotationSetDialog extends JDialog {
 		return tabbedPane;
 	}
 	
+	private JPanel createMessage(String message, String appName, String appUrl) {
+		return createMessage(message, appName, appUrl, true);
+	}
 	
 	private JPanel createMessage(String message, String appName, String appUrl, boolean error) {
 		JPanel panel = new JPanel(new BorderLayout());
