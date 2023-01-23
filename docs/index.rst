@@ -25,6 +25,7 @@ potentially large sections of the network into single nodes.
    CreatingAnAnnotationSet
    External
    WorkingWithAutoAnnotate
+   MovingAndResizing
    GroupingAndLayout
    SummaryNetwork
    WordCloud
