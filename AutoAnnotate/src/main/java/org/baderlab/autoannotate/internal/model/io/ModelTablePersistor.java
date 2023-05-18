@@ -25,7 +25,6 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
-import org.baderlab.autoannotate.internal.ui.PanelManager;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationPersistor;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
@@ -102,7 +101,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	
 	@Inject private Provider<AnnotationPersistor> annotationPersistorProvider;
 	@Inject private Provider<ModelManager> modelManagerProvider;
-	@Inject private Provider<PanelManager> panelManagerProvider;
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	@Inject private Provider<PaletteProviderManager> paletteManagerProvider;
 	
@@ -143,8 +141,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 	}
 	
 	public void importModel() {
-		boolean imported = false;
-		
 		AnnotationPersistor annotationPersistor = annotationPersistorProvider.get();
 		annotationPersistor.clearAnnotations();
 		
@@ -163,7 +159,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 					try {
 						Collection<AnnotationSet> active = importModel(network, networkViewIDs, asTable, clusterTable);
 						activeAnnotationSets.addAll(active);
-						imported = true;
 					} catch(Exception ex) {
 						ex.printStackTrace();
 					}
@@ -174,11 +169,6 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		for(AnnotationSet as : activeAnnotationSets) {
 			NetworkViewSet nvs = as.getParent();
 			nvs.select(as);
-		}
-		
-		if(imported) {
-			PanelManager panelManager = panelManagerProvider.get();
-			panelManager.show();
 		}
 	}
 	
