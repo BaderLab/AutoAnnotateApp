@@ -201,8 +201,8 @@ public class CreateAnnotationSetDialog extends JDialog {
 			return;
 		}
 		
-		DialogTab tabPanel = (DialogTab)tabPane.getSelectedComponent();
-		createButton.setEnabled(tabPanel.isOkButtonEnabled());
+		DialogPanel tabPanel = (DialogPanel)tabPane.getSelectedComponent();
+		createButton.setEnabled(tabPanel.isReady());
 	}
 	
 	
@@ -240,8 +240,8 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	private void resetButtonPressed() {
 		for(int i = 0; i < tabPane.getTabCount(); i++) {
-			DialogTab tabPanel = (DialogTab) tabPane.getComponentAt(i);
-			tabPanel.resetButtonPressed();
+			DialogPanel tabPanel = (DialogPanel) tabPane.getComponentAt(i);
+			tabPanel.reset();
 		}
 	}
 	

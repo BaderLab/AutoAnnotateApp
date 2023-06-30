@@ -132,7 +132,7 @@ public class EasyModeTab extends JPanel implements DialogTab {
 	
 	
 	@Override
-	public void resetButtonPressed() {
+	public void reset() {
 		spinner.setValue(10);
 		clusterAllRadio.setSelected(true);
 		layoutCheckBox.setSelected(false);
@@ -141,7 +141,7 @@ public class EasyModeTab extends JPanel implements DialogTab {
 	
 	
 	@Override
-	public boolean isOkButtonEnabled() {
+	public boolean isReady() {
 		return parent.isClusterMakerInstalled() && parent.isWordCloudInstalled();
 	}
 	

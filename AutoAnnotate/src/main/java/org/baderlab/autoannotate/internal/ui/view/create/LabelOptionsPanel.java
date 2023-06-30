@@ -39,7 +39,7 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
 @SuppressWarnings("serial")
-public class LabelOptionsPanel extends JPanel {
+public class LabelOptionsPanel extends JPanel implements DialogPanel {
 
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	@Inject private Provider<IconManager> iconManagerProvider;
@@ -56,7 +56,6 @@ public class LabelOptionsPanel extends JPanel {
 	private final boolean showColumnCombo;
 	private final AnnotationSet annotationSet;
 	
-	// using guice-asssistedinject
 	public interface Factory {
 		LabelOptionsPanel create(CyNetwork net, boolean showColumnCombo);
 		LabelOptionsPanel create(CyNetwork net, boolean showColumnCombo, AnnotationSet annotationSet);
@@ -92,6 +91,15 @@ public class LabelOptionsPanel extends JPanel {
 		updateColumns(labelColumnNameCombo, network);
 	}
 	
+	@Override
+	public void onShow() {
+		updateColumns();
+	}
+	
+	@Override
+	public boolean isReady() {
+		return getLabelColumn() != null;
+	}
 	
 	public static void setDefault(CyColumnComboBox combo) {
 		// Select the best choice for label column, with special case for EnrichmentMap
@@ -203,7 +211,7 @@ public class LabelOptionsPanel extends JPanel {
 		add(algorithmPanel, GBCFactory.grid(0,y).gridwidth(2).anchor(GridBagConstraints.NORTHWEST).get());
 	}
 	
-	
+	@Override
 	public void reset() {
 		LabelMakerManager labelMakerManager = labelManagerProvider.get();
 		if(labelColumnNameCombo != null)
