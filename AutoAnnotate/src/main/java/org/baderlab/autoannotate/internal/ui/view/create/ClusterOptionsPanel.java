@@ -1,14 +1,11 @@
 package org.baderlab.autoannotate.internal.ui.view.create;
 
-import static org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialog.getColumnsOfType;
 import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
 
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 
@@ -169,24 +166,15 @@ public class ClusterOptionsPanel extends JPanel {
 	}
 	
 	public void updateColumns() {
-		List<CyColumn> edgeWeightColumns = getColumnsOfType(network, Number.class, false, false);
+		List<CyColumn> edgeWeightColumns = ColumnUtil.getColumnsOfType(network, Number.class, false, false);
 		edgeWeightColumns.add(0, null); // add the "-- None --" option at the front
 		updateColumns(edgeWeightColumnCombo, edgeWeightColumns);
 		
-		List<CyColumn> labelColumns = getLabelColumns(network);
+		List<CyColumn> labelColumns = ColumnUtil.getLabelColumns(network);
 		updateColumns(clusterIdColumnCombo, labelColumns);
 	}
 	
-	private static List<CyColumn> getLabelColumns(CyNetwork network) {
-		List<CyColumn> columns = new ArrayList<>();
-		columns.addAll(getColumnsOfType(network, Integer.class, true, true));
-		columns.addAll(getColumnsOfType(network, Long.class, true, true));
-		columns.addAll(getColumnsOfType(network, String.class, true, true));
-		columns.addAll(getColumnsOfType(network, Boolean.class, true, true));
-		columns.addAll(getColumnsOfType(network, Double.class, true, true));
-		columns.sort(Comparator.comparing(CyColumn::getName));
-		return columns;
-	}
+	
 	
 	public static void updateColumns(CyColumnComboBox columnCombo, List<CyColumn> columns) {
 		var curCol = columnCombo.getSelectedItem();

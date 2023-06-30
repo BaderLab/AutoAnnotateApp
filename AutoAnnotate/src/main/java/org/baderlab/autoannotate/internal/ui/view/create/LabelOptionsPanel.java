@@ -1,6 +1,5 @@
 package org.baderlab.autoannotate.internal.ui.view.create;
 
-import static org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialog.getColumnsOfType;
 import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
 
 import java.awt.BorderLayout;
@@ -76,15 +75,15 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 	
 	
 	public static CyColumnComboBox createLabelColumnCombo(CyColumnPresentationManager presentationManager, CyNetwork network) {
-		var columns = getColumnsOfType(network, String.class, true, true);
+		var columns = ColumnUtil.getColumnsOfType(network, String.class, true, true);
 		var combo = new CyColumnComboBox(presentationManager, columns);
 		setDefault(combo);
 		return combo;
 	}
 	
 	public static void updateColumns(CyColumnComboBox columnCombo, CyNetwork network) {
-		List<CyColumn> columns = getColumnsOfType(network, String.class, true, true);
-		NormalModeTab.updateColumns(columnCombo, columns);
+		List<CyColumn> columns = ColumnUtil.getColumnsOfType(network, String.class, true, true);
+		ColumnUtil.updateColumnCombo(columnCombo, columns);
 	}
 	
 	public void updateColumns() {

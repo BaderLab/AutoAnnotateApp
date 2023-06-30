@@ -1,7 +1,5 @@
 package org.baderlab.autoannotate.internal.ui.view.create;
 
-import static org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialog.getColumnsOfType;
-
 import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
 import java.util.List;
@@ -155,7 +153,7 @@ public class EasyModeTab extends JPanel implements DialogTab {
 	
 	
 	private Optional<CyColumn> getDefaultClusterMakerEdgeAttribute() {
-		List<CyColumn> columns = getColumnsOfType(networkView.getModel(), Number.class, false, false);
+		List<CyColumn> columns = ColumnUtil.getColumnsOfType(networkView.getModel(), Number.class, false, false);
 		return columns.stream().filter(c -> c.getName().endsWith(EM_SIMILARITY_COLUMN_SUFFIX)).findAny();
 	}
 	

@@ -2,7 +2,6 @@ package org.baderlab.autoannotate.internal.ui.view.create;
 
 import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
-import java.util.List;
 
 import javax.swing.JPanel;
 
@@ -11,7 +10,6 @@ import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.cytoscape.application.CyApplicationManager;
-import org.cytoscape.application.swing.CyColumnComboBox;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.view.model.CyNetworkView;
 
@@ -59,14 +57,6 @@ public class NormalModeTab extends JPanel implements DialogTab {
 		setLayout(new BorderLayout());
 		add(parentPanel, BorderLayout.NORTH);
 		setOpaque(false);
-	}
-	
-	public static void updateColumns(CyColumnComboBox columnCombo, List<CyColumn> columns) {
-		var curCol = columnCombo.getSelectedItem();
-		columnCombo.removeAllItems();
-		columns.forEach(columnCombo::addItem);
-		if(curCol != null)
-			columnCombo.setSelectedItem(curCol);
 	}
 	
 	

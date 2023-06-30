@@ -7,9 +7,6 @@ import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -32,9 +29,6 @@ import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.command.AvailableCommands;
-import org.cytoscape.model.CyColumn;
-import org.cytoscape.model.CyNetwork;
-import org.cytoscape.model.CyTable;
 import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.util.swing.OpenBrowser;
@@ -265,35 +259,6 @@ public class CreateAnnotationSetDialog extends JDialog {
 		
 		dialogTaskManager.execute(tasks);
 	}
-	
-	
-	
-	public static List<CyColumn> getColumnsOfType(CyNetwork network, Class<?> type, boolean node, boolean allowList) {
-		List<CyColumn> columns = new LinkedList<>();
-		
-		CyTable table;
-		if(node)
-			table = network.getDefaultNodeTable();
-		else 
-			table = network.getDefaultEdgeTable();
-		
-		for(CyColumn column : table.getColumns()) {
-			if(column.getName().equalsIgnoreCase("suid")) {
-				continue;
-			}
-			
-			if(type.isAssignableFrom(column.getType())) {
-				columns.add(column);
-			}
-			else if(allowList && List.class.equals(column.getType()) && type.isAssignableFrom(column.getListElementType())) {
-				columns.add(column);
-			}
-		}
-		
-		columns.sort(Comparator.comparing(CyColumn::getName));
-		return columns;
-	}
-	
 	
 	
 	public boolean isClusterMakerInstalled() {
