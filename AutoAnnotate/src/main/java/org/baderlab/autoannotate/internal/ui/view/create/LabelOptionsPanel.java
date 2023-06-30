@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.ui.view;
+package org.baderlab.autoannotate.internal.ui.view.create;
 
 import static org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialog.getColumnsOfType;
 import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
@@ -24,7 +24,6 @@ import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
-import org.baderlab.autoannotate.internal.ui.view.create.NormalModePanel;
 import org.baderlab.autoannotate.internal.util.ComboItem;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.cytoscape.application.swing.CyColumnComboBox;
@@ -78,15 +77,15 @@ public class LabelOptionsPanel extends JPanel {
 	
 	
 	public static CyColumnComboBox createLabelColumnCombo(CyColumnPresentationManager presentationManager, CyNetwork network) {
-		List<CyColumn> columns = getColumnsOfType(network, String.class, true, true);
-		CyColumnComboBox combo = new CyColumnComboBox(presentationManager, columns);
+		var columns = getColumnsOfType(network, String.class, true, true);
+		var combo = new CyColumnComboBox(presentationManager, columns);
 		setDefault(combo);
 		return combo;
 	}
 	
 	public static void updateColumns(CyColumnComboBox columnCombo, CyNetwork network) {
 		List<CyColumn> columns = getColumnsOfType(network, String.class, true, true);
-		NormalModePanel.updateColumns(columnCombo, columns);
+		NormalModeTab.updateColumns(columnCombo, columns);
 	}
 	
 	public void updateColumns() {

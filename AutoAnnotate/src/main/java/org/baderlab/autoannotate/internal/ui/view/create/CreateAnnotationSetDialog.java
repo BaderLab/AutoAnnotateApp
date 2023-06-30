@@ -60,11 +60,11 @@ public class CreateAnnotationSetDialog extends JDialog {
 	@Inject private IconManager iconManager;
 	@Inject private AvailableCommands availableCommands;
 	
-	@Inject private NormalModePanel.Factory normalModePanelFactory;
-	@Inject private EasyModePanel.Factory easyModePanelFactory;
+	@Inject private NormalModeTab.Factory normalModePanelFactory;
+	@Inject private EasyModeTab.Factory easyModePanelFactory;
 	
-	private NormalModePanel normalModePanel;
-	private EasyModePanel easyModePanel;
+	private NormalModeTab normalModePanel;
+	private EasyModeTab easyModePanel;
 	
 	private final CyNetworkView networkView;
 	private JTabbedPane tabPane;
@@ -201,7 +201,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 			return;
 		}
 		
-		TabPanel tabPanel = (TabPanel)tabPane.getSelectedComponent();
+		DialogTab tabPanel = (DialogTab)tabPane.getSelectedComponent();
 		createButton.setEnabled(tabPanel.isOkButtonEnabled());
 	}
 	
@@ -240,7 +240,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 	
 	private void resetButtonPressed() {
 		for(int i = 0; i < tabPane.getTabCount(); i++) {
-			TabPanel tabPanel = (TabPanel) tabPane.getComponentAt(i);
+			DialogTab tabPanel = (DialogTab) tabPane.getComponentAt(i);
 			tabPanel.resetButtonPressed();
 		}
 	}
@@ -250,7 +250,7 @@ public class CreateAnnotationSetDialog extends JDialog {
 		if(networkView == null)
 			return;
 		
-		TabPanel tabPanel = (TabPanel)tabPane.getSelectedComponent();
+		DialogTab tabPanel = (DialogTab)tabPane.getSelectedComponent();
 		AnnotationSetTaskParamters params = tabPanel.createAnnotationSetTaskParameters();
 		
 		TaskIterator tasks = new TaskIterator();

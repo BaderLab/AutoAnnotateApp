@@ -26,7 +26,6 @@ import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.baderlab.autoannotate.internal.ui.render.DrawClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.EraseClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.UpdateClustersTask;
-import org.baderlab.autoannotate.internal.ui.view.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.ManageAnnotationSetsDialog;
 import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTask;
 import org.baderlab.autoannotate.internal.ui.view.action.LayoutClustersAction;
@@ -35,8 +34,9 @@ import org.baderlab.autoannotate.internal.ui.view.action.ShowWordcloudDialogActi
 import org.baderlab.autoannotate.internal.ui.view.copy.CopyAnnotationsDialog;
 import org.baderlab.autoannotate.internal.ui.view.copy.NetworkList;
 import org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialog;
-import org.baderlab.autoannotate.internal.ui.view.create.EasyModePanel;
-import org.baderlab.autoannotate.internal.ui.view.create.NormalModePanel;
+import org.baderlab.autoannotate.internal.ui.view.create.EasyModeTab;
+import org.baderlab.autoannotate.internal.ui.view.create.LabelOptionsPanel;
+import org.baderlab.autoannotate.internal.ui.view.create.NormalModeTab;
 import org.baderlab.autoannotate.internal.ui.view.summary.AttributeAggregationPanel;
 import org.baderlab.autoannotate.internal.ui.view.summary.SummaryNetworkDialog;
 import org.cytoscape.property.AbstractConfigDirPropsReader;
@@ -72,8 +72,8 @@ public class ApplicationModule extends AbstractModule {
 	private void installFactories() {
 		installFactory(LabelOptionsPanel.Factory.class);
 		installFactory(ManageAnnotationSetsDialog.Factory.class);
-		installFactory(NormalModePanel.Factory.class);
-		installFactory(EasyModePanel.Factory.class);
+		installFactory(NormalModeTab.Factory.class);
+		installFactory(EasyModeTab.Factory.class);
 		installFactory(CollapseAllTaskFactory.Factory.class);
 		installFactory(GridLayoutClustersTaskFactory.Factory.class);
 		installFactory(RunClusterMakerTaskFactory.Factory.class);

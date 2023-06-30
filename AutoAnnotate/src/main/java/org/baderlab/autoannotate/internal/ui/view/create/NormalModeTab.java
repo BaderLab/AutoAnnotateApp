@@ -24,7 +24,6 @@ import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
-import org.baderlab.autoannotate.internal.ui.view.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.util.ComboItem;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
@@ -41,7 +40,7 @@ import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
 @SuppressWarnings("serial")
-public class NormalModePanel extends JPanel implements TabPanel {
+public class NormalModeTab extends JPanel implements DialogTab {
 
 	private static final ClusterAlgorithm DEFAULT_CLUSTER_ALG = ClusterAlgorithm.MCL;
 //	private static final String EM_SIMILARITY_COLUMN_SUFFIX = "similarity_coefficient";
@@ -62,11 +61,11 @@ public class NormalModePanel extends JPanel implements TabPanel {
 	
 	
 	public static interface Factory {
-		NormalModePanel create(CreateAnnotationSetDialog parent);
+		NormalModeTab create(CreateAnnotationSetDialog parent);
 	}
 	
 	@Inject
-	public NormalModePanel(@Assisted CreateAnnotationSetDialog parent, CyApplicationManager appManager) {
+	public NormalModeTab(@Assisted CreateAnnotationSetDialog parent, CyApplicationManager appManager) {
 		this.networkView = appManager.getCurrentNetworkView();
 		this.parent = parent;
 		
@@ -96,6 +95,7 @@ public class NormalModePanel extends JPanel implements TabPanel {
 		return labelOptionsPanel;
 	}
 	
+	@Override
 	public void onShow() {
 		labelOptionsPanel.updateColumns();
 		this.updateColumns();
@@ -113,7 +113,7 @@ public class NormalModePanel extends JPanel implements TabPanel {
 	}
 	
 	public static void updateColumns(CyColumnComboBox columnCombo, List<CyColumn> columns) {
-		CyColumn curCol = columnCombo.getSelectedItem();
+		var curCol = columnCombo.getSelectedItem();
 		columnCombo.removeAllItems();
 		columns.forEach(columnCombo::addItem);
 		if(curCol != null)

@@ -12,7 +12,7 @@ import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
-import org.baderlab.autoannotate.internal.ui.view.LabelOptionsPanel;
+import org.baderlab.autoannotate.internal.ui.view.create.LabelOptionsPanel;
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.model.CyNetwork;
 

@@ -20,7 +20,6 @@ import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
-import org.baderlab.autoannotate.internal.ui.view.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.CyApplicationManager;
@@ -34,7 +33,7 @@ import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
 @SuppressWarnings("serial")
-public class EasyModePanel extends JPanel implements TabPanel {
+public class EasyModeTab extends JPanel implements DialogTab {
 
 	private static final ClusterAlgorithm DEFAULT_CLUSTER_ALG = ClusterAlgorithm.MCL;
 	private static final String EM_SIMILARITY_COLUMN_SUFFIX = "similarity_coefficient";
@@ -53,11 +52,11 @@ public class EasyModePanel extends JPanel implements TabPanel {
 	
 	
 	public static interface Factory {
-		EasyModePanel create(CreateAnnotationSetDialog parent);
+		EasyModeTab create(CreateAnnotationSetDialog parent);
 	}
 	
 	@Inject
-	public EasyModePanel(@Assisted CreateAnnotationSetDialog parent, CyApplicationManager appManager) {
+	public EasyModeTab(@Assisted CreateAnnotationSetDialog parent, CyApplicationManager appManager) {
 		this.networkView = appManager.getCurrentNetworkView();
 		this.parent = parent;
 	}
@@ -126,6 +125,7 @@ public class EasyModePanel extends JPanel implements TabPanel {
 		return labelPanel;
 	}
 	
+	@Override
 	public void onShow() {
 		LabelOptionsPanel.updateColumns(labelCombo, networkView.getModel());
 	}
@@ -174,7 +174,9 @@ public class EasyModePanel extends JPanel implements TabPanel {
 			.setCreateGroups(false)
 			.setLayoutClusters(layoutCheckBox.isSelected());
 		
-		getDefaultClusterMakerEdgeAttribute().map(CyColumn::getName).ifPresent(builder::setClusterMakerEdgeAttribute);
+		getDefaultClusterMakerEdgeAttribute()
+			.map(CyColumn::getName)
+			.ifPresent(builder::setClusterMakerEdgeAttribute);
 		
 		if(clusterAllRadio.isSelected())
 			builder.setCreateSingletonClusters(true);
