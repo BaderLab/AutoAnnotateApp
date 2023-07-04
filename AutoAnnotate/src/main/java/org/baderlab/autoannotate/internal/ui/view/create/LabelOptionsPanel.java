@@ -75,15 +75,15 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 	
 	
 	public static CyColumnComboBox createLabelColumnCombo(CyColumnPresentationManager presentationManager, CyNetwork network) {
-		var columns = ColumnUtil.getColumnsOfType(network, String.class, true, true);
+		var columns = CreateViewUtil.getColumnsOfType(network, String.class, true, true);
 		var combo = new CyColumnComboBox(presentationManager, columns);
 		setDefault(combo);
 		return combo;
 	}
 	
 	public static void updateColumns(CyColumnComboBox columnCombo, CyNetwork network) {
-		List<CyColumn> columns = ColumnUtil.getColumnsOfType(network, String.class, true, true);
-		ColumnUtil.updateColumnCombo(columnCombo, columns);
+		List<CyColumn> columns = CreateViewUtil.getColumnsOfType(network, String.class, true, true);
+		CreateViewUtil.updateColumnCombo(columnCombo, columns);
 	}
 	
 	public void updateColumns() {

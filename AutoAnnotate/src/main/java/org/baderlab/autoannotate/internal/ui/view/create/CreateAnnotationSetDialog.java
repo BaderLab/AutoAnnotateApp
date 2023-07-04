@@ -55,10 +55,10 @@ public class CreateAnnotationSetDialog extends JDialog {
 	@Inject private AvailableCommands availableCommands;
 	
 	@Inject private NormalModeTab.Factory normalModePanelFactory;
-	@Inject private EasyModeTab.Factory easyModePanelFactory;
+	@Inject private QuickModeTab.Factory easyModePanelFactory;
 	
 	private NormalModeTab normalModePanel;
-	private EasyModeTab easyModePanel;
+	private QuickModeTab easyModePanel;
 	
 	private final CyNetworkView networkView;
 	private JTabbedPane tabPane;

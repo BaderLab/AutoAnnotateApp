@@ -33,9 +33,11 @@ import org.baderlab.autoannotate.internal.ui.view.action.SelectClusterTask;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowWordcloudDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.copy.CopyAnnotationsDialog;
 import org.baderlab.autoannotate.internal.ui.view.copy.NetworkList;
+import org.baderlab.autoannotate.internal.ui.view.create.ClusterIDsOptionsPanel;
+import org.baderlab.autoannotate.internal.ui.view.create.ClusterMakerOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.create.ClusterOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialog;
-import org.baderlab.autoannotate.internal.ui.view.create.EasyModeTab;
+import org.baderlab.autoannotate.internal.ui.view.create.QuickModeTab;
 import org.baderlab.autoannotate.internal.ui.view.create.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.create.NormalModeTab;
 import org.baderlab.autoannotate.internal.ui.view.summary.AttributeAggregationPanel;
@@ -73,9 +75,11 @@ public class ApplicationModule extends AbstractModule {
 	private void installFactories() {
 		installFactory(LabelOptionsPanel.Factory.class);
 		installFactory(ClusterOptionsPanel.Factory.class);
+		installFactory(ClusterMakerOptionsPanel.Factory.class);
+		installFactory(ClusterIDsOptionsPanel.Factory.class);
 		installFactory(ManageAnnotationSetsDialog.Factory.class);
 		installFactory(NormalModeTab.Factory.class);
-		installFactory(EasyModeTab.Factory.class);
+		installFactory(QuickModeTab.Factory.class);
 		installFactory(CollapseAllTaskFactory.Factory.class);
 		installFactory(GridLayoutClustersTaskFactory.Factory.class);
 		installFactory(RunClusterMakerTaskFactory.Factory.class);

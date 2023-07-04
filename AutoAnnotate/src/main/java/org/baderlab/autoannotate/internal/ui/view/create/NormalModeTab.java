@@ -19,7 +19,6 @@ import com.google.inject.assistedinject.Assisted;
 @SuppressWarnings("serial")
 public class NormalModeTab extends JPanel implements DialogTab {
 
-	
 	@Inject private LabelOptionsPanel.Factory labelOptionsPanelFactory;
 	@Inject private ClusterOptionsPanel.Factory clusterOptionsPanelFactory;
 	
@@ -68,7 +67,7 @@ public class NormalModeTab extends JPanel implements DialogTab {
 	
 	@Override
 	public boolean isReady() {
-		return labelOptionsPanel.isReady() 
+		return labelOptionsPanel.isReady()
 			&& clusterOptionsPanel.isReady();
 	}
 	

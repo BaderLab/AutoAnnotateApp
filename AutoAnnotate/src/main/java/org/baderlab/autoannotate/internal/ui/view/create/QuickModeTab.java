@@ -31,7 +31,7 @@ import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
 @SuppressWarnings("serial")
-public class EasyModeTab extends JPanel implements DialogTab {
+public class QuickModeTab extends JPanel implements DialogTab {
 
 	private static final ClusterAlgorithm DEFAULT_CLUSTER_ALG = ClusterAlgorithm.MCL;
 	private static final String EM_SIMILARITY_COLUMN_SUFFIX = "similarity_coefficient";
@@ -50,11 +50,11 @@ public class EasyModeTab extends JPanel implements DialogTab {
 	
 	
 	public static interface Factory {
-		EasyModeTab create(CreateAnnotationSetDialog parent);
+		QuickModeTab create(CreateAnnotationSetDialog parent);
 	}
 	
 	@Inject
-	public EasyModeTab(@Assisted CreateAnnotationSetDialog parent, CyApplicationManager appManager) {
+	public QuickModeTab(@Assisted CreateAnnotationSetDialog parent, CyApplicationManager appManager) {
 		this.networkView = appManager.getCurrentNetworkView();
 		this.parent = parent;
 	}
@@ -153,7 +153,7 @@ public class EasyModeTab extends JPanel implements DialogTab {
 	
 	
 	private Optional<CyColumn> getDefaultClusterMakerEdgeAttribute() {
-		List<CyColumn> columns = ColumnUtil.getColumnsOfType(networkView.getModel(), Number.class, false, false);
+		List<CyColumn> columns = CreateViewUtil.getColumnsOfType(networkView.getModel(), Number.class, false, false);
 		return columns.stream().filter(c -> c.getName().endsWith(EM_SIMILARITY_COLUMN_SUFFIX)).findAny();
 	}
 	

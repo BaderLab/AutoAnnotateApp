@@ -1,16 +1,23 @@
 package org.baderlab.autoannotate.internal.ui.view.create;
 
+import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 
+import javax.swing.JComboBox;
+
+import org.baderlab.autoannotate.internal.util.ComboItem;
 import org.cytoscape.application.swing.CyColumnComboBox;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
 
-public class ColumnUtil {
+public class CreateViewUtil {
 	
 	
 	public static List<CyColumn> getColumnsOfType(CyNetwork network, Class<?> type, boolean node, boolean allowList) {
@@ -59,5 +66,15 @@ public class ColumnUtil {
 		if(curCol != null)
 			columnCombo.setSelectedItem(curCol);
 	}
+	
 
+	public static <V> JComboBox<ComboItem<V>> createComboBox(Collection<V> items, Function<V,String> label) {
+		JComboBox<ComboItem<V>> combo = new JComboBox<>();
+		for(V item : items) {
+			combo.addItem(new ComboItem<V>(item, label.apply(item)));
+		}
+		makeSmall(combo);
+		return combo;
+	}
+	
 }
