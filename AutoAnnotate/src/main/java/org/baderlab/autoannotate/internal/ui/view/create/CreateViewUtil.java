@@ -13,6 +13,7 @@ import javax.swing.JComboBox;
 
 import org.baderlab.autoannotate.internal.util.ComboItem;
 import org.cytoscape.application.swing.CyColumnComboBox;
+import org.cytoscape.application.swing.CyColumnPresentationManager;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
@@ -75,6 +76,30 @@ public class CreateViewUtil {
 		}
 		makeSmall(combo);
 		return combo;
+	}
+	
+	
+	public static CyColumnComboBox createLabelColumnCombo(CyColumnPresentationManager presentationManager, CyNetwork network) {
+		var columns = CreateViewUtil.getColumnsOfType(network, String.class, true, true);
+		var combo = new CyColumnComboBox(presentationManager, columns);
+		setLabelColumnDefault(combo);
+		return combo;
+	}
+	
+	
+	public static void setLabelColumnDefault(CyColumnComboBox combo) {
+		// Select the best choice for label column, with special case for EnrichmentMap
+		for(int i = 0; i < combo.getItemCount(); i++) {
+			CyColumn item = combo.getItemAt(i);
+			if(item.getName().endsWith("GS_DESCR")) { // column created by EnrichmentMap
+				combo.setSelectedIndex(i);
+				break;
+			}
+			if(item.getName().equalsIgnoreCase("name")) {
+				combo.setSelectedIndex(i);
+				break;
+			}
+		}
 	}
 	
 }

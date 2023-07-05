@@ -6,7 +6,6 @@ import java.awt.GridBagLayout;
 import javax.swing.JPanel;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
-import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.cytoscape.application.CyApplicationManager;
@@ -49,7 +48,7 @@ public class NormalModeTab extends JPanel implements DialogTab {
 		clusterOptionsPanel.setOpaque(false);
 		parentPanel.add(clusterOptionsPanel, GBCFactory.grid(0,0).get());
 		
-		labelOptionsPanel = labelOptionsPanelFactory.create(networkView.getModel(), true);
+		labelOptionsPanel = labelOptionsPanelFactory.create(networkView.getModel());
 		labelOptionsPanel.setOpaque(false);
 		parentPanel.add(labelOptionsPanel, GBCFactory.grid(0,1).weightx(1.0).get());
 		
@@ -80,18 +79,15 @@ public class NormalModeTab extends JPanel implements DialogTab {
 	
 	@Override
 	public AnnotationSetTaskParamters createAnnotationSetTaskParameters() {
-		LabelMakerFactory<?> labelMakerFactory = labelOptionsPanel.getLabelMakerFactory();
-		Object labelMakerContext = labelOptionsPanel.getLabelMakerContext();
-		
 		AnnotationSetTaskParamters.Builder builder = 
 			new AnnotationSetTaskParamters.Builder(networkView)
-			.setLabelColumn(labelOptionsPanel.getLabelColumn().getName())
-			.setUseClusterMaker(clusterOptionsPanel.isUseClusterMaker())
-			.setClusterAlgorithm(clusterOptionsPanel.getClusterAlgorithm())
-			.setLabelMakerFactory(labelMakerFactory)
-			.setLabelMakerContext(labelMakerContext)
 			.setCreateSingletonClusters(clusterOptionsPanel.isCreateSingletonClusters())
 			.setLayoutClusters(clusterOptionsPanel.isLayoutClusters())
+			.setUseClusterMaker(clusterOptionsPanel.isUseClusterMaker())
+			.setClusterAlgorithm(clusterOptionsPanel.getClusterAlgorithm())
+			.setLabelColumn(labelOptionsPanel.getLabelColumn().getName())
+			.setLabelMakerFactory(labelOptionsPanel.getLabelMakerFactory())
+			.setLabelMakerContext(labelOptionsPanel.getLabelMakerContext())
 			.setCreateGroups(false);
 		
 		CyColumn edgeWeightColumn = clusterOptionsPanel.getEdgeWeightColumn();

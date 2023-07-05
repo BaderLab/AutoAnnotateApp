@@ -39,7 +39,7 @@ public class SizeSortedLabelMakerFactory implements LabelMakerFactory<SizeSorted
 	
 	@Override
 	public LabelMakerUI<SizeSortedOptions> createUI(SizeSortedOptions context) {
-		return uiProvider.create(context);
+		return uiProvider.create(context, this);
 	}
 
 	@Override

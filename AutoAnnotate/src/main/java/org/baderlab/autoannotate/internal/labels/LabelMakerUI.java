@@ -11,6 +11,8 @@ public interface LabelMakerUI<C> {
 	
 	C getContext();
 	
+	LabelMakerFactory<C> getFactory();
+	
 	default Map<String,String> getParametersForDisplay(C context) {
 		return Collections.emptyMap();
 	}

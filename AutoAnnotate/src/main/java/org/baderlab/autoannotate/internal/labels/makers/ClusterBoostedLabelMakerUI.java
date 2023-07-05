@@ -24,18 +24,21 @@ import com.google.inject.assistedinject.AssistedInject;
 public class ClusterBoostedLabelMakerUI implements LabelMakerUI<ClusterBoostedOptions> {
 
 	private final ClusterBoostedOptionsPanel panel;
+	private final ClusterBoostedLabelMakerFactory factory;
 	
 	public interface Factory {
-		ClusterBoostedLabelMakerUI create(ClusterBoostedOptions options);
+		ClusterBoostedLabelMakerUI create(ClusterBoostedOptions options, ClusterBoostedLabelMakerFactory factory);
 	}
 	
 	@AssistedInject
 	public ClusterBoostedLabelMakerUI(
 			@Assisted ClusterBoostedOptions options, 
+			@Assisted ClusterBoostedLabelMakerFactory factory,
 			WordCloudAdapter wcAdapter, 
 			ShowWordcloudDialogActionFactory wordcloudFactory
 	) {
 		this.panel = new ClusterBoostedOptionsPanel(options, wcAdapter, wordcloudFactory);
+		this.factory = factory;
 	}
 	 
 	@Override
@@ -46,6 +49,11 @@ public class ClusterBoostedLabelMakerUI implements LabelMakerUI<ClusterBoostedOp
 	@Override
 	public ClusterBoostedOptions getContext() {
 		return new ClusterBoostedOptions(panel.getMaxWords(), panel.getClusterBonus(), panel.getMinimumWordOccurrences());
+	}
+	
+	@Override
+	public ClusterBoostedLabelMakerFactory getFactory() {
+		return factory;
 	}
 
 	
@@ -64,7 +72,7 @@ public class ClusterBoostedLabelMakerUI implements LabelMakerUI<ClusterBoostedOp
 			setLayout(new GridBagLayout());
 			int y = 0;
 			
-			JLabel maxWordsLabel = new JLabel("Max words per label: ");
+			JLabel maxWordsLabel = new JLabel("    Max words per label: ");
 			add(makeSmall(maxWordsLabel), GBCFactory.grid(0,y).get());
 			maxWordsModel = new SpinnerNumberModel(options.getMaxWords(), 1, 5, 1);
 			JSpinner maxWordsSpinner = new JSpinner(maxWordsModel);
@@ -73,7 +81,7 @@ public class ClusterBoostedLabelMakerUI implements LabelMakerUI<ClusterBoostedOp
 			y++;
 			
 			if(wcAdapter.supportsMinOccurrs()) {
-				JLabel minOccurLabel = new JLabel("Minimum word occurrence: ");
+				JLabel minOccurLabel = new JLabel("    Minimum word occurrence: ");
 				add(makeSmall(minOccurLabel), GBCFactory.grid(0,y).get());
 				minOccurModel = new SpinnerNumberModel(options.getMinimumWordOccurrences(), 1, 20, 1);
 				JSpinner minOccurSpinner = new JSpinner(minOccurModel);
@@ -82,7 +90,7 @@ public class ClusterBoostedLabelMakerUI implements LabelMakerUI<ClusterBoostedOp
 				y++;
 			}
 			
-			JLabel labelWordsLabel = new JLabel("Adjacent word bonus: ");
+			JLabel labelWordsLabel = new JLabel("    Adjacent word bonus: ");
 			add(makeSmall(labelWordsLabel), GBCFactory.grid(0,y).get());
 			boostModel = new SpinnerNumberModel(options.getClusterBonus(), 0, 20, 1);
 			JSpinner clusterBoostSpinner = new JSpinner(boostModel);

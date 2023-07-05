@@ -1,35 +1,28 @@
 package org.baderlab.autoannotate.internal.ui.view.create;
 
-import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
-
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JComboBox;
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
-import org.baderlab.autoannotate.internal.util.ComboItem;
+import org.baderlab.autoannotate.internal.ui.view.create.ComboBoxCardPanel.Card;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
+import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.swing.CyColumnComboBox;
 import org.cytoscape.application.swing.CyColumnPresentationManager;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
-import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.LookAndFeelUtil;
 
 import com.google.inject.Inject;
@@ -41,29 +34,27 @@ import com.google.inject.assistedinject.AssistedInject;
 public class LabelOptionsPanel extends JPanel implements DialogPanel {
 
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
-	@Inject private Provider<IconManager> iconManagerProvider;
 	@Inject private Provider<CyColumnPresentationManager> presentationManagerProvider;
-	
-	private CyColumnComboBox labelColumnNameCombo;
-	private JComboBox<ComboItem<LabelMakerFactory<?>>> labelMakerFactoryCombo;
-	private CardLayout cardLayout;
-	private JPanel algorithmPanel;
-	
-	private Map<String, Pair<LabelMakerUI<?>,Object>> labelUIs = new HashMap<>();
 	
 	private final CyNetwork network;
 	private final boolean showColumnCombo;
 	private final AnnotationSet annotationSet;
 	
+	private ComboBoxCardPanel cardPanel;
+	private CyColumnComboBox labelColumnNameCombo;
+	
+	private Map<Card, LabelMakerUI> labelUIs = new LinkedHashMap<>();
+	private Map<Card, Object> originalContexts = new HashMap<>();
+	
+	
 	public interface Factory {
-		LabelOptionsPanel create(CyNetwork net, boolean showColumnCombo);
+		LabelOptionsPanel create(CyNetwork net);
 		LabelOptionsPanel create(CyNetwork net, boolean showColumnCombo, AnnotationSet annotationSet);
 	}
 	
-	
 	@AssistedInject
-	private LabelOptionsPanel(@Assisted CyNetwork network, @Assisted boolean showColumnCombo) {
-		this(network, showColumnCombo, null);
+	private LabelOptionsPanel(@Assisted CyNetwork network) {
+		this(network, true, null);
 	}
 	
 	@AssistedInject
@@ -73,118 +64,14 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 		this.annotationSet = annotationSet;
 	}
 	
-	
-	public static CyColumnComboBox createLabelColumnCombo(CyColumnPresentationManager presentationManager, CyNetwork network) {
-		var columns = CreateViewUtil.getColumnsOfType(network, String.class, true, true);
-		var combo = new CyColumnComboBox(presentationManager, columns);
-		setDefault(combo);
-		return combo;
-	}
-	
-	public static void updateColumns(CyColumnComboBox columnCombo, CyNetwork network) {
-		List<CyColumn> columns = CreateViewUtil.getColumnsOfType(network, String.class, true, true);
-		CreateViewUtil.updateColumnCombo(columnCombo, columns);
-	}
-	
-	public void updateColumns() {
-		updateColumns(labelColumnNameCombo, network);
-	}
-	
-	@Override
-	public void onShow() {
-		updateColumns();
-	}
-	
-	@Override
-	public boolean isReady() {
-		return getLabelColumn() != null;
-	}
-	
-	public static void setDefault(CyColumnComboBox combo) {
-		// Select the best choice for label column, with special case for EnrichmentMap
-		for(int i = 0; i < combo.getItemCount(); i++) {
-			CyColumn item = combo.getItemAt(i);
-			if(item.getName().endsWith("GS_DESCR")) { // column created by EnrichmentMap
-				combo.setSelectedIndex(i);
-				break;
-			}
-			if(item.getName().equalsIgnoreCase("name")) {
-				combo.setSelectedIndex(i);
-				break;
-			}
-		}
-	}
-	
-	
 	@AfterInjection
 	private void createContents() {
-		setLayout(new GridBagLayout());
+		var labelMakerManager = labelManagerProvider.get();
 		
-		int y = 0;
-		
-		String titleText = "Label Options";
-		if(annotationSet != null)
-			titleText += " for: " + annotationSet.getName();
-		setBorder(LookAndFeelUtil.createTitledBorder(titleText));
+		for(LabelMakerFactory factory : labelMakerManager.getFactories()) {
+			var card = new Card(factory.getID(), factory.getName());
+//			var panel = labelOptionsPanelFactory.create(network, factory, showColumnCombo);
 			
-		if(showColumnCombo) {
-			labelColumnNameCombo = createLabelColumnCombo(presentationManagerProvider.get(), network);
-			JLabel colLabel = new JLabel("Label Column:");
-			makeSmall(labelColumnNameCombo, colLabel);
-			add(colLabel, GBCFactory.grid(0,y).get());
-			add(labelColumnNameCombo, GBCFactory.grid(1,y).weightx(1.0).get());
-			y++;
-		}
-		
-		LabelMakerManager labelMakerManager = labelManagerProvider.get();
-		List<LabelMakerFactory<?>> factories = labelMakerManager.getFactories();
-		
-		labelMakerFactoryCombo = new JComboBox<>();
-		for(LabelMakerFactory<?> factory : factories) {
-			labelMakerFactoryCombo.addItem(new ComboItem<>(factory, factory.getName()));
-		}
-		makeSmall(labelMakerFactoryCombo);
-		
-		JLabel quesht = new JLabel();
-		makeSmall(quesht);
-		quesht.setFont(iconManagerProvider.get().getIconFont(14));
-		quesht.setText("  " + IconManager.ICON_QUESTION_CIRCLE);
-		
-		quesht.addMouseListener(new MouseAdapter() {
-			@Override public void mouseClicked(MouseEvent e) {
-				LabelMakerFactory<?> factory = getLabelMakerFactory();
-				String[] description = factory.getDescription();
-				if(description == null || description.length == 0) {
-					description = new String[] {"(no description)"};
-				}
-				
-				JPanel panel = new JPanel(new GridBagLayout());
-				int y = 0;
-				for(String s : description) {
-					JLabel lab = new JLabel(" " + s);
-					makeSmall(lab);
-					panel.add(lab, GBCFactory.grid(0,y++).weightx(1.0).get());
-				}
-				
-				JPopupMenu popup = new JPopupMenu();
-				popup.setLayout(new BorderLayout());
-				popup.add(panel);
-				popup.show(quesht, 10, quesht.getHeight());
-			}
-		});
-		
-		JLabel algLabel = new JLabel("Label Algorithm:");
-		makeSmall(algLabel);
-		
-		add(algLabel, GBCFactory.grid(0,y).get());
-		add(labelMakerFactoryCombo, GBCFactory.grid(1,y).weightx(1.0).get());
-		add(quesht, GBCFactory.grid(2,y).weightx(1.0).get());
-		y++;
-		
-		cardLayout = new CardLayout();
-		algorithmPanel = new JPanel(cardLayout);
-		
-		for(LabelMakerFactory factory : factories) {
 			Object context = null;
 			if(annotationSet != null)
 				context = labelMakerManager.getContext(annotationSet, factory); 
@@ -193,58 +80,85 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 			
 			LabelMakerUI<?> labelUI = factory.createUI(context);
 			JPanel labelUIPanel = labelUI == null ? new JPanel() : labelUI.getPanel();
-			
 			labelUIPanel.setOpaque(false);
-			algorithmPanel.add(labelUIPanel, factory.getName());
 			
-			labelUIs.put(factory.getName(), Pair.of(labelUI,context));
+			originalContexts.put(card, context);
+			labelUIs.put(card, labelUI);
 		}
-		algorithmPanel.setOpaque(false);
 		
-		reset();
+		cardPanel = new ComboBoxCardPanel(labelUIs.keySet());
+		cardPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		
-		labelMakerFactoryCombo.addActionListener(e -> {
-			cardLayout.show(algorithmPanel, getLabelMakerFactory().getName());
-		});
+		for(var card : labelUIs.keySet()) {
+			var labelUI = labelUIs.get(card);
+			cardPanel.setCardContents(card, labelUI.getPanel());
+		}
 		
-		add(algorithmPanel, GBCFactory.grid(0,y).gridwidth(2).anchor(GridBagConstraints.NORTHWEST).get());
+		setBorder(LookAndFeelUtil.createTitledBorder("Label Options"));
+		setLayout(new BorderLayout());
+		add(cardPanel, BorderLayout.CENTER);
+		
+		
+		if(showColumnCombo) {
+			labelColumnNameCombo = CreateViewUtil.createLabelColumnCombo(presentationManagerProvider.get(), network);
+			JLabel colLabel = new JLabel("    Label Column:");
+			SwingUtil.makeSmall(labelColumnNameCombo, colLabel);
+			
+			JPanel colNamePanel = new JPanel(new GridBagLayout());
+			colNamePanel.setOpaque(false);
+			colNamePanel.add(colLabel, GBCFactory.grid(0,0).get());
+			colNamePanel.add(labelColumnNameCombo, GBCFactory.grid(1,0).weightx(1.0).get());
+			
+			cardPanel.setTopContents(colNamePanel);
+		}
+	}
+	
+
+	private static void updateColumns(CyColumnComboBox columnCombo, CyNetwork network) {
+		List<CyColumn> columns = CreateViewUtil.getColumnsOfType(network, String.class, true, true);
+		CreateViewUtil.updateColumnCombo(columnCombo, columns);
+	}
+	
+	public void updateColumns() {
+		if(labelColumnNameCombo != null)
+			updateColumns(labelColumnNameCombo, network);
+	}
+	
+	public CyColumn getLabelColumn() {
+		if(labelColumnNameCombo == null)
+			return null;
+		return labelColumnNameCombo.getItemAt(labelColumnNameCombo.getSelectedIndex());
 	}
 	
 	@Override
 	public void reset() {
-		LabelMakerManager labelMakerManager = labelManagerProvider.get();
-		if(labelColumnNameCombo != null)
-			setDefault(labelColumnNameCombo);
-		
-		LabelMakerFactory<?> factory;
-		if(annotationSet == null)
-			factory = labelMakerManager.getDefaultFactory();
-		else
-			factory = labelMakerManager.getFactory(annotationSet);
-		cardLayout.show(algorithmPanel, factory.getName());
-		labelMakerFactoryCombo.setSelectedItem(new ComboItem<>(factory));
-		for(Pair<LabelMakerUI<?>,Object> uiAndContext : labelUIs.values()) {
-			LabelMakerUI<?> ui = uiAndContext.getLeft();
-			Object context = uiAndContext.getRight();
+		for(var card : labelUIs.keySet()) {
+			LabelMakerUI ui = labelUIs.get(card);
+			Object context = originalContexts.get(card);
 			ui.reset(context);
 		}
+		if(labelColumnNameCombo != null) {
+			CreateViewUtil.setLabelColumnDefault(labelColumnNameCombo);
+		}
+	}
+
+	@Override
+	public boolean isReady() {
+		return getLabelColumn() != null;
 	}
 	
-	
-	public CyColumn getLabelColumn() {
-		return labelColumnNameCombo.getItemAt(labelColumnNameCombo.getSelectedIndex());
+	@Override
+	public void onShow() {
+		updateColumns();
 	}
-	
+
 	public LabelMakerFactory<?> getLabelMakerFactory() {
-		return labelMakerFactoryCombo.getItemAt(labelMakerFactoryCombo.getSelectedIndex()).getValue();
+		var card = cardPanel.getCurrentCard();
+		return labelUIs.get(card).getFactory();
 	}
 	
 	public Object getLabelMakerContext() {
-		LabelMakerFactory<?> factory = getLabelMakerFactory();
-		LabelMakerUI<?> ui = labelUIs.get(factory.getName()).getLeft();
-		if(ui == null)
-			return null;
-		return ui.getContext();
+		var card = cardPanel.getCurrentCard();
+		return labelUIs.get(card).getContext();
 	}
-
 }

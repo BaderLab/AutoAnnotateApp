@@ -32,7 +32,7 @@ public class HeuristicLabelMakerFactory implements LabelMakerFactory<HeuristicLa
 
 	@Override
 	public LabelMakerUI<HeuristicLabelOptions> createUI(HeuristicLabelOptions context) {
-		return new HeuristicLabelMakerUI(context);
+		return new HeuristicLabelMakerUI(context, this);
 	}
 
 	@Override

@@ -9,11 +9,18 @@ import org.baderlab.autoannotate.internal.util.NumberSpinner;
 
 public class HeuristicLabelMakerUI implements LabelMakerUI<HeuristicLabelOptions> {
 
+	private final HeuristicLabelMakerFactory factory;
 	private NumberSpinner spinner;
 	
 	
-	public HeuristicLabelMakerUI(HeuristicLabelOptions options) {
+	public HeuristicLabelMakerUI(HeuristicLabelOptions options, HeuristicLabelMakerFactory factory) {
 		this.spinner = new NumberSpinner("Max words per label: ", options.getMaxWords(), 1, 10);
+		this.factory = factory;
+	}
+	
+	@Override
+	public HeuristicLabelMakerFactory getFactory() {
+		return factory;
 	}
 	
 	@Override

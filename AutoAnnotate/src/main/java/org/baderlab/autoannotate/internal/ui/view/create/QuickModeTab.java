@@ -114,7 +114,7 @@ public class QuickModeTab extends JPanel implements DialogTab {
 		labelPanel.setOpaque(false);
 		
 		JLabel label = new JLabel("Label Column:");
-		labelCombo = LabelOptionsPanel.createLabelColumnCombo(presentationManagerProvider.get(), networkView.getModel());
+		labelCombo = CreateViewUtil.createLabelColumnCombo(presentationManagerProvider.get(), networkView.getModel());
 		SwingUtil.makeSmall(label, labelCombo);
 		
 		labelPanel.add(label, GBCFactory.grid(0,0).get());
@@ -125,7 +125,8 @@ public class QuickModeTab extends JPanel implements DialogTab {
 	
 	@Override
 	public void onShow() {
-		LabelOptionsPanel.updateColumns(labelCombo, networkView.getModel());
+		List<CyColumn> columns = CreateViewUtil.getColumnsOfType(networkView.getModel(), String.class, true, true);
+		CreateViewUtil.updateColumnCombo(labelCombo, columns);
 	}
 	
 	
@@ -134,7 +135,7 @@ public class QuickModeTab extends JPanel implements DialogTab {
 		spinner.setValue(10);
 		clusterAllRadio.setSelected(true);
 		layoutCheckBox.setSelected(false);
-		LabelOptionsPanel.setDefault(labelCombo);
+		CreateViewUtil.setLabelColumnDefault(labelCombo);
 	}
 	
 	

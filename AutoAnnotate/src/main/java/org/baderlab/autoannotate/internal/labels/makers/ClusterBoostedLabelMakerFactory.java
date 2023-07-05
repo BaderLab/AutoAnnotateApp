@@ -39,7 +39,7 @@ public class ClusterBoostedLabelMakerFactory implements LabelMakerFactory<Cluste
 
 	@Override
 	public LabelMakerUI<ClusterBoostedOptions> createUI(ClusterBoostedOptions context) {
-		return uiFactory.create(context);
+		return uiFactory.create(context, this);
 	}
 
 	@Override

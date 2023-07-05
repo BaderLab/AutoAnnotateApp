@@ -3,7 +3,9 @@ package org.baderlab.autoannotate.internal.ui.view.create;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.event.ItemEvent;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,16 +35,20 @@ public class ComboBoxCardPanel extends JPanel {
 	
 	
 	private final List<Card> cards;
-	private final Map<Card,JPanel> cardPanels = new HashMap<>();
+	private final Map<String,JPanel> cardPanels = new HashMap<>();
 	
 	private Card currentCard;
 	private JPanel cardPanel;
+	private JPanel bodyPanel;
 	
-	
-	public ComboBoxCardPanel(Card ... cards) {
-		this.cards = Arrays.asList(cards);
+	public ComboBoxCardPanel(Collection<Card> cards) {
+		this.cards = new ArrayList<>(cards);
 		createContents();
 		setOpaque(false);
+	}
+	
+	public ComboBoxCardPanel(Card ... cards) {
+		this(Arrays.asList(cards));
 	}
 	
 	
@@ -60,7 +66,7 @@ public class ComboBoxCardPanel extends JPanel {
 			contentsPanel.setOpaque(false);
 			comboBox.addItem(card);
 			cardPanel.add(contentsPanel, card.id);
-			cardPanels.put(card, contentsPanel);
+			cardPanels.put(card.id, contentsPanel);
 		}
 		
 		comboBox.addItemListener((ItemEvent e) -> {
@@ -69,19 +75,30 @@ public class ComboBoxCardPanel extends JPanel {
 			currentCard = card;
 		});
 		
+		bodyPanel = new JPanel(new BorderLayout());
+		bodyPanel.setOpaque(false);
+		bodyPanel.add(cardPanel, BorderLayout.CENTER);
+		
 		setLayout(new BorderLayout());
 		setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
 		add(comboBox, BorderLayout.NORTH);
-		add(cardPanel, BorderLayout.CENTER);
+		add(bodyPanel, BorderLayout.CENTER);
 		
 		Card firstCard = cards.get(0);
 		cardLayout.show(cardPanel, firstCard.id);
 		currentCard = firstCard;
 	}
 	
+	public void setTopContents(JPanel panel) {
+		bodyPanel.add(panel, BorderLayout.NORTH);
+	}
 	
 	public void setCardContents(Card card, JPanel contents) {
-		JPanel cardPanel = cardPanels.get(card);
+		setCardContents(card.id, contents);
+	}
+	
+	public void setCardContents(String id, JPanel contents) {
+		JPanel cardPanel = cardPanels.get(id);
 		cardPanel.setLayout(new BorderLayout());
 		cardPanel.add(contents, BorderLayout.CENTER);
 	}

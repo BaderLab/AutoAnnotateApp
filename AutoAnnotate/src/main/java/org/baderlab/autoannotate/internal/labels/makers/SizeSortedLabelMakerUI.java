@@ -24,20 +24,29 @@ import com.google.inject.assistedinject.AssistedInject;
 public class SizeSortedLabelMakerUI implements LabelMakerUI<SizeSortedOptions> {
 
 	private final SizeSortedOptionsPanel panel;
+	private final SizeSortedLabelMakerFactory factory;
 	
 	public interface Factory {
-		SizeSortedLabelMakerUI create(SizeSortedOptions options);
+		SizeSortedLabelMakerUI create(SizeSortedOptions options, SizeSortedLabelMakerFactory factory);
 	}
 	
 	@AssistedInject
 	public SizeSortedLabelMakerUI(
-			@Assisted SizeSortedOptions options, 
+			@Assisted SizeSortedOptions options,
+			@Assisted SizeSortedLabelMakerFactory factory,
 			WordCloudAdapter wcAdapter, 
 			ShowWordcloudDialogActionFactory wordcloudFactory
 	) {
 		this.panel = new SizeSortedOptionsPanel(options, wcAdapter, wordcloudFactory);
+		this.factory = factory;
 	}
 	 
+	
+	@Override
+	public SizeSortedLabelMakerFactory getFactory() {
+		return factory;
+	}
+	
 	@Override
 	public JPanel getPanel() {
 		return panel;
@@ -63,7 +72,7 @@ public class SizeSortedLabelMakerUI implements LabelMakerUI<SizeSortedOptions> {
 			setLayout(new GridBagLayout());
 			int y = 0;
 			
-			JLabel maxWordsLabel = new JLabel("Max words per label: ");
+			JLabel maxWordsLabel = new JLabel("    Max words per label: ");
 			add(makeSmall(maxWordsLabel), GBCFactory.grid(0,y).get());
 			maxWordsModel = new SpinnerNumberModel(options.getMaxWords(), 1, 5, 1);
 			JSpinner maxWordsSpinner = new JSpinner(maxWordsModel);
@@ -72,7 +81,7 @@ public class SizeSortedLabelMakerUI implements LabelMakerUI<SizeSortedOptions> {
 			y++;
 			
 			if(wcAdapter.supportsMinOccurrs()) {
-				JLabel minOccurLabel = new JLabel("Minimum word occurrence: ");
+				JLabel minOccurLabel = new JLabel("    Minimum word occurrence: ");
 				add(makeSmall(minOccurLabel), GBCFactory.grid(0,y).get());
 				minOccurModel = new SpinnerNumberModel(options.getMinimumWordOccurrences(), 1, 20, 1);
 				JSpinner minOccurSpinner = new JSpinner(minOccurModel);
