@@ -1,10 +1,12 @@
 package org.baderlab.autoannotate.internal.ui.view.create;
 
+import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -29,20 +31,25 @@ public class ClusterMakerOptionsPanel extends JPanel implements DialogPanel {
 
 	private static final ClusterAlgorithm DEFAULT_CLUSTER_ALG = ClusterAlgorithm.MCL;
 	
+	@Inject private InstallWarningPanel.Factory installWarningPanelFactory;
 	@Inject private Provider<CyColumnPresentationManager> presentationManagerProvider;
+	@Inject private DependencyChecker dependencyChecker;
 	
 	private JComboBox<ComboItem<ClusterAlgorithm>> algorithmNameCombo;
 	private CyColumnComboBox edgeWeightColumnCombo;
 
-	private final CreateAnnotationSetDialog parent;
+	private final DialogParent parent;
 	private final CyNetwork network;
+
+	private boolean ready;
+	private InstallWarningPanel warnPanel;
 	
-	public interface Factory {
-		ClusterMakerOptionsPanel create(CyNetwork net, CreateAnnotationSetDialog parent);
+	public static interface Factory {
+		ClusterMakerOptionsPanel create(CyNetwork net, DialogParent parent);
 	}
 
 	@AssistedInject
-	private ClusterMakerOptionsPanel(@Assisted CyNetwork network, @Assisted CreateAnnotationSetDialog parent) {
+	private ClusterMakerOptionsPanel(@Assisted CyNetwork network, @Assisted DialogParent parent) {
 		this.network = network;
 		this.parent = parent;
 	}
@@ -68,17 +75,32 @@ public class ClusterMakerOptionsPanel extends JPanel implements DialogPanel {
 		enableListener.actionPerformed(null);
 		
 		SwingUtil.makeSmall(algLabel, edgeWeightLabel, edgeWeightColumnCombo);
-				
-		setLayout(new GridBagLayout());
-		add(algLabel, GBCFactory.grid(0,0).get());
-		add(algorithmNameCombo, GBCFactory.grid(1,0).weightx(1.0).get());
-		add(edgeWeightLabel, GBCFactory.grid(0,1).get());
-		add(edgeWeightColumnCombo, GBCFactory.grid(1,1).weightx(1.0).get());
+			
+		JPanel contents = new JPanel();
+		contents.setOpaque(false);
+		contents.setLayout(new GridBagLayout());
+		contents.add(algLabel, GBCFactory.grid(0,0).get());
+		contents.add(algorithmNameCombo, GBCFactory.grid(1,0).weightx(1.0).get());
+		contents.add(edgeWeightLabel, GBCFactory.grid(0,1).get());
+		contents.add(edgeWeightColumnCombo, GBCFactory.grid(1,1).weightx(1.0).get());
+		
+		warnPanel = installWarningPanelFactory.create(
+				contents,
+				"clusterMaker2 app is not installed ", 
+				"clusterMaker2", 
+				DependencyChecker.CLUSTERMAKER_APP_STORE_URL);
+		
+		warnPanel.setOnClickHandler(() -> parent.close());
+		warnPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 20));
+		
+		setLayout(new BorderLayout());
+		add(warnPanel, BorderLayout.CENTER);
 	}
 	
 	@Override
 	public void onShow() {
-		System.out.println("ClusterMakerOptionsPanel.onShow");
+		ready = dependencyChecker.isClusterMakerInstalled();
+		warnPanel.showWarning(!ready);
 		updateColumns();
 	}
 	
@@ -90,10 +112,7 @@ public class ClusterMakerOptionsPanel extends JPanel implements DialogPanel {
 	
 	@Override
 	public boolean isReady() {
-		if(!parent.isClusterMakerInstalled()) {
-			return false;
-		}
-		return true;
+		return ready;
 	}
 	
 	@Override

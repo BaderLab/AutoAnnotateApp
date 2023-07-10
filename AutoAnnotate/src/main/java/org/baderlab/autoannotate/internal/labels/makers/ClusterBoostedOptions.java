@@ -49,7 +49,7 @@ public class ClusterBoostedOptions {
 	
 	@Override
 	public String toString() {
-		return "ClusterBoostedOptions [maxWords=" + maxWords + ", clusterBonus=" + clusterBonus + ", minOccurs=" + minOccurs + "]";
+		return "ClusterBoostedOptions[maxWords=" + maxWords + ", clusterBonus=" + clusterBonus + ", minOccurs=" + minOccurs + "]";
 	}
 
 

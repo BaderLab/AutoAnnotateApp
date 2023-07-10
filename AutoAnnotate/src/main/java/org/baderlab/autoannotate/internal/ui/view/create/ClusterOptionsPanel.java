@@ -67,6 +67,8 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 		clusterIDsPanel = clusterIDsOptionsPanelFactory.create(network);
 		cardPanel.setCardContents(IDS, clusterIDsPanel);
 		
+		cardPanel.setCardChangeListener(card -> parent.updateOkButton());
+		
 		clusterMakerPanel.setOpaque(false);
 		clusterMCODEPanel.setOpaque(false);
 		clusterIDsPanel.setOpaque(false);

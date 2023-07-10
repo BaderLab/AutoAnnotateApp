@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
@@ -38,8 +39,11 @@ public class ComboBoxCardPanel extends JPanel {
 	private final Map<String,JPanel> cardPanels = new HashMap<>();
 	
 	private Card currentCard;
+	private JComboBox<Card> comboBox;
 	private JPanel cardPanel;
 	private JPanel bodyPanel;
+	
+	private Consumer<Card> cardChangeListener;
 	
 	public ComboBoxCardPanel(Collection<Card> cards) {
 		this.cards = new ArrayList<>(cards);
@@ -53,7 +57,7 @@ public class ComboBoxCardPanel extends JPanel {
 	
 	
 	private void createContents() {
-		JComboBox<Card> comboBox = new JComboBox<>();
+		comboBox = new JComboBox<>();
 		comboBox.setEditable(false);
 		SwingUtil.makeSmall(comboBox);
 		
@@ -73,6 +77,10 @@ public class ComboBoxCardPanel extends JPanel {
 			var card = (Card) e.getItem();
 			cardLayout.show(cardPanel, card.id);
 			currentCard = card;
+			
+			if(cardChangeListener != null) {
+				cardChangeListener.accept(card);
+			}
 		});
 		
 		bodyPanel = new JPanel(new BorderLayout());
@@ -87,6 +95,11 @@ public class ComboBoxCardPanel extends JPanel {
 		Card firstCard = cards.get(0);
 		cardLayout.show(cardPanel, firstCard.id);
 		currentCard = firstCard;
+	}
+	
+	
+	public void setCardChangeListener(Consumer<Card> listener) {
+		this.cardChangeListener = listener;
 	}
 	
 	public void setTopContents(JPanel panel) {

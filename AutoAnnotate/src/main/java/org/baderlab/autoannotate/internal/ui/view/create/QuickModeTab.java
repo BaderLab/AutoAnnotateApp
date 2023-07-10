@@ -37,10 +37,12 @@ public class QuickModeTab extends JPanel implements DialogTab {
 	private static final String EM_SIMILARITY_COLUMN_SUFFIX = "similarity_coefficient";
 	
 	private final CyNetworkView networkView;
-	private final CreateAnnotationSetDialog parent;
+	private final DialogParent parent;
 	
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	@Inject private Provider<CyColumnPresentationManager> presentationManagerProvider;
+	@Inject private InstallWarningPanel.Factory installWarningPanelFactory;
+	@Inject private DependencyChecker dependencyChecker;
 	
 	private JRadioButton clusterAllRadio;
 	private JRadioButton clusterMaxRadio;
@@ -48,13 +50,15 @@ public class QuickModeTab extends JPanel implements DialogTab {
 	private JSpinner spinner;
 	private CyColumnComboBox labelCombo;
 	
+	private InstallWarningPanel warnPanel;
+	private boolean ready;
 	
 	public static interface Factory {
-		QuickModeTab create(CreateAnnotationSetDialog parent);
+		QuickModeTab create(DialogParent parent);
 	}
 	
 	@Inject
-	public QuickModeTab(@Assisted CreateAnnotationSetDialog parent, CyApplicationManager appManager) {
+	public QuickModeTab(@Assisted DialogParent parent, CyApplicationManager appManager) {
 		this.networkView = appManager.getCurrentNetworkView();
 		this.parent = parent;
 	}
@@ -73,8 +77,17 @@ public class QuickModeTab extends JPanel implements DialogTab {
 		labelPanel.setOpaque(false);
 		parentPanel.add(labelPanel, GBCFactory.grid(0,1).weightx(1.0).get());
 		
+		warnPanel = installWarningPanelFactory.create(
+				parentPanel,
+				"clusterMaker2 app is not installed ", 
+				"clusterMaker2", 
+				DependencyChecker.CLUSTERMAKER_APP_STORE_URL);
+		
+		warnPanel.setOnClickHandler(() -> parent.close());
+		warnPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 20));
+		
 		setLayout(new BorderLayout());
-		add(parentPanel, BorderLayout.NORTH);
+		add(warnPanel, BorderLayout.NORTH);
 		setOpaque(false);
 	}
 	
@@ -125,6 +138,9 @@ public class QuickModeTab extends JPanel implements DialogTab {
 	
 	@Override
 	public void onShow() {
+		ready = dependencyChecker.isClusterMakerInstalled();
+		warnPanel.showWarning(!ready);
+		
 		List<CyColumn> columns = CreateViewUtil.getColumnsOfType(networkView.getModel(), String.class, true, true);
 		CreateViewUtil.updateColumnCombo(labelCombo, columns);
 	}
@@ -138,10 +154,9 @@ public class QuickModeTab extends JPanel implements DialogTab {
 		CreateViewUtil.setLabelColumnDefault(labelCombo);
 	}
 	
-	
 	@Override
 	public boolean isReady() {
-		return parent.isClusterMakerInstalled() && parent.isWordCloudInstalled();
+		return ready;
 	}
 	
 	public CyColumn getLabelColumn() {

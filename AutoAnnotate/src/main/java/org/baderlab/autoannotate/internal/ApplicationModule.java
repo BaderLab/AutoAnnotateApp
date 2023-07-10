@@ -38,6 +38,7 @@ import org.baderlab.autoannotate.internal.ui.view.create.ClusterIDsOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.create.ClusterMakerOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.create.ClusterOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialog;
+import org.baderlab.autoannotate.internal.ui.view.create.InstallWarningPanel;
 import org.baderlab.autoannotate.internal.ui.view.create.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.create.NormalModeTab;
 import org.baderlab.autoannotate.internal.ui.view.create.QuickModeTab;
@@ -78,6 +79,7 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(ClusterOptionsPanel.Factory.class);
 		installFactory(ClusterMakerOptionsPanel.Factory.class);
 		installFactory(ClusterIDsOptionsPanel.Factory.class);
+		installFactory(InstallWarningPanel.Factory.class);
 		installFactory(LabelQuestionButton.Factory.class);
 		installFactory(ManageAnnotationSetsDialog.Factory.class);
 		installFactory(NormalModeTab.Factory.class);

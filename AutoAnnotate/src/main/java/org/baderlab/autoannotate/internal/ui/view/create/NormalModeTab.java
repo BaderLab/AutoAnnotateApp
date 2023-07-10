@@ -98,7 +98,9 @@ public class NormalModeTab extends JPanel implements DialogTab {
 		if(clusterIdColumn != null)
 			builder.setClusterDataColumn(clusterIdColumn.getName());
 		
-		return builder.build();
+		var params = builder.build();
+		System.out.println(params);
+		return params;
 	}
 	
 	
