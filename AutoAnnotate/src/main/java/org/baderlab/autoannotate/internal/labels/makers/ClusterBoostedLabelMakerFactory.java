@@ -24,7 +24,7 @@ public class ClusterBoostedLabelMakerFactory implements LabelMakerFactory<Cluste
 
 	@Override
 	public String getName() {
-		return "WordCloud: Adjacent Words (default)";
+		return "Use WordCloud app (most frequent words in cluster and adjacent words)";
 	}
 
 	@Override

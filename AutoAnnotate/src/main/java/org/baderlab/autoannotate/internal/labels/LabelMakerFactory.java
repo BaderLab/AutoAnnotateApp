@@ -20,7 +20,9 @@ public interface LabelMakerFactory<C> {
 	C deserializeContext(String s);
 	
 	
-	boolean requiresWordCloud();
+	default boolean requiresWordCloud() {
+		return false;
+	}
 
 	
 	default Supplier<C> getCommandTunables() {

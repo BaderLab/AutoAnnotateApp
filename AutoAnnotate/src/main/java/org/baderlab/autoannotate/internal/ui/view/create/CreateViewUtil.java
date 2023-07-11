@@ -51,10 +51,19 @@ public class CreateViewUtil {
 	public static List<CyColumn> getLabelColumns(CyNetwork network) {
 		List<CyColumn> columns = new ArrayList<>();
 		columns.addAll(getColumnsOfType(network, Integer.class, true, true));
-		columns.addAll(getColumnsOfType(network, Long.class, true, true));
-		columns.addAll(getColumnsOfType(network, String.class, true, true));
+		columns.addAll(getColumnsOfType(network, Long.class,    true, true));
+		columns.addAll(getColumnsOfType(network, String.class,  true, true));
 		columns.addAll(getColumnsOfType(network, Boolean.class, true, true));
-		columns.addAll(getColumnsOfType(network, Double.class, true, true));
+		columns.addAll(getColumnsOfType(network, Double.class,  true, true));
+		columns.sort(Comparator.comparing(CyColumn::getName));
+		return columns;
+	}
+	
+	public static List<CyColumn> getNumericColumns(CyNetwork network) {
+		List<CyColumn> columns = new ArrayList<>();
+		columns.addAll(getColumnsOfType(network, Integer.class, true, false));
+		columns.addAll(getColumnsOfType(network, Long.class,    true, false));
+		columns.addAll(getColumnsOfType(network, Double.class,  true, false));
 		columns.sort(Comparator.comparing(CyColumn::getName));
 		return columns;
 	}

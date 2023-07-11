@@ -24,7 +24,7 @@ public class HelloWorldLabelMakerUI implements LabelMakerUI<Object> {
 	@Override
 	public JPanel getPanel() {
 		JPanel panel = new JPanel(new BorderLayout());
-		panel.add(new JLabel("Hello World!"), BorderLayout.NORTH);
+		panel.add(new JLabel("Most Significant"), BorderLayout.NORTH);
 		return panel;
 	}
 

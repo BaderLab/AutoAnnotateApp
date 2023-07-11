@@ -24,7 +24,7 @@ public class SizeSortedLabelMakerFactory implements LabelMakerFactory<SizeSorted
 	
 	@Override
 	public String getName() {
-		return "WordCloud: Biggest Words";
+		return "Use WordCloud app (most frequent words in cluster)";
 	}
 	
 	@Override

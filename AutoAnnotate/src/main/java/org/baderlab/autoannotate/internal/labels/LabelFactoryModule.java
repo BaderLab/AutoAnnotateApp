@@ -2,6 +2,7 @@ package org.baderlab.autoannotate.internal.labels;
 
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager.DefaultFactoryID;
 import org.baderlab.autoannotate.internal.labels.makers.ClusterBoostedLabelMakerFactory;
+import org.baderlab.autoannotate.internal.labels.makers.MostSignificantLabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.makers.SizeSortedLabelMakerFactory;
 
 import com.google.inject.AbstractModule;
@@ -22,6 +23,7 @@ public class LabelFactoryModule extends AbstractModule {
 		// Register factories as "plug-ins"
 		labelFactoryBinder.addBinding().to(ClusterBoostedLabelMakerFactory.class);
 		labelFactoryBinder.addBinding().to(SizeSortedLabelMakerFactory.class);
+		labelFactoryBinder.addBinding().to(MostSignificantLabelMakerFactory.class);
 //		labelFactoryBinder.addBinding().to(HeuristicLabelMakerFactory.class);
 //		labelFactoryBinder.addBinding().to(MultiDebugLabelMakerFactory.class);
 		
