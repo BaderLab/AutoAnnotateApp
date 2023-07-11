@@ -25,15 +25,15 @@ public class NormalModeTab extends JPanel implements DialogTab {
 	private ClusterOptionsPanel clusterOptionsPanel;
 	
 	private final CyNetworkView networkView;
-	private final CreateAnnotationSetDialog parent;
+	private final DialogParent parent;
 	
 	
 	public static interface Factory {
-		NormalModeTab create(CreateAnnotationSetDialog parent);
+		NormalModeTab create(DialogParent parent);
 	}
 	
 	@Inject
-	public NormalModeTab(@Assisted CreateAnnotationSetDialog parent, CyApplicationManager appManager) {
+	public NormalModeTab(@Assisted DialogParent parent, CyApplicationManager appManager) {
 		this.networkView = appManager.getCurrentNetworkView();
 		this.parent = parent;
 		
@@ -48,7 +48,7 @@ public class NormalModeTab extends JPanel implements DialogTab {
 		clusterOptionsPanel.setOpaque(false);
 		parentPanel.add(clusterOptionsPanel, GBCFactory.grid(0,0).get());
 		
-		labelOptionsPanel = labelOptionsPanelFactory.create(networkView.getModel());
+		labelOptionsPanel = labelOptionsPanelFactory.create(networkView.getModel(), parent);
 		labelOptionsPanel.setOpaque(false);
 		parentPanel.add(labelOptionsPanel, GBCFactory.grid(0,1).weightx(1.0).get());
 		

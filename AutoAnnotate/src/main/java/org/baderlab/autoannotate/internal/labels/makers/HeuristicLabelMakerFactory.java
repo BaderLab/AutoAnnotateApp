@@ -24,6 +24,11 @@ public class HeuristicLabelMakerFactory implements LabelMakerFactory<HeuristicLa
 	public String getName() {
 		return "WordCloud: Heuristic";
 	}
+	
+	@Override
+	public boolean requiresWordCloud() {
+		return true;
+	}
 
 	@Override
 	public HeuristicLabelOptions getDefaultContext() {

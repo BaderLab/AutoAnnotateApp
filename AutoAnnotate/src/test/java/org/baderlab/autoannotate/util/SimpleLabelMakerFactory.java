@@ -43,4 +43,9 @@ public class SimpleLabelMakerFactory implements LabelMakerFactory<Void> {
 		return null;
 	}
 
+	@Override
+	public boolean requiresWordCloud() {
+		return false;
+	}
+
 }

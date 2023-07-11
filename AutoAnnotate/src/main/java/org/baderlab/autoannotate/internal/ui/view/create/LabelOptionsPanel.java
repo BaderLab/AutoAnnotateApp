@@ -35,26 +35,32 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	@Inject private Provider<CyColumnPresentationManager> presentationManagerProvider;
+	@Inject private InstallWarningPanel.Factory installWarningPanelFactory;
+	@Inject private DependencyChecker dependencyChecker;
 	
 	private final CyNetwork network;
 	private final boolean showColumnCombo;
 	private final AnnotationSet annotationSet;
 	
+	private DialogParent parent;
 	private ComboBoxCardPanel cardPanel;
 	private CyColumnComboBox labelColumnNameCombo;
+	private JLabel colLabel;
 	
 	private Map<Card, LabelMakerUI> labelUIs = new LinkedHashMap<>();
+	private Map<Card, InstallWarningPanel> warnPanels = new HashMap<>();
 	private Map<Card, Object> originalContexts = new HashMap<>();
 	
 	
 	public interface Factory {
-		LabelOptionsPanel create(CyNetwork net);
+		LabelOptionsPanel create(CyNetwork net, DialogParent parent);
 		LabelOptionsPanel create(CyNetwork net, boolean showColumnCombo, AnnotationSet annotationSet);
 	}
 	
 	@AssistedInject
-	private LabelOptionsPanel(@Assisted CyNetwork network) {
+	private LabelOptionsPanel(@Assisted CyNetwork network, @Assisted DialogParent parent) {
 		this(network, true, null);
+		this.parent = parent;
 	}
 	
 	@AssistedInject
@@ -68,9 +74,10 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 	private void createContents() {
 		var labelMakerManager = labelManagerProvider.get();
 		
+		Map<Card, JPanel> panels = new HashMap<>();
+		
 		for(LabelMakerFactory factory : labelMakerManager.getFactories()) {
 			var card = new Card(factory.getID(), factory.getName());
-//			var panel = labelOptionsPanelFactory.create(network, factory, showColumnCombo);
 			
 			Object context = null;
 			if(annotationSet != null)
@@ -78,30 +85,43 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 			if(context == null)
 				context = factory.getDefaultContext();
 			
-			LabelMakerUI<?> labelUI = factory.createUI(context);
+			var labelUI = factory.createUI(context);
 			JPanel labelUIPanel = labelUI == null ? new JPanel() : labelUI.getPanel();
 			labelUIPanel.setOpaque(false);
 			
 			originalContexts.put(card, context);
 			labelUIs.put(card, labelUI);
+			
+			JPanel uiPanel = labelUI.getPanel();
+			if(factory.requiresWordCloud()) {
+				var warnPanel = installWarningPanelFactory.create(uiPanel, DependencyChecker.WORDCLOUD);
+				warnPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 20));
+				warnPanel.setOnClickHandler(this::handleClose);
+				warnPanels.put(card, warnPanel);
+				panels.put(card, warnPanel);
+			} else {
+				panels.put(card, uiPanel);
+			}
 		}
 		
 		cardPanel = new ComboBoxCardPanel(labelUIs.keySet());
 		cardPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		
-		for(var card : labelUIs.keySet()) {
-			var labelUI = labelUIs.get(card);
-			cardPanel.setCardContents(card, labelUI.getPanel());
+		cardPanel.addCardChangeListener(card -> parent.updateOkButton());
+		cardPanel.addCardChangeListener(this::handleCardChange);
+		
+		for(var card : labelUIs.keySet()) { 
+			var uiPanel = panels.get(card); // actually use panels
+			cardPanel.setCardContents(card, uiPanel);
 		}
 		
 		setBorder(LookAndFeelUtil.createTitledBorder("Label Options"));
 		setLayout(new BorderLayout());
 		add(cardPanel, BorderLayout.CENTER);
 		
-		
 		if(showColumnCombo) {
 			labelColumnNameCombo = CreateViewUtil.createLabelColumnCombo(presentationManagerProvider.get(), network);
-			JLabel colLabel = new JLabel("    Label Column:");
+			colLabel = new JLabel("    Label Column:");
 			SwingUtil.makeSmall(labelColumnNameCombo, colLabel);
 			
 			JPanel colNamePanel = new JPanel(new GridBagLayout());
@@ -119,15 +139,54 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 		CreateViewUtil.updateColumnCombo(columnCombo, columns);
 	}
 	
-	public void updateColumns() {
-		if(labelColumnNameCombo != null)
-			updateColumns(labelColumnNameCombo, network);
-	}
 	
 	public CyColumn getLabelColumn() {
 		if(labelColumnNameCombo == null)
 			return null;
 		return labelColumnNameCombo.getItemAt(labelColumnNameCombo.getSelectedIndex());
+	}
+	
+	@Override
+	public void onShow() {
+		updateColumns();
+		updateWarnings();
+	}
+	
+	private void updateColumns() {
+		if(labelColumnNameCombo != null) {
+			updateColumns(labelColumnNameCombo, network);
+		}
+	}
+	
+	private void updateWarnings() {
+		boolean showWarnings = !dependencyChecker.isWordCloudInstalled();
+		for(Card card : labelUIs.keySet()) {
+			var ui = labelUIs.get(card);
+			if(ui.getFactory().requiresWordCloud()) {
+				var warnPanel = warnPanels.get(card);
+				if(warnPanel != null) {
+					warnPanel.showWarning(showWarnings);
+				}
+			}
+		}
+		handleCardChange(cardPanel.getCurrentCard());
+	}
+	
+	private void handleCardChange(Card card) {
+		if(labelColumnNameCombo != null) {
+			colLabel.setVisible(true);
+			labelColumnNameCombo.setVisible(true);
+			var warnPanel = warnPanels.get(card);
+			if(warnPanel != null && warnPanel.isShowingWarning()) {
+				colLabel.setVisible(false);
+				labelColumnNameCombo.setVisible(false);
+			}
+		}
+	}
+	
+	private void handleClose() {
+		if(parent != null)
+			parent.close();
 	}
 	
 	@Override
@@ -140,17 +199,24 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 		if(labelColumnNameCombo != null) {
 			CreateViewUtil.setLabelColumnDefault(labelColumnNameCombo);
 		}
+		updateWarnings();
 	}
 
-	@Override
-	public boolean isReady() {
-		return getLabelColumn() != null;
-	}
 	
 	@Override
-	public void onShow() {
-		updateColumns();
+	public boolean isReady() {
+		if(getLabelColumn() == null)
+			return false;
+		
+		var card = cardPanel.getCurrentCard();
+		var ui = labelUIs.get(card);
+		if(ui.getFactory().requiresWordCloud()) {
+			return dependencyChecker.isWordCloudInstalled();
+		}
+		
+		return true;
 	}
+	
 
 	public LabelMakerFactory<?> getLabelMakerFactory() {
 		var card = cardPanel.getCurrentCard();

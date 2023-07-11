@@ -28,6 +28,11 @@ public class ClusterBoostedLabelMakerFactory implements LabelMakerFactory<Cluste
 	}
 
 	@Override
+	public boolean requiresWordCloud() {
+		return true;
+	}
+	
+	@Override
 	public ClusterBoostedOptions getDefaultContext() {
 		return ClusterBoostedOptions.defaults();
 	}

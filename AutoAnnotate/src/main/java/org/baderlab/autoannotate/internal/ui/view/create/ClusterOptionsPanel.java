@@ -31,7 +31,7 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 	@Inject private ClusterMakerOptionsPanel.Factory clusterMakerOptionsPanelFactory;
 	@Inject private ClusterIDsOptionsPanel.Factory clusterIDsOptionsPanelFactory;
 	
-	private final CreateAnnotationSetDialog parent;
+	private final DialogParent parent;
 	private final CyNetwork network;
 	
 	private ComboBoxCardPanel cardPanel;
@@ -44,11 +44,11 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 	
 	
 	public interface Factory {
-		ClusterOptionsPanel create(CyNetwork net, CreateAnnotationSetDialog parent);
+		ClusterOptionsPanel create(CyNetwork net, DialogParent parent);
 	}
 
 	@AssistedInject
-	private ClusterOptionsPanel(@Assisted CyNetwork network, @Assisted CreateAnnotationSetDialog parent) {
+	private ClusterOptionsPanel(@Assisted CyNetwork network, @Assisted DialogParent parent) {
 		this.network = network;
 		this.parent = parent;
 	}
@@ -66,8 +66,7 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 		
 		clusterIDsPanel = clusterIDsOptionsPanelFactory.create(network);
 		cardPanel.setCardContents(IDS, clusterIDsPanel);
-		
-		cardPanel.setCardChangeListener(card -> parent.updateOkButton());
+		cardPanel.addCardChangeListener(card -> parent.updateOkButton());
 		
 		clusterMakerPanel.setOpaque(false);
 		clusterMCODEPanel.setOpaque(false);
@@ -97,6 +96,13 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 		clusterMakerPanel.onShow();
 		clusterMCODEPanel.onShow();
 		clusterIDsPanel.onShow();
+		
+		singletonCheckBox.setVisible(true);
+		layoutCheckBox.setVisible(true);
+		if(!clusterMakerPanel.isReady()) {
+			singletonCheckBox.setVisible(false);
+			layoutCheckBox.setVisible(false);
+		}
 	}
 
 	@Override

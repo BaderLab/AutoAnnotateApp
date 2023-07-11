@@ -29,33 +29,35 @@ public class InstallWarningPanel extends JPanel {
 	@Inject private IconManager iconManager;
 	@Inject private Provider<OpenBrowser> browserProvider;
 	
-	private final String message;
-	private final String appName;
-	private final String appUrl;
+	private final AppInfo appInfo;
 	private final JPanel contents;
+	private boolean isShowingWarning;
 	
 	private CardLayout cardLayout;
 	private Runnable onClickHandler;
 	
+	
+	public static class AppInfo {
+		final String message;
+		final String appName; 
+		final String appUrl;
+		
+		public AppInfo(String message, String appName, String appUrl) {
+			this.message = message;
+			this.appName = appName;
+			this.appUrl = appUrl;
+		}
+	}
+	
+	
 	public static interface Factory {
-		InstallWarningPanel create(
-			JPanel contents, 
-			@Assisted("message") String message, 
-			@Assisted("appName") String appName, 
-			@Assisted("appUrl") String appUrl);
+		InstallWarningPanel create(JPanel contents, AppInfo appInfo);
 	}
 
 	@AssistedInject
-	public InstallWarningPanel(
-			@Assisted JPanel contents, 
-			@Assisted("message") String message,
-			@Assisted("appName") String appName, 
-			@Assisted("appUrl") String appUrl) 
-	{
-		this.message = message;
-		this.appName = appName;
-		this.appUrl = appUrl;
+	public InstallWarningPanel(@Assisted JPanel contents, @Assisted AppInfo appInfo) {
 		this.contents = contents;
+		this.appInfo = appInfo;
 	}
 	
 	@AfterInjection
@@ -67,6 +69,10 @@ public class InstallWarningPanel extends JPanel {
 		
 		add(contents, NORMAL_CARD);
 		add(warningPanel, WARN_CARD);
+		
+		cardLayout.show(this, NORMAL_CARD);
+		isShowingWarning = false;
+		
 		setOpaque(false);
 	}
 	
@@ -85,13 +91,13 @@ public class InstallWarningPanel extends JPanel {
 		icon.setForeground(error ? Color.RED.darker() : Color.YELLOW.darker());
 		icon.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
 		
-		JLabel messageLabel = new JLabel(message + "  ");
+		JLabel messageLabel = new JLabel(appInfo.message + "  ");
 		
-		JLabel link = new JLabel("<HTML><FONT color=\"#000099\"><U>install " + appName + "</U></FONT></HTML>");
+		JLabel link = new JLabel("<HTML><FONT color=\"#000099\"><U>install " + appInfo.appName + "</U></FONT></HTML>");
 		link.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		link.addMouseListener(new MouseAdapter() {
 			@Override public void mouseClicked(MouseEvent e) {
-				browserProvider.get().openURL(appUrl);
+				browserProvider.get().openURL(appInfo.appUrl);
 				
 				if(onClickHandler != null) {
 					onClickHandler.run();
@@ -109,5 +115,10 @@ public class InstallWarningPanel extends JPanel {
 
 	public void showWarning(boolean warning) {
 		cardLayout.show(this, warning ? WARN_CARD : NORMAL_CARD);
+		isShowingWarning = warning;
+	}
+	
+	public boolean isShowingWarning() {
+		return isShowingWarning;
 	}
 }

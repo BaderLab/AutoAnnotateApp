@@ -18,6 +18,9 @@ public interface LabelMakerFactory<C> {
 	String serializeContext(C context);
 	
 	C deserializeContext(String s);
+	
+	
+	boolean requiresWordCloud();
 
 	
 	default Supplier<C> getCommandTunables() {

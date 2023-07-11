@@ -43,7 +43,7 @@ public class ComboBoxCardPanel extends JPanel {
 	private JPanel cardPanel;
 	private JPanel bodyPanel;
 	
-	private Consumer<Card> cardChangeListener;
+	private List<Consumer<Card>> cardChangeListeners = new ArrayList<>();
 	
 	public ComboBoxCardPanel(Collection<Card> cards) {
 		this.cards = new ArrayList<>(cards);
@@ -55,6 +55,9 @@ public class ComboBoxCardPanel extends JPanel {
 		this(Arrays.asList(cards));
 	}
 	
+	public Card getCard(int index) {
+		return cards.get(index);
+	}
 	
 	private void createContents() {
 		comboBox = new JComboBox<>();
@@ -77,10 +80,7 @@ public class ComboBoxCardPanel extends JPanel {
 			var card = (Card) e.getItem();
 			cardLayout.show(cardPanel, card.id);
 			currentCard = card;
-			
-			if(cardChangeListener != null) {
-				cardChangeListener.accept(card);
-			}
+			fireCardChange(card);
 		});
 		
 		bodyPanel = new JPanel(new BorderLayout());
@@ -97,9 +97,14 @@ public class ComboBoxCardPanel extends JPanel {
 		currentCard = firstCard;
 	}
 	
+	private void fireCardChange(Card card) {
+		for(var listener : cardChangeListeners) {
+			listener.accept(card);
+		}
+	}
 	
-	public void setCardChangeListener(Consumer<Card> listener) {
-		this.cardChangeListener = listener;
+	public void addCardChangeListener(Consumer<Card> listener) {
+		cardChangeListeners.add(listener);
 	}
 	
 	public void setTopContents(JPanel panel) {

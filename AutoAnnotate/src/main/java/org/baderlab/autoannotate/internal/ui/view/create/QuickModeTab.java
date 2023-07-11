@@ -77,12 +77,7 @@ public class QuickModeTab extends JPanel implements DialogTab {
 		labelPanel.setOpaque(false);
 		parentPanel.add(labelPanel, GBCFactory.grid(0,1).weightx(1.0).get());
 		
-		warnPanel = installWarningPanelFactory.create(
-				parentPanel,
-				"clusterMaker2 app is not installed ", 
-				"clusterMaker2", 
-				DependencyChecker.CLUSTERMAKER_APP_STORE_URL);
-		
+		warnPanel = installWarningPanelFactory.create(parentPanel, DependencyChecker.CLUSTERMAKER);
 		warnPanel.setOnClickHandler(() -> parent.close());
 		warnPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 20));
 		

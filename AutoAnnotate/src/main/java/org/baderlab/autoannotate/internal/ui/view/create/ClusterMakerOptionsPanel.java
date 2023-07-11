@@ -84,12 +84,7 @@ public class ClusterMakerOptionsPanel extends JPanel implements DialogPanel {
 		contents.add(edgeWeightLabel, GBCFactory.grid(0,1).get());
 		contents.add(edgeWeightColumnCombo, GBCFactory.grid(1,1).weightx(1.0).get());
 		
-		warnPanel = installWarningPanelFactory.create(
-				contents,
-				"clusterMaker2 app is not installed ", 
-				"clusterMaker2", 
-				DependencyChecker.CLUSTERMAKER_APP_STORE_URL);
-		
+		warnPanel = installWarningPanelFactory.create(contents, DependencyChecker.CLUSTERMAKER);
 		warnPanel.setOnClickHandler(() -> parent.close());
 		warnPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 20));
 		

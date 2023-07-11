@@ -26,6 +26,11 @@ public class SizeSortedLabelMakerFactory implements LabelMakerFactory<SizeSorted
 	public String getName() {
 		return "WordCloud: Biggest Words";
 	}
+	
+	@Override
+	public boolean requiresWordCloud() {
+		return true;
+	}
 
 	@Override
 	public SizeSortedOptions getDefaultContext() {

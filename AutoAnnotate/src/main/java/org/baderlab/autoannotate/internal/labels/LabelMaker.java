@@ -1,6 +1,7 @@
 package org.baderlab.autoannotate.internal.labels;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.baderlab.autoannotate.internal.model.io.CreationParameter;
@@ -17,7 +18,9 @@ public interface LabelMaker {
 	String makeLabel(CyNetwork network, Collection<CyNode> nodes, String labelColumn); 
 	
 	
-	List<CreationParameter> getCreationParameters();
+	default List<CreationParameter> getCreationParameters() {
+		return Collections.emptyList();
+	}
 	
 	default boolean isReady() {
 		return true;

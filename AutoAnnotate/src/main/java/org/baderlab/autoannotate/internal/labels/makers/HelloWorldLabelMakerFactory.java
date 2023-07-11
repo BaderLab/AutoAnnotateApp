@@ -3,17 +3,11 @@ package org.baderlab.autoannotate.internal.labels.makers;
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
-import org.baderlab.autoannotate.internal.labels.WordCloudAdapter;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+public class HelloWorldLabelMakerFactory implements LabelMakerFactory<Object> {
 
-public class MultiDebugLabelMakerFactory implements LabelMakerFactory<Object> {
-
-	public static final String ID = "multiDebug";
+	public static final String ID = "helloWorld";
 	
-	@Inject private Provider<WordCloudAdapter> wordCloudProvider; 
-
 	
 	@Override
 	public String getID() {
@@ -22,12 +16,12 @@ public class MultiDebugLabelMakerFactory implements LabelMakerFactory<Object> {
 	
 	@Override
 	public String getName() {
-		return "Multi Debug";
+		return "Hello World!";
 	}
 	
 	@Override
 	public boolean requiresWordCloud() {
-		return true;
+		return false;
 	}
 
 	@Override
@@ -37,12 +31,12 @@ public class MultiDebugLabelMakerFactory implements LabelMakerFactory<Object> {
 
 	@Override
 	public LabelMakerUI<Object> createUI(Object context) {
-		return null;
+		return new HelloWorldLabelMakerUI(this);
 	}
 
 	@Override
 	public LabelMaker createLabelMaker(Object context) {
-		return new MultiDebugLabelMaker(wordCloudProvider.get());
+		return new HelloWorldLabelMaker();
 	}
 
 	@Override
