@@ -106,6 +106,7 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 		
 		cardPanel = new ComboBoxCardPanel(labelUIs.keySet());
 		cardPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		showDefaultLabelMaker();
 		
 		cardPanel.addCardChangeListener(card -> parent.updateOkButton());
 		cardPanel.addCardChangeListener(this::handleCardChange);
@@ -197,16 +198,24 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 	@Override
 	public void reset() {
 		for(var card : labelUIs.keySet()) {
-			LabelMakerUI ui = labelUIs.get(card);
+			var ui = labelUIs.get(card);
 			Object context = originalContexts.get(card);
 			ui.reset(context);
 		}
+		
 		if(labelColumnNameCombo != null) {
 			CreateViewUtil.setLabelColumnDefault(labelColumnNameCombo);
 		}
+		
+		showDefaultLabelMaker();
 		updateWarnings();
 	}
 
+	private void showDefaultLabelMaker() {
+		var defaultID = labelManagerProvider.get().getDefaultFactory().getID();
+		var defaultCard = labelUIs.keySet().stream().filter(c -> c.id.equals(defaultID)).findFirst().get();
+		cardPanel.setCurrentCard(defaultCard);
+	}
 	
 	@Override
 	public boolean isReady() {

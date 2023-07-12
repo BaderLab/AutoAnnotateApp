@@ -23,6 +23,8 @@ public class MostSignificantLabelMaker implements LabelMaker {
 			return ""; // Shouldn't happen
 		
 		var sigColumn = options.getSignificanceColumn();
+		var sigOp = options.getSignificance();
+		
 		var nodeTable = network.getDefaultNodeTable();
 		var column = nodeTable.getColumn(sigColumn);
 		
@@ -35,7 +37,7 @@ public class MostSignificantLabelMaker implements LabelMaker {
 		for(var node : nodes) {
 			var value = (Number)network.getRow(node).get(sigColumn, column.getType());
 			
-			if(mostSigNode == null || value.doubleValue() < mostSigVal.doubleValue()) {
+			if(mostSigVal == null || sigOp.isMoreSignificant(value, mostSigVal)) {
 				mostSigNode = node;
 				mostSigVal = value;
 			}

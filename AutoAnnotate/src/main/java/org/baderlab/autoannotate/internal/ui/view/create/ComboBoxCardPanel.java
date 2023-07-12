@@ -39,7 +39,9 @@ public class ComboBoxCardPanel extends JPanel {
 	private final Map<String,JPanel> cardPanels = new HashMap<>();
 	
 	private Card currentCard;
+	
 	private JComboBox<Card> comboBox;
+	private CardLayout cardLayout;
 	private JPanel cardPanel;
 	private JPanel bodyPanel;
 	
@@ -64,7 +66,7 @@ public class ComboBoxCardPanel extends JPanel {
 		comboBox.setEditable(false);
 		SwingUtil.makeSmall(comboBox);
 		
-		var cardLayout = new CardLayout();
+		cardLayout = new CardLayout();
 		cardPanel = new JPanel(cardLayout);
 		cardPanel.setOpaque(false);
 		
@@ -103,6 +105,10 @@ public class ComboBoxCardPanel extends JPanel {
 		}
 	}
 	
+	public void setCurrentCard(Card card) {
+		comboBox.setSelectedItem(card);
+	}
+	
 	public void addCardChangeListener(Consumer<Card> listener) {
 		cardChangeListeners.add(listener);
 	}
@@ -112,11 +118,7 @@ public class ComboBoxCardPanel extends JPanel {
 	}
 	
 	public void setCardContents(Card card, JPanel contents) {
-		setCardContents(card.id, contents);
-	}
-	
-	public void setCardContents(String id, JPanel contents) {
-		JPanel cardPanel = cardPanels.get(id);
+		JPanel cardPanel = cardPanels.get(card.id);
 		cardPanel.setLayout(new BorderLayout());
 		cardPanel.add(contents, BorderLayout.CENTER);
 	}
