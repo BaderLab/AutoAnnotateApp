@@ -83,6 +83,7 @@ public class ClusterMakerOptionsPanel extends JPanel implements DialogPanel {
 		contents.add(algorithmNameCombo, GBCFactory.grid(1,0).weightx(1.0).get());
 		contents.add(edgeWeightLabel, GBCFactory.grid(0,1).get());
 		contents.add(edgeWeightColumnCombo, GBCFactory.grid(1,1).weightx(1.0).get());
+		contents.add(new JLabel(""), GBCFactory.grid(0, 2).weighty(1.0).get());
 		
 		warnPanel = installWarningPanelFactory.create(contents, DependencyChecker.CLUSTERMAKER);
 		warnPanel.setOnClickHandler(() -> parent.close());

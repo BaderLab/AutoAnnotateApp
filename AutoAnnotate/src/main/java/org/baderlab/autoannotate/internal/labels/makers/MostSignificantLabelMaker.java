@@ -19,7 +19,29 @@ public class MostSignificantLabelMaker implements LabelMaker {
 
 	@Override
 	public String makeLabel(CyNetwork network, Collection<CyNode> nodes, String labelColumn) {
-		return "Most Significant!";
+		if(nodes.isEmpty())
+			return ""; // Shouldn't happen
+		
+		var sigColumn = options.getSignificanceColumn();
+		var nodeTable = network.getDefaultNodeTable();
+		var column = nodeTable.getColumn(sigColumn);
+		
+		if(column == null)
+			return "";
+		
+		CyNode mostSigNode = null;
+		Number mostSigVal  = null;
+		
+		for(var node : nodes) {
+			var value = (Number)network.getRow(node).get(sigColumn, column.getType());
+			
+			if(mostSigNode == null || value.doubleValue() < mostSigVal.doubleValue()) {
+				mostSigNode = node;
+				mostSigVal = value;
+			}
+		}
+		
+		return network.getRow(mostSigNode).get(labelColumn, String.class);
 	}
 
 }

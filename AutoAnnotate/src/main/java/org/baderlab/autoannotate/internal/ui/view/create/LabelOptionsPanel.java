@@ -112,7 +112,11 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 		
 		for(var card : labelUIs.keySet()) { 
 			var uiPanel = panels.get(card); // actually use panels
-			cardPanel.setCardContents(card, uiPanel);
+			JPanel container = new JPanel(new BorderLayout());
+			container.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 20));
+			container.add(uiPanel, BorderLayout.NORTH);
+			container.setOpaque(false);
+			cardPanel.setCardContents(card, container);
 		}
 		
 		setBorder(LookAndFeelUtil.createTitledBorder("Label Options"));
@@ -128,6 +132,7 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 			colNamePanel.setOpaque(false);
 			colNamePanel.add(colLabel, GBCFactory.grid(0,0).get());
 			colNamePanel.add(labelColumnNameCombo, GBCFactory.grid(1,0).weightx(1.0).get());
+			colNamePanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 20));
 			
 			cardPanel.setTopContents(colNamePanel);
 		}

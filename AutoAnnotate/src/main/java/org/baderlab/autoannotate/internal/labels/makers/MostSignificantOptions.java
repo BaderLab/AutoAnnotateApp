@@ -13,15 +13,9 @@ public class MostSignificantOptions {
 		return significanceColumn;
 	}
 
-	
-//	public static MostSignificantOptions defaults() {
-//		return new MostSignificantOptions(null);
-//	}
-
 	@Override
 	public String toString() {
 		return "MostSignificantOptions[significanceColumn=" + significanceColumn + "]";
 	}
-	
 	
 }
