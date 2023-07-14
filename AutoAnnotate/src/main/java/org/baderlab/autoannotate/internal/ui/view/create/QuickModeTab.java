@@ -18,6 +18,7 @@ import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
+import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters.ClusterMakerParameters;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.CyApplicationManager;
@@ -172,20 +173,15 @@ public class QuickModeTab extends JPanel implements DialogTab {
 	public AnnotationSetTaskParamters createAnnotationSetTaskParameters() {
 		LabelMakerFactory<?> labelMakerFactory = labelManagerProvider.get().getDefaultFactory();
 		Object labelMakerContext = labelMakerFactory.getDefaultContext();
+		String edgeAttribute = getDefaultClusterMakerEdgeAttribute().map(CyColumn::getName).orElse(null);
 		
 		AnnotationSetTaskParamters.Builder builder = 
 			new AnnotationSetTaskParamters.Builder(networkView)
 			.setLabelColumn(getLabelColumn().getName())
-			.setUseClusterMaker(true)
-			.setClusterAlgorithm(DEFAULT_CLUSTER_ALG)
+			.setClusterParameters(new ClusterMakerParameters(DEFAULT_CLUSTER_ALG, edgeAttribute))
 			.setLabelMakerFactory(labelMakerFactory)
 			.setLabelMakerContext(labelMakerContext)
-			.setCreateGroups(false)
 			.setLayoutClusters(layoutCheckBox.isSelected());
-		
-		getDefaultClusterMakerEdgeAttribute()
-			.map(CyColumn::getName)
-			.ifPresent(builder::setClusterMakerEdgeAttribute);
 		
 		if(clusterAllRadio.isSelected())
 			builder.setCreateSingletonClusters(true);

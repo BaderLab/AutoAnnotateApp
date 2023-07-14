@@ -12,27 +12,86 @@ public class AnnotationSetTaskParamters {
 
 	private final CyNetworkView networkView;
 	private final String labelColumn;
-	private final boolean useClusterMaker;
-	private final ClusterAlgorithm clusterMakerAlgorithm;
-	private final String clusterMakerEdgeAttribute;
-	private final String clusterDataColumn; // existing cluster IDs
+	private final ClusterParameters clusterParameters;
 	private final boolean layoutClusters;
-	private final boolean createGroups;
 	private final LabelMakerFactory<?> labelMakerFactory;
 	private final Object labelMakerContext;
 	private final boolean createSingletonClusters;
 	private final Optional<Integer> maxClusters;
 	private final boolean returnJsonOnly;
 	
+	
+	public static interface ClusterParameters { }
+		
+	
+	public static final class ClusterMakerParameters implements ClusterParameters {
+		
+		private final ClusterAlgorithm algorithm;
+		private final String edgeAttribute;
+		
+		public ClusterMakerParameters(ClusterAlgorithm algorithm, String edgeAttribute) {
+			this.algorithm = algorithm;
+			this.edgeAttribute = edgeAttribute;
+		}
+
+		public ClusterAlgorithm getAlgorithm() {
+			return algorithm;
+		}
+
+		public String getEdgeAttribute() {
+			return edgeAttribute == null ? "-- None --" : edgeAttribute;
+		}
+
+		@Override
+		public String toString() {
+			return "ClusterMakerParameters[algorithm=" + algorithm + ", edgeAttribute=" + edgeAttribute + "]";
+		}
+	}
+	
+	public static final class ClusterIDParameters implements ClusterParameters {
+		
+		private final String idColumn; // existing cluster IDs
+
+		public ClusterIDParameters(String idColumn) {
+			this.idColumn = idColumn;
+		}
+
+		public String getIdColumn() {
+			return idColumn;
+		}
+
+		@Override
+		public String toString() {
+			return "ClusterIDParameters[idColumn=" + idColumn + "]";
+		}
+	}
+	
+	
+	public static final class ClusterMCODEParameters implements ClusterParameters {
+		
+		private final boolean useSelected;
+
+		public ClusterMCODEParameters(boolean useSelected) {
+			this.useSelected = useSelected;
+		}
+
+		public boolean isUseSelected() {
+			return useSelected;
+		}
+
+		@Override
+		public String toString() {
+			return "ClusterMCODEParameters[useSelected=" + useSelected + "]";
+		}
+	}
+	
+	
+	
 	private AnnotationSetTaskParamters(Builder builder) {
 		this.networkView = builder.networkView;
 		this.labelColumn = builder.labelColumn;
-		this.useClusterMaker = builder.useClusterMaker;
-		this.clusterMakerAlgorithm = builder.clusterMakerAlgorithm;
-		this.clusterMakerEdgeAttribute = builder.clusterMakerEdgeAttribute;
-		this.clusterDataColumn = builder.clusterDataColumn;
+		this.clusterParameters = builder.clusterParameters;
 		this.layoutClusters = builder.layoutClusters;
-		this.createGroups = builder.createGroups;
 		this.labelMakerFactory = builder.labelMakerFactory;
 		this.labelMakerContext = builder.labelMakerContext;
 		this.createSingletonClusters = builder.createSingletonClusters;
@@ -40,15 +99,13 @@ public class AnnotationSetTaskParamters {
 		this.returnJsonOnly = builder.returnJsonOnly;
 	}
 	
+	
+	
 	public static class Builder {
 		private final CyNetworkView networkView;
 		private String labelColumn = "name";
-		private boolean useClusterMaker = true;
-		private ClusterAlgorithm clusterMakerAlgorithm = ClusterAlgorithm.values()[0];
-		private String clusterMakerEdgeAttribute;
-		private String clusterDataColumn;
+		private ClusterParameters clusterParameters;
 		private boolean layoutClusters = false;
-		private boolean createGroups = false;
 		private LabelMakerFactory<?> labelMakerFactory;
 		private Object labelMakerContext;
 		private boolean createSingletonClusters = false;
@@ -63,28 +120,12 @@ public class AnnotationSetTaskParamters {
 			this.labelColumn = labelColumn;
 			return this;
 		}
-		public Builder setUseClusterMaker(boolean useClusterMaker) {
-			this.useClusterMaker = useClusterMaker;
-			return this;
-		}
-		public Builder setClusterAlgorithm(ClusterAlgorithm clusterAlgorithm) {
-			this.clusterMakerAlgorithm = clusterAlgorithm;
-			return this;
-		}
-		public Builder setClusterDataColumn(String clusterDataColumn) {
-			this.clusterDataColumn = clusterDataColumn;
+		public Builder setClusterParameters(ClusterParameters clusterParameters) {
+			this.clusterParameters = clusterParameters;
 			return this;
 		}
 		public Builder setLayoutClusters(boolean layoutClusters) {
 			this.layoutClusters = layoutClusters;
-			return this;
-		}
-		public Builder setCreateGroups(boolean createGroups) {
-			this.createGroups = createGroups;
-			return this;
-		}
-		public Builder setClusterMakerEdgeAttribute(String name) {
-			this.clusterMakerEdgeAttribute = name;
 			return this;
 		}
 		public Builder setLabelMakerFactory(LabelMakerFactory<?> factory) {
@@ -123,28 +164,45 @@ public class AnnotationSetTaskParamters {
 	}
 
 	public boolean isUseClusterMaker() {
-		return useClusterMaker;
+		return clusterParameters instanceof ClusterMakerParameters;
+	}
+	
+	public boolean isUseMCODE() {
+		return clusterParameters instanceof ClusterMCODEParameters;
 	}
 
 	public ClusterAlgorithm getClusterAlgorithm() {
-		return clusterMakerAlgorithm;
+		if(clusterParameters instanceof ClusterMakerParameters) {
+			return ((ClusterMakerParameters)clusterParameters).getAlgorithm();
+		}
+		return null;
 	}
 
 	public String getClusterDataColumn() {
-		return clusterDataColumn;
+		if(clusterParameters instanceof ClusterIDParameters) {
+			return ((ClusterIDParameters)clusterParameters).getIdColumn();
+		}
+		return null;
 	}
 
-	public boolean isCreateGroups() {
-		return createGroups;
-	}
-	
 	public boolean isLayoutClusters() {
 		return layoutClusters;
 	}
 	
 	public String getClusterMakerEdgeAttribute() {
-		// bit of a hack
-		return clusterMakerEdgeAttribute == null ? "-- None --" : clusterMakerEdgeAttribute;
+		if(clusterParameters instanceof ClusterMakerParameters) {
+			// bit of a hack
+			var clusterMakerEdgeAttribute = ((ClusterMakerParameters)clusterParameters).getEdgeAttribute();
+			return clusterMakerEdgeAttribute == null ? "-- None --" : clusterMakerEdgeAttribute;
+		}
+		return null;
+	}
+	
+	public boolean isUseSelected() {
+		if(clusterParameters instanceof ClusterMCODEParameters) {
+			return ((ClusterMCODEParameters)clusterParameters).isUseSelected();
+		}
+		return false;
 	}
 	
 	public LabelMakerFactory<?> getLabelMakerFactory() {
@@ -172,12 +230,8 @@ public class AnnotationSetTaskParamters {
 		return MoreObjects.toStringHelper(this)
 			.add("networkView", networkView.getSUID())
 			.add("lanelColumn", labelColumn)
-			.add("useClusterMaker", useClusterMaker)
-			.add("clusterMakerAlgorithm", clusterMakerAlgorithm)
-			.add("clusterMakerEdgeAttribute", clusterMakerEdgeAttribute)
-			.add("clusterDataColumn", clusterDataColumn)
+			.add("clusterParameters", clusterParameters)
 			.add("layoutClusters", layoutClusters)
-			.add("createGroups", createGroups)
 			.add("createSingletonClusters", createSingletonClusters)
 			.add("maxClusters", maxClusters)
 			.add("labelMakerFactory", labelMakerFactory.getName())

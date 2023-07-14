@@ -7,6 +7,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
+import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters.ClusterIDParameters;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.swing.CyColumnComboBox;
@@ -76,7 +77,11 @@ public class ClusterIDsOptionsPanel extends JPanel implements DialogPanel {
 		updateColumns();
 	}
 	
-	public CyColumn getClusterIdColumn() {
+	public ClusterIDParameters getClusterParameters() {
+		return new ClusterIDParameters(getClusterIdColumn().getName());
+	}
+	
+	private CyColumn getClusterIdColumn() {
 		return clusterIdColumnCombo.getSelectedItem();
 	}
 }

@@ -13,6 +13,8 @@ import javax.swing.JPanel;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
+import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters.ClusterMakerParameters;
+import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters.ClusterParameters;
 import org.baderlab.autoannotate.internal.util.ComboItem;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
@@ -117,13 +119,17 @@ public class ClusterMakerOptionsPanel extends JPanel implements DialogPanel {
 		edgeWeightColumnCombo.setSelectedIndex(0);
 	}
 	
+	public ClusterParameters getClusterParameters() {
+		return new ClusterMakerParameters(getClusterAlgorithm(), getEdgeWeightColumn());
+	}
 	
-	public ClusterAlgorithm getClusterAlgorithm() {
+	private ClusterAlgorithm getClusterAlgorithm() {
 		return algorithmNameCombo.getItemAt(algorithmNameCombo.getSelectedIndex()).getValue();
 	}
 	
-	public CyColumn getEdgeWeightColumn() {
-		return edgeWeightColumnCombo.getSelectedItem();
+	private  String getEdgeWeightColumn() {
+		CyColumn col = edgeWeightColumnCombo.getSelectedItem();
+		return col == null ? null : col.getName();
 	}
 	
 }

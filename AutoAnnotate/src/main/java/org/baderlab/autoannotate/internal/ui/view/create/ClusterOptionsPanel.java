@@ -9,11 +9,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
-import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
+import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters.ClusterParameters;
 import org.baderlab.autoannotate.internal.ui.view.create.ComboBoxCardPanel.Card;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
-import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.util.swing.LookAndFeelUtil;
 
@@ -30,6 +29,7 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 	
 	@Inject private ClusterMakerOptionsPanel.Factory clusterMakerOptionsPanelFactory;
 	@Inject private ClusterIDsOptionsPanel.Factory clusterIDsOptionsPanelFactory;
+	@Inject private ClusterMCODEOptionsPanel.Factory mcodeOptionsPanelFactory;
 	
 	private final DialogParent parent;
 	private final CyNetwork network;
@@ -55,14 +55,14 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 	
 	@AfterInjection
 	private void createContents() {
-		cardPanel = new ComboBoxCardPanel(CLUSTER_MAKER, /*MCODE,*/ IDS);
+		cardPanel = new ComboBoxCardPanel(CLUSTER_MAKER, MCODE, IDS);
 		cardPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		
 		clusterMakerPanel = clusterMakerOptionsPanelFactory.create(network, parent);
 		cardPanel.setCardContents(CLUSTER_MAKER, clusterMakerPanel);
 		
-		clusterMCODEPanel = new ClusterMCODEOptionsPanel();
-//		cardPanel.setCardContents(MCODE, clusterMCODEPanel);
+		clusterMCODEPanel = mcodeOptionsPanelFactory.create(parent);
+		cardPanel.setCardContents(MCODE, clusterMCODEPanel);
 		
 		clusterIDsPanel = clusterIDsOptionsPanelFactory.create(network);
 		cardPanel.setCardContents(IDS, clusterIDsPanel);
@@ -137,19 +137,16 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 		return layoutCheckBox.isSelected();
 	}
 	
-	public boolean isUseClusterMaker() {
-		return cardPanel.getCurrentCard() == CLUSTER_MAKER;
-	}
-	
-	public ClusterAlgorithm getClusterAlgorithm() {
-		return clusterMakerPanel.getClusterAlgorithm();
-	}
-	
-	public CyColumn getEdgeWeightColumn() {
-		return clusterMakerPanel.getEdgeWeightColumn();
-	}
-
-	public CyColumn getClusterIdColumn() {
-		return clusterIDsPanel.getClusterIdColumn();
+	public ClusterParameters getClusterParameters() {
+		Card card = cardPanel.getCurrentCard();
+		
+		if(card == CLUSTER_MAKER)
+			return clusterMakerPanel.getClusterParameters();
+		else if(card == MCODE)
+			return clusterMCODEPanel.getClusterParameters();
+		else if(card == IDS)
+			return clusterIDsPanel.getClusterParameters();
+		
+		return null;
 	}
 }

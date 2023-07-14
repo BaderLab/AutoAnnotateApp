@@ -14,6 +14,7 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
+import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters.ClusterIDParameters;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.internal.task.SummaryNetworkTask;
 import org.baderlab.autoannotate.internal.ui.render.DrawClustersTask;
@@ -99,11 +100,7 @@ public class NetworkTestUtil {
 			.setLabelColumn(CyNetwork.NAME)
 			.setLabelMakerFactory(new SimpleLabelMakerFactory())
 			.setLabelMakerContext(null)
-			.setUseClusterMaker(false)
-			.setClusterAlgorithm(null)
-			.setClusterMakerEdgeAttribute(null)
-			.setClusterDataColumn(CLUSTER_COL)
-			.setCreateGroups(false);
+			.setClusterParameters(new ClusterIDParameters(CLUSTER_COL));
 	}
 	
 	public static AnnotationSet createAnnotationSet(AnnotationSetTaskParamters params, CreateAnnotationSetTask.Factory taskFactory, ModelManager modelManager) {

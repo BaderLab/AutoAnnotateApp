@@ -7,6 +7,8 @@ import java.util.function.Supplier;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
+import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters.ClusterIDParameters;
+import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters.ClusterMakerParameters;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.internal.task.Grouping;
@@ -123,13 +125,13 @@ public class AnnotateCommandTask extends AbstractTask {
 			.setLabelColumn(labelColumn)
 			.setLabelMakerFactory(labelMakerFactory)
 			.setLabelMakerContext(labelMakerContext)
-			.setUseClusterMaker(useClusterMaker)
-			.setClusterAlgorithm(alg)
-			.setClusterMakerEdgeAttribute(edgeWeightColumn)
-			.setClusterDataColumn(clusterIdColumn)
 			.setCreateSingletonClusters(createSingletonClusters)
-			.setCreateGroups(false)
 			.setReturnJsonOnly(returnJsonOnly)
+			.setClusterParameters(
+				useClusterMaker 
+					? new ClusterMakerParameters(alg, edgeWeightColumn)
+					: new ClusterIDParameters(clusterIdColumn)
+			)
 			.build();
 		
 		createTasks(params);

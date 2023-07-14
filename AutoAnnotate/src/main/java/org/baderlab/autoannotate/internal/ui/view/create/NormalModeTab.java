@@ -9,7 +9,6 @@ import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.cytoscape.application.CyApplicationManager;
-import org.cytoscape.model.CyColumn;
 import org.cytoscape.view.model.CyNetworkView;
 
 import com.google.inject.Inject;
@@ -83,26 +82,14 @@ public class NormalModeTab extends JPanel implements DialogTab {
 			new AnnotationSetTaskParamters.Builder(networkView)
 			.setCreateSingletonClusters(clusterOptionsPanel.isCreateSingletonClusters())
 			.setLayoutClusters(clusterOptionsPanel.isLayoutClusters())
-			.setUseClusterMaker(clusterOptionsPanel.isUseClusterMaker())
-			.setClusterAlgorithm(clusterOptionsPanel.getClusterAlgorithm())
+			.setClusterParameters(clusterOptionsPanel.getClusterParameters())
 			.setLabelColumn(labelOptionsPanel.getLabelColumn().getName())
 			.setLabelMakerFactory(labelOptionsPanel.getLabelMakerFactory())
-			.setLabelMakerContext(labelOptionsPanel.getLabelMakerContext())
-			.setCreateGroups(false);
-		
-		CyColumn edgeWeightColumn = clusterOptionsPanel.getEdgeWeightColumn();
-		if(edgeWeightColumn != null)
-			builder.setClusterMakerEdgeAttribute(edgeWeightColumn.getName());
-		
-		CyColumn clusterIdColumn = clusterOptionsPanel.getClusterIdColumn();
-		if(clusterIdColumn != null)
-			builder.setClusterDataColumn(clusterIdColumn.getName());
+			.setLabelMakerContext(labelOptionsPanel.getLabelMakerContext());
 		
 		var params = builder.build();
 		System.out.println(params);
 		return params;
 	}
-	
-	
 	
 }

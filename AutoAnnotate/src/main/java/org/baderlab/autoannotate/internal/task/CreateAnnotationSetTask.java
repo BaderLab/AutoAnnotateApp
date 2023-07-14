@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -99,10 +100,13 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 		}
 		
 		Map<String,Collection<CyNode>> clusters;
-		if(params.isUseClusterMaker())
+		if(params.isUseClusterMaker()) {
 			clusters = runClusterMaker(cutoff);
-		else
+		} else if(params.isUseMCODE()) {
+			clusters = runMCODE();
+		} else {
 			clusters = computeClustersFromColumn();
+		}
 		
 		if(clusters == null || clusters.isEmpty()) {
 			taskMonitor.setStatusMessage("No clusters, aborting");
@@ -197,11 +201,11 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 	}
 	
 	
-	private Map<String,Collection<CyNode>> runClusterMaker(Optional<Double> cutoff) {
+	private <Clusters extends Map<String,Collection<CyNode>>> Clusters runClusteringOnVisibleNodes(Function<CyNetwork, Clusters> clusterRunner) {
 		CyNetworkView networkView = params.getNetworkView();
 		CyNetwork network = networkView.getModel();
 		
-		boolean hasHidden = hasHiddenNodesOrEdges(networkView);
+		final boolean hasHidden = hasHiddenNodesOrEdges(networkView);
 		if(hasHidden) {
 			Collection<CyNode> visibleNodes = getVisibleNodes(networkView);
 			Collection<CyEdge> visibleEdges = getVisibleEdges(networkView, visibleNodes);
@@ -212,18 +216,29 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 			networkManager.addNetwork(network, false);
 		}
 		
-		RunClusterMakerTaskFactory clusterMakerTaskFactory = 
-				clusterMakerFactoryFactory.create(network, params.getClusterAlgorithm(), params.getClusterMakerEdgeAttribute(), cutoff.orElse(null));
-		RunClusterMakerResultObserver clusterResultObserver = new RunClusterMakerResultObserver();
-		TaskIterator tasks = clusterMakerTaskFactory.createTaskIterator(clusterResultObserver);
-		syncTaskManager.execute(tasks);
-		Map<String,Collection<CyNode>> result =  clusterResultObserver.getResult();
+		var clusters = clusterRunner.apply(network);
 		
 		if(hasHidden) {
 			networkManager.destroyNetwork(network);
 		}
 		
-		return result;
+		return clusters;
+	}
+	
+	private Map<String,Collection<CyNode>> runClusterMaker(Optional<Double> cutoff) {
+		return runClusteringOnVisibleNodes(network -> {
+			var clusterMakerTaskFactory = clusterMakerFactoryFactory.create(network, params.getClusterAlgorithm(), params.getClusterMakerEdgeAttribute(), cutoff.orElse(null));
+			var clusterResultObserver = new RunClusterMakerResultObserver();
+			TaskIterator tasks = clusterMakerTaskFactory.createTaskIterator(clusterResultObserver);
+			syncTaskManager.execute(tasks);
+			return clusterResultObserver.getResult();
+		});
+	}
+	
+	
+	
+	private Map<String,Collection<CyNode>> runMCODE() {
+		return Map.of(); // TODO
 	}
 	
 	
