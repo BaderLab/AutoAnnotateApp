@@ -41,6 +41,7 @@ import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNode;
+import org.cytoscape.util.color.Palette;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ObservableTask;
@@ -55,6 +56,7 @@ import com.google.gson.stream.JsonWriter;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
+import com.google.inject.name.Named;
 
 public class CreateAnnotationSetTask extends AbstractTask implements ObservableTask {
 
@@ -65,6 +67,7 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	@Inject private Provider<CoseLayoutAlgorithm> coseLayoutAlgorithmProvider;
 	@Inject private CyNetworkManager networkManager;
+ 	@Inject private @Named("default") Provider<Palette> defaultPaletteProvider;
 	
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	@Inject private ModelManager modelManager;
@@ -110,8 +113,6 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 			clusters = computeClustersFromColumn();
 		}
 		
-		System.out.println(clusters);
-		
 		if(clusters == null || clusters.isEmpty()) {
 			taskMonitor.setStatusMessage("No clusters, aborting");
 			return;
@@ -137,6 +138,14 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 		String name = createName(networkViewSet);
 		
 		builder = networkViewSet.getAnnotationSetBuilder(name, labelColumn);
+		
+		// Override default palette options (easy to do here because the palette provider is injected)
+		var defaultPalette = defaultPaletteProvider.get();
+		if(defaultPalette != null) {
+			builder.setUseFillPalette(true);
+			builder.setFillColorPalette(defaultPalette);
+		}
+		
 		for(String clusterKey : clusters.keySet()) {
 			Collection<CyNode> nodes = clusters.get(clusterKey);
 			String label = labelMaker.makeLabel(network, nodes, labelColumn);

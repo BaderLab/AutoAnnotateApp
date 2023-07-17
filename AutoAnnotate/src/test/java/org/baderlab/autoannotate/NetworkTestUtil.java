@@ -31,6 +31,7 @@ import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTableFactory;
 import org.cytoscape.model.TableTestSupport;
+import org.cytoscape.util.color.Palette;
 import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewFactory;
@@ -70,6 +71,8 @@ public class NetworkTestUtil {
 			installFactory(CreateAnnotationSetTask.Factory.class);
 			installFactory(CreateClusterTask.Factory.class);
 			installFactory(DrawClustersTask.Factory.class);
+			
+			bind(Palette.class).annotatedWith(Names.named("default")).toInstance(mock(Palette.class));
 		}
 		
 		private void installFactory(Class<?> factoryInterface) {

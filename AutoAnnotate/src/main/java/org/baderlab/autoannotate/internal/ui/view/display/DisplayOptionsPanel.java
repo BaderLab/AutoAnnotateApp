@@ -261,9 +261,6 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		shapePanel = createShapePanel();
 		labelPanel = createLabelPanel();
 		
-//		shapePanel.setBorder(LookAndFeelUtil.createTitledBorder("Shape"));
-//		labelPanel.setBorder(LookAndFeelUtil.createTitledBorder("Label"));
-		
 		shapePanel.setBorder(LookAndFeelUtil.createPanelBorder());
 		labelPanel.setBorder(LookAndFeelUtil.createPanelBorder());
 		
@@ -335,7 +332,6 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		fillColorButton.addPropertyChangeListener("color", fillColorListener = e -> handleFillColor());
 		fillColorButton.addPropertyChangeListener("palette", fillPaletteListener = e -> handleFillColor());
 		
-		usePaletteCheckBox = new JCheckBox("Multi-Color");
 		usePaletteCheckBox = new JCheckBox("Palette");
 		usePaletteCheckBox.addActionListener(usePaletteListener = e -> handleFillColor());
 		

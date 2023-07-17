@@ -17,12 +17,15 @@ public class DisplayOptions {
 	public static final boolean SHOW_LABELS_DEFAULT = true;
 	public static final boolean USE_CONSTANT_FONT_SIZE_DEFAULT = false;
 	public static final Color FILL_COLOR_DEFAULT = Color.getHSBColor(0.19f, 1.25f, 0.95f);
+	
+	// Note: default palette options get overridden in CreateAnnotationSetTask
 	public static final Palette FILL_COLOR_PALETTE_DEFAULT = null;
 	public static final boolean USE_FILL_PALETTE_DEFAULT = false;
+	
 	public static final Color BORDER_COLOR_DEFAULT = Color.DARK_GRAY;
 	public static final Color FONT_COLOR_DEFAULT = Color.BLACK;
-	public static final boolean USE_WORD_WRAP_DEFAULT = false;
-	public static final int WORD_WRAP_LENGTH_DEFAULT = 20;
+	public static final boolean USE_WORD_WRAP_DEFAULT = true;
+	public static final int WORD_WRAP_LENGTH_DEFAULT = 15;
 	
 	public static final int OPACITY_DEFAULT = 20;
 	public static final int OPACITY_MIN = 1;
