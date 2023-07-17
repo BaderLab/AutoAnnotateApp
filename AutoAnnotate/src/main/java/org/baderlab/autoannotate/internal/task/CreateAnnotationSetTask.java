@@ -59,6 +59,8 @@ import com.google.inject.assistedinject.Assisted;
 public class CreateAnnotationSetTask extends AbstractTask implements ObservableTask {
 
 	@Inject private RunClusterMakerTaskFactory.Factory clusterMakerFactoryFactory;
+	@Inject private RunMCODETaskFactory.Factory mcodeFactoryFactory;
+	
 	@Inject private CreateSubnetworkTask.Factory subnetworkTaskFactory;
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	@Inject private Provider<CoseLayoutAlgorithm> coseLayoutAlgorithmProvider;
@@ -107,6 +109,8 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 		} else {
 			clusters = computeClustersFromColumn();
 		}
+		
+		System.out.println(clusters);
 		
 		if(clusters == null || clusters.isEmpty()) {
 			taskMonitor.setStatusMessage("No clusters, aborting");
@@ -227,18 +231,28 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 	
 	private Map<String,Collection<CyNode>> runClusterMaker(Optional<Double> cutoff) {
 		return runClusteringOnVisibleNodes(network -> {
-			var clusterMakerTaskFactory = clusterMakerFactoryFactory.create(network, params.getClusterAlgorithm(), params.getClusterMakerEdgeAttribute(), cutoff.orElse(null));
-			var clusterResultObserver = new RunClusterMakerResultObserver();
-			TaskIterator tasks = clusterMakerTaskFactory.createTaskIterator(clusterResultObserver);
+			var alg = params.getClusterAlgorithm();
+			var edgeAttr = params.getClusterMakerEdgeAttribute();
+			
+			var taskFactory = clusterMakerFactoryFactory.create(network, alg, edgeAttr, cutoff.orElse(null));
+			var resultObserver = new RunClusterMakerResultObserver();
+			
+			var tasks = taskFactory.createTaskIterator(resultObserver);
 			syncTaskManager.execute(tasks);
-			return clusterResultObserver.getResult();
+			return resultObserver.getClusters();
 		});
 	}
 	
 	
-	
 	private Map<String,Collection<CyNode>> runMCODE() {
-		return Map.of(); // TODO
+		return runClusteringOnVisibleNodes(network -> {
+			var taskFactory = mcodeFactoryFactory.create(network);
+			var resultObserver = new RunMCODEResultObserver(network);
+			
+			var tasks = taskFactory.createTaskIterator(resultObserver);
+			syncTaskManager.execute(tasks);
+			return resultObserver.getClusters();
+		});
 	}
 	
 	
@@ -264,6 +278,8 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 		String originalName;
 		if(params.isUseClusterMaker())
 			originalName = params.getClusterAlgorithm().getDisplayName() + " Annotation Set";
+		else if(params.isUseMCODE())
+			originalName = "MCODE Annotation Set";
 		else
 			originalName = params.getClusterDataColumn() + " Column Annotation Set";
 		

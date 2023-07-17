@@ -18,18 +18,26 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 	
 	@Inject private CommandExecutorTaskFactory commandTaskFactory;
 	
-	private final ClusterAlgorithm algorithm;
 	private final CyNetwork network;
+	private final ClusterAlgorithm algorithm;
 	private final String edgeAttribute;
 	private final Double cutoff;
 	
 	public static interface Factory {
-		RunClusterMakerTaskFactory create(CyNetwork network, ClusterAlgorithm algorithm, @Nullable String edgeAttribute, @Nullable Double cutoff);
+		RunClusterMakerTaskFactory create(
+			CyNetwork network, 
+			ClusterAlgorithm algorithm, 
+			@Nullable String edgeAttribute,
+			@Nullable Double cutoff);
 	}
 	
 	@AssistedInject
-	public RunClusterMakerTaskFactory(@Assisted CyNetwork network, @Assisted ClusterAlgorithm algorithm, 
-			@Assisted @Nullable String edgeAttribute, @Assisted @Nullable Double cutoff) {
+	public RunClusterMakerTaskFactory(
+			@Assisted CyNetwork network, 
+			@Assisted ClusterAlgorithm algorithm, 
+			@Assisted @Nullable String edgeAttribute, 
+			@Assisted @Nullable Double cutoff
+	) {
 		this.network = network;
 		this.algorithm = algorithm;
 		this.edgeAttribute = edgeAttribute;

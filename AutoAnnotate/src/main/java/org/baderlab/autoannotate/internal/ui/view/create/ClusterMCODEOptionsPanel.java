@@ -47,6 +47,9 @@ public class ClusterMCODEOptionsPanel extends JPanel implements DialogPanel {
 		contents.setOpaque(false);
 		contents.add(selectedCheck, BorderLayout.NORTH);
 		
+		// TEMPORARY
+		selectedCheck.setVisible(false);
+		
 		warnPanel = installWarningPanelFactory.create(contents, DependencyChecker.MCODE);
 		warnPanel.setOnClickHandler(parent::close);
 		warnPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 20));
