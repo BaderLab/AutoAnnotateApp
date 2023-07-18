@@ -109,6 +109,18 @@ public class DisplayOptions {
 		postEvent(Option.RESET);
 	}
 	
+	/**
+	 * Kind of a hack, need to get the default palette from a service 
+	 * which we don't have here, and just want to fire one event, so we reset
+	 * and set the palette at the same time.
+	 */
+	public void resetAndSetPalette(boolean useFillPalette, Palette fillColorPalette) {
+		setDefaults();
+		this.useFillPalette = useFillPalette;
+		this.fillColorPalette = fillColorPalette;
+		postEvent(Option.RESET);
+	}
+	
 	
 	public AnnotationSet getParent() {
 		return parent;
@@ -233,6 +245,12 @@ public class DisplayOptions {
 	
 	public void setUseFillColorPalette(boolean useFillPalette) {
 		this.useFillPalette = useFillPalette;
+		postEvent(Option.FILL_COLOR);
+	}
+	
+	public void setUseFillColorPalette(boolean useFillPalette, Palette fillColorPalette) {
+		this.useFillPalette = useFillPalette;
+		this.fillColorPalette = fillColorPalette;
 		postEvent(Option.FILL_COLOR);
 	}
 	

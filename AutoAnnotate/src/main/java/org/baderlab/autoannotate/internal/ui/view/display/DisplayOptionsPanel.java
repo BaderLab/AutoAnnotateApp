@@ -486,7 +486,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 				JOptionPane.OK_CANCEL_OPTION);
 		
 		if(result == JOptionPane.OK_OPTION) {
-			displayOptions.reset();
+			var defaultPalette = defaultPaletteProvider.get();
+			displayOptions.resetAndSetPalette(true, defaultPalette);
 		}
 	}
 	
