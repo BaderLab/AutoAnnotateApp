@@ -45,6 +45,7 @@ import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.ui.view.display.scale.ScalePanel;
 import org.baderlab.autoannotate.internal.util.ColorButton;
 import org.baderlab.autoannotate.internal.util.ColorPaletteButton;
 import org.baderlab.autoannotate.internal.util.ColorPaletteButton.Mode;
@@ -72,6 +73,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	@Inject private IconManager iconManager;
 	@Inject private CyServiceRegistrar registrar;
  	@Inject private @Named("default") Provider<Palette> defaultPaletteProvider;
+ 	@Inject private Provider<ScalePanel> scalePanelProvider;
  	@Inject private Provider<JFrame> jframeProvider;
 	
 	private DebounceTimer debouncer = new DebounceTimer();
@@ -260,9 +262,11 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private JPanel createAnnotationSetPanel() {
 		shapePanel = createShapePanel();
 		labelPanel = createLabelPanel();
+		var scalePanel = createScalePanel();
 		
 		shapePanel.setBorder(LookAndFeelUtil.createPanelBorder());
 		labelPanel.setBorder(LookAndFeelUtil.createPanelBorder());
+		scalePanel.setBorder(LookAndFeelUtil.createPanelBorder());
 		
 		resetButton = new JButton("Reset");
 		LookAndFeelUtil.makeSmall(resetButton);
@@ -277,13 +281,14 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		layout.setVerticalGroup(layout.createSequentialGroup()
 			.addComponent(shapePanel)
 			.addComponent(labelPanel)
-			.addGap(15)
+			.addComponent(scalePanel)
 			.addComponent(resetButton)
 		);
 		
 		layout.setHorizontalGroup(layout.createParallelGroup()
 			.addComponent(shapePanel)
 			.addComponent(labelPanel)
+			.addComponent(scalePanel)
 			.addComponent(resetButton, Alignment.TRAILING)
 		);
 		
@@ -388,6 +393,13 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		return fontPanel;
 	}
 	
+	private ScalePanel createScalePanel() {
+		ScalePanel scalePanel = scalePanelProvider.get();
+		scalePanel.setWidthCheckBoxVisible(false);
+		scalePanel.setHeightCheckBoxVisible(false);
+		scalePanel.setSelectedCheckBoxVisible(false);
+		return scalePanel;
+	}
 	
 	private JPanel createLabelPanel() {
 		JPanel panel = new JPanel();
@@ -408,7 +420,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		fontColorButton = new ColorButton(DisplayOptions.FONT_COLOR_DEFAULT);
 		fontColorButton.addPropertyChangeListener("color", fontColorListener = e -> displayOptions.setFontColor(fontColorButton.getColor()));
 		
-		JLabel wordWrapLengthLabel = new JLabel("Wrap Length:");
+		JLabel wordWrapLengthLabel = new JLabel("   Length:");
 		wordWrapLengthSpinner = new JSpinner(new SpinnerNumberModel(15, 1, 100, 1));
 		wordWrapLengthSpinner.addChangeListener(wordWrapLengthListener = e -> {
 			displayOptions.setWordWrapLength((int)wordWrapLengthSpinner.getValue());
@@ -432,14 +444,19 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		SwingUtil.makeSmall(wordWrapCheckBox, wordWrapLengthLabel, wordWrapLengthSpinner);
 		
 		panel.setLayout(new GridBagLayout());
-		panel.add(fontByClusterCheckbox, GBCFactory.grid(0,0).weightx(1.0).fill(NONE).gridwidth(2).get());
-		panel.add(fontPanel,             GBCFactory.grid(0,1).gridwidth(2).get());
+		
+		panel.add(fontByClusterCheckbox, GBCFactory.grid(0,0).weightx(1.0).fill(NONE).gridwidth(3).get());
+		
+		panel.add(fontPanel,             GBCFactory.grid(0,1).gridwidth(3).get());
+		
 		panel.add(fontColorLabel,        GBCFactory.grid(0,2).get());
-		panel.add(fontColorButton,       GBCFactory.grid(1,2).fill(NONE).get());
-		panel.add(wordWrapCheckBox,      GBCFactory.grid(0,3).gridwidth(2).get());
-		panel.add(wordWrapLengthLabel,   GBCFactory.grid(0,4).get());
-		panel.add(wordWrapLengthSpinner, GBCFactory.grid(1,4).get());
-		panel.add(hideLabelsCheckBox,    GBCFactory.grid(0,5).fill(NONE).gridwidth(2).get());
+		panel.add(fontColorButton,       GBCFactory.grid(1,2).fill(NONE).gridwidth(2).get());
+		
+		panel.add(wordWrapCheckBox,      GBCFactory.grid(0,3).get());
+		panel.add(wordWrapLengthLabel,   GBCFactory.grid(1,3).get());
+		panel.add(wordWrapLengthSpinner, GBCFactory.grid(2,3).get());
+		
+		panel.add(hideLabelsCheckBox,    GBCFactory.grid(0,4).fill(NONE).gridwidth(3).get());
 		return panel;
 	}
 	
