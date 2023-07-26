@@ -1,7 +1,6 @@
 package org.baderlab.autoannotate.internal.ui;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -11,13 +10,17 @@ import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.view.cluster.ClusterPanel;
 import org.baderlab.autoannotate.internal.ui.view.display.DisplayOptionsPanel;
-import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanel;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.application.swing.CytoPanelState;
 import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.work.AbstractTask;
+import org.cytoscape.work.AbstractTaskFactory;
+import org.cytoscape.work.TaskFactory;
+import org.cytoscape.work.TaskIterator;
+import org.cytoscape.work.TaskMonitor;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -27,6 +30,8 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class PanelManagerImpl implements PanelManager {
+	
+	public static final String SHOW_HIDE_TITLE = "Show/Hide AutoAnnotate Panels";
 
 	@Inject private Provider<ClusterPanel> mainPanelProvider;
 	@Inject private Provider<DisplayOptionsPanel> optionsPanelProvider;
@@ -35,13 +40,10 @@ public class PanelManagerImpl implements PanelManager {
 	@Inject private CySwingApplication swingApplication;
 	@Inject private CyServiceRegistrar registrar;
 	
-	private final String showName = "Show AutoAnnotate Panels";
-	private final String hideName = "Hide AutoAnnotate Panels";
-	
 	private ClusterPanel mainPanel;
 	private DisplayOptionsPanel optionsPanel;
 	
-	private AbstractCyAction showHideAction;
+	private TaskFactory showHideAction;
 	
 	private boolean showing = false;
 	
@@ -74,9 +76,6 @@ public class PanelManagerImpl implements PanelManager {
 			ModelManager modelManager = modelManagerProvider.get();
 			modelManager.deselectAll();
 			
-			if(showHideAction != null)
-				showHideAction.setName(showName);
-			
 			showing = false;
 		}
 	}
@@ -97,9 +96,6 @@ public class PanelManagerImpl implements PanelManager {
 			registrar.registerService(optionsPanel, CytoPanelComponent.class, new Properties());
 			optionsPanel.setAnnotationSet(annotationSet);
 			
-			if(showHideAction != null)
-				showHideAction.setName(hideName);
-			
 			showing = true;
 		}
 		
@@ -108,15 +104,16 @@ public class PanelManagerImpl implements PanelManager {
 	}
 	
 	
-	@SuppressWarnings("serial")
-	public synchronized AbstractCyAction getShowHideAction() {
+	@Override
+	public synchronized TaskFactory getShowHideActionTaskFactory() {
 		if(showHideAction == null) {
-			showHideAction = new AbstractCyAction(showing ? hideName : showName) {
-				public void actionPerformed(ActionEvent e) {
-					if(showing) 
-						hide(); 
-					else 
-						show();
+			showHideAction = new AbstractTaskFactory() {
+				public TaskIterator createTaskIterator() {
+					return new TaskIterator(new AbstractTask() {
+						public void run(TaskMonitor tm) {
+							if(showing) hide(); else show();
+						}
+					});
 				}
 			};
 		}

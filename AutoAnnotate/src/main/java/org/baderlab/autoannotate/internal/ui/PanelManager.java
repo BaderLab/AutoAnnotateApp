@@ -1,6 +1,6 @@
 package org.baderlab.autoannotate.internal.ui;
 
-import org.cytoscape.application.swing.AbstractCyAction;
+import org.cytoscape.work.TaskFactory;
 
 public interface PanelManager {
 	
@@ -8,6 +8,6 @@ public interface PanelManager {
 	
 	public void show();
 	
-	public AbstractCyAction getShowHideAction();
+	public TaskFactory getShowHideActionTaskFactory();
 
 }

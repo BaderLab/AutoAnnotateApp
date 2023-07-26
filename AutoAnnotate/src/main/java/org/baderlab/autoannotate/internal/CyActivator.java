@@ -21,6 +21,7 @@ import org.baderlab.autoannotate.internal.layout.CoseLayoutAlgorithm;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
+import org.baderlab.autoannotate.internal.ui.PanelManagerImpl;
 import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTaskFactory;
 import org.baderlab.autoannotate.internal.ui.view.action.SelectClusterTaskFactory;
@@ -28,8 +29,6 @@ import org.baderlab.autoannotate.internal.ui.view.action.ShowAboutDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowHelpAction;
 import org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialogManager;
-import org.cytoscape.application.swing.AbstractCyAction;
-import org.cytoscape.application.swing.CyAction;
 import org.cytoscape.property.CyProperty;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.task.NodeViewTaskFactory;
@@ -72,10 +71,10 @@ public class CyActivator extends AbstractCyActivator {
 		
 		// Register menu Actions
 		PanelManager panelManager = injector.getInstance(PanelManager.class);
-		registerAction(bc, 1.0f, injector.getInstance(ShowCreateDialogAction.class));
-		registerAction(bc, 2.0f, panelManager.getShowHideAction());
-		registerAction(bc, 3.0f, injector.getInstance(ShowHelpAction.class));
-		registerAction(bc, 4.0f, injector.getInstance(ShowAboutDialogAction.class));
+		registerAppsMenuAction(bc, injector.getInstance(ShowCreateDialogAction.class), ShowCreateDialogAction.TITLE, 1.0f, false);
+		registerAppsMenuAction(bc, panelManager.getShowHideActionTaskFactory(), PanelManagerImpl.SHOW_HIDE_TITLE, 2.0f, false);
+		registerAppsMenuAction(bc, injector.getInstance(ShowHelpAction.class), ShowHelpAction.TITLE, 3.0f, true);
+		registerAppsMenuAction(bc, injector.getInstance(ShowAboutDialogAction.class), ShowAboutDialogAction.TITLE, 4.0f, false);
 		
 		// Context menu actions in network view
 		registerContextMenuAction(bc, CreateClusterTaskFactory.class, "AutoAnnotate - Create Cluster");
@@ -157,10 +156,14 @@ public class CyActivator extends AbstractCyActivator {
 		registerAllServices(bc, taskFactory, props);
 	}
 	
-	private void registerAction(BundleContext bc, float gravity, AbstractCyAction action) {
-		action.setPreferredMenu("Apps." + BuildProperties.APP_NAME);
-		action.setMenuGravity(gravity);
-		registerService(bc, action, CyAction.class);
+	private void registerAppsMenuAction(BundleContext bc, TaskFactory taskFactory, String title, float gravity, boolean sep) {
+		var props = new Properties();
+		props.setProperty(PREFERRED_MENU, "Apps.AutoAnnotate[3.2]");
+		props.setProperty(MENU_GRAVITY, String.valueOf(gravity));
+		props.setProperty(TITLE, title);
+		if(sep)
+			props.setProperty(INSERT_SEPARATOR_BEFORE, "true");
+		registerService(bc, taskFactory, TaskFactory.class, props);
 	}
 	
 	private void registerCommand(BundleContext bc, String name, Class<? extends Task> type, String description) {
