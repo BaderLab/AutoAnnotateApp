@@ -12,6 +12,7 @@ import javax.swing.JList;
 import javax.swing.JSpinner;
 import javax.swing.JSpinner.NumberEditor;
 import javax.swing.JToggleButton;
+import javax.swing.SwingUtilities;
 
 import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.LookAndFeelUtil;
@@ -111,6 +112,26 @@ public final class SwingUtil {
 		ButtonGroup buttonGroup = new ButtonGroup();
 		for(AbstractButton b : buttons) {
 			buttonGroup.add(b);
+		}
+	}
+	
+	public static void invokeOnEDT(final Runnable runnable) {
+		if (SwingUtilities.isEventDispatchThread())
+			runnable.run();
+		else
+			SwingUtilities.invokeLater(runnable);
+	}
+	
+	
+	public static void invokeOnEDTAndWait(final Runnable runnable) {
+		if (SwingUtilities.isEventDispatchThread()) {
+			runnable.run();
+		} else {
+			try {
+				SwingUtilities.invokeAndWait(runnable);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }
