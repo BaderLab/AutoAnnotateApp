@@ -36,11 +36,15 @@ public class ShowCreateDialogAction extends AbstractCyAction implements TaskFact
 	public TaskIterator createTaskIterator() {
 		return new TaskIterator(new AbstractTask() {
 			public void run(TaskMonitor tm) {
-				actionPerformed(null);
+				show();
 			}
 		});
 	} 
 	
+	
+	public void show() {
+		actionPerformed(null);
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
