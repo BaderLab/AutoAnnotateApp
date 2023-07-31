@@ -1,5 +1,9 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,8 +20,10 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.ui.view.action.SelectClusterTask;
 import org.cytoscape.event.DebounceTimer;
 import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
@@ -255,8 +261,28 @@ public class AnnotationRenderer {
 	
 	void putAnnotations(Cluster cluster, AnnotationGroup annotations) {
 		clusterAnnotations.put(cluster, annotations);
+		registerSelectionListener(cluster, annotations);
 	}
+	
 
+	private void registerSelectionListener(Cluster cluster, AnnotationGroup annotations) {
+		ShapeAnnotation shape = annotations.getShape();
+		try {
+			Method method = shape.getClass().getMethod("addPropertyChangeListener", String.class, PropertyChangeListener.class);
+			method.invoke(shape, "selected", new PropertyChangeListener() {
+				@Override
+				public void propertyChange(PropertyChangeEvent evt) {
+					boolean selected = Boolean.TRUE.equals(evt.getNewValue());
+					var task = new SelectClusterTask(cluster, selected);
+					dialogTaskManager.execute(new TaskIterator(task));
+				}
+			});
+		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			// Do nothing
+		}
+	}
+	
+	
 	AnnotationGroup removeAnnotations(Cluster cluster) {
 		return clusterAnnotations.remove(cluster);
 	}

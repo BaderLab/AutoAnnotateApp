@@ -32,7 +32,6 @@ import org.baderlab.autoannotate.internal.ui.render.UpdateClustersTask;
 import org.baderlab.autoannotate.internal.ui.view.ManageAnnotationSetsDialog;
 import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTask;
 import org.baderlab.autoannotate.internal.ui.view.action.LayoutClustersAction;
-import org.baderlab.autoannotate.internal.ui.view.action.SelectClusterTask;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowWordcloudDialogAction;
 import org.baderlab.autoannotate.internal.ui.view.copy.CopyAnnotationsDialog;
 import org.baderlab.autoannotate.internal.ui.view.copy.NetworkList;
@@ -114,7 +113,6 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(SizeSortedLabelMakerUI.Factory.class);
 		installFactory(ClusterBoostedLabelMakerUI.Factory.class);
 		installFactory(MostSignificantLabelMakerUI.Factory.class);
-		installFactory(SelectClusterTask.Factory.class);
 		installFactory(SummaryNetworkDialog.Factory.class);
 		installFactory(AttributeAggregationPanel.Factory.class);
 		installFactory(RunEMAssociateTaskFactory.Factory.class);
