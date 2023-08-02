@@ -24,8 +24,8 @@ public class ClusterLayoutManager {
 	@Inject private LayoutClustersAction.Factory layoutClustersActionFactory;
 	
 	public static enum Algorithm {
-		COSE("cose", "CoSE Layout"),
-		COSE_GROUP("cose_group", "CoSE Layout (Group single nodes)"),
+		COSE("cose", "Cluster Layout"),
+		COSE_GROUP("cose_group", "Cluster Layout (Group single nodes)"),
 		GRID("grid", "Grid Layout");
 		
 		private final String commandArg;
