@@ -50,6 +50,7 @@ import org.baderlab.autoannotate.internal.util.ColorButton;
 import org.baderlab.autoannotate.internal.util.ColorPaletteButton;
 import org.baderlab.autoannotate.internal.util.ColorPaletteButton.Mode;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
+import org.baderlab.autoannotate.internal.util.LeftAlignCheckBox;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
@@ -88,7 +89,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private SliderWithLabel borderWidthSlider;
 	private SliderWithLabel paddingAdjustSlider;
 	private SliderWithLabel opacitySlider;
-	private JCheckBox hideClustersCheckBox;
+	private LeftAlignCheckBox hideClustersCheckBox;
 	private JCheckBox usePaletteCheckBox;
 	private JToggleButton ellipseRadio;
 	private JToggleButton rectangleRadio;
@@ -99,11 +100,11 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private SliderWithLabel fontScaleSlider;
 	private SliderWithLabel fontSizeSlider;
 	private SliderWithLabel minFontSizeSlider;
-	private JCheckBox fontByClusterCheckbox;
+	private LeftAlignCheckBox fontByClusterCheckbox;
 	private JPanel fontPanel;
-	private JCheckBox hideLabelsCheckBox;
+	private LeftAlignCheckBox hideLabelsCheckBox;
 	private ColorButton fontColorButton;
-	private JCheckBox wordWrapCheckBox;
+	private LeftAlignCheckBox wordWrapCheckBox;
 	private JSpinner wordWrapLengthSpinner;
 	
 	// Shape listeners
@@ -311,7 +312,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		paddingAdjustSlider = new SliderWithLabel("Padding", PADDING_ADJUST_MIN, PADDING_ADJUST_MAX, PADDING_ADJUST_DEFAULT, x -> "");
 		paddingAdjustSlider.getSlider().addChangeListener(paddingAdjustListener = e -> debounceSetPaddingAdjust());
 		
-		hideClustersCheckBox = new JCheckBox("Hide Shapes");
+		hideClustersCheckBox = new LeftAlignCheckBox("Hide Shapes:");
 		hideClustersCheckBox.addActionListener(hideClustersListener = e -> {
 			boolean show = !hideClustersCheckBox.isSelected();
 			displayOptions.setShowClusters(show);
@@ -353,6 +354,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		shapePanel.add(rectangleRadio);
 		
 		panel.setLayout(new GridBagLayout());
+		
 		panel.add(shapeLabel,           GBCFactory.grid(0,0).get());
 		panel.add(shapePanel,     		GBCFactory.grid(1,0).fill(NONE).gridwidth(2).get());
 		panel.add(borderWidthSlider,    GBCFactory.grid(0,1).gridwidth(3).weightx(1.0).get());
@@ -360,10 +362,11 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		panel.add(paddingAdjustSlider,  GBCFactory.grid(0,3).gridwidth(3).weightx(1.0).get());
 		panel.add(fillColorLabel,       GBCFactory.grid(0,4).get());
 		panel.add(fillColorButton,      GBCFactory.grid(1,4).fill(NONE).get());
-		panel.add(usePaletteCheckBox,   GBCFactory.grid(2,4).fill(NONE).gridwidth(2).get());
+		panel.add(usePaletteCheckBox,   GBCFactory.grid(2,4).fill(NONE).get());
 		panel.add(borderColorLabel,     GBCFactory.grid(0,5).get());
 		panel.add(borderColorButton,    GBCFactory.grid(1,5).fill(NONE).gridwidth(2).get());
 		panel.add(hideClustersCheckBox, GBCFactory.grid(0,6).gridwidth(3).weightx(1.0).get());
+		
 		return panel;
 	}
 	
@@ -407,7 +410,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		fontPanel = createFontSizePanel();
 		CardLayout cardLayout = (CardLayout) fontPanel.getLayout();
 		
-		fontByClusterCheckbox = new JCheckBox("Scale font by cluster size");
+		fontByClusterCheckbox = new LeftAlignCheckBox("Scale font by cluster size:");
 		fontByClusterCheckbox.addActionListener(fontByClusterListener = e -> {
 			boolean useConstantFontSize = !fontByClusterCheckbox.isSelected();
 			// Firing event twice is a workaround for a bug in Cytoscape where the text annotations don't update properly.
@@ -426,13 +429,13 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			displayOptions.setWordWrapLength((int)wordWrapLengthSpinner.getValue());
 		});
 		
-		wordWrapCheckBox = new JCheckBox("Word Wrap");
+		wordWrapCheckBox = new LeftAlignCheckBox("Word Wrap:");
 		wordWrapCheckBox.addActionListener(wordWrapListener = e -> {
 			wordWrapLengthSpinner.setEnabled(wordWrapCheckBox.isSelected());
 			displayOptions.setUseWordWrap(wordWrapCheckBox.isSelected());
 		});
 		
-		hideLabelsCheckBox = new JCheckBox("Hide Labels");
+		hideLabelsCheckBox = new LeftAlignCheckBox("Hide Labels:");
 		hideLabelsCheckBox.addActionListener(e -> {
 			boolean show = !hideLabelsCheckBox.isSelected();
 			displayOptions.setShowLabels(show);
@@ -446,17 +449,14 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		panel.setLayout(new GridBagLayout());
 		
 		panel.add(fontByClusterCheckbox, GBCFactory.grid(0,0).weightx(1.0).fill(NONE).gridwidth(3).get());
-		
 		panel.add(fontPanel,             GBCFactory.grid(0,1).gridwidth(3).get());
-		
 		panel.add(fontColorLabel,        GBCFactory.grid(0,2).get());
 		panel.add(fontColorButton,       GBCFactory.grid(1,2).fill(NONE).gridwidth(2).get());
-		
 		panel.add(wordWrapCheckBox,      GBCFactory.grid(0,3).get());
 		panel.add(wordWrapLengthLabel,   GBCFactory.grid(1,3).get());
-		panel.add(wordWrapLengthSpinner, GBCFactory.grid(2,3).get());
-		
+		panel.add(wordWrapLengthSpinner, GBCFactory.grid(2,3).fill(NONE).get());
 		panel.add(hideLabelsCheckBox,    GBCFactory.grid(0,4).fill(NONE).gridwidth(3).get());
+		
 		return panel;
 	}
 	
