@@ -103,6 +103,22 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 	private String getAnnotationName() {
 		return "AutoAnnotate: " + name;
 	}
+	
+	
+	private static Color getFillColor(DisplayOptions displayOptions, Cluster cluster) {
+		switch(displayOptions.getFillType()) {
+			case SINGLE: default:
+				return displayOptions.getFillColor();
+			case PALETTE:
+				AnnotationSet annotationSet = cluster.getParent();
+				int index = annotationSet.getClusterIndex(cluster);
+				var palette = displayOptions.getFillColorPalette();
+				Color[] colors = palette == null ? DEFAULT_PALETTE : palette.getColors();
+				return colors[index % colors.length];
+			case SIGNIFICANT:
+				return Color.RED; // TEMP
+		}
+	}
 
 
 	public static ArgsShape createFor(Cluster cluster, boolean isSelected, Color selectedColor) {
@@ -116,17 +132,7 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 		int borderWidth = displayOptions.getBorderWidth(); // * (isSelected ? 3 : 1);
 		int opacity = displayOptions.getOpacity();
 		Color borderColor = isSelected ? selectedColor : displayOptions.getBorderColor();
-		
-		Color fillColor;
-		if(displayOptions.isUseFillPalette()) {
-			int index = annotationSet.getClusterIndex(cluster);
-			var palette = displayOptions.getFillColorPalette();
-			Color[] colors = palette == null ? DEFAULT_PALETTE : palette.getColors();
-			fillColor = colors[index % colors.length];
-		} else {
-			fillColor = displayOptions.getFillColor();
-		}
-		
+		Color fillColor = getFillColor(displayOptions, cluster);
 		double zoom = 1; //view.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR);
 
 		CoordinateData coordinateData = cluster.getCoordinateData(false); // do not include hidden nodes

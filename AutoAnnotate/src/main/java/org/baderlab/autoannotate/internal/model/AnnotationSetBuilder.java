@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.model.io.CreationParameter;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.util.color.Palette;
@@ -47,7 +48,7 @@ public class AnnotationSetBuilder {
 	private int paddingAdjust = DisplayOptions.PADDING_ADJUST_DEFAULT;
 	private Color fillColor = DisplayOptions.FILL_COLOR_DEFAULT;
 	private Palette fillColorPalette = DisplayOptions.FILL_COLOR_PALETTE_DEFAULT;
-	private boolean useFillPalette = DisplayOptions.USE_FILL_PALETTE_DEFAULT;
+	private FillType fillType = DisplayOptions.FILL_TYPE_DEFAULT;
 	private Color borderColor = DisplayOptions.BORDER_COLOR_DEFAULT;
 	private Color fontColor = DisplayOptions.FONT_COLOR_DEFAULT;
 	private boolean useWordWrap = DisplayOptions.USE_WORD_WRAP_DEFAULT;
@@ -197,12 +198,12 @@ public class AnnotationSetBuilder {
 		this.fillColorPalette = fillColorPalette;
 	}
 
-	public boolean isUseFillPalette() {
-		return useFillPalette;
+	public FillType getFillType() {
+		return fillType;
 	}
 
-	public void setUseFillPalette(boolean useFillPalette) {
-		this.useFillPalette = useFillPalette;
+	public void setFillType(FillType fillType) {
+		this.fillType = fillType;
 	}
 
 	public Color getBorderColor() {

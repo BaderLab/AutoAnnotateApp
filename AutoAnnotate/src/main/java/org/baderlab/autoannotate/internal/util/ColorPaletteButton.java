@@ -18,7 +18,7 @@ import org.cytoscape.util.swing.CyColorPaletteChooserFactory;
 public final class ColorPaletteButton extends JButton {
 
 	public static enum Mode {
-		SINGLE_COLOR, PALETTE
+		SINGLE_COLOR, PALETTE, SIGNIFICANT
 	}
 	
 	private final CyServiceRegistrar registrar;
@@ -27,6 +27,7 @@ public final class ColorPaletteButton extends JButton {
 	private Color borderColor;
 	private Palette palette;
 	private Mode mode = Mode.SINGLE_COLOR;
+	private Runnable significantAction;
 	
 
 	public ColorPaletteButton(CyServiceRegistrar registrar, Color color, Palette palette) {
@@ -43,16 +44,22 @@ public final class ColorPaletteButton extends JButton {
 		setPalette(palette);
 		
 		addActionListener(e -> {
-			if(mode == Mode.SINGLE_COLOR)
-				pickSingleColor();
-			else
+			if(mode == Mode.PALETTE)
 				pickColorPalette();
+			else if(mode == Mode.SIGNIFICANT)
+				pickSignificant();
+			else
+				pickSingleColor();
 		});
 	}
 	
 	public void setMode(Mode mode) {
 		this.mode = mode;
 		repaint();
+	}
+	
+	public void setSignificantAction(Runnable action) {
+		this.significantAction = action;
 	}
 	
 	private void pickSingleColor() {
@@ -77,6 +84,12 @@ public final class ColorPaletteButton extends JButton {
 		setPalette(p);
 	}
 
+	private void pickSignificant() {
+		if(significantAction == null)
+			return;
+		significantAction.run();
+	}
+	
 	/**
 	 * Sets a new color and fires a {@link java.beans.PropertyChangeEvent} for the property "color".
 	 * @param color
@@ -146,6 +159,9 @@ public final class ColorPaletteButton extends JButton {
 					g.setColor(colors[i]);
 					g.fillRect(x + 1 + segW * i, y, segW, h);
 				}
+			} else if(mode == Mode.SIGNIFICANT) {
+				g.drawString("set...", x+ 5, y+h-5);
+				
 			} else {
 				g.setColor(color);
 				g.fillRect(x, y, w, h);

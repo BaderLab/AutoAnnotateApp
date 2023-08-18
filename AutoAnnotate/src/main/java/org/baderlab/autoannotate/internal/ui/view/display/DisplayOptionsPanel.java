@@ -25,7 +25,7 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -42,6 +42,7 @@ import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
+import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
@@ -90,7 +91,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private SliderWithLabel paddingAdjustSlider;
 	private SliderWithLabel opacitySlider;
 	private LeftAlignCheckBox hideClustersCheckBox;
-	private JCheckBox usePaletteCheckBox;
+//	private JCheckBox usePaletteCheckBox;
+	private JComboBox<FillType> paletteCombo;
 	private JToggleButton ellipseRadio;
 	private JToggleButton rectangleRadio;
 	private ColorPaletteButton fillColorButton;
@@ -106,6 +108,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private ColorButton fontColorButton;
 	private LeftAlignCheckBox wordWrapCheckBox;
 	private JSpinner wordWrapLengthSpinner;
+	private LeftAlignCheckBox highlightSigCheckBox;
 	
 	// Shape listeners
 	private ChangeListener borderWidthListener;
@@ -194,7 +197,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			hideLabelsCheckBox.removeActionListener(hideLabelsListener);
 			fontByClusterCheckbox.removeActionListener(fontByClusterListener);
 			ellipseRadio.removeActionListener(ellipseListener);
-			usePaletteCheckBox.removeActionListener(usePaletteListener);
+			paletteCombo.removeActionListener(usePaletteListener);
 			fillColorButton.removePropertyChangeListener("color", fillColorListener);
 			fillColorButton.removePropertyChangeListener("palette", fillPaletteListener);
 			borderColorButton.removePropertyChangeListener("color", borderColorListener);
@@ -215,8 +218,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			ellipseRadio.setSelected(displayOptions.getShapeType() == ShapeType.ELLIPSE);
 			fillColorButton.setColor(displayOptions.getFillColor());
 			fillColorButton.setPalette(displayOptions.getFillColorPalette());
-			fillColorButton.setMode(displayOptions.isUseFillPalette() ? Mode.PALETTE : Mode.SINGLE_COLOR);
-			usePaletteCheckBox.setSelected(displayOptions.isUseFillPalette());
+			fillColorButton.setMode(displayOptions.getFillType() == FillType.PALETTE ? Mode.PALETTE : Mode.SINGLE_COLOR);
+			paletteCombo.setSelectedItem(displayOptions.getFillType());
 			borderColorButton.setColor(displayOptions.getBorderColor());
 			fontColorButton.setColor(displayOptions.getFontColor());
 			wordWrapCheckBox.setSelected(displayOptions.isUseWordWrap());
@@ -239,7 +242,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			ellipseRadio.addActionListener(ellipseListener);
 			fillColorButton.addPropertyChangeListener("color", fillColorListener);
 			fillColorButton.addPropertyChangeListener("palette", fillPaletteListener);
-			usePaletteCheckBox.addActionListener(usePaletteListener);
+			paletteCombo.addActionListener(usePaletteListener);
 			borderColorButton.addPropertyChangeListener("color", borderColorListener);
 			fontColorButton.addPropertyChangeListener("color", fontColorListener);
 			wordWrapCheckBox.addActionListener(wordWrapListener);
@@ -338,15 +341,15 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		fillColorButton.addPropertyChangeListener("color", fillColorListener = e -> handleFillColor());
 		fillColorButton.addPropertyChangeListener("palette", fillPaletteListener = e -> handleFillColor());
 		
-		usePaletteCheckBox = new JCheckBox("Palette");
-		usePaletteCheckBox.addActionListener(usePaletteListener = e -> handleFillColor());
+		paletteCombo = new JComboBox<>(FillType.values());
+		paletteCombo.addActionListener(usePaletteListener = e -> handleFillColor());
 		
 		JLabel borderColorLabel = new JLabel("Border:");
 		borderColorButton = new ColorButton(DisplayOptions.BORDER_COLOR_DEFAULT);
 		borderColorButton.addPropertyChangeListener("color", borderColorListener = e -> displayOptions.setBorderColor(borderColorButton.getColor()));
 		
 		SwingUtil.makeSmall(shapeLabel, ellipseRadio, rectangleRadio, fillColorLabel, fillColorButton);
-		SwingUtil.makeSmall(borderColorLabel, borderColorButton, hideClustersCheckBox, usePaletteCheckBox);
+		SwingUtil.makeSmall(borderColorLabel, borderColorButton, hideClustersCheckBox, paletteCombo);
 				
 		JPanel shapePanel = new JPanel(new FlowLayout());
 		shapePanel.setOpaque(false);
@@ -362,7 +365,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		panel.add(paddingAdjustSlider,  GBCFactory.grid(0,3).gridwidth(3).weightx(1.0).get());
 		panel.add(fillColorLabel,       GBCFactory.grid(0,4).get());
 		panel.add(fillColorButton,      GBCFactory.grid(1,4).fill(NONE).get());
-		panel.add(usePaletteCheckBox,   GBCFactory.grid(2,4).fill(NONE).get());
+		panel.add(paletteCombo,         GBCFactory.grid(2,4).fill(NONE).get());
 		panel.add(borderColorLabel,     GBCFactory.grid(0,5).get());
 		panel.add(borderColorButton,    GBCFactory.grid(1,5).fill(NONE).gridwidth(2).get());
 		panel.add(hideClustersCheckBox, GBCFactory.grid(0,6).gridwidth(3).weightx(1.0).get());
@@ -443,8 +446,11 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			hideLabelsCheckBox.setEnabled(true);
 		});
 		
+		highlightSigCheckBox = new LeftAlignCheckBox("Highight Significant Nodes:");
+		
+		
 		SwingUtil.makeSmall(fontByClusterCheckbox, fontColorLabel, fontColorButton, hideLabelsCheckBox);
-		SwingUtil.makeSmall(wordWrapCheckBox, wordWrapLengthLabel, wordWrapLengthSpinner);
+		SwingUtil.makeSmall(wordWrapCheckBox, wordWrapLengthLabel, wordWrapLengthSpinner, highlightSigCheckBox);
 		
 		panel.setLayout(new GridBagLayout());
 		
@@ -455,7 +461,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		panel.add(wordWrapCheckBox,      GBCFactory.grid(0,3).get());
 		panel.add(wordWrapLengthLabel,   GBCFactory.grid(1,3).get());
 		panel.add(wordWrapLengthSpinner, GBCFactory.grid(2,3).fill(NONE).get());
-		panel.add(hideLabelsCheckBox,    GBCFactory.grid(0,4).fill(NONE).gridwidth(3).get());
+		panel.add(highlightSigCheckBox,  GBCFactory.grid(0,4).fill(NONE).gridwidth(3).get());
+		panel.add(hideLabelsCheckBox,    GBCFactory.grid(0,5).fill(NONE).gridwidth(3).get());
 		
 		return panel;
 	}
@@ -464,19 +471,28 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private void handleFillColor() {
 		var color = fillColorButton.getColor();
 		var palette = fillColorButton.getPalette();
-		var usePalette = usePaletteCheckBox.isSelected();
+		FillType fillType = paletteCombo.getItemAt(paletteCombo.getSelectedIndex());
 		
-		if(usePalette && palette == null) {
+		if(fillType == FillType.PALETTE && palette == null) {
 			palette = defaultPaletteProvider.get();
 			fillColorButton.removePropertyChangeListener("palette", fillPaletteListener);
 			fillColorButton.setPalette(palette);
 			fillColorButton.addPropertyChangeListener("palette", fillPaletteListener);
 		}
 		
-		displayOptions.setFillColors(color, palette, usePalette);
-		fillColorButton.setMode(usePalette ? Mode.PALETTE : Mode.SINGLE_COLOR);
+		displayOptions.setFillColors(color, palette, fillType);
+		fillColorButton.setMode(fillTypeToButtonMode(fillType));
 	}
 	
+	
+	private static ColorPaletteButton.Mode fillTypeToButtonMode(FillType fillType) {
+		switch(fillType) {
+			default:
+			case SINGLE: return Mode.SINGLE_COLOR;
+			case PALETTE: return Mode.PALETTE;
+			case SIGNIFICANT: return Mode.SIGNIFICANT;
+		}
+	}
 	
 	private void handleReset() {
 		int result = JOptionPane.showConfirmDialog(
@@ -487,7 +503,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		
 		if(result == JOptionPane.OK_OPTION) {
 			var defaultPalette = defaultPaletteProvider.get();
-			displayOptions.resetAndSetPalette(true, defaultPalette);
+			displayOptions.resetAndSetPalette(defaultPalette);
 		}
 	}
 	

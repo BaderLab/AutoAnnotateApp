@@ -18,6 +18,7 @@ import java.util.function.BiConsumer;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
+import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.view.action.SelectClusterTask;
@@ -92,6 +93,9 @@ public class AnnotationRenderer {
 		TaskIterator tasks = new TaskIterator();
 		
 		var eraseTask = eraseTaskProvider.create(clusters);
+		if(eraseTask == null) // can happen in tests
+			return;
+		
 		eraseTask.setEraseAll(true);
 		tasks.append(eraseTask);
 		
@@ -169,7 +173,7 @@ public class AnnotationRenderer {
 			forEachCluster(as, (c,a) -> a.setShowShapes(options.isShowClusters(), options.getOpacity()));
 			break;
 		case FILL_COLOR:
-			if(!options.isUseFillPalette()) {
+			if(options.getFillType() == FillType.SINGLE) {
 				forEachCluster(as, (c,a) -> a.setFillColor(options.getFillColor()));
 				break;
 			}
