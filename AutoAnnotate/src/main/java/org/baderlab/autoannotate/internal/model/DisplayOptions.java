@@ -6,6 +6,7 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
+import org.baderlab.autoannotate.internal.ui.view.display.Significance;
 import org.cytoscape.util.color.Palette;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 
@@ -73,6 +74,12 @@ public class DisplayOptions {
 	private int fontSize;
 	private Color fillColor;
 	private Palette fillColorPalette;
+	
+	// TODO add to serialization table
+	private String significanceColumn;
+	private Significance significance;
+	private boolean highlightSignificant;
+	
 	private FillType fillType;
 	private Color borderColor;
 	private Color fontColor;
@@ -259,6 +266,7 @@ public class DisplayOptions {
 	}
 	
 	// Use to avoid extra events.
+	// Assumes fillType is SINGLE or PALETTE
 	public void setFillColors(Color fillColor, Palette fillColorPalette, FillType fillType) {
 		this.fillColor = Objects.requireNonNull(fillColor);
 		this.fillColorPalette = fillColorPalette;
@@ -266,6 +274,35 @@ public class DisplayOptions {
 		postEvent(Option.FILL_COLOR);
 	}
 	
+	// Use to avoid extra events, doesn't forget the fill colors if user change's their mind.
+	// Assumes fillType is SIGNIFICANT
+	public void setFillSignificance(Significance sigificance, String significanceColumn) {
+		this.significanceColumn = significanceColumn;
+		this.significance = sigificance;
+		this.fillType = FillType.SIGNIFICANT;
+		postEvent(Option.FILL_COLOR);
+		
+		if(highlightSignificant)
+			postEvent(Option.FONT_COLOR);
+	}
+	
+	public void setHighlightSignificant(boolean highlightSignificant) {
+		this.highlightSignificant = highlightSignificant;
+		postEvent(Option.FONT_COLOR);
+	}
+	
+	public boolean getHighlightSignificant() {
+		return highlightSignificant;
+	}
+	
+	public String getSignificanceColumn() {
+		return significanceColumn;
+	}
+	
+	public Significance getSignificance() {
+		return significance;
+	}
+		
 	public Color getBorderColor() {
 		return borderColor;
 	}

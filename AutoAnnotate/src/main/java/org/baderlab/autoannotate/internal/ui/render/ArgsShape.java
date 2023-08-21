@@ -10,10 +10,12 @@ import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.CoordinateData;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
+import org.baderlab.autoannotate.internal.ui.view.create.CreateViewUtil;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
+import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 
 public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 	
@@ -110,17 +112,42 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 			case SINGLE: default:
 				return displayOptions.getFillColor();
 			case PALETTE:
-				AnnotationSet annotationSet = cluster.getParent();
-				int index = annotationSet.getClusterIndex(cluster);
-				var palette = displayOptions.getFillColorPalette();
-				Color[] colors = palette == null ? DEFAULT_PALETTE : palette.getColors();
-				return colors[index % colors.length];
+				return getPaletteColor(displayOptions, cluster);
 			case SIGNIFICANT:
-				return Color.RED; // TEMP
+				return getColorOfMostSignificantNode(displayOptions, cluster);
 		}
 	}
 
-
+	
+	private static Color getColorOfMostSignificantNode(DisplayOptions displayOptions, Cluster cluster) {
+		var defColor = displayOptions.getFillColor();
+		
+		var node = CreateViewUtil.getMostSignificantNode(cluster);
+		if(node == null)
+			return defColor;
+		
+		var nodeView = cluster.getNetworkView().getNodeView(node);
+		if(nodeView == null)
+			return defColor;
+		
+		// TODO EnrichmentMap uses charts, I will need to call a command to get the colors of the given nodes from EM
+		var color = nodeView.getVisualProperty(BasicVisualLexicon.NODE_FILL_COLOR);
+		if(color instanceof Color)
+			return (Color)color;
+		
+		return defColor;
+	}
+	
+	
+	private static Color getPaletteColor(DisplayOptions displayOptions, Cluster cluster) {
+		var annotationSet = cluster.getParent();
+		int index = annotationSet.getClusterIndex(cluster);
+		var palette = displayOptions.getFillColorPalette();
+		Color[] colors = palette == null ? DEFAULT_PALETTE : palette.getColors();
+		return colors[index % colors.length];
+	}
+	
+	
 	public static ArgsShape createFor(Cluster cluster, boolean isSelected, Color selectedColor) {
 		if(selectedColor == null)
 			selectedColor = Color.YELLOW;

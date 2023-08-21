@@ -11,11 +11,14 @@ import java.util.function.Function;
 
 import javax.swing.JComboBox;
 
+import org.baderlab.autoannotate.internal.model.Cluster;
+import org.baderlab.autoannotate.internal.ui.view.display.Significance;
 import org.baderlab.autoannotate.internal.util.ComboItem;
 import org.cytoscape.application.swing.CyColumnComboBox;
 import org.cytoscape.application.swing.CyColumnPresentationManager;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
 
 public class CreateViewUtil {
@@ -113,13 +116,58 @@ public class CreateViewUtil {
 	
 	public static void setSignificanceColumnDefault(CyColumnComboBox combo) {
 		// Select the best choice for label column, with special case for EnrichmentMap
+		setColumn(combo, "EnrichmentMap::fdr_qvalue", true);
+	}
+	
+	public static void setColumn(CyColumnComboBox combo, String columnName, boolean startsWith) {
+		// Select the best choice for label column, with special case for EnrichmentMap
 		for(int i = 0; i < combo.getItemCount(); i++) {
 			CyColumn item = combo.getItemAt(i);
-			if(item.getName().startsWith("EnrichmentMap::fdr_qvalue")) { // column created by EnrichmentMap
+			String name = item.getName();
+			
+			if(startsWith && name.startsWith(columnName)) { 
+				combo.setSelectedIndex(i);
+				break;
+			} else if(name.equals(columnName)) {
 				combo.setSelectedIndex(i);
 				break;
 			}
 		}
+	}
+	
+	
+	public static CyNode getMostSignificantNode(Cluster cluster) {
+		var network = cluster.getNetwork();
+		var nodes = cluster.getNodes();
+		var displayOptions = cluster.getParent().getDisplayOptions();
+		var sigOp = displayOptions.getSignificance();
+		var sigCol = displayOptions.getSignificanceColumn();
+		return getMostSignificantNode(network, nodes, sigOp, sigCol);
+	}
+	
+	
+	public static CyNode getMostSignificantNode(CyNetwork network, Collection<CyNode> nodes, Significance sigOp, String sigCol) {
+		if(sigOp == null || sigCol == null)
+			return null;
+		
+		CyTable nodeTable = network.getDefaultNodeTable();
+		var column = nodeTable.getColumn(sigCol);
+		if(column == null)
+			return null;
+		
+		CyNode mostSigNode = null;
+		Number mostSigVal  = null;
+		
+		for(var node : nodes) {
+			var value = (Number) network.getRow(node).get(sigCol, column.getType());
+			
+			if(mostSigVal == null || sigOp.isMoreSignificant(value, mostSigVal)) {
+				mostSigNode = node;
+				mostSigVal = value;
+			}
+		}
+		
+		return mostSigNode;
 	}
 	
 }

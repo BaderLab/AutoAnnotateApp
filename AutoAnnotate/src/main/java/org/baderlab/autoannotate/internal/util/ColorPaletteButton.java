@@ -27,7 +27,6 @@ public final class ColorPaletteButton extends JButton {
 	private Color borderColor;
 	private Palette palette;
 	private Mode mode = Mode.SINGLE_COLOR;
-	private Runnable significantAction;
 	
 
 	public ColorPaletteButton(CyServiceRegistrar registrar, Color color, Palette palette) {
@@ -58,10 +57,6 @@ public final class ColorPaletteButton extends JButton {
 		repaint();
 	}
 	
-	public void setSignificantAction(Runnable action) {
-		this.significantAction = action;
-	}
-	
 	private void pickSingleColor() {
 		JColorChooser chooser = new JColorChooser();
 		chooser.setColor(ColorPaletteButton.this.color);
@@ -85,9 +80,7 @@ public final class ColorPaletteButton extends JButton {
 	}
 
 	private void pickSignificant() {
-		if(significantAction == null)
-			return;
-		significantAction.run();
+		firePropertyChange("significance", null, null);
 	}
 	
 	/**

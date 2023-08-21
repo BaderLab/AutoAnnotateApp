@@ -77,6 +77,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
  	@Inject private @Named("default") Provider<Palette> defaultPaletteProvider;
  	@Inject private Provider<ScalePanel> scalePanelProvider;
  	@Inject private Provider<JFrame> jframeProvider;
+ 	@Inject private SignificanceColumnDialogAction.Factory significanceColumnDialogActionFactory;
 	
 	private DebounceTimer debouncer = new DebounceTimer();
 	
@@ -91,7 +92,6 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private SliderWithLabel paddingAdjustSlider;
 	private SliderWithLabel opacitySlider;
 	private LeftAlignCheckBox hideClustersCheckBox;
-//	private JCheckBox usePaletteCheckBox;
 	private JComboBox<FillType> paletteCombo;
 	private JToggleButton ellipseRadio;
 	private JToggleButton rectangleRadio;
@@ -109,6 +109,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private LeftAlignCheckBox wordWrapCheckBox;
 	private JSpinner wordWrapLengthSpinner;
 	private LeftAlignCheckBox highlightSigCheckBox;
+	private JButton highlightSigButton;
 	
 	// Shape listeners
 	private ChangeListener borderWidthListener;
@@ -130,6 +131,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private PropertyChangeListener fontColorListener;
 	private ActionListener wordWrapListener;
 	private ChangeListener wordWrapLengthListener;
+	private ActionListener highlightSigListener;
 	
 	private JButton resetButton;
 
@@ -204,6 +206,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			fontColorButton.removePropertyChangeListener("color", fontColorListener);
 			wordWrapCheckBox.removeActionListener(wordWrapListener);
 			wordWrapLengthSpinner.removeChangeListener(wordWrapLengthListener);
+			highlightSigCheckBox.removeActionListener(highlightSigListener);
 			
 			// set values
 			borderWidthSlider.setValue(displayOptions.getBorderWidth());
@@ -218,13 +221,15 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			ellipseRadio.setSelected(displayOptions.getShapeType() == ShapeType.ELLIPSE);
 			fillColorButton.setColor(displayOptions.getFillColor());
 			fillColorButton.setPalette(displayOptions.getFillColorPalette());
-			fillColorButton.setMode(displayOptions.getFillType() == FillType.PALETTE ? Mode.PALETTE : Mode.SINGLE_COLOR);
+			fillColorButton.setMode(fillTypeToButtonMode(displayOptions.getFillType()));
 			paletteCombo.setSelectedItem(displayOptions.getFillType());
 			borderColorButton.setColor(displayOptions.getBorderColor());
 			fontColorButton.setColor(displayOptions.getFontColor());
 			wordWrapCheckBox.setSelected(displayOptions.isUseWordWrap());
 			wordWrapLengthSpinner.setValue(displayOptions.getWordWrapLength());
 			wordWrapLengthSpinner.setEnabled(displayOptions.isUseWordWrap());
+			highlightSigCheckBox.setSelected(displayOptions.getHighlightSignificant());
+			highlightSigButton.setEnabled(displayOptions.getHighlightSignificant());
 			
 			CardLayout fontCardLayout = (CardLayout) fontPanel.getLayout();
 			fontCardLayout.show(fontPanel, displayOptions.isUseConstantFontSize() ? CARD_SIZE : CARD_SCALE);
@@ -247,6 +252,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			fontColorButton.addPropertyChangeListener("color", fontColorListener);
 			wordWrapCheckBox.addActionListener(wordWrapListener);
 			wordWrapLengthSpinner.addChangeListener(wordWrapLengthListener);
+			highlightSigCheckBox.addActionListener(highlightSigListener);
 		} 
 	}
 	
@@ -340,6 +346,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		fillColorButton = new ColorPaletteButton(registrar, FILL_COLOR_DEFAULT, FILL_COLOR_PALETTE_DEFAULT);
 		fillColorButton.addPropertyChangeListener("color", fillColorListener = e -> handleFillColor());
 		fillColorButton.addPropertyChangeListener("palette", fillPaletteListener = e -> handleFillColor());
+		fillColorButton.addPropertyChangeListener("significance", e -> showSignificanceDialog());
 		
 		paletteCombo = new JComboBox<>(FillType.values());
 		paletteCombo.addActionListener(usePaletteListener = e -> handleFillColor());
@@ -447,7 +454,14 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		});
 		
 		highlightSigCheckBox = new LeftAlignCheckBox("Highight Significant Nodes:");
-		
+		highlightSigButton = createBrowseButton();
+		highlightSigCheckBox.addActionListener(highlightSigListener = e -> {
+			boolean highlight = highlightSigCheckBox.isSelected();
+			highlightSigButton.setEnabled(highlight);
+			displayOptions.setHighlightSignificant(highlight);
+		});
+		highlightSigButton.addActionListener(e -> showSignificanceDialog());
+			
 		
 		SwingUtil.makeSmall(fontByClusterCheckbox, fontColorLabel, fontColorButton, hideLabelsCheckBox);
 		SwingUtil.makeSmall(wordWrapCheckBox, wordWrapLengthLabel, wordWrapLengthSpinner, highlightSigCheckBox);
@@ -461,7 +475,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		panel.add(wordWrapCheckBox,      GBCFactory.grid(0,3).get());
 		panel.add(wordWrapLengthLabel,   GBCFactory.grid(1,3).get());
 		panel.add(wordWrapLengthSpinner, GBCFactory.grid(2,3).fill(NONE).get());
-		panel.add(highlightSigCheckBox,  GBCFactory.grid(0,4).fill(NONE).gridwidth(3).get());
+		panel.add(highlightSigCheckBox,  GBCFactory.grid(0,4).fill(NONE).gridwidth(2).get());
+		panel.add(highlightSigButton,    GBCFactory.grid(2,4).fill(NONE).get());
 		panel.add(hideLabelsCheckBox,    GBCFactory.grid(0,5).fill(NONE).gridwidth(3).get());
 		
 		return panel;
@@ -482,6 +497,21 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		
 		displayOptions.setFillColors(color, palette, fillType);
 		fillColorButton.setMode(fillTypeToButtonMode(fillType));
+	}
+	
+	private void showSignificanceDialog() {
+		var net = displayOptions.getParent().getParent().getNetwork();
+		var sig = displayOptions.getSignificance();
+		var col = displayOptions.getSignificanceColumn();
+		
+		var action = significanceColumnDialogActionFactory.create(net, sig, col);
+		
+		SwingUtil.invokeOnEDTAndWait(() -> {
+			boolean ok = action.showSignificanceDialog();
+			if(ok) {
+				displayOptions.setFillSignificance(action.getSignificance(), action.getSignificanceColumn());
+			}
+		});
 	}
 	
 	
@@ -541,6 +571,19 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 				});
 			} catch (InvocationTargetException | InterruptedException e) { }
 		});
+	}
+	
+	
+	private JButton createBrowseButton() {
+		JButton button = new JButton(IconManager.ICON_ELLIPSIS_H);
+		LookAndFeelUtil.makeSmall(button);
+		button.setFont(iconManager.getIconFont(10.0f));
+		button.setToolTipText("Set significance column...");
+		if(LookAndFeelUtil.isAquaLAF()) {
+			button.putClientProperty("JButton.buttonType", "gradient");
+			button.putClientProperty("JComponent.sizeVariant", "small");
+		}
+		return button;
 	}
 	
 	

@@ -3,7 +3,7 @@ package org.baderlab.autoannotate.internal.labels.makers;
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
-import org.baderlab.autoannotate.internal.labels.makers.MostSignificantOptions.Significance;
+import org.baderlab.autoannotate.internal.ui.view.display.Significance;
 
 import com.google.inject.Inject;
 
