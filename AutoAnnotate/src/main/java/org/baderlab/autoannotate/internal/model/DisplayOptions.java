@@ -276,19 +276,20 @@ public class DisplayOptions {
 	
 	// Use to avoid extra events, doesn't forget the fill colors if user change's their mind.
 	// Assumes fillType is SIGNIFICANT
-	public void setFillSignificance(Significance sigificance, String significanceColumn) {
+	public void setSignificanceColumns(Significance sigificance, String significanceColumn) {
 		this.significanceColumn = significanceColumn;
 		this.significance = sigificance;
-		this.fillType = FillType.SIGNIFICANT;
-		postEvent(Option.FILL_COLOR);
+		
+		if(fillType == FillType.SIGNIFICANT)
+			postEvent(Option.FILL_COLOR);
 		
 		if(highlightSignificant)
-			postEvent(Option.FONT_COLOR);
+			postEvent(Option.LABEL_HIGHLIGHT);
 	}
 	
 	public void setHighlightSignificant(boolean highlightSignificant) {
 		this.highlightSignificant = highlightSignificant;
-		postEvent(Option.FONT_COLOR);
+		postEvent(Option.LABEL_HIGHLIGHT);
 	}
 	
 	public boolean getHighlightSignificant() {

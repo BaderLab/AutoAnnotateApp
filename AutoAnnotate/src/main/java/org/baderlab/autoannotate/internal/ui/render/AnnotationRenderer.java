@@ -44,6 +44,7 @@ public class AnnotationRenderer {
 	@Inject private DrawClustersTask.Factory drawTaskProvider;
 	@Inject private EraseClustersTask.Factory eraseTaskProvider;
 	@Inject private UpdateClustersTask.Factory updateTaskProvider;
+	@Inject private HighlightSignificantLabelsTask.Factory highlightLabelsTaskFactory;
 	
 	private final DebounceTimer debouncer = new DebounceTimer();
 	
@@ -108,6 +109,16 @@ public class AnnotationRenderer {
 		taskManager.execute(tasks);
 	}
 	
+	
+	private void highlightLabels(AnnotationSet as, DisplayOptions options) {
+		var task = highlightLabelsTaskFactory.create(as.getClusters());
+		
+		if(options.getSignificance() == null || options.getSignificanceColumn() == null || !options.getHighlightSignificant()) {
+			task.setClearOnly(true);
+		}
+		
+		dialogTaskManager.execute(new TaskIterator(task));
+	}
 	
 	
 	@Subscribe
@@ -190,6 +201,9 @@ public class AnnotationRenderer {
 		case PADDING_ADJUST: // MKTODO: We might not need to do a full redraw for this.
 		case RESET:
 			redrawAnnotations(as.getParent(), Optional.of(as), true);
+			break;
+		case LABEL_HIGHLIGHT:
+			highlightLabels(as, options);
 			break;
 		default:
 			break;

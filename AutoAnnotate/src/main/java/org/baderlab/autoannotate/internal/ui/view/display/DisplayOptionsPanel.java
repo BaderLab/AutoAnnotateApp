@@ -346,7 +346,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		fillColorButton = new ColorPaletteButton(registrar, FILL_COLOR_DEFAULT, FILL_COLOR_PALETTE_DEFAULT);
 		fillColorButton.addPropertyChangeListener("color", fillColorListener = e -> handleFillColor());
 		fillColorButton.addPropertyChangeListener("palette", fillPaletteListener = e -> handleFillColor());
-		fillColorButton.addPropertyChangeListener("significance", e -> showSignificanceDialog());
+		fillColorButton.addPropertyChangeListener("significance", e -> showSignificanceColumnDialog());
 		
 		paletteCombo = new JComboBox<>(FillType.values());
 		paletteCombo.addActionListener(usePaletteListener = e -> handleFillColor());
@@ -460,7 +460,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			highlightSigButton.setEnabled(highlight);
 			displayOptions.setHighlightSignificant(highlight);
 		});
-		highlightSigButton.addActionListener(e -> showSignificanceDialog());
+		highlightSigButton.addActionListener(e -> showSignificanceColumnDialog());
 			
 		
 		SwingUtil.makeSmall(fontByClusterCheckbox, fontColorLabel, fontColorButton, hideLabelsCheckBox);
@@ -499,7 +499,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		fillColorButton.setMode(fillTypeToButtonMode(fillType));
 	}
 	
-	private void showSignificanceDialog() {
+	private void showSignificanceColumnDialog() {
 		var net = displayOptions.getParent().getParent().getNetwork();
 		var sig = displayOptions.getSignificance();
 		var col = displayOptions.getSignificanceColumn();
@@ -509,7 +509,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		SwingUtil.invokeOnEDTAndWait(() -> {
 			boolean ok = action.showSignificanceDialog();
 			if(ok) {
-				displayOptions.setFillSignificance(action.getSignificance(), action.getSignificanceColumn());
+				displayOptions.setSignificanceColumns(action.getSignificance(), action.getSignificanceColumn());
 			}
 		});
 	}
