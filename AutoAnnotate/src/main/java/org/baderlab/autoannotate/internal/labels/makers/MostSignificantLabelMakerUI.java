@@ -52,7 +52,11 @@ public class MostSignificantLabelMakerUI implements LabelMakerUI<MostSignificant
 	@Override
 	public void reset(Object options) {
 		var currentNetwork = appManagerProvider.get().getCurrentNetwork();
-		var msOptions = (MostSignificantOptions)options;
-		panel.reset(currentNetwork, msOptions.getSignificance(), msOptions.getSignificanceColumn());
+		if(options instanceof MostSignificantOptions) {
+			var msOptions = (MostSignificantOptions)options;
+			panel.reset(currentNetwork, msOptions.getSignificance(), msOptions.getSignificanceColumn());
+		} else {
+			panel.reset(currentNetwork, null, null);
+		}
 	}
 }
