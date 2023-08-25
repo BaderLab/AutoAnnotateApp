@@ -113,7 +113,8 @@ public class AnnotationRenderer {
 	private void highlightLabels(AnnotationSet as, DisplayOptions options) {
 		var task = highlightLabelsTaskFactory.create(as.getClusters());
 		
-		if(options.getSignificance() == null || options.getSignificanceColumn() == null || !options.getHighlightSignificant()) {
+		var so = options.getSignificanceOptions();
+		if(so.getSignificance() == null || so.getSignificanceColumn() == null || !so.isHighlight()) {
 			task.setClearOnly(true);
 		}
 		

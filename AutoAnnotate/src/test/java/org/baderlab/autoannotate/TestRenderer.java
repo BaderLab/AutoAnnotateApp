@@ -1,10 +1,14 @@
 package org.baderlab.autoannotate;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
@@ -15,6 +19,7 @@ import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.baderlab.autoannotate.internal.ui.render.DrawClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.EraseClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.UpdateClustersTask;
+import org.baderlab.autoannotate.internal.ui.view.display.Significance;
 import org.baderlab.autoannotate.util.LogSilenceRule;
 import org.baderlab.autoannotate.util.SerialTestTaskManager;
 import org.cytoscape.application.CyApplicationManager;
@@ -175,6 +180,39 @@ public class TestRenderer {
 		cluster.delete();
 		
 		verify(eraseTaskFactory).create(cluster);
+	}
+	
+	@Test
+	public void testSignificance() {
+		List<Double> sigs = new ArrayList<>(Arrays.asList(1.0, 2.0, -3.0, -1.0, 0.0, null));
+		
+		assertFalse(Significance.MAXIMUM.isMoreSignificant(null, 1.0));
+		assertTrue(Significance.MAXIMUM.isMoreSignificant(1.0, null));
+		assertFalse(Significance.GREATEST_MAGNITUDE.isMoreSignificant(null, 1.0));
+		assertTrue(Significance.GREATEST_MAGNITUDE.isMoreSignificant(1.0, null));
+		
+		for(int i = 0; i < 10; i++) {
+			Collections.shuffle(sigs);
+			
+			Double s1 = mostSig(sigs, Significance.GREATEST_MAGNITUDE);
+			assertTrue("got " + s1 + " for " + sigs.toString(), s1 != null && s1 == -3.0);
+			
+			Double s2 = mostSig(sigs, Significance.MAXIMUM);
+			assertTrue("got " + s2 + " for " + sigs.toString(), s2 != null && s2 == 2.0);
+			
+			Double s3 = mostSig(sigs, Significance.MINIMUM);
+			assertTrue("got " + s3 + " for " + sigs.toString(), s3 != null && s3 == -3.0);
+		}
+	}
+	
+	private static Double mostSig(List<Double> vals, Significance sigOp) {
+		Double mostSigVal = null;
+		for(Double value : vals) {
+			if(sigOp.isMoreSignificant(value, mostSigVal)) {
+				mostSigVal = value;
+			}
+		}
+		return mostSigVal;
 	}
 	
 }

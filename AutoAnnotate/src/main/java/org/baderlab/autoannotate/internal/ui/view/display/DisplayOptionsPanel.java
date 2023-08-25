@@ -78,6 +78,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
  	@Inject private Provider<ScalePanel> scalePanelProvider;
  	@Inject private Provider<JFrame> jframeProvider;
  	@Inject private SignificanceColumnDialogAction.Factory significanceColumnDialogActionFactory;
+ 	@Inject private SignificanceEMDialogAction.Factory significanceEMDialogActionFactory;
 	
 	private DebounceTimer debouncer = new DebounceTimer();
 	
@@ -228,8 +229,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			wordWrapCheckBox.setSelected(displayOptions.isUseWordWrap());
 			wordWrapLengthSpinner.setValue(displayOptions.getWordWrapLength());
 			wordWrapLengthSpinner.setEnabled(displayOptions.isUseWordWrap());
-			highlightSigCheckBox.setSelected(displayOptions.getHighlightSignificant());
-			highlightSigButton.setEnabled(displayOptions.getHighlightSignificant());
+			highlightSigCheckBox.setSelected(displayOptions.getSignificanceOptions().isHighlight());
+			highlightSigButton.setEnabled(displayOptions.getSignificanceOptions().isHighlight());
 			
 			CardLayout fontCardLayout = (CardLayout) fontPanel.getLayout();
 			fontCardLayout.show(fontPanel, displayOptions.isUseConstantFontSize() ? CARD_SIZE : CARD_SCALE);
@@ -458,7 +459,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		highlightSigCheckBox.addActionListener(highlightSigListener = e -> {
 			boolean highlight = highlightSigCheckBox.isSelected();
 			highlightSigButton.setEnabled(highlight);
-			displayOptions.setHighlightSignificant(highlight);
+			displayOptions.getSignificanceOptions().setHighlight(highlight);
 		});
 		highlightSigButton.addActionListener(e -> showSignificanceColumnDialog());
 			
@@ -500,18 +501,31 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	}
 	
 	private void showSignificanceColumnDialog() {
-		var net = displayOptions.getParent().getParent().getNetwork();
-		var sig = displayOptions.getSignificance();
-		var col = displayOptions.getSignificanceColumn();
+		var network = displayOptions.getParent().getParent().getNetwork();
+		var so = displayOptions.getSignificanceOptions();
+		var dataSet = so.getEMDataSet();
 		
-		var action = significanceColumnDialogActionFactory.create(net, sig, col);
-		
-		SwingUtil.invokeOnEDTAndWait(() -> {
-			boolean ok = action.showSignificanceDialog();
-			if(ok) {
-				displayOptions.setSignificanceColumns(action.getSignificance(), action.getSignificanceColumn());
-			}
-		});
+		var emDialogAction = significanceEMDialogActionFactory.create(network, dataSet);
+		if(emDialogAction.isApplicableToNetwork()) {
+			SwingUtil.invokeOnEDTAndWait(() -> {
+				boolean ok = emDialogAction.showSignificanceDialog();
+				if(ok) {
+					so.setEMDataSet(emDialogAction.getDataSet());
+				}
+			});
+		} else {
+			var sig = so.getSignificance();
+			var col = so.getSignificanceColumn();
+			
+			var action = significanceColumnDialogActionFactory.create(network, sig, col);
+			
+			SwingUtil.invokeOnEDTAndWait(() -> {
+				boolean ok = action.showSignificanceDialog();
+				if(ok) {
+					so.setSignificanceColumns(action.getSignificance(), action.getSignificanceColumn());
+				}
+			});
+		}
 	}
 	
 	

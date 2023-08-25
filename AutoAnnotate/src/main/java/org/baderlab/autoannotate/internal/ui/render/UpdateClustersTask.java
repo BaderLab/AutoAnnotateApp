@@ -5,9 +5,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
+import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
+import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.util.HiddenTools;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
@@ -25,6 +28,7 @@ public class UpdateClustersTask extends AbstractTask {
 	@Inject private DrawClustersTask.Factory drawTaskProvider;
 	@Inject private EraseClustersTask.Factory eraseTaskProvider;
 	@Inject private VisualMappingManager visualMappingManager;
+	@Inject private SignificanceLookup.Factory significanceLookupFactory;
 	
 	private final Collection<Cluster> clusters;
 	
@@ -50,6 +54,11 @@ public class UpdateClustersTask extends AbstractTask {
 		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Drawing Annotations");
 		
+		if(clusters.isEmpty())
+			return;
+		
+		
+		
 		// If we are updating one cluster then its better to update the existing annotations, there is less flicker.
 		// But if we are updating lots of clusters its actually much faster to just redraw them.
 		
@@ -73,7 +82,9 @@ public class UpdateClustersTask extends AbstractTask {
 			boolean isSelected = annotationRenderer.isSelected(cluster);
 			Color selection = DrawClustersTask.getSelectionColor(visualMappingManager, netView);
 			
-			ArgsShape argsShape = ArgsShape.createFor(cluster, isSelected, selection);
+			Map<Cluster,Color> sigColors = getSignificanceColors();
+			
+			ArgsShape argsShape = ArgsShape.createFor(cluster, isSelected, selection, sigColors);
 			List<ArgsLabel> argsLabels = ArgsLabel.createFor(argsShape, cluster, isSelected, selection);
 			
 			if(isUpdatePossible(group.getLabels(), argsLabels)) {
@@ -103,6 +114,15 @@ public class UpdateClustersTask extends AbstractTask {
 			}
 		}		
 		return true;
+	}
+	
+	private Map<Cluster,Color> getSignificanceColors() {
+		// Assume all clusters are from the same annotation set
+		AnnotationSet as = clusters.iterator().next().getParent();
+		if(as.getDisplayOptions().getFillType() == FillType.SIGNIFICANT) {
+			return significanceLookupFactory.create(as).getColors();
+		}
+		return null;
 	}
 	
 	

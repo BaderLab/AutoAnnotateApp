@@ -11,6 +11,7 @@ import java.util.Map;
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
+import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.util.HiddenTools;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.Annotation;
@@ -36,6 +37,7 @@ public class DrawClustersTask extends AbstractTask {
 	
 	@Inject private AnnotationManager annotationManager;
 	@Inject private AnnotationRenderer annotationRenderer;
+	@Inject private SignificanceLookup.Factory significanceLookupFactory;
 	
 	private final Collection<Cluster> clusters;
 	
@@ -62,12 +64,17 @@ public class DrawClustersTask extends AbstractTask {
 		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Drawing Annotations");
 		
+		if(clusters.isEmpty())
+			return;
+		
+		Map<Cluster,Color> significanceColors = getSignificanceColors(); // may be null
+				
 		List<Annotation> allAnnotations = new ArrayList<>();
 		
 		for(Cluster cluster : clusters) {
 			if(!cluster.isCollapsed() && !HiddenTools.allNodesHidden(cluster)) {
 				boolean isSelected = annotationRenderer.isSelected(cluster);
-				AnnotationGroup group = createClusterAnnotations(cluster, isSelected);
+				AnnotationGroup group = createClusterAnnotations(cluster, isSelected, significanceColors);
 				annotationRenderer.putAnnotations(cluster, group);
 				group.addTo(allAnnotations);
 			}
@@ -76,6 +83,17 @@ public class DrawClustersTask extends AbstractTask {
 		if(!allAnnotations.isEmpty())
 			annotationManager.addAnnotations(allAnnotations);
 	}
+	
+	
+	private Map<Cluster,Color> getSignificanceColors() {
+		// Assume all clusters are from the same annotation set
+		AnnotationSet as = clusters.iterator().next().getParent();
+		if(as.getDisplayOptions().getFillType() == FillType.SIGNIFICANT) {
+			return significanceLookupFactory.create(as).getColors();
+		}
+		return null;
+	}
+	
 	
 	static Color getSelectionColor(VisualMappingManager visualMappingManager, CyNetworkView netView) {
 		VisualStyle vs = visualMappingManager.getVisualStyle(netView);
@@ -87,12 +105,13 @@ public class DrawClustersTask extends AbstractTask {
 		return null;
 	}
 	
-	private AnnotationGroup createClusterAnnotations(Cluster cluster, boolean isSelected) {
+	
+	private AnnotationGroup createClusterAnnotations(Cluster cluster, boolean isSelected, Map<Cluster,Color> significanceColors) {
 		AnnotationSet annotationSet = cluster.getParent();
 		CyNetworkView networkView = annotationSet.getParent().getNetworkView();
 		
 		Color selection = getSelectionColor(visualMappingManager, networkView);
-		ArgsShape shapeArgs = ArgsShape.createFor(cluster, isSelected, selection);
+		ArgsShape shapeArgs = ArgsShape.createFor(cluster, isSelected, selection, significanceColors);
 		ShapeAnnotation shape = shapeFactory.createAnnotation(ShapeAnnotation.class, networkView, shapeArgs.getArgMap());
 		
 		List<ArgsLabel> labelArgsList = ArgsLabel.createFor(shapeArgs, cluster, isSelected, selection);

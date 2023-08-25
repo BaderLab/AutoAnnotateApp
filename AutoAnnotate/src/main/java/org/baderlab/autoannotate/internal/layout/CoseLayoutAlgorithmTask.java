@@ -324,7 +324,7 @@ public class CoseLayoutAlgorithmTask extends AbstractPartitionLayoutTask {
 	private static Rectangle2D getClusterBounds(Cluster cluster) {
 		// For real clusters use the size of the annotations when computing the bounds
 		// This ensures that labels and shapes don't overlap.
-		ArgsShape shape = ArgsShape.createFor(cluster, false, null);
+		ArgsShape shape = ArgsShape.createFor(cluster, false, null, null);
 		List<ArgsLabel> lables = ArgsLabel.createFor(shape, cluster, false, null);
 		
 		double x = shape.x, y = shape.y, w = shape.width, h = shape.height;

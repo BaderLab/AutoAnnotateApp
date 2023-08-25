@@ -1,19 +1,24 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
 import java.util.Collection;
+import java.util.Map;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
+import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
-import org.baderlab.autoannotate.internal.ui.view.create.CreateViewUtil;
+import org.cytoscape.model.CyNode;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
+import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
 public class HighlightSignificantLabelsTask extends AbstractTask {
 
+	@Inject private SignificanceLookup.Factory significanceLookupFactory;
+	
 	private final Collection<Cluster> clusters;
 	
 	private boolean clearOnly = false;
@@ -37,6 +42,9 @@ public class HighlightSignificantLabelsTask extends AbstractTask {
 		tm.setTitle(BuildProperties.APP_NAME);
 		tm.setStatusMessage("Highlighting Labels");
 		
+		if(clusters.isEmpty())
+			return;
+		
 		for(var cluster : clusters) {
 			clearHighlight(cluster);
 		}
@@ -44,8 +52,11 @@ public class HighlightSignificantLabelsTask extends AbstractTask {
 		if(clearOnly)
 			return;
 		
+		AnnotationSet as = clusters.iterator().next().getParent();
+		Map<Cluster,CyNode> sigNodes = significanceLookupFactory.create(as).getSigNodes();
+		
 		for(var cluster : clusters) {
-			highlightLabel(cluster);
+			highlightLabel(cluster, sigNodes);
 		}
 	}
 	
@@ -69,8 +80,8 @@ public class HighlightSignificantLabelsTask extends AbstractTask {
 	}
 	
 	
-	private void highlightLabel(Cluster cluster) {
-		var node = CreateViewUtil.getMostSignificantNode(cluster);
+	private void highlightLabel(Cluster cluster, Map<Cluster,CyNode> sigNodes) {
+		var node = sigNodes.get(cluster);
 		if(node == null)
 			return;
 		

@@ -1,6 +1,9 @@
 package org.baderlab.autoannotate.internal.ui.view.display;
 
 
+/**
+ * Determines how the most significant nodes in a cluster are sorted.
+ */
 public enum Significance {
 	MINIMUM, 
 	MAXIMUM, 
@@ -15,9 +18,18 @@ public enum Significance {
 		}
 	}
 	
-	public Boolean isMoreSignificant(Number arg1, Number arg2) {
-		var val1 = arg1.doubleValue();
-		var val2 = arg2.doubleValue();
+	public boolean isMoreSignificant(Number arg1, Number arg2) {
+		var val1 = arg1 == null ? Double.NaN : arg1.doubleValue();
+		var val2 = arg2 == null ? Double.NaN : arg2.doubleValue();
+		
+		if(Double.isNaN(val1) && Double.isNaN(val2)) {
+			return false;
+		} else if(Double.isNaN(val1)) {
+			return false;
+		} else if(Double.isNaN(val2)) {
+			return true;
+		}
+		
 		switch(this) {
 			case MINIMUM: return val1 < val2;
 			case MAXIMUM: return val1 > val2;

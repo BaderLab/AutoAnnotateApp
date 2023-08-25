@@ -6,7 +6,6 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
-import org.baderlab.autoannotate.internal.ui.view.display.Significance;
 import org.cytoscape.util.color.Palette;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 
@@ -23,6 +22,10 @@ public class DisplayOptions {
 		public String toString() { return label; }
 	}
 	
+	public static enum HighlightType {
+		
+	}
+	
 	public static final ShapeType SHAPE_DEFAULT = ShapeType.ELLIPSE;
 	public static final boolean SHOW_CLUSTERS_DEFAULT = true;
 	public static final boolean SHOW_LABELS_DEFAULT = true;
@@ -33,6 +36,7 @@ public class DisplayOptions {
 	public static final Palette FILL_COLOR_PALETTE_DEFAULT = null;
 	// Note, this gets overridden in CreateAnnotationSetTask, because we can't define a default palette here
 	public static final FillType FILL_TYPE_DEFAULT = FillType.SINGLE; 
+	
 	
 	public static final Color BORDER_COLOR_DEFAULT = Color.DARK_GRAY;
 	public static final Color FONT_COLOR_DEFAULT = Color.BLACK;
@@ -75,16 +79,14 @@ public class DisplayOptions {
 	private Color fillColor;
 	private Palette fillColorPalette;
 	
-	// TODO add to serialization table
-	private String significanceColumn;
-	private Significance significance;
-	private boolean highlightSignificant;
-	
 	private FillType fillType;
 	private Color borderColor;
 	private Color fontColor;
 	private boolean useWordWrap;
 	private int wordWrapLength;
+	
+	// TODO add to serialization table
+	private SignificanceOptions significanceOptions = new SignificanceOptions(this);
 	
 	
 	DisplayOptions(AnnotationSet parent) {
@@ -271,39 +273,14 @@ public class DisplayOptions {
 		this.fillColor = Objects.requireNonNull(fillColor);
 		this.fillColorPalette = fillColorPalette;
 		this.fillType = fillType;
+		
 		postEvent(Option.FILL_COLOR);
 	}
-	
-	// Use to avoid extra events, doesn't forget the fill colors if user change's their mind.
-	// Assumes fillType is SIGNIFICANT
-	public void setSignificanceColumns(Significance sigificance, String significanceColumn) {
-		this.significanceColumn = significanceColumn;
-		this.significance = sigificance;
-		
-		if(fillType == FillType.SIGNIFICANT)
-			postEvent(Option.FILL_COLOR);
-		
-		if(highlightSignificant)
-			postEvent(Option.LABEL_HIGHLIGHT);
+
+	public SignificanceOptions getSignificanceOptions() {
+		return significanceOptions;
 	}
 	
-	public void setHighlightSignificant(boolean highlightSignificant) {
-		this.highlightSignificant = highlightSignificant;
-		postEvent(Option.LABEL_HIGHLIGHT);
-	}
-	
-	public boolean getHighlightSignificant() {
-		return highlightSignificant;
-	}
-	
-	public String getSignificanceColumn() {
-		return significanceColumn;
-	}
-	
-	public Significance getSignificance() {
-		return significance;
-	}
-		
 	public Color getBorderColor() {
 		return borderColor;
 	}

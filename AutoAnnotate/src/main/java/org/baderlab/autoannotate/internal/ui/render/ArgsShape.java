@@ -10,12 +10,10 @@ import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.CoordinateData;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
-import org.baderlab.autoannotate.internal.ui.view.create.CreateViewUtil;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
-import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 
 public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 	
@@ -107,33 +105,23 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 	}
 	
 	
-	private static Color getFillColor(DisplayOptions displayOptions, Cluster cluster) {
+	private static Color getFillColor(DisplayOptions displayOptions, Cluster cluster, Map<Cluster,Color> definedFillColors) {
 		switch(displayOptions.getFillType()) {
 			case SINGLE: default:
 				return displayOptions.getFillColor();
 			case PALETTE:
 				return getPaletteColor(displayOptions, cluster);
 			case SIGNIFICANT:
-				return getColorOfMostSignificantNode(displayOptions, cluster);
+				return getColorOfMostSignificantNode(displayOptions, cluster, definedFillColors);
 		}
 	}
 
 	
-	private static Color getColorOfMostSignificantNode(DisplayOptions displayOptions, Cluster cluster) {
+	private static Color getColorOfMostSignificantNode(DisplayOptions displayOptions, Cluster cluster, Map<Cluster,Color> definedFillColors) {
 		var defColor = displayOptions.getFillColor();
 		
-		var node = CreateViewUtil.getMostSignificantNode(cluster);
-		if(node == null)
-			return defColor;
-		
-		var nodeView = cluster.getNetworkView().getNodeView(node);
-		if(nodeView == null)
-			return defColor;
-		
-		// TODO EnrichmentMap uses charts, I will need to call a command to get the colors of the given nodes from EM
-		var color = nodeView.getVisualProperty(BasicVisualLexicon.NODE_FILL_COLOR);
-		if(color instanceof Color)
-			return (Color)color;
+		if(definedFillColors != null && definedFillColors.containsKey(cluster))
+			return definedFillColors.get(cluster);
 		
 		return defColor;
 	}
@@ -148,7 +136,7 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 	}
 	
 	
-	public static ArgsShape createFor(Cluster cluster, boolean isSelected, Color selectedColor) {
+	public static ArgsShape createFor(Cluster cluster, boolean isSelected, Color selectedColor, Map<Cluster,Color> definedFillColors) {
 		if(selectedColor == null)
 			selectedColor = Color.YELLOW;
 		
@@ -159,8 +147,9 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 		int borderWidth = displayOptions.getBorderWidth(); // * (isSelected ? 3 : 1);
 		int opacity = displayOptions.getOpacity();
 		Color borderColor = isSelected ? selectedColor : displayOptions.getBorderColor();
-		Color fillColor = getFillColor(displayOptions, cluster);
 		double zoom = 1; //view.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR);
+		
+		Color fillColor = getFillColor(displayOptions, cluster, definedFillColors);
 
 		CoordinateData coordinateData = cluster.getCoordinateData(false); // do not include hidden nodes
 		double centreX = coordinateData.getCenterX();

@@ -3,7 +3,7 @@ package org.baderlab.autoannotate.internal.labels.makers;
 import java.util.Collection;
 
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
-import org.baderlab.autoannotate.internal.ui.view.create.CreateViewUtil;
+import org.baderlab.autoannotate.internal.ui.render.SignificanceLookup;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 
@@ -26,7 +26,7 @@ public class MostSignificantLabelMaker implements LabelMaker {
 		var sigColumn = options.getSignificanceColumn();
 		var sigOp = options.getSignificance();
 		
-		CyNode node = CreateViewUtil.getMostSignificantNode(network, nodes, sigOp, sigColumn);
+		CyNode node = SignificanceLookup.getMostSignificantNode(network, nodes, sigOp, sigColumn);
 		if(node == null)
 			return "";
 		
