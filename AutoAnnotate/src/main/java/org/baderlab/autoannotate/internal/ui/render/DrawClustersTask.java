@@ -37,7 +37,7 @@ public class DrawClustersTask extends AbstractTask {
 	
 	@Inject private AnnotationManager annotationManager;
 	@Inject private AnnotationRenderer annotationRenderer;
-	@Inject private SignificanceLookup.Factory significanceLookupFactory;
+	@Inject private SignificanceLookup significanceLookup;
 	
 	private final Collection<Cluster> clusters;
 	
@@ -89,7 +89,7 @@ public class DrawClustersTask extends AbstractTask {
 		// Assume all clusters are from the same annotation set
 		AnnotationSet as = clusters.iterator().next().getParent();
 		if(as.getDisplayOptions().getFillType() == FillType.SIGNIFICANT) {
-			return significanceLookupFactory.create(as).getColors();
+			return significanceLookup.getColors(as);
 		}
 		return null;
 	}

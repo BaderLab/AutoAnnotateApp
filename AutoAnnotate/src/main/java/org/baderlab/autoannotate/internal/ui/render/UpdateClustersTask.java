@@ -28,7 +28,7 @@ public class UpdateClustersTask extends AbstractTask {
 	@Inject private DrawClustersTask.Factory drawTaskProvider;
 	@Inject private EraseClustersTask.Factory eraseTaskProvider;
 	@Inject private VisualMappingManager visualMappingManager;
-	@Inject private SignificanceLookup.Factory significanceLookupFactory;
+	@Inject private SignificanceLookup significanceLookup;
 	
 	private final Collection<Cluster> clusters;
 	
@@ -120,7 +120,7 @@ public class UpdateClustersTask extends AbstractTask {
 		// Assume all clusters are from the same annotation set
 		AnnotationSet as = clusters.iterator().next().getParent();
 		if(as.getDisplayOptions().getFillType() == FillType.SIGNIFICANT) {
-			return significanceLookupFactory.create(as).getColors();
+			return significanceLookup.getColors(as);
 		}
 		return null;
 	}

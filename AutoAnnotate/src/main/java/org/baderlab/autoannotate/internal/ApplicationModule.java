@@ -29,7 +29,6 @@ import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.baderlab.autoannotate.internal.ui.render.DrawClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.EraseClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.HighlightSignificantLabelsTask;
-import org.baderlab.autoannotate.internal.ui.render.SignificanceLookup;
 import org.baderlab.autoannotate.internal.ui.render.UpdateClustersTask;
 import org.baderlab.autoannotate.internal.ui.view.ManageAnnotationSetsDialog;
 import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTask;
@@ -123,7 +122,6 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(SignificanceColumnDialogAction.Factory.class);
 		installFactory(SignificanceEMDialogAction.Factory.class);
 		installFactory(HighlightSignificantLabelsTask.Factory.class);
-		installFactory(SignificanceLookup.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {

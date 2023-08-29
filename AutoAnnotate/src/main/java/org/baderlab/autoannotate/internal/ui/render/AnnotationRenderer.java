@@ -40,6 +40,7 @@ public class AnnotationRenderer {
 	
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
+	@Inject private SignificanceLookup significanceLookup;
 	
 	@Inject private DrawClustersTask.Factory drawTaskProvider;
 	@Inject private EraseClustersTask.Factory eraseTaskProvider;
@@ -112,9 +113,11 @@ public class AnnotationRenderer {
 	
 	private void highlightLabels(AnnotationSet as, DisplayOptions options) {
 		var task = highlightLabelsTaskFactory.create(as.getClusters());
-		
 		var so = options.getSignificanceOptions();
-		if(so.getSignificance() == null || so.getSignificanceColumn() == null || !so.isHighlight()) {
+		
+		if(!so.isHighlight()) {
+			task.setClearOnly(true);
+		} else if(!so.isEM() && (so.getSignificance() == null || so.getSignificanceColumn() == null)) {
 			task.setClearOnly(true);
 		}
 		

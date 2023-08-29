@@ -17,7 +17,7 @@ import com.google.inject.assistedinject.AssistedInject;
 
 public class HighlightSignificantLabelsTask extends AbstractTask {
 
-	@Inject private SignificanceLookup.Factory significanceLookupFactory;
+	@Inject private SignificanceLookup significanceLookup;
 	
 	private final Collection<Cluster> clusters;
 	
@@ -53,7 +53,7 @@ public class HighlightSignificantLabelsTask extends AbstractTask {
 			return;
 		
 		AnnotationSet as = clusters.iterator().next().getParent();
-		Map<Cluster,CyNode> sigNodes = significanceLookupFactory.create(as).getSigNodes();
+		Map<Cluster,CyNode> sigNodes = significanceLookup.getSigNodes(as);
 		
 		for(var cluster : clusters) {
 			highlightLabel(cluster, sigNodes);

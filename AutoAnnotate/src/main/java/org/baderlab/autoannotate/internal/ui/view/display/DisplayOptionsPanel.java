@@ -46,6 +46,7 @@ import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.ui.render.SignificanceLookup;
 import org.baderlab.autoannotate.internal.ui.view.display.scale.ScalePanel;
 import org.baderlab.autoannotate.internal.util.ColorButton;
 import org.baderlab.autoannotate.internal.util.ColorPaletteButton;
@@ -79,6 +80,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
  	@Inject private Provider<JFrame> jframeProvider;
  	@Inject private SignificanceColumnDialogAction.Factory significanceColumnDialogActionFactory;
  	@Inject private SignificanceEMDialogAction.Factory significanceEMDialogActionFactory;
+ 	@Inject private SignificanceLookup significanceLookup;
 	
 	private DebounceTimer debouncer = new DebounceTimer();
 	
@@ -505,18 +507,19 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		var so = displayOptions.getSignificanceOptions();
 		var dataSet = so.getEMDataSet();
 		
-		var emDialogAction = significanceEMDialogActionFactory.create(network, dataSet);
-		if(emDialogAction.isApplicableToNetwork()) {
+		if(significanceLookup.isEMSignificanceAvailable(network)) {
+			var emDialogAction = significanceEMDialogActionFactory.create(network, dataSet);
+			
 			SwingUtil.invokeOnEDTAndWait(() -> {
 				boolean ok = emDialogAction.showSignificanceDialog();
 				if(ok) {
 					so.setEMDataSet(emDialogAction.getDataSet());
 				}
 			});
+			
 		} else {
 			var sig = so.getSignificance();
 			var col = so.getSignificanceColumn();
-			
 			var action = significanceColumnDialogActionFactory.create(network, sig, col);
 			
 			SwingUtil.invokeOnEDTAndWait(() -> {

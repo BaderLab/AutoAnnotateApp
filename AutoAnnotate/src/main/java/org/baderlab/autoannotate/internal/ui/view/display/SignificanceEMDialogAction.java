@@ -7,7 +7,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
-import org.cytoscape.command.AvailableCommands;
+import org.baderlab.autoannotate.internal.ui.render.SignificanceLookup;
 import org.cytoscape.command.CommandExecutorTaskFactory;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.work.FinishStatus;
@@ -19,13 +19,19 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
+/**
+ * Note, this class assumes that EnrichmentMap is available at the requried version
+ * and the given network is an EnrichmentMap network.
+ * 
+ * To ensure these preconditions hold before creating an instance of this class
+ * use {@link SignificanceLookup#isEMSignificanceAvailable(CyNetwork)}
+ */
 public class SignificanceEMDialogAction {
 	
 	@Inject private Provider<JFrame> jFrameProvider;
 	
 	@Inject private CommandExecutorTaskFactory commandTaskFactory;
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
-	@Inject private AvailableCommands availableCommands;
 	
 	private final CyNetwork network;
 	private String dataSet;
@@ -40,24 +46,7 @@ public class SignificanceEMDialogAction {
 		this.dataSet = dataSet;
 	}
 
-	public boolean isApplicableToNetwork() {
-		return isEMNetwork() && isCommandAvailable();
-	}
-	
-	private boolean isEMNetwork() {
-		// There's more than one way to do this. For now lets just check for a common EM column.
-		return network.getDefaultNodeTable().getColumn("EnrichmentMap::Name") != null;
-	}
-	
-	private boolean isCommandAvailable() {
-		if(!availableCommands.getNamespaces().contains("enrichmentmap"))
-			return false;
-		if(!availableCommands.getCommands("enrichmentmap").contains("get datasets"))
-			return false;
-		return true;
-	}
-	
-	
+
 	private String createCommand() {
 		StringBuilder command = new StringBuilder("enrichmentmap get datasets");
 		command.append(" network=\"SUID:").append(network.getSUID()).append('"');
@@ -84,7 +73,6 @@ public class SignificanceEMDialogAction {
 		public void allFinished(FinishStatus finishStatus) {
 		}
 	}
-	
 	
 	public boolean showSignificanceDialog() {
 		var dataSets = getDataSetNames();
