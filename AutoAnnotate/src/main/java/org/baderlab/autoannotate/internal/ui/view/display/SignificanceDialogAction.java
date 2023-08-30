@@ -69,7 +69,7 @@ public class SignificanceDialogAction extends AbstractCyAction {
 		List<String> dataSetNames = null;
 		
 		if(significanceLookup.isEMSignificanceAvailable(network)) {
-			dataSetNames = significanceLookup.getDataSetNames(network);
+			dataSetNames = significanceLookup.getEMDataSetNames(network);
 		}
 		
 		panel.update(network, significance, significanceColumn, dataSetNames, dataSet, isEM);

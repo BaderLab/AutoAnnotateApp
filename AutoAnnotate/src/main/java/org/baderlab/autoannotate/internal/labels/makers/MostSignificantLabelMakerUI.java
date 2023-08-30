@@ -61,7 +61,7 @@ public class MostSignificantLabelMakerUI implements LabelMakerUI<MostSignificant
 			
 			List<String> dataSetNames = null;
 			if(significanceLookup.isEMSignificanceAvailable(network)) {
-				dataSetNames = significanceLookup.getDataSetNames(network);
+				dataSetNames = significanceLookup.getEMDataSetNames(network);
 			}
 			
 			panel.update(

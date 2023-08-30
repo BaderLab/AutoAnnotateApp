@@ -1,6 +1,7 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,16 +11,14 @@ import java.util.Map;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.ui.view.display.Significance;
+import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.command.AvailableCommands;
 import org.cytoscape.command.CommandExecutorTaskFactory;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
-import org.cytoscape.work.FinishStatus;
-import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.SynchronousTaskManager;
-import org.cytoscape.work.TaskObserver;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -31,20 +30,19 @@ public class SignificanceLookup {
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	@Inject private AvailableCommands availableCommands;
 	
+	
 	public Map<Cluster,Color> getColors(AnnotationSet annotationSet) {
-		if(useEM(annotationSet)) {
-			return Collections.emptyMap();
-		} else {
+		if(useEM(annotationSet))
+			return getColorsFromEM(annotationSet);
+		else
 			return getColorsFromSigColumns(annotationSet);
-		}
 	}
 	
 	public Map<Cluster,CyNode> getSigNodes(AnnotationSet annotationSet) {
-		if(useEM(annotationSet)) {
+		if(useEM(annotationSet))
 			return getSigNodesFromEM(annotationSet);
-		} else {
+		else
 			return getSigNodesFromSigColumns(annotationSet);
-		}
 	}
 	
 	
@@ -72,69 +70,93 @@ public class SignificanceLookup {
 	}
 	
 	
-	public List<String> getDataSetNames(CyNetwork network) {
-		StringBuilder sb = new StringBuilder("enrichmentmap get datasets");
-		sb.append(" network=\"SUID:").append(network.getSUID()).append('"');
-		String command = sb.toString();
-		
-		DataSetTaskObserver observer = new DataSetTaskObserver();
-		var taskIterator = commandTaskFactory.createTaskIterator(observer, command);
-		syncTaskManager.execute(taskIterator);
-		return observer.dataSetNames;
+	public List<String> getEMDataSetNames(CyNetwork network) {
+		String command = "enrichmentmap get datasets network=\"SUID:" + network.getSUID() + "\"";
+		List<String> names = runListCommand(command);
+		return names;
 	}
-	
-	private static class DataSetTaskObserver implements TaskObserver {
-		List<String> dataSetNames;
-		
-		@SuppressWarnings("unchecked")
-		@Override
-		public void taskFinished(ObservableTask task) {
-			dataSetNames = task.getResults(List.class);
-		}
-		@Override
-		public void allFinished(FinishStatus finishStatus) {
-		}
-	}
-	
+
 	
 	private Map<Cluster,CyNode> getSigNodesFromEM(AnnotationSet annotationSet) {
-		Map<Cluster,CyNode> significantNodes = new HashMap<>();
 		var suid = annotationSet.getParent().getNetwork().getSUID();
-		
 		String dataSet = annotationSet.getDisplayOptions().getSignificanceOptions().getEMDataSet();
 		
-		StringBuilder sb = new StringBuilder("enrichmentmap list significant");
-		sb.append(" network=\"SUID:").append(suid).append('"');
+		String command = "enrichmentmap list significant network=\"SUID:" + suid + "\"";
 		if(dataSet != null)
-			sb.append(" dataSet=\"").append(dataSet).append('"');
+			command += " dataSet=\"" + dataSet + "\"";
 		
-		var observer = new EMSigNodesTaskObserver();
-		var taskIterator = commandTaskFactory.createTaskIterator(observer, sb.toString());
-		syncTaskManager.execute(taskIterator);
+		List<CyNode> nodesSortedBySig = runListCommand(command);
 		
-		List<CyNode> nodesSortedBySig = observer.nodes;
+		Map<Cluster,CyNode> sigNodes = new HashMap<>();
 		
 		for(Cluster cluster : annotationSet.getClusters()) {
 			var clusterNodes = cluster.getNodes();
 			var mostSigNode = nodesSortedBySig.stream().filter(n -> clusterNodes.contains(n)).findFirst();
 			if(mostSigNode.isPresent()) {
-				significantNodes.put(cluster, mostSigNode.get());
+				sigNodes.put(cluster, mostSigNode.get());
 			}
 		}
 		
-		return significantNodes;
+		System.out.println("sigNodes...");
+		System.out.println(sigNodes);
+		return sigNodes;
 	}
 	
-	private static class EMSigNodesTaskObserver implements TaskObserver {
-		List<CyNode> nodes;
+	
+	private Map<Cluster,Color> getColorsFromEM(AnnotationSet annotationSet) {
+		var suid = annotationSet.getParent().getNetwork().getSUID();
 		
-		@SuppressWarnings("unchecked")
-		@Override
-		public void taskFinished(ObservableTask task) {
-			nodes = task.getResults(List.class);
+		Map<Cluster,CyNode> sigNodes = getSigNodesFromEM(annotationSet);
+		
+		// Need to maintain some order for the clusters, it can be arbitrary but it needs to be maintained for this method.
+		List<Cluster> clusters = new ArrayList<>(annotationSet.getClusters());
+		List<String> nodeSuids = new ArrayList<>(clusters.size());
+		
+		var iter = clusters.iterator();
+		while(iter.hasNext()) {
+			var cluster = iter.next();
+			CyNode sigNode = sigNodes.get(cluster);
+			if(sigNode == null) {
+				iter.remove();
+			} else {
+				nodeSuids.add(sigNode.getSUID().toString());
+			}
 		}
-		@Override
-		public void allFinished(FinishStatus finishStatus) { }
+		
+		String dataSet = annotationSet.getDisplayOptions().getSignificanceOptions().getEMDataSet();
+		
+		String suids = String.join(",", nodeSuids);
+		String command = "enrichmentmap get colors network=\"SUID:" + suid + "\" nodes=\"" + suids + "\"";
+		if(dataSet != null)
+			command += " dataSet=\"" + dataSet + "\"";
+			
+		List<String> encodedColors = runListCommand(command);
+		if(encodedColors == null || encodedColors.size() != clusters.size())
+			return Collections.emptyMap();
+		
+		Map<Cluster,Color> colors = new HashMap<>();
+		
+		for(int i = 0; i < clusters.size(); i++) {
+			var cluster = clusters.get(i);
+			var encoded = encodedColors.get(i);
+			try {
+				var color = Color.decode(encoded);
+				colors.put(cluster, color);
+			} catch(NumberFormatException | NullPointerException e) {}
+		}
+		
+		System.out.println("colors...");
+		System.out.println(colors);
+		return colors;
+	}
+	
+	
+	@SuppressWarnings("unchecked")
+	private <T> List<T> runListCommand(CharSequence command) {
+		var observer = new TaskTools.ResultObserver<>(List.class);
+		var taskIterator = commandTaskFactory.createTaskIterator(observer, command.toString());
+		syncTaskManager.execute(taskIterator);
+		return observer.getResult();
 	}
 	
 	

@@ -2,6 +2,7 @@ package org.baderlab.autoannotate.internal.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collector;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
@@ -74,12 +75,55 @@ public class TaskTools {
 		};
 	}
 	
+	public static <T> TaskObserver taskFinished(Class<T> taskType, Consumer<T> consumer) {
+		return new TaskObserver() {
+			@Override
+			public void taskFinished(ObservableTask task) {
+				if(taskType.isInstance(task)) {
+					consumer.accept(taskType.cast(task));
+				}
+			}
+
+			@Override
+			public void allFinished(FinishStatus finishStatus) { }
+		};
+	}
+	
+	
 	public static ListSingleSelection<String> listSingleSelectionFromEnum(Enum<?>[] values) {
 		List<String> names = new ArrayList<>(values.length);
 		for(Enum<?> value : values) {
 			names.add(value.name());
 		}
 		return new ListSingleSelection<>(names);
+	}
+	
+	
+	public static class ResultObserver<R> implements TaskObserver {
+		
+		private final Class<R> resultType;
+		
+		private R result;
+		
+		public ResultObserver(Class<R> resultType) {
+			this.resultType = resultType;
+		}
+		
+		@Override
+		public void taskFinished(ObservableTask task) {
+			R tempResult = task.getResults(resultType);
+			if(tempResult != null) {
+				result = tempResult;
+			}
+		}
+		
+		@Override
+		public void allFinished(FinishStatus finishStatus) {
+		}
+		
+		public R getResult() {
+			return result;
+		}
 	}
 	
 }
