@@ -1,12 +1,14 @@
 package org.baderlab.autoannotate.internal.ui.view.display;
 
 import java.awt.event.ActionEvent;
+import java.util.List;
 
 import javax.annotation.Nullable;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
+import org.baderlab.autoannotate.internal.ui.render.SignificanceLookup;
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.model.CyNetwork;
 
@@ -15,35 +17,44 @@ import com.google.inject.Provider;
 import com.google.inject.assistedinject.Assisted;
 
 @SuppressWarnings("serial")
-public class SignificanceColumnDialogAction extends AbstractCyAction {
+public class SignificanceDialogAction extends AbstractCyAction {
 
-	@Inject private Provider<SignificanceColumnPanel> sigColPanelProvider;
+	@Inject private Provider<SignificancePanel> sigColPanelProvider;
 	@Inject private Provider<JFrame> jFrameProvider;
+	@Inject private SignificanceLookup significanceLookup;
 	
 	private final CyNetwork network;
 	
+	private boolean isEM;
+	private String dataSet;
 	private Significance significance;
 	private String significanceColumn;
 	
 	
 	public static interface Factory {
-		SignificanceColumnDialogAction create(
+		SignificanceDialogAction create(
 			CyNetwork network, 
-			Significance significance, 
-			String significanceColumn
+			@Nullable Significance significance, 
+			@Assisted("sg") @Nullable String significanceColumn,
+			@Assisted("ds") @Nullable String dataSet,
+			boolean isEM
 		);
 	}
 	
 	@Inject
-	public SignificanceColumnDialogAction(
+	public SignificanceDialogAction(
 			@Assisted CyNetwork network, 
 			@Assisted @Nullable Significance significance, 
-			@Assisted @Nullable String significanceColumn
+			@Assisted("sg") @Nullable String significanceColumn,
+			@Assisted("ds") @Nullable String dataSet,
+			@Assisted boolean isEM
 	) {
 		super("Significance Column Options...");
 		this.network = network;
 		this.significance = significance;
 		this.significanceColumn = significanceColumn;
+		this.dataSet = dataSet;
+		this.isEM = isEM;
 	}
 	
 	@Override
@@ -53,9 +64,17 @@ public class SignificanceColumnDialogAction extends AbstractCyAction {
 	
 	
 	public boolean showSignificanceDialog() {
-		var panel = sigColPanelProvider.get().reset(network, significance, significanceColumn);
+		var panel = sigColPanelProvider.get();
 		
-		String title = BuildProperties.APP_NAME + ": Significance Column";
+		List<String> dataSetNames = null;
+		
+		if(significanceLookup.isEMSignificanceAvailable(network)) {
+			dataSetNames = significanceLookup.getDataSetNames(network);
+		}
+		
+		panel.update(network, significance, significanceColumn, dataSetNames, dataSet, isEM);
+		
+		String title = BuildProperties.APP_NAME + ": Significance";
 		JFrame jframe = jFrameProvider.get();
 		
 		int result = JOptionPane.showConfirmDialog(jframe, panel, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
@@ -64,6 +83,8 @@ public class SignificanceColumnDialogAction extends AbstractCyAction {
 		
 		this.significance = panel.getSignificance();
 		this.significanceColumn = panel.getSignificanceColumn();
+		this.dataSet = panel.getDataSet();
+		this.isEM = panel.getUseEM();
 		
 		return true;
 	}
@@ -74,6 +95,14 @@ public class SignificanceColumnDialogAction extends AbstractCyAction {
 	
 	public String getSignificanceColumn() {
 		return significanceColumn;
+	}
+
+	public String getDataSet() {
+		return dataSet;
+	}
+	
+	public boolean isEM() {
+		return isEM;
 	}
 
 }

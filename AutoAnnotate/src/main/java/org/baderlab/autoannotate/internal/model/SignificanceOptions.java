@@ -35,20 +35,11 @@ public class SignificanceOptions {
 		this.parent = parent;
 	}
 
-	public void setSignificanceColumns(Significance sigificance, String significanceColumn) {
+	public void setSignificance(Significance sigificance, String significanceColumn, String dataSet, boolean isEM) {
 		this.significanceColumn = significanceColumn;
 		this.significance = sigificance;
-		
-		if(parent.getFillType() == FillType.SIGNIFICANT)
-			postEvent(Option.FILL_COLOR);
-		
-		if(highlight)
-			postEvent(Option.LABEL_HIGHLIGHT);
-	}
-	
-	public void setEMDataSet(String dataSet) {
 		this.emDataSet = dataSet;
-		this.isEM = true;
+		this.isEM = isEM;
 		
 		if(parent.getFillType() == FillType.SIGNIFICANT)
 			postEvent(Option.FILL_COLOR);

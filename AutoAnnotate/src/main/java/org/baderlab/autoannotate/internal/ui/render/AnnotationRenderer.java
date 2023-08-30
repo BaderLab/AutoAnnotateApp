@@ -85,18 +85,14 @@ public class AnnotationRenderer {
 	}
 	
 	
-	public void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet) {
-		redrawAnnotations(networkViewSet, selectedAnnotationSet, false);
-	}
-	
-	private void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet, boolean sync) {
+	private TaskIterator createRedrawTasks(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet) {
 		Set<Cluster> clusters = getClusters(networkViewSet);
 		
 		TaskIterator tasks = new TaskIterator();
 		
 		var eraseTask = eraseTaskProvider.create(clusters);
 		if(eraseTask == null) // can happen in tests
-			return;
+			return null;
 		
 		eraseTask.setEraseAll(true);
 		tasks.append(eraseTask);
@@ -106,12 +102,18 @@ public class AnnotationRenderer {
 			.map(drawTaskProvider::create)
 			.ifPresent(tasks::append);
 		
+		return tasks;
+	}
+	
+	private void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet, boolean sync) {
+		TaskIterator tasks = createRedrawTasks(networkViewSet, selectedAnnotationSet);
 		var taskManager = sync ? syncTaskManager : dialogTaskManager;
 		taskManager.execute(tasks);
 	}
 	
 	
-	private void highlightLabels(AnnotationSet as, DisplayOptions options) {
+	private TaskIterator createHighlightTasks(AnnotationSet as) {
+		var options = as.getDisplayOptions();
 		var task = highlightLabelsTaskFactory.create(as.getClusters());
 		var so = options.getSignificanceOptions();
 		
@@ -121,7 +123,26 @@ public class AnnotationRenderer {
 			task.setClearOnly(true);
 		}
 		
-		dialogTaskManager.execute(new TaskIterator(task));
+		return new TaskIterator(task);
+	}
+	
+	
+	private void highlightLabels(AnnotationSet as, boolean sync) {
+		var tasks = createHighlightTasks(as);
+		var taskManager = sync ? syncTaskManager : dialogTaskManager;
+		taskManager.execute(tasks);
+	}
+	
+	
+	public void redrawAnnotationAndHighlight(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet) {
+		TaskIterator tasks = new TaskIterator();
+		
+		tasks.append(createRedrawTasks(networkViewSet, selectedAnnotationSet));
+		
+		if(selectedAnnotationSet.isPresent())
+			tasks.append(createHighlightTasks(selectedAnnotationSet.get()));
+		
+		dialogTaskManager.execute(tasks);
 	}
 	
 	
@@ -207,7 +228,7 @@ public class AnnotationRenderer {
 			redrawAnnotations(as.getParent(), Optional.of(as), true);
 			break;
 		case LABEL_HIGHLIGHT:
-			highlightLabels(as, options);
+			highlightLabels(as, true);
 			break;
 		default:
 			break;

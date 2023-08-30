@@ -1,9 +1,12 @@
 package org.baderlab.autoannotate.internal.labels.makers;
 
+import java.util.List;
+
 import javax.swing.JPanel;
 
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
-import org.baderlab.autoannotate.internal.ui.view.display.SignificanceColumnPanel;
+import org.baderlab.autoannotate.internal.ui.render.SignificanceLookup;
+import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanel;
 import org.cytoscape.application.CyApplicationManager;
 
 import com.google.inject.Inject;
@@ -14,11 +17,12 @@ import com.google.inject.assistedinject.AssistedInject;
 public class MostSignificantLabelMakerUI implements LabelMakerUI<MostSignificantOptions> {
 
 	@Inject private Provider<CyApplicationManager> appManagerProvider;
-	@Inject private Provider<SignificanceColumnPanel> sigColPanelProvider;
+	@Inject private Provider<SignificancePanel> sigColPanelProvider;
+	@Inject private SignificanceLookup significanceLookup;
 	
 	private final MostSignificantLabelMakerFactory factory;
 	
-	private SignificanceColumnPanel panel;
+	private SignificancePanel panel;
 	
 	
 	public interface Factory {
@@ -37,7 +41,7 @@ public class MostSignificantLabelMakerUI implements LabelMakerUI<MostSignificant
 	
 	@Override
 	public MostSignificantOptions getContext() {
-		return new MostSignificantOptions(panel.getSignificanceColumn(), panel.getSignificance());
+		return new MostSignificantOptions(panel.getSignificanceColumn(), panel.getSignificance(), panel.getDataSet(), panel.getUseEM());
 	}
 	
 	@Override
@@ -51,12 +55,23 @@ public class MostSignificantLabelMakerUI implements LabelMakerUI<MostSignificant
 
 	@Override
 	public void reset(Object options) {
-		var currentNetwork = appManagerProvider.get().getCurrentNetwork();
+		var network = appManagerProvider.get().getCurrentNetwork();
 		if(options instanceof MostSignificantOptions) {
-			var msOptions = (MostSignificantOptions)options;
-			panel.reset(currentNetwork, msOptions.getSignificance(), msOptions.getSignificanceColumn());
-		} else {
-			panel.reset(currentNetwork, null, null);
-		}
+			var ms = (MostSignificantOptions)options;
+			
+			List<String> dataSetNames = null;
+			if(significanceLookup.isEMSignificanceAvailable(network)) {
+				dataSetNames = significanceLookup.getDataSetNames(network);
+			}
+			
+			panel.update(
+				network, 
+				ms.getSignificance(), 
+				ms.getSignificanceColumn(), 
+				dataSetNames, 
+				ms.getDataSet(), 
+				ms.isEM()
+			);
+		} 
 	}
 }

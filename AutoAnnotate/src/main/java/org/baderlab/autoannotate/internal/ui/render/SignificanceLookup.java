@@ -72,6 +72,31 @@ public class SignificanceLookup {
 	}
 	
 	
+	public List<String> getDataSetNames(CyNetwork network) {
+		StringBuilder sb = new StringBuilder("enrichmentmap get datasets");
+		sb.append(" network=\"SUID:").append(network.getSUID()).append('"');
+		String command = sb.toString();
+		
+		DataSetTaskObserver observer = new DataSetTaskObserver();
+		var taskIterator = commandTaskFactory.createTaskIterator(observer, command);
+		syncTaskManager.execute(taskIterator);
+		return observer.dataSetNames;
+	}
+	
+	private static class DataSetTaskObserver implements TaskObserver {
+		List<String> dataSetNames;
+		
+		@SuppressWarnings("unchecked")
+		@Override
+		public void taskFinished(ObservableTask task) {
+			dataSetNames = task.getResults(List.class);
+		}
+		@Override
+		public void allFinished(FinishStatus finishStatus) {
+		}
+	}
+	
+	
 	private Map<Cluster,CyNode> getSigNodesFromEM(AnnotationSet annotationSet) {
 		Map<Cluster,CyNode> significantNodes = new HashMap<>();
 		var suid = annotationSet.getParent().getNetwork().getSUID();

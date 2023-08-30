@@ -28,7 +28,7 @@ public class RedrawAction extends AbstractCyAction {
 			var nvs = nvsOpt.get();
 			var asOpt = nvs.getActiveAnnotationSet();
 			
-			rendererProvider.get().redrawAnnotations(nvs, asOpt);
+			rendererProvider.get().redrawAnnotationAndHighlight(nvs, asOpt);
 		}
 	}
 

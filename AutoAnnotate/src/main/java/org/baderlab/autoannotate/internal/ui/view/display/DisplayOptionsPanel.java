@@ -78,8 +78,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
  	@Inject private @Named("default") Provider<Palette> defaultPaletteProvider;
  	@Inject private Provider<ScalePanel> scalePanelProvider;
  	@Inject private Provider<JFrame> jframeProvider;
- 	@Inject private SignificanceColumnDialogAction.Factory significanceColumnDialogActionFactory;
- 	@Inject private SignificanceEMDialogAction.Factory significanceEMDialogActionFactory;
+ 	@Inject private SignificanceDialogAction.Factory significanceDialogActionFactory;
  	@Inject private SignificanceLookup significanceLookup;
 	
 	private DebounceTimer debouncer = new DebounceTimer();
@@ -505,30 +504,24 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private void showSignificanceColumnDialog() {
 		var network = displayOptions.getParent().getParent().getNetwork();
 		var so = displayOptions.getSignificanceOptions();
-		var dataSet = so.getEMDataSet();
 		
-		if(significanceLookup.isEMSignificanceAvailable(network)) {
-			var emDialogAction = significanceEMDialogActionFactory.create(network, dataSet);
-			
-			SwingUtil.invokeOnEDTAndWait(() -> {
-				boolean ok = emDialogAction.showSignificanceDialog();
-				if(ok) {
-					so.setEMDataSet(emDialogAction.getDataSet());
-				}
-			});
-			
-		} else {
-			var sig = so.getSignificance();
-			var col = so.getSignificanceColumn();
-			var action = significanceColumnDialogActionFactory.create(network, sig, col);
-			
-			SwingUtil.invokeOnEDTAndWait(() -> {
-				boolean ok = action.showSignificanceDialog();
-				if(ok) {
-					so.setSignificanceColumns(action.getSignificance(), action.getSignificanceColumn());
-				}
-			});
-		}
+		var dataSet = so.getEMDataSet();
+		var sig = so.getSignificance();
+		var col = so.getSignificanceColumn();
+		var isEM = so.isEM();
+		
+		var action = significanceDialogActionFactory.create(network, sig, col, dataSet, isEM);
+		
+		SwingUtil.invokeOnEDTAndWait(() -> {
+			boolean ok = action.showSignificanceDialog();
+			if(ok) {
+				so.setSignificance(
+					action.getSignificance(), 
+					action.getSignificanceColumn(), 
+					action.getDataSet(), 
+					action.isEM());
+			}
+		});
 	}
 	
 	
