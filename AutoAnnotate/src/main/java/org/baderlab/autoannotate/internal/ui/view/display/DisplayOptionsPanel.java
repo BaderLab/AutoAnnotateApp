@@ -11,6 +11,8 @@ import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -25,7 +27,7 @@ import javax.swing.GroupLayout.Alignment;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -34,6 +36,7 @@ import javax.swing.JSpinner;
 import javax.swing.JToggleButton;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeListener;
 
@@ -46,7 +49,6 @@ import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
-import org.baderlab.autoannotate.internal.ui.render.SignificanceLookup;
 import org.baderlab.autoannotate.internal.ui.view.display.scale.ScalePanel;
 import org.baderlab.autoannotate.internal.util.ColorButton;
 import org.baderlab.autoannotate.internal.util.ColorPaletteButton;
@@ -79,7 +81,6 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
  	@Inject private Provider<ScalePanel> scalePanelProvider;
  	@Inject private Provider<JFrame> jframeProvider;
  	@Inject private SignificanceDialogAction.Factory significanceDialogActionFactory;
- 	@Inject private SignificanceLookup significanceLookup;
 	
 	private DebounceTimer debouncer = new DebounceTimer();
 	
@@ -94,10 +95,12 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private SliderWithLabel paddingAdjustSlider;
 	private SliderWithLabel opacitySlider;
 	private LeftAlignCheckBox hideClustersCheckBox;
-	private JComboBox<FillType> paletteCombo;
+	private JCheckBox usePaletteCheckBox;
 	private JToggleButton ellipseRadio;
 	private JToggleButton rectangleRadio;
 	private ColorPaletteButton fillColorButton;
+	private JLabel fillColorLabel;
+	private JLabel fillColorWarnLabel;
 	private ColorButton borderColorButton;
 	
 	// Label controls
@@ -110,6 +113,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private ColorButton fontColorButton;
 	private LeftAlignCheckBox wordWrapCheckBox;
 	private JSpinner wordWrapLengthSpinner;
+	private LeftAlignCheckBox colorSigCheckBox;
 	private LeftAlignCheckBox highlightSigCheckBox;
 	private JButton highlightSigButton;
 	
@@ -133,12 +137,12 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private PropertyChangeListener fontColorListener;
 	private ActionListener wordWrapListener;
 	private ChangeListener wordWrapLengthListener;
-	private ActionListener highlightSigListener;
+	private ActionListener sigListener;
 	
 	private JButton resetButton;
 
 	private static final String CARD_NULL = "card_null";
-	private static final String CARD_AS = "card_as";
+	private static final String CARD_MAIN = "card_main";
 	
 	private static final String CARD_SIZE = "size";
 	private static final String CARD_SCALE = "scale";
@@ -179,7 +183,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	
 	public void setAnnotationSet(Optional<AnnotationSet> annotationSet) {
 		CardLayout cardLayout = (CardLayout) getLayout();
-		cardLayout.show(this, annotationSet.isPresent() ? CARD_AS : CARD_NULL);
+		cardLayout.show(this, annotationSet.isPresent() ? CARD_MAIN : CARD_NULL);
 		
 		if(annotationSet.isPresent()) {
 			AnnotationSet as = annotationSet.get();
@@ -201,14 +205,15 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			hideLabelsCheckBox.removeActionListener(hideLabelsListener);
 			fontByClusterCheckbox.removeActionListener(fontByClusterListener);
 			ellipseRadio.removeActionListener(ellipseListener);
-			paletteCombo.removeActionListener(usePaletteListener);
+			usePaletteCheckBox.removeActionListener(usePaletteListener);
 			fillColorButton.removePropertyChangeListener("color", fillColorListener);
 			fillColorButton.removePropertyChangeListener("palette", fillPaletteListener);
 			borderColorButton.removePropertyChangeListener("color", borderColorListener);
 			fontColorButton.removePropertyChangeListener("color", fontColorListener);
 			wordWrapCheckBox.removeActionListener(wordWrapListener);
 			wordWrapLengthSpinner.removeChangeListener(wordWrapLengthListener);
-			highlightSigCheckBox.removeActionListener(highlightSigListener);
+			colorSigCheckBox.removeActionListener(sigListener);
+			highlightSigCheckBox.removeActionListener(sigListener);
 			
 			// set values
 			borderWidthSlider.setValue(displayOptions.getBorderWidth());
@@ -224,14 +229,18 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			fillColorButton.setColor(displayOptions.getFillColor());
 			fillColorButton.setPalette(displayOptions.getFillColorPalette());
 			fillColorButton.setMode(fillTypeToButtonMode(displayOptions.getFillType()));
-			paletteCombo.setSelectedItem(displayOptions.getFillType());
+			fillColorButton.setEnabled(displayOptions.getFillType() != FillType.SIGNIFICANT);
+			usePaletteCheckBox.setSelected(displayOptions.getFillType() == FillType.PALETTE);
+			usePaletteCheckBox.setEnabled(displayOptions.getFillType() != FillType.SIGNIFICANT);
+			fillColorLabel.setEnabled(displayOptions.getFillType() != FillType.SIGNIFICANT);
+			fillColorWarnLabel.setVisible(displayOptions.getFillType() == FillType.SIGNIFICANT);
 			borderColorButton.setColor(displayOptions.getBorderColor());
 			fontColorButton.setColor(displayOptions.getFontColor());
 			wordWrapCheckBox.setSelected(displayOptions.isUseWordWrap());
 			wordWrapLengthSpinner.setValue(displayOptions.getWordWrapLength());
 			wordWrapLengthSpinner.setEnabled(displayOptions.isUseWordWrap());
+			colorSigCheckBox.setSelected(displayOptions.getFillType() == FillType.SIGNIFICANT);
 			highlightSigCheckBox.setSelected(displayOptions.getSignificanceOptions().isHighlight());
-			highlightSigButton.setEnabled(displayOptions.getSignificanceOptions().isHighlight());
 			
 			CardLayout fontCardLayout = (CardLayout) fontPanel.getLayout();
 			fontCardLayout.show(fontPanel, displayOptions.isUseConstantFontSize() ? CARD_SIZE : CARD_SCALE);
@@ -249,35 +258,38 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			ellipseRadio.addActionListener(ellipseListener);
 			fillColorButton.addPropertyChangeListener("color", fillColorListener);
 			fillColorButton.addPropertyChangeListener("palette", fillPaletteListener);
-			paletteCombo.addActionListener(usePaletteListener);
+			usePaletteCheckBox.addActionListener(usePaletteListener);
 			borderColorButton.addPropertyChangeListener("color", borderColorListener);
 			fontColorButton.addPropertyChangeListener("color", fontColorListener);
 			wordWrapCheckBox.addActionListener(wordWrapListener);
 			wordWrapLengthSpinner.addChangeListener(wordWrapLengthListener);
-			highlightSigCheckBox.addActionListener(highlightSigListener);
+			colorSigCheckBox.addActionListener(sigListener);
+			highlightSigCheckBox.addActionListener(sigListener);
 		} 
 	}
 	
 	
 	@AfterInjection
 	private void createContents() {
-		JPanel nullViewPanel = new NullViewPanel();
-		JPanel annotationSetPanel = createAnnotationSetPanel();
+		JPanel nullPanel = new NullViewPanel();
+		JPanel mainPanel = createMainPanel();
 		
 		setLayout(new CardLayout());
 		
-		add(nullViewPanel, CARD_NULL);
-		add(annotationSetPanel, CARD_AS);
+		add(nullPanel, CARD_NULL);
+		add(mainPanel, CARD_MAIN);
 	}
 	
 	
-	private JPanel createAnnotationSetPanel() {
+	private JPanel createMainPanel() {
 		shapePanel = createShapePanel();
 		labelPanel = createLabelPanel();
+		var signfPanel = createSignificancePanel();
 		var scalePanel = createScalePanel();
 		
 		shapePanel.setBorder(LookAndFeelUtil.createPanelBorder());
 		labelPanel.setBorder(LookAndFeelUtil.createPanelBorder());
+		signfPanel.setBorder(LookAndFeelUtil.createPanelBorder());
 		scalePanel.setBorder(LookAndFeelUtil.createPanelBorder());
 		
 		resetButton = new JButton("Reset");
@@ -293,6 +305,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		layout.setVerticalGroup(layout.createSequentialGroup()
 			.addComponent(shapePanel)
 			.addComponent(labelPanel)
+			.addComponent(signfPanel)
 			.addComponent(scalePanel)
 			.addComponent(resetButton)
 		);
@@ -300,6 +313,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		layout.setHorizontalGroup(layout.createParallelGroup()
 			.addComponent(shapePanel)
 			.addComponent(labelPanel)
+			.addComponent(signfPanel)
 			.addComponent(scalePanel)
 			.addComponent(resetButton, Alignment.TRAILING)
 		);
@@ -308,6 +322,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		parent.add(panel, BorderLayout.NORTH);
 		return parent;
 	}
+	
+	
 	
 	private JPanel createShapePanel() {
 		JPanel panel = new JPanel();
@@ -329,6 +345,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			displayOptions.setShowClusters(show);
 			SwingUtil.recursiveEnable(panel, show);
 			hideClustersCheckBox.setEnabled(true);
+			updateFillColorEnablement();
 		});
 		
 		JLabel shapeLabel = new JLabel("Shape:");
@@ -344,21 +361,33 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		buttonGroup.add(ellipseRadio);
 		buttonGroup.add(rectangleRadio);
 		
-		JLabel fillColorLabel = new JLabel("Fill:");
+		fillColorLabel = new JLabel("Fill:");
 		fillColorButton = new ColorPaletteButton(registrar, FILL_COLOR_DEFAULT, FILL_COLOR_PALETTE_DEFAULT);
 		fillColorButton.addPropertyChangeListener("color", fillColorListener = e -> handleFillColor());
 		fillColorButton.addPropertyChangeListener("palette", fillPaletteListener = e -> handleFillColor());
-		fillColorButton.addPropertyChangeListener("significance", e -> showSignificanceColumnDialog());
 		
-		paletteCombo = new JComboBox<>(FillType.values());
-		paletteCombo.addActionListener(usePaletteListener = e -> handleFillColor());
+		usePaletteCheckBox = new JCheckBox("Palette");
+		usePaletteCheckBox.addActionListener(usePaletteListener = e -> handleFillColor());
 		
+		fillColorWarnLabel = SwingUtil.createWarnIcon(iconManager);
+		fillColorWarnLabel.setToolTipText("The 'Color Shapes by Significance' option is enabled below.");
+		fillColorWarnLabel.addMouseListener(new MouseAdapter() {
+			int savedDelay;
+			public void mouseEntered(MouseEvent me) {
+				savedDelay = ToolTipManager.sharedInstance().getInitialDelay();
+				ToolTipManager.sharedInstance().setInitialDelay(0);
+			}
+			public void mouseExited(MouseEvent me) {
+				ToolTipManager.sharedInstance().setInitialDelay(savedDelay);
+			}
+		});
+
 		JLabel borderColorLabel = new JLabel("Border:");
 		borderColorButton = new ColorButton(DisplayOptions.BORDER_COLOR_DEFAULT);
 		borderColorButton.addPropertyChangeListener("color", borderColorListener = e -> displayOptions.setBorderColor(borderColorButton.getColor()));
 		
 		SwingUtil.makeSmall(shapeLabel, ellipseRadio, rectangleRadio, fillColorLabel, fillColorButton);
-		SwingUtil.makeSmall(borderColorLabel, borderColorButton, hideClustersCheckBox, paletteCombo);
+		SwingUtil.makeSmall(borderColorLabel, borderColorButton, hideClustersCheckBox, usePaletteCheckBox);
 				
 		JPanel shapePanel = new JPanel(new FlowLayout());
 		shapePanel.setOpaque(false);
@@ -369,15 +398,16 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		
 		panel.add(shapeLabel,           GBCFactory.grid(0,0).get());
 		panel.add(shapePanel,     		GBCFactory.grid(1,0).fill(NONE).gridwidth(2).get());
-		panel.add(borderWidthSlider,    GBCFactory.grid(0,1).gridwidth(3).weightx(1.0).get());
-		panel.add(opacitySlider,        GBCFactory.grid(0,2).gridwidth(3).weightx(1.0).get());
-		panel.add(paddingAdjustSlider,  GBCFactory.grid(0,3).gridwidth(3).weightx(1.0).get());
+		panel.add(borderWidthSlider,    GBCFactory.grid(0,1).gridwidth(4).weightx(1.0).get());
+		panel.add(opacitySlider,        GBCFactory.grid(0,2).gridwidth(4).weightx(1.0).get());
+		panel.add(paddingAdjustSlider,  GBCFactory.grid(0,3).gridwidth(4).weightx(1.0).get());
 		panel.add(fillColorLabel,       GBCFactory.grid(0,4).get());
 		panel.add(fillColorButton,      GBCFactory.grid(1,4).fill(NONE).get());
-		panel.add(paletteCombo,         GBCFactory.grid(2,4).fill(NONE).get());
+		panel.add(usePaletteCheckBox,   GBCFactory.grid(2,4).fill(NONE).get());
+		panel.add(fillColorWarnLabel,   GBCFactory.grid(3,4).fill(NONE).get());
 		panel.add(borderColorLabel,     GBCFactory.grid(0,5).get());
 		panel.add(borderColorButton,    GBCFactory.grid(1,5).fill(NONE).gridwidth(2).get());
-		panel.add(hideClustersCheckBox, GBCFactory.grid(0,6).gridwidth(3).weightx(1.0).get());
+		panel.add(hideClustersCheckBox, GBCFactory.grid(0,6).gridwidth(4).weightx(1.0).get());
 		
 		return panel;
 	}
@@ -408,14 +438,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		return fontPanel;
 	}
 	
-	private ScalePanel createScalePanel() {
-		ScalePanel scalePanel = scalePanelProvider.get();
-		scalePanel.setWidthCheckBoxVisible(false);
-		scalePanel.setHeightCheckBoxVisible(false);
-		scalePanel.setSelectedCheckBoxVisible(false);
-		return scalePanel;
-	}
-	
+
 	private JPanel createLabelPanel() {
 		JPanel panel = new JPanel();
 		
@@ -455,18 +478,9 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			hideLabelsCheckBox.setEnabled(true);
 		});
 		
-		highlightSigCheckBox = new LeftAlignCheckBox("Highight Significant Nodes:");
-		highlightSigButton = createBrowseButton();
-		highlightSigCheckBox.addActionListener(highlightSigListener = e -> {
-			boolean highlight = highlightSigCheckBox.isSelected();
-			highlightSigButton.setEnabled(highlight);
-			displayOptions.getSignificanceOptions().setHighlight(highlight);
-		});
-		highlightSigButton.addActionListener(e -> showSignificanceColumnDialog());
-			
 		
 		SwingUtil.makeSmall(fontByClusterCheckbox, fontColorLabel, fontColorButton, hideLabelsCheckBox);
-		SwingUtil.makeSmall(wordWrapCheckBox, wordWrapLengthLabel, wordWrapLengthSpinner, highlightSigCheckBox);
+		SwingUtil.makeSmall(wordWrapCheckBox, wordWrapLengthLabel, wordWrapLengthSpinner);
 		
 		panel.setLayout(new GridBagLayout());
 		
@@ -477,9 +491,55 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		panel.add(wordWrapCheckBox,      GBCFactory.grid(0,3).get());
 		panel.add(wordWrapLengthLabel,   GBCFactory.grid(1,3).get());
 		panel.add(wordWrapLengthSpinner, GBCFactory.grid(2,3).fill(NONE).get());
-		panel.add(highlightSigCheckBox,  GBCFactory.grid(0,4).fill(NONE).gridwidth(2).get());
-		panel.add(highlightSigButton,    GBCFactory.grid(2,4).fill(NONE).get());
-		panel.add(hideLabelsCheckBox,    GBCFactory.grid(0,5).fill(NONE).gridwidth(3).get());
+		panel.add(hideLabelsCheckBox,    GBCFactory.grid(0,4).fill(NONE).gridwidth(3).get());
+		
+		return panel;
+	}
+	
+	
+	private ScalePanel createScalePanel() {
+		ScalePanel scalePanel = scalePanelProvider.get();
+		scalePanel.setWidthCheckBoxVisible(false);
+		scalePanel.setHeightCheckBoxVisible(false);
+		scalePanel.setSelectedCheckBoxVisible(false);
+		return scalePanel;
+	}
+	
+	
+	private void updateFillColorEnablement() {
+		boolean enable = !colorSigCheckBox.isSelected();
+		fillColorButton.setEnabled(enable);
+		usePaletteCheckBox.setEnabled(enable);
+		fillColorLabel.setEnabled(enable);
+		fillColorWarnLabel.setVisible(!enable);
+	}
+	
+	private JPanel createSignificancePanel() {
+		JPanel panel = new JPanel();
+		
+		colorSigCheckBox = new LeftAlignCheckBox("Color Shapes by Significance:");
+		highlightSigCheckBox = new LeftAlignCheckBox("Highight Significant Nodes:");
+		
+		sigListener = e -> {
+			boolean highlight = highlightSigCheckBox.isSelected();
+			updateFillColorEnablement();
+			handleFillColor();
+			displayOptions.getSignificanceOptions().setHighlight(highlight);
+		};
+		
+		colorSigCheckBox.addActionListener(sigListener);
+		highlightSigCheckBox.addActionListener(sigListener);
+		
+		highlightSigButton = new JButton("Set Significance Attribute...");
+		highlightSigButton.addActionListener(e -> showSignificanceColumnDialog());
+		
+		SwingUtil.makeSmall(colorSigCheckBox, highlightSigCheckBox, highlightSigButton);
+		
+		panel.setLayout(new GridBagLayout());
+		
+		panel.add(colorSigCheckBox,     GBCFactory.grid(0,0).weightx(1.0).get());
+		panel.add(highlightSigCheckBox, GBCFactory.grid(0,1).get());
+		panel.add(highlightSigButton,   GBCFactory.grid(0,2).fill(NONE).get());
 		
 		return panel;
 	}
@@ -488,7 +548,14 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private void handleFillColor() {
 		var color = fillColorButton.getColor();
 		var palette = fillColorButton.getPalette();
-		FillType fillType = paletteCombo.getItemAt(paletteCombo.getSelectedIndex());
+
+		FillType fillType;
+		if(colorSigCheckBox.isSelected())
+			fillType = FillType.SIGNIFICANT;
+		else if(usePaletteCheckBox.isSelected())
+			fillType = FillType.PALETTE;
+		else
+			fillType = FillType.SINGLE;
 		
 		if(fillType == FillType.PALETTE && palette == null) {
 			palette = defaultPaletteProvider.get();
@@ -581,19 +648,6 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 				});
 			} catch (InvocationTargetException | InterruptedException e) { }
 		});
-	}
-	
-	
-	private JButton createBrowseButton() {
-		JButton button = new JButton(IconManager.ICON_ELLIPSIS_H);
-		LookAndFeelUtil.makeSmall(button);
-		button.setFont(iconManager.getIconFont(10.0f));
-		button.setToolTipText("Set significance column...");
-		if(LookAndFeelUtil.isAquaLAF()) {
-			button.putClientProperty("JButton.buttonType", "gradient");
-			button.putClientProperty("JComponent.sizeVariant", "small");
-		}
-		return button;
 	}
 	
 	

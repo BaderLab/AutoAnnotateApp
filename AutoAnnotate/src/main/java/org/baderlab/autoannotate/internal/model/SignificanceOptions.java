@@ -12,6 +12,8 @@ import org.baderlab.autoannotate.internal.ui.view.display.Significance;
  * Highlight...
  * - non-em : choose a numeric column and a sort option
  * - em: choose a data set
+ * 
+ * Note: Color by Significance is indicated by FillType.SIGNIFICANT in DisplayOptions
  */
 public class SignificanceOptions {
 	

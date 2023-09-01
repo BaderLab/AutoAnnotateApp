@@ -153,8 +153,8 @@ public final class ColorPaletteButton extends JButton {
 					g.fillRect(x + 1 + segW * i, y, segW, h);
 				}
 			} else if(mode == Mode.SIGNIFICANT) {
-				g.drawString("set...", x+ 5, y+h-5);
-				
+				g.setColor(Color.GRAY);
+				g.fillRect(x, y, w, h);
 			} else {
 				g.setColor(color);
 				g.fillRect(x, y, w, h);
