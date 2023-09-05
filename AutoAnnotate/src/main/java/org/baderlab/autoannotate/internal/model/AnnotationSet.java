@@ -3,13 +3,11 @@ package org.baderlab.autoannotate.internal.model;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.baderlab.autoannotate.internal.model.io.CreationParameter;
 import org.cytoscape.model.CyNode;
@@ -25,7 +23,7 @@ public class AnnotationSet {
 	private String name;
 	private final DisplayOptions displayOptions;
 	private final String labelColumn;
-	private SortedSet<Cluster> clusters;
+	private LinkedHashSet<Cluster> clusters;
 	
 	
 	/**
@@ -37,7 +35,7 @@ public class AnnotationSet {
 		this.labelColumn = labelColumn;
 		this.displayOptions = new DisplayOptions(this);
 		this.creationParameters = Collections.emptyList();
-		this.clusters = new TreeSet<>(getClusterComparator());
+		this.clusters = new LinkedHashSet<>();
 	}
 	
 	/**
@@ -51,7 +49,7 @@ public class AnnotationSet {
 		this.labelColumn = builder.getLabelColumn();
 		this.displayOptions = new DisplayOptions(this, builder);
 		this.creationParameters = new ArrayList<>(builder.getCreationParameters());
-		this.clusters = new TreeSet<>(getClusterComparator());
+		this.clusters = new LinkedHashSet<>();
 		
 		var clusterBuilders = builder.getClusters();
 		
@@ -63,10 +61,6 @@ public class AnnotationSet {
 		}
 	}
 	
-	private static Comparator<Cluster> getClusterComparator() {
-		return Comparator.comparing(Cluster::getNodeCount)
-				.thenComparing(Comparator.comparing(Cluster::getLabel));
-	}
 	
 	public Cluster createCluster(Collection<CyNode> nodes, String label, boolean collapsed) {
 		Cluster cluster = new Cluster(this, nodes, label, collapsed, false);
@@ -111,7 +105,14 @@ public class AnnotationSet {
 	}
 	
 	public int getClusterIndex(Cluster cluster) {
-		return clusters.headSet(cluster).size();
+		int i = 1;
+		for(var c : clusters) {
+			if(c == cluster) {
+				return i;
+			}
+			++i;
+		}
+		return 0;
 	}
 	
 	public NetworkViewSet getParent() {
