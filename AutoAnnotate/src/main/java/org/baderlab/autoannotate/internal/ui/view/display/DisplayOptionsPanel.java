@@ -370,7 +370,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		usePaletteCheckBox.addActionListener(usePaletteListener = e -> handleFillColor());
 		
 		fillColorWarnLabel = SwingUtil.createWarnIcon(iconManager);
-		fillColorWarnLabel.setToolTipText("The 'Color Shapes by Significance' option is enabled below.");
+		fillColorWarnLabel.setToolTipText("The 'Use Color of Significant Nodes' option is enabled below.");
 		fillColorWarnLabel.addMouseListener(new MouseAdapter() {
 			int savedDelay;
 			public void mouseEntered(MouseEvent me) {
@@ -517,7 +517,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private JPanel createSignificancePanel() {
 		JPanel panel = new JPanel();
 		
-		colorSigCheckBox = new LeftAlignCheckBox("Color Shapes by Significance:");
+		colorSigCheckBox = new LeftAlignCheckBox("Use Color of Significant Nodes:");
 		highlightSigCheckBox = new LeftAlignCheckBox("Highight Significant Nodes:");
 		
 		sigListener = e -> {
