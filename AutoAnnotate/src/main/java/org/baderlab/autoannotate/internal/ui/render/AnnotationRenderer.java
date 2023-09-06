@@ -22,6 +22,7 @@ import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.view.action.SelectClusterTask;
+import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.event.DebounceTimer;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
@@ -40,12 +41,10 @@ public class AnnotationRenderer {
 	
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
-	@Inject private SignificanceLookup significanceLookup;
 	
 	@Inject private DrawClustersTask.Factory drawTaskProvider;
 	@Inject private EraseClustersTask.Factory eraseTaskProvider;
 	@Inject private UpdateClustersTask.Factory updateTaskProvider;
-	@Inject private HighlightSignificantLabelsTask.Factory highlightLabelsTaskFactory;
 	
 	private final DebounceTimer debouncer = new DebounceTimer();
 	
@@ -102,47 +101,22 @@ public class AnnotationRenderer {
 			.map(drawTaskProvider::create)
 			.ifPresent(tasks::append);
 		
+		var networkView = networkViewSet.getNetworkView();
+		tasks.append(TaskTools.taskOf(networkView::updateView));
+		
 		return tasks;
 	}
 	
 	private void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet, boolean sync) {
 		TaskIterator tasks = createRedrawTasks(networkViewSet, selectedAnnotationSet);
+		if(tasks == null)
+			return;
 		var taskManager = sync ? syncTaskManager : dialogTaskManager;
 		taskManager.execute(tasks);
 	}
 	
-	
-	private TaskIterator createHighlightTasks(AnnotationSet as) {
-		var options = as.getDisplayOptions();
-		var task = highlightLabelsTaskFactory.create(as.getClusters());
-		var so = options.getSignificanceOptions();
-		
-		if(!so.isHighlight()) {
-			task.setClearOnly(true);
-		} else if(!so.isEM() && (so.getSignificance() == null || so.getSignificanceColumn() == null)) {
-			task.setClearOnly(true);
-		}
-		
-		return new TaskIterator(task);
-	}
-	
-	
-	private void highlightLabels(AnnotationSet as, boolean sync) {
-		var tasks = createHighlightTasks(as);
-		var taskManager = sync ? syncTaskManager : dialogTaskManager;
-		taskManager.execute(tasks);
-	}
-	
-	
-	public void redrawAnnotationAndHighlight(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet) {
-		TaskIterator tasks = new TaskIterator();
-		
-		tasks.append(createRedrawTasks(networkViewSet, selectedAnnotationSet));
-		
-		if(selectedAnnotationSet.isPresent())
-			tasks.append(createHighlightTasks(selectedAnnotationSet.get()));
-		
-		dialogTaskManager.execute(tasks);
+	public void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet) {
+		redrawAnnotations(networkViewSet, selectedAnnotationSet, false);
 	}
 	
 	
@@ -224,11 +198,9 @@ public class AnnotationRenderer {
 		case USE_WORD_WRAP: // when changing word wrap we need to re-create the label annotation objects
 		case WORD_WRAP_LENGTH:
 		case PADDING_ADJUST: // MKTODO: We might not need to do a full redraw for this.
+		case LABEL_HIGHLIGHT:
 		case RESET:
 			redrawAnnotations(as.getParent(), Optional.of(as), true);
-			break;
-		case LABEL_HIGHLIGHT:
-			highlightLabels(as, true);
 			break;
 		default:
 			break;

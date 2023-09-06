@@ -13,6 +13,7 @@ import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.util.HiddenTools;
+import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.presentation.annotations.AnnotationFactory;
@@ -67,21 +68,51 @@ public class DrawClustersTask extends AbstractTask {
 		if(clusters.isEmpty())
 			return;
 		
-		Map<Cluster,Color> significanceColors = getSignificanceColors(); // may be null
+		var significanceColors = getSignificanceColors(); // may be null
 				
 		List<Annotation> allAnnotations = new ArrayList<>();
 		
-		for(Cluster cluster : clusters) {
+		// Create annotations
+		for(var cluster : clusters) {
 			if(!cluster.isCollapsed() && !HiddenTools.allNodesHidden(cluster)) {
 				boolean isSelected = annotationRenderer.isSelected(cluster);
 				AnnotationGroup group = createClusterAnnotations(cluster, isSelected, significanceColors);
 				annotationRenderer.putAnnotations(cluster, group);
-				group.addTo(allAnnotations);
+				allAnnotations.addAll(group.getAnnotations());
+			}
+		}
+		
+		// Create highlights
+		var annotationSet = clusters.iterator().next().getParent();
+		boolean isHighlight = annotationSet.getDisplayOptions().getSignificanceOptions().isHighlight();
+		if(isHighlight) {
+			var sigNodes = significanceLookup.getSigNodes(annotationSet);
+			for(var cluster : clusters) {
+				highlightLabel(cluster, sigNodes);
 			}
 		}
 		
 		if(!allAnnotations.isEmpty())
 			annotationManager.addAnnotations(allAnnotations);
+	}
+	
+	private void highlightLabel(Cluster cluster, Map<Cluster,CyNode> sigNodes) {
+		var node = sigNodes.get(cluster);
+		if(node == null)
+			return;
+		
+		var nodeView = cluster.getNetworkView().getNodeView(node);
+		if(nodeView == null)
+			return;
+		
+		var fontSize = nodeView.getVisualProperty(BasicVisualLexicon.NODE_LABEL_FONT_SIZE);
+		if(fontSize == null)
+			fontSize = 40;
+		else
+			fontSize = fontSize * 3;
+		
+		cluster.setHighlightedNode(node.getSUID());
+		nodeView.setLockedValue(BasicVisualLexicon.NODE_LABEL_FONT_SIZE, fontSize);
 	}
 	
 	

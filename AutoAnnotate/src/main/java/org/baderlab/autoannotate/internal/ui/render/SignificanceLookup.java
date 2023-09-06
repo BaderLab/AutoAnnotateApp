@@ -86,6 +86,8 @@ public class SignificanceLookup {
 			command += " dataSet=\"" + dataSet + "\"";
 		
 		List<CyNode> nodesSortedBySig = runListCommand(command);
+		if(nodesSortedBySig == null)
+			return Collections.emptyMap();
 		
 		Map<Cluster,CyNode> sigNodes = new HashMap<>();
 		

@@ -9,6 +9,7 @@ import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.presentation.annotations.AnnotationManager;
+import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
@@ -57,13 +58,17 @@ public class EraseClustersTask extends AbstractTask {
 		for(var cluster : clusters) {
 			var annotations = annotationRenderer.removeAnnotations(cluster);
 			if(annotations != null) {
-				annotations.addTo(annotationsToRemove);
+				annotationsToRemove.addAll(annotations.getAnnotations());
 			}
+		}
+		
+		for(var cluster : clusters) {
+			clearHighlight(cluster);
 		}
 		
 		if(eraseAll) {
 			// Sometimes "ghost" annotations are left behind, i.e. not deleted properly, due to bugs in Cytoscape.
-			// This ensures that all annotations are deleted before the clusters are redrawn.
+			// This trys to make it so that all annotations are deleted before the clusters are redrawn.
 			
 			var netView = clusters.iterator().next().getParent().getParent().getNetworkView();
 			
@@ -77,6 +82,25 @@ public class EraseClustersTask extends AbstractTask {
 		}
 		
 		annotationManager.removeAnnotations(annotationsToRemove);
+	}
+	
+	
+	private void clearHighlight(Cluster cluster) {
+		Long nodeSUID = cluster.getHighlightedNode();
+		if(nodeSUID == null)
+			return;
+		cluster.setHighlightedNode(null);
+		
+		for(var node: cluster.getNodes()) {
+			if(nodeSUID.equals(node.getSUID())) {
+				// Find an existing node that is highlighted
+				var nodeView = cluster.getNetworkView().getNodeView(node);
+				if(nodeView != null) {
+					nodeView.clearValueLock(BasicVisualLexicon.NODE_LABEL_FONT_SIZE);
+				}
+				break;
+			}
+		}
 	}
 
 }

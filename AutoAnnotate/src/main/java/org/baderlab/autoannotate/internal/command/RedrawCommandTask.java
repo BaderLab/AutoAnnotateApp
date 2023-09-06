@@ -19,7 +19,7 @@ public class RedrawCommandTask extends AbstractTask {
 	public void run(TaskMonitor tm)  {
 		var nvs = networkContext.getNetworkViewSet();
 		var asOpt = nvs.getActiveAnnotationSet();
-		rendererProvider.get().redrawAnnotationAndHighlight(nvs, asOpt);
+		rendererProvider.get().redrawAnnotations(nvs, asOpt);
 	}
 	
 }

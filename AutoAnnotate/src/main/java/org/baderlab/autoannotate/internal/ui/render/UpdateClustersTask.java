@@ -1,9 +1,7 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
 import java.awt.Color;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -34,18 +32,11 @@ public class UpdateClustersTask extends AbstractTask {
 	
 	public static interface Factory {
 		UpdateClustersTask create(Collection<Cluster> clusters);
-		UpdateClustersTask create(Cluster cluster);
 	}
-	
 	
 	@AssistedInject
 	public UpdateClustersTask(@Assisted Collection<Cluster> clusters) {
 		this.clusters = clusters;
-	}
-	
-	@AssistedInject
-	public UpdateClustersTask(@Assisted Cluster cluster) {
-		this.clusters = Collections.singleton(cluster);
 	}
 	
 	
@@ -57,23 +48,23 @@ public class UpdateClustersTask extends AbstractTask {
 		if(clusters.isEmpty())
 			return;
 		
-		
-		
-		// If we are updating one cluster then its better to update the existing annotations, there is less flicker.
-		// But if we are updating lots of clusters its actually much faster to just redraw them.
-		
 		if(clusters.size() == 1) {
-			updateOneCluster(clusters.iterator().next());
+			// If we are updating one cluster then its better to try to update the existing annotations, there is less flicker.
+			// Often happens when the user selects a cluster, changes a cluster's label, etc...
+			boolean updated = maybeUpdateOneCluster(clusters.iterator().next());
+			if(!updated) {
+				redraw(clusters);
+			}
 		} else {
+			// But if we are updating lots of clusters its actually much faster to just redraw them.
 			redraw(clusters);
 		}
 	}
 	
 	
-	private void updateOneCluster(Cluster cluster) {
-		if(cluster.isCollapsed() || HiddenTools.hasHiddenNodes(cluster)) {
-			redraw(cluster);
-			return;
+	private boolean maybeUpdateOneCluster(Cluster cluster) {
+		if(cluster.isCollapsed() || cluster.getHighlightedNode() == null || HiddenTools.hasHiddenNodes(cluster)) {
+			return false;
 		}
 		
 		AnnotationGroup group = annotationRenderer.getAnnotations(cluster);
@@ -83,7 +74,6 @@ public class UpdateClustersTask extends AbstractTask {
 			Color selection = DrawClustersTask.getSelectionColor(visualMappingManager, netView);
 			
 			Map<Cluster,Color> sigColors = getSignificanceColors();
-			
 			ArgsShape argsShape = ArgsShape.createFor(cluster, isSelected, selection, sigColors);
 			List<ArgsLabel> argsLabels = ArgsLabel.createFor(argsShape, cluster, isSelected, selection);
 			
@@ -94,13 +84,12 @@ public class UpdateClustersTask extends AbstractTask {
 					ArgsLabel args = argsLabels.get(i);
 					args.updateAnnotation(text);
 				}
-			} else {
-				redraw(cluster);
 			}
-		} else {
-			redraw(cluster);
 		}
+		
+		return false;
 	}
+	
 	
 	private static boolean isUpdatePossible(List<TextAnnotation> textAnnotations, List<ArgsLabel> labelArgs) {
 		// There has to be the same number of label annotations in order to do an update.
@@ -132,11 +121,6 @@ public class UpdateClustersTask extends AbstractTask {
 			DrawClustersTask drawTask = drawTaskProvider.create(clusters);
 			insertTasksAfterCurrentTask(eraseTask, drawTask);
 		}
-	}
-	
-	
-	private void redraw(Cluster cluster) {
-		redraw(Arrays.asList(cluster));
 	}
 	
 }
