@@ -1,12 +1,11 @@
 package org.baderlab.autoannotate.internal.labels.makers;
 
-import java.util.List;
-
 import javax.swing.JPanel;
 
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
-import org.baderlab.autoannotate.internal.ui.render.SignificanceLookup;
 import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanel;
+import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelFactory;
+import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelParams;
 import org.cytoscape.application.CyApplicationManager;
 
 import com.google.inject.Inject;
@@ -17,9 +16,8 @@ import com.google.inject.assistedinject.AssistedInject;
 public class MostSignificantLabelMakerUI implements LabelMakerUI<MostSignificantOptions> {
 
 	@Inject private Provider<CyApplicationManager> appManagerProvider;
-	@Inject private Provider<SignificancePanel> sigColPanelProvider;
-	@Inject private SignificanceLookup significanceLookup;
-	
+ 	@Inject private SignificancePanelFactory.Factory significancePanelFactoryFactory;
+ 	
 	private final MostSignificantLabelMakerFactory factory;
 	
 	private SignificancePanel panel;
@@ -47,31 +45,23 @@ public class MostSignificantLabelMakerUI implements LabelMakerUI<MostSignificant
 	@Override
 	public JPanel getPanel() {
 		if(panel == null) {
-			panel = sigColPanelProvider.get();
-			reset(null);
+			reset(new MostSignificantOptions());
 		}
 		return panel;
 	}
 
 	@Override
 	public void reset(Object options) {
+		if(!(options instanceof MostSignificantOptions))
+			return;
+		
+		var ms = (MostSignificantOptions)options;
+		
 		var network = appManagerProvider.get().getCurrentNetwork();
-		if(options instanceof MostSignificantOptions) {
-			var ms = (MostSignificantOptions)options;
-			
-			List<String> dataSetNames = null;
-			if(significanceLookup.isEMSignificanceAvailable(network)) {
-				dataSetNames = significanceLookup.getEMDataSetNames(network);
-			}
-			
-			panel.update(
-				network, 
-				ms.getSignificance(), 
-				ms.getSignificanceColumn(), 
-				dataSetNames, 
-				ms.getDataSet(), 
-				ms.isEM()
-			);
-		} 
+		var params = SignificancePanelParams.fromMostSignificantOptions(ms);
+		
+		var panelFactory = significancePanelFactoryFactory.create(network, params);
+		
+		panel = panelFactory.createSignificancePanel();
 	}
 }

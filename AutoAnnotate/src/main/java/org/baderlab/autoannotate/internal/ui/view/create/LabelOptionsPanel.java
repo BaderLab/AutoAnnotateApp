@@ -99,15 +99,14 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 			originalContexts.put(card, context);
 			labelUIs.put(card, labelUI);
 			
-			JPanel uiPanel = labelUI.getPanel();
 			if(factory.requiresWordCloud()) {
-				var warnPanel = installWarningPanelFactory.create(uiPanel, DependencyChecker.WORDCLOUD);
+				var warnPanel = installWarningPanelFactory.create(labelUIPanel, DependencyChecker.WORDCLOUD);
 				warnPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 20));
 				warnPanel.setOnClickHandler(this::handleClose);
 				warnPanels.put(card, warnPanel);
 				panels.put(card, warnPanel);
 			} else {
-				panels.put(card, uiPanel);
+				panels.put(card, labelUIPanel);
 			}
 		}
 		

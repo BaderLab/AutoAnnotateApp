@@ -74,7 +74,7 @@ public class SignificancePanel extends JPanel {
 		dataSetLabel.setVisible(false);
 		dataSetCombo.setVisible(false);
 		
-		makeSmall(useColumnButton, columnLabel, columnCombo, sigLabel, sigCombo);
+		makeSmall(topLabel, useColumnButton, columnLabel, columnCombo, sigLabel, sigCombo);
 		makeSmall(useEMButton, dataSetLabel, dataSetCombo);
 		
 		add(topLabel,        GBCFactory.grid(0,0).gridwidth(2).get());
@@ -99,9 +99,14 @@ public class SignificancePanel extends JPanel {
 	}
 	
 
-	public void update(CyNetwork network, Significance significance, String colName, List<String> dataSetNames, String dataSet, boolean isEM) {
+	public void update(CyNetwork network, List<String> dataSetNames, SignificancePanelParams params) {
 		var columns = CreateViewUtil.getNumericColumns(network);
 		CreateViewUtil.updateColumnCombo(columnCombo, columns);
+		
+		var colName = params.getSignificanceColumn();
+		var significance = params.getSignificance();
+		var dataSet = params.getDataSet();
+		var isEM = params.isEM();
 		
 		if(colName == null)
 			CreateViewUtil.setSignificanceColumnDefault(columnCombo);
@@ -137,6 +142,10 @@ public class SignificancePanel extends JPanel {
 		updateEnablement();
 	}
 	
+	
+	public SignificancePanelParams getSignificancePanelParams() {
+		return new SignificancePanelParams(getSignificance(), getSignificanceColumn(), getUseEM(), getDataSet());
+	}
 	
 	public String getSignificanceColumn() {
 		return columnCombo.getSelectedItem().getName();

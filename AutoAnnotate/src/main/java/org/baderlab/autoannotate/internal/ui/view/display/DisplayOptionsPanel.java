@@ -80,7 +80,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
  	@Inject private @Named("default") Provider<Palette> defaultPaletteProvider;
  	@Inject private Provider<ScalePanel> scalePanelProvider;
  	@Inject private Provider<JFrame> jframeProvider;
- 	@Inject private SignificanceDialogAction.Factory significanceDialogActionFactory;
+ 	@Inject private SignificancePanelFactory.Factory significancePanelFactoryFactory;
 	
 	private DebounceTimer debouncer = new DebounceTimer();
 	
@@ -571,22 +571,18 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private void showSignificanceColumnDialog() {
 		var network = displayOptions.getParent().getParent().getNetwork();
 		var so = displayOptions.getSignificanceOptions();
+		var params = SignificancePanelParams.fromSignificanceOptions(so);
 		
-		var dataSet = so.getEMDataSet();
-		var sig = so.getSignificance();
-		var col = so.getSignificanceColumn();
-		var isEM = so.isEM();
-		
-		var action = significanceDialogActionFactory.create(network, sig, col, dataSet, isEM);
+		var action = significancePanelFactoryFactory.create(network, params);
 		
 		SwingUtil.invokeOnEDTAndWait(() -> {
-			boolean ok = action.showSignificanceDialog();
-			if(ok) {
+			var newParams = action.showSignificanceDialog();
+			if(newParams != null) {
 				so.setSignificance(
-					action.getSignificance(), 
-					action.getSignificanceColumn(), 
-					action.getDataSet(), 
-					action.isEM());
+					newParams.getSignificance(), 
+					newParams.getSignificanceColumn(), 
+					newParams.getDataSet(), 
+					newParams.isEM());
 			}
 		});
 	}
