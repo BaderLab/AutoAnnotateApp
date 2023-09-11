@@ -2,10 +2,12 @@ package org.baderlab.autoannotate.internal.ui.view.action;
 
 import java.awt.event.ActionEvent;
 
+import javax.annotation.Nullable;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
+import org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialog.Tab;
 import org.baderlab.autoannotate.internal.ui.view.create.CreateAnnotationSetDialogManager;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.CyApplicationManager;
@@ -36,18 +38,17 @@ public class ShowCreateDialogAction extends AbstractCyAction implements TaskFact
 	public TaskIterator createTaskIterator() {
 		return new TaskIterator(new AbstractTask() {
 			public void run(TaskMonitor tm) {
-				show();
+				show(null);
 			}
 		});
 	} 
 	
-	
-	public void show() {
-		actionPerformed(null);
-	}
-
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		show(null);
+	}
+	
+	public void show(@Nullable Tab tab) {
 		CyNetworkView networkView = applicationManager.getCurrentNetworkView();
 		
 		SwingUtil.invokeOnEDT(() -> {
@@ -58,7 +59,7 @@ public class ShowCreateDialogAction extends AbstractCyAction implements TaskFact
 			}
 			
 			CreateAnnotationSetDialogManager manager = dialogManagerProvider.get();
-			manager.showDialog(networkView);
+			manager.showDialog(networkView, tab);
 		});
 	}
 

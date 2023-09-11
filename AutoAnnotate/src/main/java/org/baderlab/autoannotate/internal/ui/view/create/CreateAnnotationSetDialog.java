@@ -32,6 +32,11 @@ import com.google.inject.assistedinject.Assisted;
 @SuppressWarnings("serial")
 public class CreateAnnotationSetDialog extends JDialog implements DialogParent {
 	
+	public static enum Tab {
+		QUICK, 
+		ADVANCED
+	}
+	
 	@Inject private @WarnDialogModule.Create Provider<WarnDialog> warnDialogProvider;
 	@Inject private CreateAnnotationSetTask.Factory createTaskFactory;
 	@Inject private CollapseAllTaskFactory.Factory collapseTaskFactoryFactory;
@@ -89,6 +94,13 @@ public class CreateAnnotationSetDialog extends JDialog implements DialogParent {
 		easyModePanel.onShow();
 		
 		updateOkButton();
+	}
+	
+	public void setTab(Tab tab) {
+		if(tab == Tab.QUICK)
+			tabPane.setSelectedIndex(0);
+		else if(tab == Tab.ADVANCED)
+			tabPane.setSelectedIndex(1);
 	}
 	
 	
