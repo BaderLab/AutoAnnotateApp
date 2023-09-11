@@ -12,6 +12,20 @@ import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 
 public class DisplayOptions {
 	
+	public static enum FillType {
+		SINGLE("Single"), 
+		PALETTE("Palette"), 
+		SIGNIFICANT("Significant");
+		
+		private final String label;
+		private FillType(String label) { this.label = label; }
+		public String toString() { return label; }
+	}
+	
+	public static enum HighlightType {
+		
+	}
+	
 	public static final ShapeType SHAPE_DEFAULT = ShapeType.ELLIPSE;
 	public static final boolean SHOW_CLUSTERS_DEFAULT = true;
 	public static final boolean SHOW_LABELS_DEFAULT = true;
@@ -20,7 +34,9 @@ public class DisplayOptions {
 	
 	// Note: default palette options get overridden in CreateAnnotationSetTask
 	public static final Palette FILL_COLOR_PALETTE_DEFAULT = null;
-	public static final boolean USE_FILL_PALETTE_DEFAULT = false;
+	// Note, this gets overridden in CreateAnnotationSetTask, because we can't define a default palette here
+	public static final FillType FILL_TYPE_DEFAULT = FillType.SINGLE; 
+	
 	
 	public static final Color BORDER_COLOR_DEFAULT = Color.DARK_GRAY;
 	public static final Color FONT_COLOR_DEFAULT = Color.BLACK;
@@ -62,11 +78,15 @@ public class DisplayOptions {
 	private int fontSize;
 	private Color fillColor;
 	private Palette fillColorPalette;
-	private boolean useFillPalette;
+	
+	private FillType fillType;
 	private Color borderColor;
 	private Color fontColor;
 	private boolean useWordWrap;
 	private int wordWrapLength;
+	
+	// TODO add to serialization table
+	private SignificanceOptions significanceOptions = new SignificanceOptions(this);
 	
 	
 	DisplayOptions(AnnotationSet parent) {
@@ -92,7 +112,7 @@ public class DisplayOptions {
 		this.paddingAdjust = builder.getPaddingAdjust();
 		this.fillColor = Objects.requireNonNull(builder.getFillColor());
 		this.fillColorPalette = builder.getFillColorPalette();
-		this.useFillPalette = builder.isUseFillPalette();
+		this.fillType = builder.getFillType();
 		this.borderColor = Objects.requireNonNull(builder.getBorderColor());
 		this.fontColor = Objects.requireNonNull(builder.getFontColor());
 		this.useWordWrap = builder.isUseWordWrap();
@@ -114,9 +134,8 @@ public class DisplayOptions {
 	 * which we don't have here, and just want to fire one event, so we reset
 	 * and set the palette at the same time.
 	 */
-	public void resetAndSetPalette(boolean useFillPalette, Palette fillColorPalette) {
+	public void resetAndSetPalette(Palette fillColorPalette) {
 		setDefaults();
-		this.useFillPalette = useFillPalette;
 		this.fillColorPalette = fillColorPalette;
 		postEvent(Option.RESET);
 	}
@@ -239,27 +258,27 @@ public class DisplayOptions {
 		postEvent(Option.FILL_COLOR);
 	}
 	
-	public boolean isUseFillPalette() {
-		return useFillPalette;
+	public FillType getFillType() {
+		return fillType;
 	}
 	
-	public void setUseFillColorPalette(boolean useFillPalette) {
-		this.useFillPalette = useFillPalette;
-		postEvent(Option.FILL_COLOR);
-	}
-	
-	public void setUseFillColorPalette(boolean useFillPalette, Palette fillColorPalette) {
-		this.useFillPalette = useFillPalette;
-		this.fillColorPalette = fillColorPalette;
+	public void setFillType(FillType fillType) {
+		this.fillType = fillType;
 		postEvent(Option.FILL_COLOR);
 	}
 	
 	// Use to avoid extra events.
-	public void setFillColors(Color fillColor, Palette fillColorPalette, boolean useFillPalette) {
+	// Assumes fillType is SINGLE or PALETTE
+	public void setFillColors(Color fillColor, Palette fillColorPalette, FillType fillType) {
 		this.fillColor = Objects.requireNonNull(fillColor);
 		this.fillColorPalette = fillColorPalette;
-		this.useFillPalette = useFillPalette;
+		this.fillType = fillType;
+		
 		postEvent(Option.FILL_COLOR);
+	}
+
+	public SignificanceOptions getSignificanceOptions() {
+		return significanceOptions;
 	}
 	
 	public Color getBorderColor() {

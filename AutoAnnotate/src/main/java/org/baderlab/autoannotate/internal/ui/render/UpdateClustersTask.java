@@ -1,13 +1,14 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
 import java.awt.Color;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
+import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
+import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.util.HiddenTools;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
@@ -25,23 +26,17 @@ public class UpdateClustersTask extends AbstractTask {
 	@Inject private DrawClustersTask.Factory drawTaskProvider;
 	@Inject private EraseClustersTask.Factory eraseTaskProvider;
 	@Inject private VisualMappingManager visualMappingManager;
+	@Inject private SignificanceLookup significanceLookup;
 	
 	private final Collection<Cluster> clusters;
 	
 	public static interface Factory {
 		UpdateClustersTask create(Collection<Cluster> clusters);
-		UpdateClustersTask create(Cluster cluster);
 	}
-	
 	
 	@AssistedInject
 	public UpdateClustersTask(@Assisted Collection<Cluster> clusters) {
 		this.clusters = clusters;
-	}
-	
-	@AssistedInject
-	public UpdateClustersTask(@Assisted Cluster cluster) {
-		this.clusters = Collections.singleton(cluster);
 	}
 	
 	
@@ -50,21 +45,26 @@ public class UpdateClustersTask extends AbstractTask {
 		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Drawing Annotations");
 		
-		// If we are updating one cluster then its better to update the existing annotations, there is less flicker.
-		// But if we are updating lots of clusters its actually much faster to just redraw them.
+		if(clusters.isEmpty())
+			return;
 		
 		if(clusters.size() == 1) {
-			updateOneCluster(clusters.iterator().next());
+			// If we are updating one cluster then its better to try to update the existing annotations, there is less flicker.
+			// Often happens when the user selects a cluster, changes a cluster's label, etc...
+			boolean updated = maybeUpdateOneCluster(clusters.iterator().next());
+			if(!updated) {
+				redraw(clusters);
+			}
 		} else {
+			// But if we are updating lots of clusters its actually much faster to just redraw them.
 			redraw(clusters);
 		}
 	}
 	
 	
-	private void updateOneCluster(Cluster cluster) {
-		if(cluster.isCollapsed() || HiddenTools.hasHiddenNodes(cluster)) {
-			redraw(cluster);
-			return;
+	private boolean maybeUpdateOneCluster(Cluster cluster) {
+		if(cluster.isCollapsed() || cluster.getHighlightedNode() == null || HiddenTools.hasHiddenNodes(cluster)) {
+			return false;
 		}
 		
 		AnnotationGroup group = annotationRenderer.getAnnotations(cluster);
@@ -73,7 +73,8 @@ public class UpdateClustersTask extends AbstractTask {
 			boolean isSelected = annotationRenderer.isSelected(cluster);
 			Color selection = DrawClustersTask.getSelectionColor(visualMappingManager, netView);
 			
-			ArgsShape argsShape = ArgsShape.createFor(cluster, isSelected, selection);
+			Map<Cluster,Color> sigColors = getSignificanceColors();
+			ArgsShape argsShape = ArgsShape.createFor(cluster, isSelected, selection, sigColors);
 			List<ArgsLabel> argsLabels = ArgsLabel.createFor(argsShape, cluster, isSelected, selection);
 			
 			if(isUpdatePossible(group.getLabels(), argsLabels)) {
@@ -83,13 +84,12 @@ public class UpdateClustersTask extends AbstractTask {
 					ArgsLabel args = argsLabels.get(i);
 					args.updateAnnotation(text);
 				}
-			} else {
-				redraw(cluster);
 			}
-		} else {
-			redraw(cluster);
 		}
+		
+		return false;
 	}
+	
 	
 	private static boolean isUpdatePossible(List<TextAnnotation> textAnnotations, List<ArgsLabel> labelArgs) {
 		// There has to be the same number of label annotations in order to do an update.
@@ -105,6 +105,15 @@ public class UpdateClustersTask extends AbstractTask {
 		return true;
 	}
 	
+	private Map<Cluster,Color> getSignificanceColors() {
+		// Assume all clusters are from the same annotation set
+		AnnotationSet as = clusters.iterator().next().getParent();
+		if(as.getDisplayOptions().getFillType() == FillType.SIGNIFICANT) {
+			return significanceLookup.getColors(as);
+		}
+		return null;
+	}
+	
 	
 	private void redraw(Collection<Cluster> clusters) {
 		if(!clusters.isEmpty()) {
@@ -112,11 +121,6 @@ public class UpdateClustersTask extends AbstractTask {
 			DrawClustersTask drawTask = drawTaskProvider.create(clusters);
 			insertTasksAfterCurrentTask(eraseTask, drawTask);
 		}
-	}
-	
-	
-	private void redraw(Cluster cluster) {
-		redraw(Arrays.asList(cluster));
 	}
 	
 }

@@ -113,9 +113,19 @@ public class CreateViewUtil {
 	
 	public static void setSignificanceColumnDefault(CyColumnComboBox combo) {
 		// Select the best choice for label column, with special case for EnrichmentMap
+		setColumn(combo, "EnrichmentMap::fdr_qvalue", true);
+	}
+	
+	public static void setColumn(CyColumnComboBox combo, String columnName, boolean startsWith) {
+		// Select the best choice for label column, with special case for EnrichmentMap
 		for(int i = 0; i < combo.getItemCount(); i++) {
 			CyColumn item = combo.getItemAt(i);
-			if(item.getName().startsWith("EnrichmentMap::fdr_qvalue")) { // column created by EnrichmentMap
+			String name = item.getName();
+			
+			if(startsWith && name.startsWith(columnName)) { 
+				combo.setSelectedIndex(i);
+				break;
+			} else if(name.equals(columnName)) {
 				combo.setSelectedIndex(i);
 				break;
 			}

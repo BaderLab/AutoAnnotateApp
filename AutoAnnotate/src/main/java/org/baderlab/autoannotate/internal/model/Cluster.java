@@ -17,6 +17,8 @@ public class Cluster {
 	private Set<CyNode> nodes;
 	private boolean collapsed;
 	
+	private Long highlightedNode = null; // May be null
+	
 	/**
 	 * Flag indicating if the cluster label was manually renamed by the user.
 	 * @since 1.3.4
@@ -69,6 +71,14 @@ public class Cluster {
 	
 	public boolean isCollapsed() {
 		return collapsed;
+	}
+	
+	public void setHighlightedNode(Long suid) {
+		this.highlightedNode = suid;
+	}
+	
+	public Long getHighlightedNode() {
+		return highlightedNode;
 	}
 	
 	void collapse(CyNode groupNode) {

@@ -33,6 +33,7 @@ import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder.ClusterBuilder;
 import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
+import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.model.io.CreationParameter;
@@ -142,7 +143,7 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 		// Override default palette options (easy to do here because the palette provider is injected)
 		var defaultPalette = defaultPaletteProvider.get();
 		if(defaultPalette != null) {
-			builder.setUseFillPalette(true);
+			builder.setFillType(FillType.PALETTE);
 			builder.setFillColorPalette(defaultPalette);
 		}
 		

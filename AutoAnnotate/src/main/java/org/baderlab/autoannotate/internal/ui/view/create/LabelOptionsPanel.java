@@ -41,8 +41,8 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 	private final CyNetwork network;
 	private final boolean showColumnCombo;
 	private final AnnotationSet annotationSet;
+	private final DialogParent parent;
 	
-	private DialogParent parent;
 	private ComboBoxCardPanel cardPanel;
 	private CyColumnComboBox labelColumnNameCombo;
 	private JLabel colLabel;
@@ -57,18 +57,25 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 		LabelOptionsPanel create(CyNetwork net, boolean showColumnCombo, AnnotationSet annotationSet);
 	}
 	
+	
 	@AssistedInject
 	private LabelOptionsPanel(@Assisted CyNetwork network, @Assisted DialogParent parent) {
-		this(network, true, null);
-		this.parent = parent;
+		this(network, true, null, parent);
 	}
 	
 	@AssistedInject
 	private LabelOptionsPanel(@Assisted CyNetwork network, @Assisted boolean showColumnCombo, @Assisted AnnotationSet annotationSet) {
+		this(network, showColumnCombo, annotationSet, null);
+	}
+	
+	
+	private LabelOptionsPanel(CyNetwork network, boolean showColumnCombo, AnnotationSet annotationSet, DialogParent parent) {
 		this.network = network;
 		this.showColumnCombo = showColumnCombo;
 		this.annotationSet = annotationSet;
+		this.parent = null;
 	}
+	
 	
 	@AfterInjection
 	private void createContents() {
@@ -92,15 +99,14 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 			originalContexts.put(card, context);
 			labelUIs.put(card, labelUI);
 			
-			JPanel uiPanel = labelUI.getPanel();
 			if(factory.requiresWordCloud()) {
-				var warnPanel = installWarningPanelFactory.create(uiPanel, DependencyChecker.WORDCLOUD);
+				var warnPanel = installWarningPanelFactory.create(labelUIPanel, DependencyChecker.WORDCLOUD);
 				warnPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 20));
 				warnPanel.setOnClickHandler(this::handleClose);
 				warnPanels.put(card, warnPanel);
 				panels.put(card, warnPanel);
 			} else {
-				panels.put(card, uiPanel);
+				panels.put(card, labelUIPanel);
 			}
 		}
 		
@@ -108,8 +114,9 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 		cardPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		showDefaultLabelMaker();
 		
-		cardPanel.addCardChangeListener(card -> parent.updateOkButton());
 		cardPanel.addCardChangeListener(this::handleCardChange);
+		if(parent != null)
+			cardPanel.addCardChangeListener(card -> parent.updateOkButton());
 		
 		for(var card : labelUIs.keySet()) { 
 			var uiPanel = panels.get(card); // actually use panels

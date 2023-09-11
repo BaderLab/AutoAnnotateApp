@@ -184,6 +184,7 @@ public class ModelEvents {
 			FILL_COLOR,
 			BORDER_COLOR,
 			FONT_COLOR,
+			LABEL_HIGHLIGHT,
 			USE_WORD_WRAP,
 			WORD_WRAP_LENGTH,
 			RESET

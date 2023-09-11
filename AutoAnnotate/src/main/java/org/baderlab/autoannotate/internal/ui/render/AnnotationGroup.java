@@ -2,6 +2,7 @@ package org.baderlab.autoannotate.internal.ui.render;
 
 import java.awt.Color;
 import java.awt.Paint;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -34,9 +35,11 @@ public class AnnotationGroup {
 		return labels;
 	}
 	
-	public void addTo(Collection<Annotation> annotations) {
+	public Collection<Annotation> getAnnotations() {
+		var annotations = new ArrayList<Annotation>(labels.size() + 1);
 		annotations.add(shape);
 		annotations.addAll(labels);
+		return annotations;
 	}
 	
 	public void setBorderWidth(double width) {

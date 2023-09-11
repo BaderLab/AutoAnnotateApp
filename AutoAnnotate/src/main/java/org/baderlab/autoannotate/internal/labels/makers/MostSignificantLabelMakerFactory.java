@@ -3,7 +3,6 @@ package org.baderlab.autoannotate.internal.labels.makers;
 import org.baderlab.autoannotate.internal.labels.LabelMaker;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerUI;
-import org.baderlab.autoannotate.internal.labels.makers.MostSignificantOptions.Significance;
 
 import com.google.inject.Inject;
 
@@ -41,15 +40,19 @@ public class MostSignificantLabelMakerFactory implements LabelMakerFactory<MostS
 
 	@Override
 	public String serializeContext(MostSignificantOptions context) {
-		return context.getSignificanceColumn() + "," + context.getSignificance().name();
+		// TODO
+//		return context.getSignificanceColumn() + "," + context.getSignificance().name();
+		return null;
 	}
 
 	@Override
 	public MostSignificantOptions deserializeContext(String s) {
-		String[] args = s.split(",");
-		String column = args[0];
-		Significance significance = Significance.valueOf(args[1]);
-		return new MostSignificantOptions(column, significance);
+		return new MostSignificantOptions();
+		// TODO
+//		String[] args = s.split(",");
+//		String column = args[0];
+//		Significance significance = Significance.valueOf(args[1]);
+//		return new MostSignificantOptions(column, significance);
 	}
 
 }

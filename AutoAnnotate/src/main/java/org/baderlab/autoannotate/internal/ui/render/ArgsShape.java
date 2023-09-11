@@ -103,9 +103,40 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 	private String getAnnotationName() {
 		return "AutoAnnotate: " + name;
 	}
+	
+	
+	private static Color getFillColor(DisplayOptions displayOptions, Cluster cluster, Map<Cluster,Color> definedFillColors) {
+		switch(displayOptions.getFillType()) {
+			case SINGLE: default:
+				return displayOptions.getFillColor();
+			case PALETTE:
+				return getPaletteColor(displayOptions, cluster);
+			case SIGNIFICANT:
+				return getColorOfMostSignificantNode(displayOptions, cluster, definedFillColors);
+		}
+	}
 
-
-	public static ArgsShape createFor(Cluster cluster, boolean isSelected, Color selectedColor) {
+	
+	private static Color getColorOfMostSignificantNode(DisplayOptions displayOptions, Cluster cluster, Map<Cluster,Color> definedFillColors) {
+		var defColor = displayOptions.getFillColor();
+		
+		if(definedFillColors != null && definedFillColors.containsKey(cluster))
+			return definedFillColors.get(cluster);
+		
+		return defColor;
+	}
+	
+	
+	private static Color getPaletteColor(DisplayOptions displayOptions, Cluster cluster) {
+		var annotationSet = cluster.getParent();
+		int index = annotationSet.getClusterIndex(cluster);
+		var palette = displayOptions.getFillColorPalette();
+		Color[] colors = palette == null ? DEFAULT_PALETTE : palette.getColors();
+		return colors[index % colors.length];
+	}
+	
+	
+	public static ArgsShape createFor(Cluster cluster, boolean isSelected, Color selectedColor, Map<Cluster,Color> definedFillColors) {
 		if(selectedColor == null)
 			selectedColor = Color.YELLOW;
 		
@@ -116,18 +147,9 @@ public class ArgsShape extends ArgsBase<ShapeAnnotation> {
 		int borderWidth = displayOptions.getBorderWidth(); // * (isSelected ? 3 : 1);
 		int opacity = displayOptions.getOpacity();
 		Color borderColor = isSelected ? selectedColor : displayOptions.getBorderColor();
-		
-		Color fillColor;
-		if(displayOptions.isUseFillPalette()) {
-			int index = annotationSet.getClusterIndex(cluster);
-			var palette = displayOptions.getFillColorPalette();
-			Color[] colors = palette == null ? DEFAULT_PALETTE : palette.getColors();
-			fillColor = colors[index % colors.length];
-		} else {
-			fillColor = displayOptions.getFillColor();
-		}
-		
 		double zoom = 1; //view.getVisualProperty(BasicVisualLexicon.NETWORK_SCALE_FACTOR);
+		
+		Color fillColor = getFillColor(displayOptions, cluster, definedFillColors);
 
 		CoordinateData coordinateData = cluster.getCoordinateData(false); // do not include hidden nodes
 		double centreX = coordinateData.getCenterX();

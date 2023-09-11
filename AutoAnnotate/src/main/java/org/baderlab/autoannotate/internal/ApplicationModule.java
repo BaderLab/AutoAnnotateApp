@@ -44,6 +44,7 @@ import org.baderlab.autoannotate.internal.ui.view.create.InstallWarningPanel;
 import org.baderlab.autoannotate.internal.ui.view.create.LabelOptionsPanel;
 import org.baderlab.autoannotate.internal.ui.view.create.NormalModeTab;
 import org.baderlab.autoannotate.internal.ui.view.create.QuickModeTab;
+import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelFactory;
 import org.baderlab.autoannotate.internal.ui.view.summary.AttributeAggregationPanel;
 import org.baderlab.autoannotate.internal.ui.view.summary.SummaryNetworkDialog;
 import org.cytoscape.property.AbstractConfigDirPropsReader;
@@ -116,6 +117,7 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(SummaryNetworkDialog.Factory.class);
 		installFactory(AttributeAggregationPanel.Factory.class);
 		installFactory(RunEMAssociateTaskFactory.Factory.class);
+		installFactory(SignificancePanelFactory.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {

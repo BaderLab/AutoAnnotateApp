@@ -69,7 +69,7 @@ public class CopyAnnotationsTask extends AbstractTask {
 			builder.setBorderWidth(opts.getBorderWidth());
 			builder.setFillColor(opts.getFillColor());
 			builder.setBorderColor(opts.getBorderColor());
-			builder.setUseFillPalette(opts.isUseFillPalette());
+			builder.setFillType(opts.getFillType());
 			builder.setFillColorPalette(opts.getFillColorPalette());
 			builder.setFontColor(opts.getFontColor());
 			builder.setUseWordWrap(opts.isUseWordWrap());

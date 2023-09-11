@@ -1,13 +1,16 @@
 package org.baderlab.autoannotate.internal.util;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 
 import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JSpinner;
 import javax.swing.JSpinner.NumberEditor;
@@ -93,6 +96,14 @@ public final class SwingUtil {
 			button.putClientProperty("JComponent.sizeVariant", "small");
 		}
 		return button;
+	}
+	
+	public static JLabel createWarnIcon(IconManager iconManager) {
+		JLabel icon = new JLabel(IconManager.ICON_EXCLAMATION_TRIANGLE);
+		icon.setFont(iconManager.getIconFont(16));
+		icon.setForeground(Color.YELLOW.darker());
+		icon.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
+		return icon;
 	}
 	
 	/**

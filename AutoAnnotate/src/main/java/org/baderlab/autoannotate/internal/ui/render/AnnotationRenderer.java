@@ -18,9 +18,11 @@ import java.util.function.BiConsumer;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
+import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.view.action.SelectClusterTask;
+import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.event.DebounceTimer;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
@@ -82,16 +84,15 @@ public class AnnotationRenderer {
 	}
 	
 	
-	public void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet) {
-		redrawAnnotations(networkViewSet, selectedAnnotationSet, false);
-	}
-	
-	private void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet, boolean sync) {
+	private TaskIterator createRedrawTasks(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet) {
 		Set<Cluster> clusters = getClusters(networkViewSet);
 		
 		TaskIterator tasks = new TaskIterator();
 		
 		var eraseTask = eraseTaskProvider.create(clusters);
+		if(eraseTask == null) // can happen in tests
+			return null;
+		
 		eraseTask.setEraseAll(true);
 		tasks.append(eraseTask);
 		
@@ -100,10 +101,23 @@ public class AnnotationRenderer {
 			.map(drawTaskProvider::create)
 			.ifPresent(tasks::append);
 		
+		var networkView = networkViewSet.getNetworkView();
+		tasks.append(TaskTools.taskOf(networkView::updateView));
+		
+		return tasks;
+	}
+	
+	private void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet, boolean sync) {
+		TaskIterator tasks = createRedrawTasks(networkViewSet, selectedAnnotationSet);
+		if(tasks == null)
+			return;
 		var taskManager = sync ? syncTaskManager : dialogTaskManager;
 		taskManager.execute(tasks);
 	}
 	
+	public void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet) {
+		redrawAnnotations(networkViewSet, selectedAnnotationSet, false);
+	}
 	
 	
 	@Subscribe
@@ -169,7 +183,7 @@ public class AnnotationRenderer {
 			forEachCluster(as, (c,a) -> a.setShowShapes(options.isShowClusters(), options.getOpacity()));
 			break;
 		case FILL_COLOR:
-			if(!options.isUseFillPalette()) {
+			if(options.getFillType() == FillType.SINGLE) {
 				forEachCluster(as, (c,a) -> a.setFillColor(options.getFillColor()));
 				break;
 			}
@@ -184,6 +198,7 @@ public class AnnotationRenderer {
 		case USE_WORD_WRAP: // when changing word wrap we need to re-create the label annotation objects
 		case WORD_WRAP_LENGTH:
 		case PADDING_ADJUST: // MKTODO: We might not need to do a full redraw for this.
+		case LABEL_HIGHLIGHT:
 		case RESET:
 			redrawAnnotations(as.getParent(), Optional.of(as), true);
 			break;

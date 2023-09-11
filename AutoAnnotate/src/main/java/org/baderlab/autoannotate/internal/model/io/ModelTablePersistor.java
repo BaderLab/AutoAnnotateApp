@@ -23,6 +23,7 @@ import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
+import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationPersistor;
@@ -77,7 +78,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		SHAPE_TYPE = "shapeType",
 		FILL_COLOR = "fillColor",
 		FILL_COLOR_PALETTE = "fillColorPalette",
-		USE_FILL_PALETTE = "useFillPalette",
+		FILL_TYPE = "fillType",
 		BORDER_COLOR = "borderColor",
 		FONT_COLOR = "fontColor",
 		WORD_WRAP = "wordWrap",
@@ -223,14 +224,14 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			safeGet(asRow, SHOW_CLUSTERS, Boolean.class, builder::setShowClusters);
 			safeGet(asRow, SHOW_LABELS, Boolean.class, builder::setShowLabels);
 			safeGet(asRow, USE_CONSTANT_FONT_SIZE, Boolean.class, builder::setUseConstantFontSize);
+			getFillType(asRow, builder); // FillType must be backwards compatible
 			safeGet(asRow, FILL_COLOR, Integer.class, rgb -> builder.setFillColor(new Color(rgb)));
 			safeGet(asRow, FILL_COLOR_PALETTE, String.class, palID -> parsePalette(palID, builder));
-			safeGet(asRow, USE_FILL_PALETTE, Boolean.class, builder::setUseFillPalette);
 			safeGet(asRow, BORDER_COLOR, Integer.class, rgb -> builder.setBorderColor(new Color(rgb)));
 			safeGet(asRow, FONT_COLOR, Integer.class, rgb -> builder.setFontColor(new Color(rgb)));
 			safeGet(asRow, WORD_WRAP, Boolean.class, builder::setUseWordWrap);
 			safeGet(asRow, WORD_WRAP_LENGTH, Integer.class, builder::setWordWrapLength);
-
+			
 			String labelMakerID = asRow.get(LABEL_MAKER_ID, String.class);
 			String serializedContext = asRow.get(LABEL_MAKER_CONTEXT, String.class);
 			
@@ -366,7 +367,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(PADDING_ADJUST, disp.getPaddingAdjust());
 			asRow.set(FILL_COLOR, disp.getFillColor().getRGB());
 			asRow.set(FILL_COLOR_PALETTE, palette == null ? null : palette.getIdentifier().toString());
-			asRow.set(USE_FILL_PALETTE, disp.isUseFillPalette());
+			asRow.set(FILL_TYPE, disp.getFillType().name());
 			asRow.set(BORDER_COLOR, disp.getBorderColor().getRGB());
 			asRow.set(FONT_COLOR, disp.getFontColor().getRGB());
 			asRow.set(WORD_WRAP, disp.isUseWordWrap());
@@ -460,7 +461,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, PADDING_ADJUST, Integer.class);
 		createColumn(table, FILL_COLOR, Integer.class); // store as RGB int value
 		createColumn(table, FILL_COLOR_PALETTE, String.class); // store as RGB int value
-		createColumn(table, USE_FILL_PALETTE, Boolean.class); // store as RGB int value
+		createColumn(table, FILL_TYPE, String.class); 
 		createColumn(table, BORDER_COLOR, Integer.class);
 		createColumn(table, FONT_COLOR, Integer.class);
 		createColumn(table, WORD_WRAP, Boolean.class);
@@ -548,6 +549,31 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				return;
 			}
 		}
+	}
+	
+	
+	private static void getFillType(CyRow row, AnnotationSetBuilder builder) {
+		final String USE_FILL_PALETTE = "useFillPalette"; // deprecated column
+		
+		FillType fillType;
+		
+		String fillTypeStr = row.get(FILL_TYPE, String.class);
+		if(fillTypeStr == null) {
+			Boolean usePalette = row.get(USE_FILL_PALETTE, Boolean.class);
+			if(Boolean.TRUE.equals(usePalette)) {
+				fillType = FillType.PALETTE;
+			} else {
+				fillType = FillType.SINGLE;
+			}
+		} else {
+			try {
+				fillType = FillType.valueOf(fillTypeStr);
+			} catch(Exception e) {
+				fillType = DisplayOptions.FILL_TYPE_DEFAULT;
+			}
+		}
+		
+		builder.setFillType(fillType);
 	}
 	
 }

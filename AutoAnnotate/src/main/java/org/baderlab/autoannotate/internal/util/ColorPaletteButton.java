@@ -18,7 +18,7 @@ import org.cytoscape.util.swing.CyColorPaletteChooserFactory;
 public final class ColorPaletteButton extends JButton {
 
 	public static enum Mode {
-		SINGLE_COLOR, PALETTE
+		SINGLE_COLOR, PALETTE, SIGNIFICANT
 	}
 	
 	private final CyServiceRegistrar registrar;
@@ -43,10 +43,12 @@ public final class ColorPaletteButton extends JButton {
 		setPalette(palette);
 		
 		addActionListener(e -> {
-			if(mode == Mode.SINGLE_COLOR)
-				pickSingleColor();
-			else
+			if(mode == Mode.PALETTE)
 				pickColorPalette();
+			else if(mode == Mode.SIGNIFICANT)
+				pickSignificant();
+			else
+				pickSingleColor();
 		});
 	}
 	
@@ -77,6 +79,10 @@ public final class ColorPaletteButton extends JButton {
 		setPalette(p);
 	}
 
+	private void pickSignificant() {
+		firePropertyChange("significance", null, null);
+	}
+	
 	/**
 	 * Sets a new color and fires a {@link java.beans.PropertyChangeEvent} for the property "color".
 	 * @param color
@@ -146,6 +152,9 @@ public final class ColorPaletteButton extends JButton {
 					g.setColor(colors[i]);
 					g.fillRect(x + 1 + segW * i, y, segW, h);
 				}
+			} else if(mode == Mode.SIGNIFICANT) {
+				g.setColor(Color.GRAY);
+				g.fillRect(x, y, w, h);
 			} else {
 				g.setColor(color);
 				g.fillRect(x, y, w, h);
