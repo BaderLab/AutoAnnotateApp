@@ -62,6 +62,7 @@ import org.cytoscape.event.DebounceTimer;
 import org.cytoscape.model.CyDisposable;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.util.color.Palette;
+import org.cytoscape.util.swing.BasicCollapsiblePanel;
 import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
@@ -284,13 +285,10 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private JPanel createMainPanel() {
 		shapePanel = createShapePanel();
 		labelPanel = createLabelPanel();
-		var signfPanel = createSignificancePanel();
-		var scalePanel = createScalePanel();
+		JPanel advancedPanel = createAdvancedPanel();
 		
 		shapePanel.setBorder(LookAndFeelUtil.createPanelBorder());
 		labelPanel.setBorder(LookAndFeelUtil.createPanelBorder());
-		signfPanel.setBorder(LookAndFeelUtil.createPanelBorder());
-		scalePanel.setBorder(LookAndFeelUtil.createPanelBorder());
 		
 		resetButton = new JButton("Reset");
 		LookAndFeelUtil.makeSmall(resetButton);
@@ -305,16 +303,14 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		layout.setVerticalGroup(layout.createSequentialGroup()
 			.addComponent(shapePanel)
 			.addComponent(labelPanel)
-			.addComponent(signfPanel)
-			.addComponent(scalePanel)
+			.addComponent(advancedPanel)
 			.addComponent(resetButton)
 		);
 		
 		layout.setHorizontalGroup(layout.createParallelGroup()
 			.addComponent(shapePanel)
 			.addComponent(labelPanel)
-			.addComponent(signfPanel)
-			.addComponent(scalePanel)
+			.addComponent(advancedPanel)
 			.addComponent(resetButton, Alignment.TRAILING)
 		);
 		
@@ -323,6 +319,33 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		return parent;
 	}
 	
+	
+	private JPanel createAdvancedPanel() {
+		var signfPanel = createSignificancePanel();
+		var scalePanel = createScalePanel();
+		
+		signfPanel.setOpaque(false);
+		scalePanel.setOpaque(false);
+		
+		var collapsiblePabel = new BasicCollapsiblePanel("Advanced");
+		collapsiblePabel.setCollapsed(false);
+		
+		var layout = new GroupLayout(collapsiblePabel.getContentPane());
+		collapsiblePabel.getContentPane().setLayout(layout);
+		layout.setAutoCreateContainerGaps(false);
+		layout.setAutoCreateGaps(true);
+		
+		layout.setHorizontalGroup(layout.createParallelGroup(Alignment.CENTER, true)
+			.addComponent(signfPanel, DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
+			.addComponent(scalePanel, DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
+		);
+		layout.setVerticalGroup(layout.createSequentialGroup()
+			.addComponent(signfPanel, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
+			.addComponent(scalePanel, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
+		);
+		
+		return collapsiblePabel;
+	}
 	
 	
 	private JPanel createShapePanel() {
