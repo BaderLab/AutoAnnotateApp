@@ -1,5 +1,8 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
+import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NODE_LABEL_FONT_FACE;
+import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NODE_LABEL_FONT_SIZE;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -9,7 +12,6 @@ import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.presentation.annotations.AnnotationManager;
-import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskMonitor;
 
@@ -96,7 +98,8 @@ public class EraseClustersTask extends AbstractTask {
 				// Find an existing node that is highlighted
 				var nodeView = cluster.getNetworkView().getNodeView(node);
 				if(nodeView != null) {
-					nodeView.clearValueLock(BasicVisualLexicon.NODE_LABEL_FONT_SIZE);
+					nodeView.clearValueLock(NODE_LABEL_FONT_SIZE);
+					nodeView.clearValueLock(NODE_LABEL_FONT_FACE);
 				}
 				break;
 			}

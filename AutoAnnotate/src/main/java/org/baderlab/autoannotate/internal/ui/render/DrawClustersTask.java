@@ -1,6 +1,10 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
+import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NODE_LABEL_FONT_FACE;
+import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NODE_LABEL_FONT_SIZE;
+
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Paint;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,6 +19,8 @@ import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.util.HiddenTools;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.view.model.View;
+import org.cytoscape.view.model.VisualProperty;
 import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.presentation.annotations.AnnotationFactory;
 import org.cytoscape.view.presentation.annotations.AnnotationManager;
@@ -96,6 +102,7 @@ public class DrawClustersTask extends AbstractTask {
 			annotationManager.addAnnotations(allAnnotations);
 	}
 	
+	
 	private void highlightLabel(Cluster cluster, Map<Cluster,CyNode> sigNodes) {
 		var node = sigNodes.get(cluster);
 		if(node == null)
@@ -105,14 +112,24 @@ public class DrawClustersTask extends AbstractTask {
 		if(nodeView == null)
 			return;
 		
-		var fontSize = nodeView.getVisualProperty(BasicVisualLexicon.NODE_LABEL_FONT_SIZE);
-		if(fontSize == null)
-			fontSize = 40;
-		else
-			fontSize = fontSize * 3;
+		var fontSize = getVP(nodeView, NODE_LABEL_FONT_SIZE);
+		var fontFace = getVP(nodeView, NODE_LABEL_FONT_FACE);
+		
+		fontSize += 4;
+		fontFace = fontFace.deriveFont(Font.BOLD);
 		
 		cluster.setHighlightedNode(node.getSUID());
-		nodeView.setLockedValue(BasicVisualLexicon.NODE_LABEL_FONT_SIZE, fontSize);
+		
+		nodeView.setLockedValue(NODE_LABEL_FONT_SIZE, fontSize);
+		nodeView.setLockedValue(NODE_LABEL_FONT_FACE, fontFace);
+	}
+	
+	
+	private static <T> T getVP(View<CyNode> nodeView, VisualProperty<T> vp) {
+		var value = nodeView.getVisualProperty(vp);
+		if(value == null)
+			value = vp.getDefault();
+		return value;
 	}
 	
 	
