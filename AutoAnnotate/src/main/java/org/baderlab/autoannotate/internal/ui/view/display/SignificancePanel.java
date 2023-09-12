@@ -119,7 +119,6 @@ public class SignificancePanel extends JPanel {
 		
 		if(dataSetNames != null) {
 			dataSetCombo.removeAllItems();
-			dataSetCombo.addItem("average of all data sets"); // this must always be at index 0
 			dataSetNames.forEach(dataSetCombo::addItem);
 			if(dataSet == null) {
 				dataSetCombo.setSelectedIndex(0);
@@ -156,9 +155,7 @@ public class SignificancePanel extends JPanel {
 	}
 	
 	public String getDataSet() {
-		int index = dataSetCombo.getSelectedIndex();
-		// index 0 is "average of all data sets"
-		return index == 0 ? null : dataSetCombo.getItemAt(index);
+		return dataSetCombo.getItemAt(dataSetCombo.getSelectedIndex());
 	}
 	
 	public boolean getUseEM() {
