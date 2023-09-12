@@ -99,8 +99,6 @@ public class SignificanceLookup {
 			}
 		}
 		
-		System.out.println("sigNodes...");
-		System.out.println(sigNodes);
 		return sigNodes;
 	}
 	
@@ -147,8 +145,6 @@ public class SignificanceLookup {
 			} catch(NumberFormatException | NullPointerException e) {}
 		}
 		
-		System.out.println("colors...");
-		System.out.println(colors);
 		return colors;
 	}
 	

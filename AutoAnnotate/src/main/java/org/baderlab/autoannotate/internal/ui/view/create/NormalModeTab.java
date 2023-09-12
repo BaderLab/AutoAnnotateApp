@@ -88,7 +88,7 @@ public class NormalModeTab extends JPanel implements DialogTab {
 			.setLabelMakerContext(labelOptionsPanel.getLabelMakerContext());
 		
 		var params = builder.build();
-		System.out.println(params);
+		// System.out.println(params);
 		return params;
 	}
 	

@@ -37,7 +37,6 @@ public class RunMCODETaskFactory implements TaskFactory {
 	private String getClusterCommand() {
 		Long suid = network.getSUID();
 		String command = String.format("mcode cluster network=\"SUID:%d\"", suid);
-		System.out.println(command);
 		return command;
 	}
 

@@ -130,7 +130,6 @@ public class CreateAnnotationSetDialog extends JDialog implements DialogParent {
 	
 	@Override
 	public void updateOkButton() {
-		System.out.println("CreateAnnotationSetDialog.updateOkButton()");
 		createButton.setEnabled(true);
 		DialogPanel tabPanel = (DialogPanel)tabPane.getSelectedComponent();
 		var ready = tabPanel.isReady();
