@@ -22,6 +22,11 @@ public class RedrawCommandTask extends AbstractTask {
 	
 	@Override
 	public void run(TaskMonitor tm)  {
+		if(!networkContext.hasNetworkViewSet()) {
+			// This command is always called by EnrichmentMap, even if there are no annotations, fail gracefully
+			return;
+		}
+		
 		var nvs = networkContext.getNetworkViewSet();
 		var asOpt = nvs.getActiveAnnotationSet();
 		

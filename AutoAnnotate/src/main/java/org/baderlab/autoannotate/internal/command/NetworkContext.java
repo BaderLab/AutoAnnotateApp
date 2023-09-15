@@ -30,6 +30,13 @@ public class NetworkContext {
 	@Inject private Provider<ModelManager> managerProvider;
 	@Inject private CyNetworkViewManager networkViewManager;
 	
+	
+	public boolean hasNetworkViewSet() {
+		ModelManager modelManager = managerProvider.get();
+		var nvsOpt = modelManager.getActiveNetworkViewSet();
+		return nvsOpt.isPresent();
+	}
+	
 	/**
 	 * Returns the NetworkViewSet for the given network.
 	 */
