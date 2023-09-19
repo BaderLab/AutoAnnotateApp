@@ -74,7 +74,7 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 		
 		singletonCheckBox = new JCheckBox("Create singleton clusters");
 		singletonCheckBox.setToolTipText("Nodes not included in a cluster will be annotated as a singleton cluster.");
-		layoutCheckBox = new JCheckBox("Layout network to prevent cluster overlap");
+		layoutCheckBox = new JCheckBox("Layout network to minimize cluster overlap");
 		SwingUtil.makeSmall(singletonCheckBox, layoutCheckBox);
 		
 		JPanel checkBoxPanel = new JPanel();

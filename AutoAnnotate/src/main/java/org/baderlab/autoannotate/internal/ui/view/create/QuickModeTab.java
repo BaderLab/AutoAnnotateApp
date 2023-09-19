@@ -100,7 +100,7 @@ public class QuickModeTab extends JPanel implements DialogTab {
 		clusterAllRadio.setSelected(true);
 		
 		spinner = new JSpinner(new SpinnerNumberModel(10, 1, 100, 1));
-		layoutCheckBox = new JCheckBox("Layout network to prevent cluster overlap");
+		layoutCheckBox = new JCheckBox("Layout network to minimize cluster overlap");
 		SwingUtil.makeSmall(clusterMaxRadio, clusterAllRadio, spinner, layoutCheckBox);
 		spinner.setEnabled(false);
 		

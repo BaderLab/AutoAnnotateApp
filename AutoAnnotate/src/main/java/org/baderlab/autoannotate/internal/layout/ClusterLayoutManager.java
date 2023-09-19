@@ -24,9 +24,9 @@ public class ClusterLayoutManager {
 	@Inject private LayoutClustersAction.Factory layoutClustersActionFactory;
 	
 	public static enum Algorithm {
-		COSE("cose", "Cluster Layout"),
-		COSE_GROUP("cose_group", "Cluster Layout (Group single nodes)"),
-		GRID("grid", "Grid Layout");
+		COSE       ("cose",       "Layout Clusters to Minimize Overlap"),
+		COSE_GROUP ("cose_group", "Layout Clusters to Minimize Overlap (Group single nodes together)"),
+		GRID       ("grid",       "Grid Layout");
 		
 		private final String commandArg;
 		private final String menuName;
