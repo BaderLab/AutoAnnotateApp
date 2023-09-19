@@ -26,7 +26,9 @@ import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.model.SignificanceOptions.Highlight;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationPersistor;
+import org.baderlab.autoannotate.internal.ui.view.display.Significance;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNetworkTableManager;
@@ -85,7 +87,12 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		WORD_WRAP_LENGTH = "wordWrapLength",
 		LABEL_MAKER_ID = "labelMakerID",
 		LABEL_MAKER_CONTEXT = "labelMakerContext",
-		CREATION_PARAMS = "creationParams";
+		CREATION_PARAMS = "creationParams",
+		SIGNIFICANCE_COLUMN = "significanceColumn",
+		SIGNIFICANCE_METRIC = "significanceMetric",
+		SIGNIFICANCE_EM_DATASET = "significanceEMDataset",
+		SIGNIFICANCE_USE_EM = "significanceUseEM",
+		SIGNIFICANCE_HIGHLIGHT = "significanceHighlight";
 	
 	// Cluster properties
 	private static final String 
@@ -93,6 +100,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		LABEL = "label",
 		COLLAPSED = "collapsed",
 		NODES_SUID = "nodes.SUID", // .SUID suffix has special meaning to Cytoscape
+		HIGHLIGHTED_NODE_SUID = "highlight.SUID",
 		SHAPE_ID = "shapeID",
 		TEXT_ID = "textID",
 		// Added word wrap which means multiple text IDs, but need separate column for backwards compatibility
@@ -231,6 +239,11 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			safeGet(asRow, FONT_COLOR, Integer.class, rgb -> builder.setFontColor(new Color(rgb)));
 			safeGet(asRow, WORD_WRAP, Boolean.class, builder::setUseWordWrap);
 			safeGet(asRow, WORD_WRAP_LENGTH, Integer.class, builder::setWordWrapLength);
+			safeGet(asRow, SIGNIFICANCE_COLUMN, String.class, builder::setSignificanceColumn);
+			safeGet(asRow, SIGNIFICANCE_METRIC, String.class, s -> builder.setSignificance(Significance.valueOf(s)));
+			safeGet(asRow, SIGNIFICANCE_EM_DATASET, String.class, builder::setEmDataSet);
+			safeGet(asRow, SIGNIFICANCE_USE_EM, Boolean.class, builder::setEM);
+			safeGet(asRow, SIGNIFICANCE_HIGHLIGHT, String.class, s -> builder.setHighlight(Highlight.valueOf(s)));
 			
 			String labelMakerID = asRow.get(LABEL_MAKER_ID, String.class);
 			String serializedContext = asRow.get(LABEL_MAKER_CONTEXT, String.class);
@@ -282,6 +295,9 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				continue;
 			}
 			
+			// May be null
+			Long highlightedNodeSuid = clusterRow.get(HIGHLIGHTED_NODE_SUID, Long.class);
+			
 			// This column is optional
 			Boolean manual = clusterRow.get(MANUAL, Boolean.class);
 			if(manual == null) {
@@ -298,6 +314,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			AnnotationSetBuilder builder = builders.get(asId);
 			builder.addCluster(nodes, label, collapsed, manual, cluster -> {
 				annotationPersistor.restoreCluster(cluster, shapeID, textID, textIDAdditional);
+				cluster.setHighlightedNode(highlightedNodeSuid);
 			});
 		}
 		
@@ -347,14 +364,14 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		
 		for(AnnotationSet as : nvs.getAnnotationSets()) {
 			CyRow asRow = asTable.getRow(ids.asId);
+			var disp = as.getDisplayOptions();
+			var palette = disp.getFillColorPalette();
+			var sigOpts = disp.getSignificanceOptions();
+			
 			asRow.set(NAME, as.getName());
 			asRow.set(NETWORK_VIEW_SUID, as.getParent().getNetworkView().getSUID());
 			asRow.set(LABEL_COLUMN, Arrays.asList(as.getLabelColumn())); // may want to support multiple label columns in the future
 			asRow.set(ACTIVE, as.isActive());
-			
-			DisplayOptions disp = as.getDisplayOptions();
-			var palette = disp.getFillColorPalette();
-			
 			asRow.set(SHAPE_TYPE, disp.getShapeType().name());
 			asRow.set(SHOW_CLUSTERS, disp.isShowClusters());
 			asRow.set(SHOW_LABELS, disp.isShowLabels());
@@ -372,6 +389,11 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(FONT_COLOR, disp.getFontColor().getRGB());
 			asRow.set(WORD_WRAP, disp.isUseWordWrap());
 			asRow.set(WORD_WRAP_LENGTH, disp.getWordWrapLength());
+			asRow.set(SIGNIFICANCE_COLUMN, sigOpts.getSignificanceColumn());
+			asRow.set(SIGNIFICANCE_METRIC, sigOpts.getSignificance().name());
+			asRow.set(SIGNIFICANCE_EM_DATASET, sigOpts.getEMDataSet());
+			asRow.set(SIGNIFICANCE_USE_EM, sigOpts.isEM());
+			asRow.set(SIGNIFICANCE_HIGHLIGHT, sigOpts.getHighlight().name());
 			
 			LabelMakerManager labelMakerManager = labelManagerProvider.get();
 			
@@ -399,6 +421,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				clusterRow.set(MANUAL, cluster.isManual());
 				clusterRow.set(ANNOTATION_SET_ID, ids.asId);
 				clusterRow.set(NODES_SUID, nodeSuids);
+				clusterRow.set(HIGHLIGHTED_NODE_SUID, cluster.getHighlightedNode());
 				
 				Optional<UUID> shapeID = annotationPersistor.getShapeID(cluster);
 				clusterRow.set(SHAPE_ID, shapeID.map(UUID::toString).orElse(null));
@@ -469,6 +492,11 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, LABEL_MAKER_ID, String.class);
 		createColumn(table, LABEL_MAKER_CONTEXT, String.class);
 		createColumn(table, CREATION_PARAMS, String.class);
+		createColumn(table, SIGNIFICANCE_COLUMN, String.class);
+		createColumn(table, SIGNIFICANCE_METRIC, String.class);
+		createColumn(table, SIGNIFICANCE_EM_DATASET, String.class);
+		createColumn(table, SIGNIFICANCE_USE_EM, Boolean.class);
+		createColumn(table, SIGNIFICANCE_HIGHLIGHT, String.class);
 		return table;
 	}
 	
@@ -479,6 +507,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, COLLAPSED, Boolean.class);
 		createColumn(table, MANUAL, Boolean.class);
 		createListColumn(table, NODES_SUID, Long.class);
+		createColumn(table, HIGHLIGHTED_NODE_SUID, Long.class);
 		createColumn(table, ANNOTATION_SET_ID, Long.class);
 		createColumn(table, SHAPE_ID, String.class);
 		createColumn(table, TEXT_ID, String.class);

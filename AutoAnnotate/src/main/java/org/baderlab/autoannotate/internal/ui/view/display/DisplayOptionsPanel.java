@@ -49,6 +49,7 @@ import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.model.SignificanceOptions.Highlight;
 import org.baderlab.autoannotate.internal.ui.view.display.scale.ScalePanel;
 import org.baderlab.autoannotate.internal.util.ColorButton;
 import org.baderlab.autoannotate.internal.util.ColorPaletteButton;
@@ -241,7 +242,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			wordWrapLengthSpinner.setValue(displayOptions.getWordWrapLength());
 			wordWrapLengthSpinner.setEnabled(displayOptions.isUseWordWrap());
 			colorSigCheckBox.setSelected(displayOptions.getFillType() == FillType.SIGNIFICANT);
-			highlightSigCheckBox.setSelected(displayOptions.getSignificanceOptions().isHighlight());
+			highlightSigCheckBox.setSelected(displayOptions.getSignificanceOptions().getHighlight() == Highlight.BOLD_LABEL);
 			
 			CardLayout fontCardLayout = (CardLayout) fontPanel.getLayout();
 			fontCardLayout.show(fontPanel, displayOptions.isUseConstantFontSize() ? CARD_SIZE : CARD_SCALE);
@@ -547,7 +548,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			boolean highlight = highlightSigCheckBox.isSelected();
 			updateFillColorEnablement();
 			handleFillColor();
-			displayOptions.getSignificanceOptions().setHighlight(highlight);
+			displayOptions.getSignificanceOptions().setHighlight(highlight ? Highlight.BOLD_LABEL : Highlight.NONE);
 		};
 		
 		colorSigCheckBox.addActionListener(sigListener);

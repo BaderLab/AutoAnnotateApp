@@ -85,7 +85,6 @@ public class DisplayOptions {
 	private boolean useWordWrap;
 	private int wordWrapLength;
 	
-	// TODO add to serialization table
 	private SignificanceOptions significanceOptions = new SignificanceOptions(this);
 	
 	
@@ -117,6 +116,8 @@ public class DisplayOptions {
 		this.fontColor = Objects.requireNonNull(builder.getFontColor());
 		this.useWordWrap = builder.isUseWordWrap();
 		this.wordWrapLength = builder.getWordWrapLength();
+		
+		this.significanceOptions = new SignificanceOptions(this, builder);
 	}
 	
 	private void setDefaults() {

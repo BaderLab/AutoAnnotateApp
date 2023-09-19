@@ -9,7 +9,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
+import org.baderlab.autoannotate.internal.model.SignificanceOptions.Highlight;
 import org.baderlab.autoannotate.internal.model.io.CreationParameter;
+import org.baderlab.autoannotate.internal.ui.view.display.Significance;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.util.color.Palette;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
@@ -54,6 +56,13 @@ public class AnnotationSetBuilder {
 	private boolean useWordWrap = DisplayOptions.USE_WORD_WRAP_DEFAULT;
 	private int wordWrapLength = DisplayOptions.WORD_WRAP_LENGTH_DEFAULT;
 	
+	// SignificanceOptions
+	private String significanceColumn = null;
+	private Significance significance = Significance.getDefault();
+	private String emDataSet = null;
+	private boolean isEM = false;
+	private Highlight highlight = Highlight.NONE;
+	
 	private Optional<Consumer<AnnotationSet>> asCallback = Optional.empty();
 	
 	private boolean used = false;
@@ -97,10 +106,10 @@ public class AnnotationSetBuilder {
 	public AnnotationSet build() {
 		if(used)
 			throw new IllegalStateException("builder has already been used");
+		
 		try {
 			return nvs.build(this);
-		}
-		finally {
+		} finally {
 			used = true;
 		}
 	}
@@ -282,6 +291,56 @@ public class AnnotationSetBuilder {
 	public void addCreationParam(CreationParameter creationParameter) {
 		this.creationParameters.add(creationParameter);
 	}
+
+	public String getSignificanceColumn() {
+		return significanceColumn;
+	}
+
+
+	public void setSignificanceColumn(String significanceColumn) {
+		this.significanceColumn = significanceColumn;
+	}
+
+
+	public Significance getSignificance() {
+		return significance;
+	}
+
+
+	public void setSignificance(Significance significance) {
+		this.significance = significance;
+	}
+
+
+	public String getEmDataSet() {
+		return emDataSet;
+	}
+
+
+	public void setEmDataSet(String emDataSet) {
+		this.emDataSet = emDataSet;
+	}
+
+
+	public boolean isEM() {
+		return isEM;
+	}
+
+
+	public void setEM(boolean isEM) {
+		this.isEM = isEM;
+	}
+
+
+	public Highlight getHighlight() {
+		return highlight;
+	}
+
+
+	public void setHighlight(Highlight highlight) {
+		this.highlight = highlight;
+	}
+
 	
 	public void addCreationParam(String displayName, String displayValue) {
 		addCreationParam(new CreationParameter(displayName, displayValue));

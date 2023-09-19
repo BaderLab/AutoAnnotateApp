@@ -1,6 +1,7 @@
 package org.baderlab.autoannotate.internal.command;
 
 import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
+import org.baderlab.autoannotate.internal.model.SignificanceOptions.Highlight;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ContainsTunables;
@@ -38,7 +39,7 @@ public class RedrawCommandTask extends AbstractTask {
 			var sigOpts  = dispOpts.getSignificanceOptions();
 			
 			// Only redraw if EM highlight is enabled
-			redraw = sigOpts.isEM() && (sigOpts.isHighlight() || dispOpts.getFillType() == FillType.SIGNIFICANT);
+			redraw = sigOpts.isEM() && (sigOpts.getHighlight() != Highlight.NONE || dispOpts.getFillType() == FillType.SIGNIFICANT);
 		}
 		
 		if(redraw) {

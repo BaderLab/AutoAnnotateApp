@@ -16,6 +16,7 @@ import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
+import org.baderlab.autoannotate.internal.model.SignificanceOptions.Highlight;
 import org.baderlab.autoannotate.internal.util.HiddenTools;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
@@ -90,8 +91,9 @@ public class DrawClustersTask extends AbstractTask {
 		
 		// Create highlights
 		var annotationSet = clusters.iterator().next().getParent();
-		boolean isHighlight = annotationSet.getDisplayOptions().getSignificanceOptions().isHighlight();
-		if(isHighlight) {
+		var highlight = annotationSet.getDisplayOptions().getSignificanceOptions().getHighlight();
+		
+		if(highlight == Highlight.BOLD_LABEL) {
 			var sigNodes = significanceLookup.getSigNodes(annotationSet);
 			for(var cluster : clusters) {
 				highlightLabel(cluster, sigNodes);
