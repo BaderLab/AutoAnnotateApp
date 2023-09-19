@@ -10,6 +10,7 @@ import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -32,6 +33,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JSpinner;
 import javax.swing.JToggleButton;
 import javax.swing.SpinnerNumberModel;
@@ -43,6 +45,7 @@ import javax.swing.event.ChangeListener;
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.CyActivator;
+import org.baderlab.autoannotate.internal.layout.ClusterLayoutManager;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
@@ -83,6 +86,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
  	@Inject private Provider<ScalePanel> scalePanelProvider;
  	@Inject private Provider<JFrame> jframeProvider;
  	@Inject private SignificancePanelFactory.Factory significancePanelFactoryFactory;
+	@Inject private ClusterLayoutManager clusterLayoutManager;
 	
 	private DebounceTimer debouncer = new DebounceTimer();
 	
@@ -141,8 +145,6 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	private ChangeListener wordWrapLengthListener;
 	private ActionListener sigListener;
 	
-	private JButton resetButton;
-
 	private static final String CARD_NULL = "card_null";
 	private static final String CARD_MAIN = "card_main";
 	
@@ -291,9 +293,13 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		shapePanel.setBorder(LookAndFeelUtil.createPanelBorder());
 		labelPanel.setBorder(LookAndFeelUtil.createPanelBorder());
 		
-		resetButton = new JButton("Reset");
-		LookAndFeelUtil.makeSmall(resetButton);
+		JButton layoutButton = new JButton("Layout...");
+		layoutButton.addActionListener(this::handleLayoutMenu);
+		
+		JButton resetButton = new JButton("Reset");
 		resetButton.addActionListener(e -> handleReset());
+		
+		LookAndFeelUtil.makeSmall(layoutButton, resetButton);
 		
 		JPanel panel = new JPanel(new GridBagLayout());
 		panel.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
@@ -303,16 +309,23 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		
 		layout.setVerticalGroup(layout.createSequentialGroup()
 			.addComponent(shapePanel)
-			.addComponent(labelPanel)
+			.addComponent(labelPanel)			
+			.addGroup(layout.createParallelGroup()
+				.addComponent(layoutButton, Alignment.LEADING)
+				.addComponent(resetButton, Alignment.TRAILING)
+			)
 			.addComponent(advancedPanel)
-			.addComponent(resetButton)
 		);
 		
 		layout.setHorizontalGroup(layout.createParallelGroup()
 			.addComponent(shapePanel)
 			.addComponent(labelPanel)
+			.addGroup(layout.createSequentialGroup()
+				.addComponent(layoutButton)
+				.addGap(0, Short.MAX_VALUE, Short.MAX_VALUE)
+				.addComponent(resetButton)
+			)
 			.addComponent(advancedPanel)
-			.addComponent(resetButton, Alignment.TRAILING)
 		);
 		
 		JPanel parent = new JPanel(new BorderLayout());
@@ -329,7 +342,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		scalePanel.setOpaque(false);
 		
 		var collapsiblePabel = new BasicCollapsiblePanel("Advanced");
-		collapsiblePabel.setCollapsed(false);
+		collapsiblePabel.setCollapsed(true);
 		
 		var layout = new GroupLayout(collapsiblePabel.getContentPane());
 		collapsiblePabel.getContentPane().setLayout(layout);
@@ -619,6 +632,13 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			case PALETTE: return Mode.PALETTE;
 			case SIGNIFICANT: return Mode.SIGNIFICANT;
 		}
+	}
+	
+	private void handleLayoutMenu(ActionEvent event) {
+		JPopupMenu menu = new JPopupMenu();
+		clusterLayoutManager.getActions().forEach(menu::add);
+		Component c = (Component)event.getSource();
+		menu.show(c, 0, c.getHeight());
 	}
 	
 	private void handleReset() {
