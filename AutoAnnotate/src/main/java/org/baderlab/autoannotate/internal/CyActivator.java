@@ -8,6 +8,7 @@ import java.util.Properties;
 
 import org.baderlab.autoannotate.internal.command.AnnotateCommandTask;
 import org.baderlab.autoannotate.internal.command.CollapseCommandTask;
+import org.baderlab.autoannotate.internal.command.EMHighlightTask;
 import org.baderlab.autoannotate.internal.command.ExpandCommandTask;
 import org.baderlab.autoannotate.internal.command.ExportModelCommandTask;
 import org.baderlab.autoannotate.internal.command.LabelClusterCommandTask;
@@ -119,6 +120,7 @@ public class CyActivator extends AbstractCyActivator {
 		registerCommand(bc, "summary", SummaryNetworkCommandTask.class, "Create summary network");
 		registerCommand(bc, "export model", ExportModelCommandTask.class, "Export table model (this is for debugging)");
 		registerCommand(bc, "open", OpenDialogCommandTask.class, "Opens the AutoAnnotate Create dialog");
+		registerCommand(bc, "eminit", EMHighlightTask.class, "Used by EnrichmentMap to initialize the network");
 		
 		// CoSE layout
 		var coseLayout = injector.getInstance(CoseLayoutAlgorithm.class);

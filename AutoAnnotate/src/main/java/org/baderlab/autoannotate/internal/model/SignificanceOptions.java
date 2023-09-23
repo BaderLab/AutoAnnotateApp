@@ -98,7 +98,6 @@ public class SignificanceOptions {
 	}
 	
 	private void postEvent(Option option) {
-		var modelManager = parent.getParent().getParent().getParent();
-		modelManager.postEvent(new ModelEvents.DisplayOptionChanged(parent, option));
+		parent.postEvent(option);
 	}
 }

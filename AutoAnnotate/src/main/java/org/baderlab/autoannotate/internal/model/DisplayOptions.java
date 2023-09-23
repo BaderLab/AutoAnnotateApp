@@ -87,6 +87,8 @@ public class DisplayOptions {
 	
 	private SignificanceOptions significanceOptions = new SignificanceOptions(this);
 	
+	private int silenced = 0;
+	
 	
 	DisplayOptions(AnnotationSet parent) {
 		this.parent = parent;
@@ -141,12 +143,26 @@ public class DisplayOptions {
 		postEvent(Option.RESET);
 	}
 	
+	public void redraw() {
+		postEvent(Option.RESET);
+	}
 	
 	public AnnotationSet getParent() {
 		return parent;
 	}
 	
-	private void postEvent(Option option) {
+	public class Silencer implements AutoCloseable {
+		{ ++silenced; }
+		@Override public void close() { --silenced; }
+	};
+	
+	public Silencer silenceEvents() {
+		return new Silencer();
+	}
+	
+	protected void postEvent(Option option) {
+		if(silenced > 0)
+			return;
 		parent.getParent().getParent().postEvent(new ModelEvents.DisplayOptionChanged(this, option));
 	}
 	

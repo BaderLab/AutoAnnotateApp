@@ -73,10 +73,14 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	@Inject private ModelManager modelManager;
 	
-	private AnnotationSetBuilder builder;
-	
+
 	private final AnnotationSetTaskParamters params;
 	private boolean isCommand;
+	
+	// the result
+	private AnnotationSetBuilder builder;
+	private AnnotationSet annotationSet;
+	
 	
 	public interface Factory {
 		CreateAnnotationSetTask create(AnnotationSetTaskParamters params);
@@ -156,7 +160,7 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 		if(!params.getReturnJsonOnly()) {
 			processCreationParameters(builder, factory, labelMaker, params);
 			
-			AnnotationSet annotationSet = builder.build(); // fires ModelEvent.AnnotationSetAdded
+			annotationSet = builder.build(); // fires ModelEvent.AnnotationSetAdded
 			
 			LabelMakerManager labelManager = labelManagerProvider.get();
 			labelManager.register(annotationSet, factory, context);
@@ -387,12 +391,15 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 		if(String.class.equals(type)) {
 			return type.cast(generateCommandResponseJson());
 		}
+		if(AnnotationSet.class.equals(type)) {
+			return type.cast(annotationSet);
+		}
 		return null;
 	}
 	
 	@Override
 	public List<Class<?>> getResultClasses() {
-		return Arrays.asList(JSONResult.class);
+		return Arrays.asList(String.class, JSONResult.class, AnnotationSet.class);
 	}
 	
 	
