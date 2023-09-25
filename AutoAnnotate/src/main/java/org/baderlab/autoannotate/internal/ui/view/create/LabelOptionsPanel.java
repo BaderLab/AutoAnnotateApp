@@ -32,6 +32,8 @@ import com.google.inject.assistedinject.AssistedInject;
 
 @SuppressWarnings("serial")
 public class LabelOptionsPanel extends JPanel implements DialogPanel {
+	
+	private static final String TITLE = "Label Creation";
 
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	@Inject private Provider<CyColumnPresentationManager> presentationManagerProvider;
@@ -127,7 +129,7 @@ public class LabelOptionsPanel extends JPanel implements DialogPanel {
 			cardPanel.setCardContents(card, container);
 		}
 		
-		setBorder(LookAndFeelUtil.createTitledBorder("Label Options"));
+		setBorder(LookAndFeelUtil.createTitledBorder(TITLE));
 		setLayout(new BorderLayout());
 		add(cardPanel, BorderLayout.CENTER);
 		

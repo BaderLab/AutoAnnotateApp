@@ -22,13 +22,15 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 	private final ClusterAlgorithm algorithm;
 	private final String edgeAttribute;
 	private final Double cutoff;
+	private final Double mclInflation;
 	
 	public static interface Factory {
 		RunClusterMakerTaskFactory create(
 			CyNetwork network, 
 			ClusterAlgorithm algorithm, 
 			@Nullable String edgeAttribute,
-			@Nullable Double cutoff);
+			@Assisted("cutoff") @Nullable Double cutoff,
+			@Assisted("mcl")    @Nullable Double mclInflation);
 	}
 	
 	@AssistedInject
@@ -36,17 +38,20 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 			@Assisted CyNetwork network, 
 			@Assisted ClusterAlgorithm algorithm, 
 			@Assisted @Nullable String edgeAttribute, 
-			@Assisted @Nullable Double cutoff
+			@Assisted("cutoff") @Nullable Double cutoff,
+			@Assisted("mcl")    @Nullable Double mclInflation
 	) {
 		this.network = network;
 		this.algorithm = algorithm;
 		this.edgeAttribute = edgeAttribute;
 		this.cutoff = cutoff;
+		this.mclInflation = mclInflation;
 	}
 	
 	public TaskIterator createTaskIterator(TaskObserver taskObserver) {
 		// MKTODO In clusterMaker2 v1.3.1 the second command should no longer be needed, but we keep it for backwards compatibility
 		String clusterCommand = getClusterCommand();
+		System.out.println("clusterCommand: " + clusterCommand);
 		String networkCommand = getNetworkCommand();
 		return commandTaskFactory.createTaskIterator(taskObserver, clusterCommand, networkCommand);
 	}
@@ -60,13 +65,16 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 		String command = algorithm.getCommandName();
 		Long suid = network.getSUID();
 		
-		StringBuilder sb = new StringBuilder("cluster ").append(command)
+		StringBuilder sb = new StringBuilder("cluster ")
+			.append(command)
 			.append(" network=\"SUID:").append(suid).append('"')
 			.append(" clusterAttribute=\"").append(columnName).append('"');
 		if(algorithm.isEdgeAttributeRequired())
 			sb.append(" attribute=\"").append(edgeAttribute).append('"');
 		if(algorithm.isEdgeAttributeRequired() && cutoff != null)
 			sb.append(" edgeCutOff=\"").append(cutoff).append('"');
+		if(algorithm == ClusterAlgorithm.MCL && mclInflation != null)
+			sb.append(" inflation_parameter=\"").append(mclInflation).append('"');
 		
 		return sb.toString();
 	}

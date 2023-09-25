@@ -28,14 +28,28 @@ public class AnnotationSetTaskParamters {
 		
 		private final ClusterAlgorithm algorithm;
 		private final String edgeAttribute;
+		private final Double mclInflation;
 		
-		public ClusterMakerParameters(ClusterAlgorithm algorithm, String edgeAttribute) {
+		private ClusterMakerParameters(ClusterAlgorithm algorithm, String edgeAttribute, Double mclInflation) {
 			this.algorithm = algorithm;
 			this.edgeAttribute = edgeAttribute;
+			this.mclInflation = mclInflation;
+		}
+		
+		public ClusterMakerParameters(ClusterAlgorithm algorithm, String edgeAttribute) {
+			this(algorithm, edgeAttribute, null);
 		}
 
+		public static ClusterMakerParameters forMCL(Double mclInflation) {
+			return new ClusterMakerParameters(ClusterAlgorithm.MCL, null, mclInflation);
+		}
+		
 		public ClusterAlgorithm getAlgorithm() {
 			return algorithm;
+		}
+		
+		public Double getMCLInflation() {
+			return mclInflation;
 		}
 
 		public String getEdgeAttribute() {
@@ -44,7 +58,8 @@ public class AnnotationSetTaskParamters {
 
 		@Override
 		public String toString() {
-			return "ClusterMakerParameters[algorithm=" + algorithm + ", edgeAttribute=" + edgeAttribute + "]";
+			return "ClusterMakerParameters[algorithm=" + algorithm + ", edgeAttribute=" 
+					+ edgeAttribute + ", mclInflation=" + mclInflation + "]";
 		}
 	}
 	
@@ -198,6 +213,13 @@ public class AnnotationSetTaskParamters {
 		return null;
 	}
 	
+	public Double getMCLInflation() {
+		if(clusterParameters instanceof ClusterMakerParameters) {
+			return ((ClusterMakerParameters)clusterParameters).getMCLInflation();
+		}
+		return null;
+	}
+	
 	public boolean isUseSelected() {
 		if(clusterParameters instanceof ClusterMCODEParameters) {
 			return ((ClusterMCODEParameters)clusterParameters).isUseSelected();
@@ -239,6 +261,6 @@ public class AnnotationSetTaskParamters {
 			.add("returnJsonOnly", returnJsonOnly)
 			.toString();
 	}
-	
+
 	
 }

@@ -65,7 +65,7 @@ public class CreateAnnotationSetDialog extends JDialog implements DialogParent {
 		super(jFrame, true);
 		setTitle("AutoAnnotate: Create Annotation Set");
 		this.networkView = networkView;
-		setMinimumSize(new Dimension(500, 550));
+		setMinimumSize(new Dimension(500, 580));
 		setMaximumSize(new Dimension(700, 700));
 	}
 	

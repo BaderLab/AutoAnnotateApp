@@ -247,8 +247,9 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 		return runClusteringOnVisibleNodes(network -> {
 			var alg = params.getClusterAlgorithm();
 			var edgeAttr = params.getClusterMakerEdgeAttribute();
+			var mclInflation = params.getMCLInflation();
 			
-			var taskFactory = clusterMakerFactoryFactory.create(network, alg, edgeAttr, cutoff.orElse(null));
+			var taskFactory = clusterMakerFactoryFactory.create(network, alg, edgeAttr, cutoff.orElse(null), mclInflation);
 			var resultObserver = new RunClusterMakerResultObserver();
 			
 			var tasks = taskFactory.createTaskIterator(resultObserver);

@@ -23,11 +23,15 @@ import com.google.inject.assistedinject.AssistedInject;
 @SuppressWarnings("serial")
 public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 	
+	private static final String TITLE = "Cluster Creation";
+	
 	private static final Card CLUSTER_MAKER = new Card("clusterMaker2", "Use clusterMaker2 App");
+	private static final Card SIZE = new Card("size", "Choose cluster granularity");
 	private static final Card MCODE = new Card("MCODE", "Use MCODE App");
 	private static final Card IDS = new Card("ids", "Use column with predefined cluster IDs");
 	
 	@Inject private ClusterMakerOptionsPanel.Factory clusterMakerOptionsPanelFactory;
+	@Inject private ClusterSizeOptionsPanel.Factory clusterSizeOptionsPanelFactory;
 	@Inject private ClusterIDsOptionsPanel.Factory clusterIDsOptionsPanelFactory;
 	@Inject private ClusterMCODEOptionsPanel.Factory mcodeOptionsPanelFactory;
 	
@@ -36,6 +40,7 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 	
 	private ComboBoxCardPanel cardPanel;
 	private ClusterMakerOptionsPanel clusterMakerPanel;
+	private ClusterSizeOptionsPanel  clusterSizePanel;
 	private ClusterMCODEOptionsPanel clusterMCODEPanel;
 	private ClusterIDsOptionsPanel   clusterIDsPanel;
 	
@@ -55,22 +60,22 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 	
 	@AfterInjection
 	private void createContents() {
-		cardPanel = new ComboBoxCardPanel(CLUSTER_MAKER, MCODE, IDS);
+		cardPanel = new ComboBoxCardPanel(SIZE, CLUSTER_MAKER, MCODE, IDS);
 		cardPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		
 		clusterMakerPanel = clusterMakerOptionsPanelFactory.create(network, parent);
 		cardPanel.setCardContents(CLUSTER_MAKER, clusterMakerPanel);
+		
+		clusterSizePanel = clusterSizeOptionsPanelFactory.create(parent);
+		cardPanel.setCardContents(SIZE, clusterSizePanel);
 		
 		clusterMCODEPanel = mcodeOptionsPanelFactory.create(parent);
 		cardPanel.setCardContents(MCODE, clusterMCODEPanel);
 		
 		clusterIDsPanel = clusterIDsOptionsPanelFactory.create(network);
 		cardPanel.setCardContents(IDS, clusterIDsPanel);
-		cardPanel.addCardChangeListener(card -> parent.updateOkButton());
 		
-		clusterMakerPanel.setOpaque(false);
-		clusterMCODEPanel.setOpaque(false);
-		clusterIDsPanel.setOpaque(false);
+		cardPanel.addCardChangeListener(card -> parent.updateOkButton());
 		
 		singletonCheckBox = new JCheckBox("Create singleton clusters");
 		singletonCheckBox.setToolTipText("Nodes not included in a cluster will be annotated as a singleton cluster.");
@@ -84,7 +89,7 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 		checkBoxPanel.add(new JLabel(""), GBCFactory.grid(1,0).weightx(1.0).get());
 		checkBoxPanel.add(layoutCheckBox, GBCFactory.grid(0,1).get());
 		
-		setBorder(LookAndFeelUtil.createTitledBorder("Cluster Options"));
+		setBorder(LookAndFeelUtil.createTitledBorder(TITLE));
 		setLayout(new BorderLayout());
 		add(cardPanel, BorderLayout.CENTER);
 		add(checkBoxPanel, BorderLayout.SOUTH);
@@ -94,11 +99,14 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 	@Override
 	public void onShow() {
 		clusterMakerPanel.onShow();
+		clusterSizePanel.onShow();
 		clusterMCODEPanel.onShow();
 		clusterIDsPanel.onShow();
 		
 		singletonCheckBox.setVisible(true);
 		layoutCheckBox.setVisible(true);
+		
+		// TODO What about other panels?
 		if(!clusterMakerPanel.isReady()) {
 			singletonCheckBox.setVisible(false);
 			layoutCheckBox.setVisible(false);
@@ -108,6 +116,7 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 	@Override
 	public void reset() {
 		clusterMakerPanel.reset();
+		clusterSizePanel.reset();
 		clusterMCODEPanel.reset();
 		clusterIDsPanel.reset();
 		
@@ -121,6 +130,8 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 		
 		if(card == CLUSTER_MAKER)
 			return clusterMakerPanel.isReady();
+		else if(card == SIZE)
+			return clusterSizePanel.isReady();
 		else if(card == MCODE)
 			return clusterMCODEPanel.isReady();
 		else if(card == IDS)
@@ -142,6 +153,8 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 		
 		if(card == CLUSTER_MAKER)
 			return clusterMakerPanel.getClusterParameters();
+		else if(card == SIZE)
+			return clusterSizePanel.getClusterParameters();
 		else if(card == MCODE)
 			return clusterMCODEPanel.getClusterParameters();
 		else if(card == IDS)

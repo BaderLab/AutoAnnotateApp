@@ -118,6 +118,7 @@ public class ComboBoxCardPanel extends JPanel {
 	}
 	
 	public void setCardContents(Card card, JPanel contents) {
+		contents.setOpaque(false);
 		JPanel cardPanel = cardPanels.get(card.id);
 		cardPanel.setLayout(new BorderLayout());
 		cardPanel.add(contents, BorderLayout.CENTER);
