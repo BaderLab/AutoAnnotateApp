@@ -63,7 +63,7 @@ public class UpdateClustersTask extends AbstractTask {
 	
 	
 	private boolean maybeUpdateOneCluster(Cluster cluster) {
-		if(cluster.isCollapsed() || cluster.getHighlightedNode() == null || HiddenTools.hasHiddenNodes(cluster)) {
+		if(cluster.isCollapsed() || HiddenTools.hasHiddenNodes(cluster)) {
 			return false;
 		}
 		
@@ -84,6 +84,7 @@ public class UpdateClustersTask extends AbstractTask {
 					ArgsLabel args = argsLabels.get(i);
 					args.updateAnnotation(text);
 				}
+				return true;
 			}
 		}
 		
