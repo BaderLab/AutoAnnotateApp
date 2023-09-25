@@ -22,6 +22,7 @@ import org.cytoscape.application.swing.CyColumnComboBox;
 import org.cytoscape.application.swing.CyColumnPresentationManager;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.view.model.CyNetworkViewManager;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -36,6 +37,7 @@ public class ClusterMakerOptionsPanel extends JPanel implements DialogPanel {
 	@Inject private InstallWarningPanel.Factory installWarningPanelFactory;
 	@Inject private Provider<CyColumnPresentationManager> presentationManagerProvider;
 	@Inject private DependencyChecker dependencyChecker;
+	@Inject private CyNetworkViewManager networkViewManager;
 	
 	private JComboBox<ComboItem<ClusterAlgorithm>> algorithmNameCombo;
 	private CyColumnComboBox edgeWeightColumnCombo;
@@ -95,6 +97,7 @@ public class ClusterMakerOptionsPanel extends JPanel implements DialogPanel {
 		add(warnPanel, BorderLayout.CENTER);
 	}
 	
+	
 	@Override
 	public void onShow() {
 		ready = dependencyChecker.isClusterMakerInstalled();
@@ -106,6 +109,9 @@ public class ClusterMakerOptionsPanel extends JPanel implements DialogPanel {
 		List<CyColumn> edgeWeightColumns = CreateViewUtil.getColumnsOfType(network, Number.class, false, false);
 		edgeWeightColumns.add(0, null); // add the "-- None --" option at the front
 		CreateViewUtil.updateColumnCombo(edgeWeightColumnCombo, edgeWeightColumns);
+		
+		var defaultEdgeAttr = QuickModeTab.getDefaultClusterMakerEdgeAttribute(network);
+		defaultEdgeAttr.ifPresent(edgeWeightColumnCombo::setSelectedItem);
 	}
 	
 	@Override

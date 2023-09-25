@@ -66,7 +66,7 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 		clusterMakerPanel = clusterMakerOptionsPanelFactory.create(network, parent);
 		cardPanel.setCardContents(CLUSTER_MAKER, clusterMakerPanel);
 		
-		clusterSizePanel = clusterSizeOptionsPanelFactory.create(parent);
+		clusterSizePanel = clusterSizeOptionsPanelFactory.create(network, parent);
 		cardPanel.setCardContents(SIZE, clusterSizePanel);
 		
 		clusterMCODEPanel = mcodeOptionsPanelFactory.create(parent);

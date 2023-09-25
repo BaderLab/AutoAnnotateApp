@@ -40,8 +40,8 @@ public class AnnotationSetTaskParamters {
 			this(algorithm, edgeAttribute, null);
 		}
 
-		public static ClusterMakerParameters forMCL(Double mclInflation) {
-			return new ClusterMakerParameters(ClusterAlgorithm.MCL, null, mclInflation);
+		public static ClusterMakerParameters forMCL(String edgeAttribute, Double mclInflation) {
+			return new ClusterMakerParameters(ClusterAlgorithm.MCL, edgeAttribute, mclInflation);
 		}
 		
 		public ClusterAlgorithm getAlgorithm() {

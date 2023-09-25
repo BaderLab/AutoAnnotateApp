@@ -12,6 +12,8 @@ import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters.ClusterMakerParameters;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
+import org.cytoscape.model.CyColumn;
+import org.cytoscape.model.CyNetwork;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -23,6 +25,7 @@ public class ClusterSizeOptionsPanel extends JPanel implements DialogPanel {
 	@Inject private InstallWarningPanel.Factory installWarningPanelFactory;
 	@Inject private DependencyChecker dependencyChecker;
 	
+	private final CyNetwork network;
 	private final DialogParent parent;
 	
 	private ClusterSizeSlider clusterSizeSlider;
@@ -31,11 +34,12 @@ public class ClusterSizeOptionsPanel extends JPanel implements DialogPanel {
 	private InstallWarningPanel warnPanel;
 	
 	public interface Factory {
-		ClusterSizeOptionsPanel create(DialogParent parent);
+		ClusterSizeOptionsPanel create(CyNetwork network, DialogParent parent);
 	}
 
 	@AssistedInject
-	private ClusterSizeOptionsPanel(@Assisted DialogParent parent) {
+	private ClusterSizeOptionsPanel(@Assisted CyNetwork network, @Assisted DialogParent parent) {
+		this.network = network;
 		this.parent = parent;
 	}
 	
@@ -80,12 +84,15 @@ public class ClusterSizeOptionsPanel extends JPanel implements DialogPanel {
 		warnPanel.showWarning(!ready);
 	}
 	
-	public Double getMCLGranularity() {
+	public Double getMCLInflation() {
 		return clusterSizeSlider.getTickValue();
 	}
 	
 	public ClusterMakerParameters getClusterParameters() {
-		return ClusterMakerParameters.forMCL(getMCLGranularity());
+		var defEdgeAttr = QuickModeTab.getDefaultClusterMakerEdgeAttribute(network);
+		var edgeAttr = defEdgeAttr.map(CyColumn::getName).orElse(null);
+		var inflation = getMCLInflation();
+		return ClusterMakerParameters.forMCL(edgeAttr, inflation);
 	}
 	
 }

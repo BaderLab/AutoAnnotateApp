@@ -25,6 +25,7 @@ import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CyColumnComboBox;
 import org.cytoscape.application.swing.CyColumnPresentationManager;
 import org.cytoscape.model.CyColumn;
+import org.cytoscape.model.CyNetwork;
 import org.cytoscape.view.model.CyNetworkView;
 
 import com.google.inject.Inject;
@@ -163,9 +164,8 @@ public class QuickModeTab extends JPanel implements DialogTab {
 		return ((SpinnerNumberModel)spinner.getModel()).getNumber().intValue();
 	}
 	
-	
-	private Optional<CyColumn> getDefaultClusterMakerEdgeAttribute() {
-		List<CyColumn> columns = CreateViewUtil.getColumnsOfType(networkView.getModel(), Number.class, false, false);
+	public static Optional<CyColumn> getDefaultClusterMakerEdgeAttribute(CyNetwork network) {
+		List<CyColumn> columns = CreateViewUtil.getColumnsOfType(network, Number.class, false, false);
 		return columns.stream().filter(c -> c.getName().endsWith(EM_SIMILARITY_COLUMN_SUFFIX)).findAny();
 	}
 	
@@ -173,7 +173,7 @@ public class QuickModeTab extends JPanel implements DialogTab {
 	public AnnotationSetTaskParamters createAnnotationSetTaskParameters() {
 		LabelMakerFactory<?> labelMakerFactory = labelManagerProvider.get().getDefaultFactory();
 		Object labelMakerContext = labelMakerFactory.getDefaultContext();
-		String edgeAttribute = getDefaultClusterMakerEdgeAttribute().map(CyColumn::getName).orElse(null);
+		String edgeAttribute = getDefaultClusterMakerEdgeAttribute(networkView.getModel()).map(CyColumn::getName).orElse(null);
 		
 		AnnotationSetTaskParamters.Builder builder = 
 			new AnnotationSetTaskParamters.Builder(networkView)
