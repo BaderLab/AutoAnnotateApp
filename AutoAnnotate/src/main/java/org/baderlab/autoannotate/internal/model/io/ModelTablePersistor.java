@@ -367,6 +367,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			var disp = as.getDisplayOptions();
 			var palette = disp.getFillColorPalette();
 			var sigOpts = disp.getSignificanceOptions();
+			var sig = sigOpts.getSignificance();
 			
 			asRow.set(NAME, as.getName());
 			asRow.set(NETWORK_VIEW_SUID, as.getParent().getNetworkView().getSUID());
@@ -390,7 +391,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			asRow.set(WORD_WRAP, disp.isUseWordWrap());
 			asRow.set(WORD_WRAP_LENGTH, disp.getWordWrapLength());
 			asRow.set(SIGNIFICANCE_COLUMN, sigOpts.getSignificanceColumn());
-			asRow.set(SIGNIFICANCE_METRIC, sigOpts.getSignificance().name());
+			asRow.set(SIGNIFICANCE_METRIC, sig == null ? null : sig.name());
 			asRow.set(SIGNIFICANCE_EM_DATASET, sigOpts.getEMDataSet());
 			asRow.set(SIGNIFICANCE_USE_EM, sigOpts.isEM());
 			asRow.set(SIGNIFICANCE_HIGHLIGHT, sigOpts.getHighlight().name());
