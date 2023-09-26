@@ -26,7 +26,7 @@ public class ClusterOptionsPanel extends JPanel implements DialogPanel {
 	private static final String TITLE = "Cluster Creation";
 	
 	private static final Card CLUSTER_MAKER = new Card("clusterMaker2", "Use clusterMaker2 App");
-	private static final Card SIZE = new Card("size", "Choose cluster granularity");
+	private static final Card SIZE = new Card("size", "Choose amount of clusters");
 	private static final Card MCODE = new Card("MCODE", "Use MCODE App");
 	private static final Card IDS = new Card("ids", "Use column with predefined cluster IDs");
 	

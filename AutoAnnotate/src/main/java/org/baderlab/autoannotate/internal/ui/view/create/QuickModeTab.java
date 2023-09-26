@@ -9,14 +9,10 @@ import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
-import org.baderlab.autoannotate.internal.model.ClusterAlgorithm;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters.ClusterMakerParameters;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
@@ -35,7 +31,6 @@ import com.google.inject.assistedinject.Assisted;
 @SuppressWarnings("serial")
 public class QuickModeTab extends JPanel implements DialogTab {
 
-	private static final ClusterAlgorithm DEFAULT_CLUSTER_ALG = ClusterAlgorithm.MCL;
 	private static final String EM_SIMILARITY_COLUMN_SUFFIX = "similarity_coefficient";
 	
 	private final CyNetworkView networkView;
@@ -46,10 +41,8 @@ public class QuickModeTab extends JPanel implements DialogTab {
 	@Inject private InstallWarningPanel.Factory installWarningPanelFactory;
 	@Inject private DependencyChecker dependencyChecker;
 	
-	private JRadioButton clusterAllRadio;
-	private JRadioButton clusterMaxRadio;
+	private ClusterSizeSlider clusterSlider;
 	private JCheckBox layoutCheckBox;
-	private JSpinner spinner;
 	private CyColumnComboBox labelCombo;
 	
 	private InstallWarningPanel warnPanel;
@@ -68,16 +61,7 @@ public class QuickModeTab extends JPanel implements DialogTab {
 	
 	@AfterInjection
 	private void createContents() {
-		JPanel parentPanel = new JPanel(new GridBagLayout());
-		parentPanel.setOpaque(false);
-		
-		JPanel clusterPanel = createClusterPanel();
-		clusterPanel.setOpaque(false);
-		parentPanel.add(clusterPanel, GBCFactory.grid(0,0).get());
-		
-		JPanel labelPanel = createLabelPanel();
-		labelPanel.setOpaque(false);
-		parentPanel.add(labelPanel, GBCFactory.grid(0,1).weightx(1.0).get());
+		var parentPanel = createParentPanel();
 		
 		warnPanel = installWarningPanelFactory.create(parentPanel, DependencyChecker.CLUSTERMAKER);
 		warnPanel.setOnClickHandler(() -> parent.close());
@@ -89,49 +73,39 @@ public class QuickModeTab extends JPanel implements DialogTab {
 	}
 	
 	
-	private JPanel createClusterPanel() {
-		JPanel clusterPanel = new JPanel(new GridBagLayout());
-		clusterPanel.setBorder(BorderFactory.createEmptyBorder(14,10,10,10));
-		clusterPanel.setOpaque(false);
+	private JPanel createParentPanel() {
+		JLabel clusterIdLabel = new JLabel("   Amount of clusters:    ");
+		clusterSlider = new ClusterSizeSlider(ClusterSizeOptionsPanel.MCL_INFLATION_VALUES);
 		
-		clusterMaxRadio = new JRadioButton("Max number of annotations");
-		clusterAllRadio = new JRadioButton("Annotate entire network");
-		clusterMaxRadio.setToolTipText("Annotate only the top X largest clusters in the network");
-		SwingUtil.groupButtons(clusterAllRadio, clusterMaxRadio);
-		clusterAllRadio.setSelected(true);
-		
-		spinner = new JSpinner(new SpinnerNumberModel(10, 1, 100, 1));
-		layoutCheckBox = new JCheckBox("Layout network to minimize cluster overlap");
-		SwingUtil.makeSmall(clusterMaxRadio, clusterAllRadio, spinner, layoutCheckBox);
-		spinner.setEnabled(false);
-		
-		clusterAllRadio.addActionListener(e -> spinner.setEnabled(clusterMaxRadio.isSelected()));
-		clusterMaxRadio.addActionListener(e -> spinner.setEnabled(clusterMaxRadio.isSelected()));
-		
-		clusterPanel.add(clusterAllRadio, GBCFactory.grid(0,0).get());
-		clusterPanel.add(clusterMaxRadio, GBCFactory.grid(0,1).get());
-		clusterPanel.add(spinner, GBCFactory.grid(1,1).get());
-		clusterPanel.add(new JLabel(""), GBCFactory.grid(2,1).weightx(1.0).get());
-		clusterPanel.add(new JLabel(" "), GBCFactory.grid(0,2).get());
-		clusterPanel.add(layoutCheckBox, GBCFactory.grid(0,3).gridwidth(3).get());
-		return clusterPanel;
-	}
-	
-	
-	private JPanel createLabelPanel() {
-		JPanel labelPanel = new JPanel(new GridBagLayout());
-		labelPanel.setBorder(BorderFactory.createEmptyBorder(14,10,10,10));
-		labelPanel.setOpaque(false);
-		
-		JLabel label = new JLabel("Label Column:");
+		JLabel labelLabel = new JLabel("   Label Column:");
 		labelCombo = CreateViewUtil.createLabelColumnCombo(presentationManagerProvider.get(), networkView.getModel());
-		SwingUtil.makeSmall(label, labelCombo);
 		
-		labelPanel.add(label, GBCFactory.grid(0,0).get());
-		labelPanel.add(labelCombo, GBCFactory.grid(1,0).weightx(1.0).get());
+		layoutCheckBox = new JCheckBox("Layout network to minimize cluster overlap");
 		
-		return labelPanel;
+		SwingUtil.makeSmall(labelLabel, labelCombo, clusterIdLabel, layoutCheckBox);
+		
+		JPanel parentPanel = new JPanel(new GridBagLayout());
+		parentPanel.setOpaque(false);
+		
+		parentPanel.add(createSpacer(), GBCFactory.grid(0,0).get());
+		parentPanel.add(clusterIdLabel, GBCFactory.grid(0,1).get());
+		parentPanel.add(clusterSlider,  GBCFactory.grid(1,1).get());
+		parentPanel.add(createSpacer(), GBCFactory.grid(0,2).get());
+		parentPanel.add(labelLabel,     GBCFactory.grid(0,3).get());
+		parentPanel.add(labelCombo,     GBCFactory.grid(1,3).weightx(1.0).get());
+		parentPanel.add(createSpacer(), GBCFactory.grid(0,4).get());
+		parentPanel.add(layoutCheckBox, GBCFactory.grid(0,5).gridwidth(2).get());
+		
+		return parentPanel;
 	}
+	
+	
+	private static JLabel createSpacer() {
+		JLabel label = new JLabel(" ");
+		label.setBorder(BorderFactory.createEmptyBorder(12, 0, 0, 0));
+		return label;
+	}
+	
 	
 	@Override
 	public void onShow() {
@@ -145,8 +119,6 @@ public class QuickModeTab extends JPanel implements DialogTab {
 	
 	@Override
 	public void reset() {
-		spinner.setValue(10);
-		clusterAllRadio.setSelected(true);
 		layoutCheckBox.setSelected(false);
 		CreateViewUtil.setLabelColumnDefault(labelCombo);
 	}
@@ -160,10 +132,6 @@ public class QuickModeTab extends JPanel implements DialogTab {
 		return labelCombo.getSelectedItem();
 	}
 	
-	private int getMaxClusters() {
-		return ((SpinnerNumberModel)spinner.getModel()).getNumber().intValue();
-	}
-	
 	public static Optional<CyColumn> getDefaultClusterMakerEdgeAttribute(CyNetwork network) {
 		List<CyColumn> columns = CreateViewUtil.getColumnsOfType(network, Number.class, false, false);
 		return columns.stream().filter(c -> c.getName().endsWith(EM_SIMILARITY_COLUMN_SUFFIX)).findAny();
@@ -175,18 +143,15 @@ public class QuickModeTab extends JPanel implements DialogTab {
 		Object labelMakerContext = labelMakerFactory.getDefaultContext();
 		String edgeAttribute = getDefaultClusterMakerEdgeAttribute(networkView.getModel()).map(CyColumn::getName).orElse(null);
 		
+		var clusterParams = ClusterMakerParameters.forMCL(edgeAttribute, clusterSlider.getValue());
+		
 		AnnotationSetTaskParamters.Builder builder = 
 			new AnnotationSetTaskParamters.Builder(networkView)
 			.setLabelColumn(getLabelColumn().getName())
-			.setClusterParameters(new ClusterMakerParameters(DEFAULT_CLUSTER_ALG, edgeAttribute))
+			.setClusterParameters(clusterParams)
 			.setLabelMakerFactory(labelMakerFactory)
 			.setLabelMakerContext(labelMakerContext)
 			.setLayoutClusters(layoutCheckBox.isSelected());
-		
-		if(clusterAllRadio.isSelected())
-			builder.setCreateSingletonClusters(true);
-		else
-			builder.setMaxClusters(getMaxClusters());
 		
 		return builder.build();
 	}

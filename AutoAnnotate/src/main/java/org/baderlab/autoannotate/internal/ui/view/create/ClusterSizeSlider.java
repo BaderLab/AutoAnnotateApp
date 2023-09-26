@@ -16,13 +16,18 @@ public class ClusterSizeSlider extends JPanel {
 
 	private JSlider slider;
 	private final int defaultTick;
-	private final List<Double> inflationValues;
+	private final List<Double> values;
 	
-	public ClusterSizeSlider(List<Double> inflationValues, int defaultTick) {
+	
+	public ClusterSizeSlider(List<Double> values) {
+		this(values, values.size() / 2 + 1);
+	}
+	
+	public ClusterSizeSlider(List<Double> values, int defaultTick) {
 		this.defaultTick = defaultTick;
-		this.inflationValues = new ArrayList<>(inflationValues);
+		this.values = new ArrayList<>(values);
 		
-		slider = new JSlider(1, inflationValues.size(), defaultTick);
+		slider = new JSlider(1, values.size(), defaultTick);
 		slider.setMajorTickSpacing(1);
 		slider.setSnapToTicks(true);
 		slider.setPaintTicks(true);
@@ -33,21 +38,23 @@ public class ClusterSizeSlider extends JPanel {
 		
 		Hashtable<Integer,JLabel> labelTable = new Hashtable<>();
 		labelTable.put(1, sparseLabel);
-		labelTable.put(inflationValues.size(), denseLabel);
+		labelTable.put(values.size(), denseLabel);
 		
 		slider.setLabelTable(labelTable);
 		slider.setPaintLabels(true);
 		
 		setLayout(new BorderLayout());
 		add(slider, BorderLayout.SOUTH);
+		
+		setOpaque(false);
 	}
 	
 	public void setTick(int tick) {
 		slider.setValue(tick);
 	}
 	
-	public Double getTickValue() {
-		return inflationValues.get(slider.getValue()-1);
+	public Double getValue() {
+		return values.get(slider.getValue()-1);
 	}
 	
 	public void reset() {

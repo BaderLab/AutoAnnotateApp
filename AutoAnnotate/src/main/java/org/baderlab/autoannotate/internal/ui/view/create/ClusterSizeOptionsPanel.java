@@ -21,6 +21,8 @@ import com.google.inject.assistedinject.AssistedInject;
 
 @SuppressWarnings("serial")
 public class ClusterSizeOptionsPanel extends JPanel implements DialogPanel {
+	
+	public static final List<Double> MCL_INFLATION_VALUES = List.of(0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5);
 
 	@Inject private InstallWarningPanel.Factory installWarningPanelFactory;
 	@Inject private DependencyChecker dependencyChecker;
@@ -45,11 +47,9 @@ public class ClusterSizeOptionsPanel extends JPanel implements DialogPanel {
 	
 	@AfterInjection
 	private void createContents() {
-		JLabel clusterIdLabel = new JLabel("   Amount of clusters:  ");
+		JLabel clusterIdLabel = new JLabel("   Amount of clusters:    ");
 		
-		var mclInflationValues = List.of(0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5);
-		clusterSizeSlider = new ClusterSizeSlider(mclInflationValues, 4);
-		clusterSizeSlider.setOpaque(false);
+		clusterSizeSlider = new ClusterSizeSlider(MCL_INFLATION_VALUES);
 		
 		SwingUtil.makeSmall(clusterIdLabel);
 		
@@ -85,7 +85,7 @@ public class ClusterSizeOptionsPanel extends JPanel implements DialogPanel {
 	}
 	
 	public Double getMCLInflation() {
-		return clusterSizeSlider.getTickValue();
+		return clusterSizeSlider.getValue();
 	}
 	
 	public ClusterMakerParameters getClusterParameters() {
