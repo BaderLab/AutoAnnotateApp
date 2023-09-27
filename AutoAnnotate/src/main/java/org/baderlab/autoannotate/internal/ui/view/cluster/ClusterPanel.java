@@ -43,6 +43,7 @@ import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
+import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
 import org.baderlab.autoannotate.internal.model.ModelEvents.NetworkViewSetChanged.Type;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
@@ -139,6 +140,13 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		}
 	}
 	
+	@Subscribe
+	public void handle(ModelEvents.DisplayOptionChanged event) {
+		var option = event.getOption();
+		if(option == Option.OPACITY || option == Option.SHOW_CLUSTERS || option == Option.FILL_COLOR) {
+			clusterThumbnailListener.valueChanged(null);
+		}
+	}
 	
 	@Subscribe
 	public void handle(ModelEvents.AnnotationSetChanged event) {
@@ -207,6 +215,8 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		
 		selectionModel.addListSelectionListener(clusterSelectionListener);
 		selectionModel.addListSelectionListener(clusterThumbnailListener);
+		
+		clusterThumbnailListener.valueChanged(null);
 	}
 	
 	@AfterInjection
@@ -405,10 +415,12 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		JPanel panel = new JPanel();
 		
 		JLabel clusterTitleLabel = new JLabel();
+		clusterTitleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 4, 0));
 		JLabel clusterIconLabel = new JLabel();
 		clusterIconLabel.setIcon(thumbnailRenderer.getEmptyIcon());
 		clusterIconLabel.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));
 		JLabel clusterStatusLabel = new JLabel();
+		clusterStatusLabel.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
 		
 		LookAndFeelUtil.makeSmall(clusterStatusLabel);
 

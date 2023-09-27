@@ -37,6 +37,7 @@ import org.cytoscape.view.presentation.annotations.AnnotationManager;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
 import org.cytoscape.view.vizmap.VisualMappingManager;
+import org.cytoscape.view.vizmap.VisualStyleFactory;
 import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.swing.DialogTaskManager;
 import org.cytoscape.work.swing.PanelTaskManager;
@@ -87,6 +88,7 @@ public class CytoscapeServiceModule extends AbstractModule {
 		bindService(PanelTaskManager.class);
 		bindService(PaletteProviderManager.class);
 		bindService(NetworkImageFactory.class);
+		bindService(VisualStyleFactory.class);
 		
 		bindService(DialogTaskManager.class);
 		TypeLiteral<SynchronousTaskManager<?>> synchronousManager = new TypeLiteral<SynchronousTaskManager<?>>(){};
