@@ -4,9 +4,9 @@ import static org.baderlab.autoannotate.internal.util.TaskTools.allFinishedObser
 import static org.baderlab.autoannotate.internal.util.TaskTools.taskOf;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -16,9 +16,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.GroupLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -31,6 +32,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
 import javax.swing.SortOrder;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
@@ -46,6 +48,7 @@ import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
 import org.baderlab.autoannotate.internal.task.Grouping;
+import org.baderlab.autoannotate.internal.ui.render.ClusterThumbnailRenderer;
 import org.baderlab.autoannotate.internal.ui.view.action.RedrawAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.baderlab.autoannotate.internal.util.ComboItem;
@@ -54,6 +57,7 @@ import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.model.CyDisposable;
 import org.cytoscape.util.swing.IconManager;
+import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskObserver;
 import org.cytoscape.work.swing.DialogTaskManager;
@@ -70,6 +74,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	@Inject private ModelManager modelManager;
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private IconManager iconManager;
+	@Inject private ClusterThumbnailRenderer thumbnailRenderer;
 	
 	@Inject private CollapseAllTaskFactory.Factory collapseTaskFactoryFactory;
 	@Inject private Provider<ClusterTableSelectionListener> selectionListenerProvider;
@@ -82,6 +87,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	private JTable clusterTable;
 	private ItemListener itemListener;
 	private ClusterTableSelectionListener clusterSelectionListener;
+	private ListSelectionListener clusterThumbnailListener;
 	
 	private EventBus eventBus;
 	
@@ -188,6 +194,8 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		ClusterTableModel tableModel = (ClusterTableModel)clusterTable.getModel();
 		
 		selectionModel.removeListSelectionListener(clusterSelectionListener);
+		selectionModel.removeListSelectionListener(clusterThumbnailListener);
+		
 		selectionModel.clearSelection();
 		for(Cluster cluster : event.getClusters()) {
 			int modelIndex = tableModel.rowIndexOf(cluster);
@@ -196,7 +204,9 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 				selectionModel.addSelectionInterval(viewIndex, viewIndex);
 			}
 		}
+		
 		selectionModel.addListSelectionListener(clusterSelectionListener);
+		selectionModel.addListSelectionListener(clusterThumbnailListener);
 	}
 	
 	@AfterInjection
@@ -205,7 +215,9 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		
 		JPanel comboPanel = createComboPanel();
 		JPanel tablePanel = createTablePanel();
-		JPanel infoPanel  = createInfoPanel();
+		JPanel infoPanel  = createClusterInfoPanel();
+		
+		infoPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		
 		add(comboPanel, BorderLayout.NORTH);
 		add(tablePanel, BorderLayout.CENTER);
@@ -271,7 +283,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		int widths[] = getColumnWidths(clusterTable);
 		clusterTable.setModel(clusterModel);
 		setColumnWidths(clusterTable, widths);
-		TableColumn collapsedColumn = clusterTable.getColumnModel().getColumn(ClusterTableModel.COLLAPSED_COLUMN_INDEX);
+		TableColumn collapsedColumn = clusterTable.getColumnModel().getColumn(ClusterTableModel.COLLAPSED_COL);
 		collapsedColumn.setCellRenderer(new ClusterTableCollapsedCellRenderer(iconManager));
 		
 		
@@ -279,8 +291,8 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		TableRowSorter<TableModel> sorter = new TableRowSorter<>(clusterTable.getModel());
 		clusterTable.setRowSorter(sorter);
 		List<SortKey> sortKeys = new ArrayList<>(2);
-		sortKeys.add(new RowSorter.SortKey(ClusterTableModel.NODES_COLUMN_INDEX, SortOrder.DESCENDING));
-		sortKeys.add(new RowSorter.SortKey(ClusterTableModel.CLUSTER_COLUMN_INDEX, SortOrder.ASCENDING));
+		sortKeys.add(new RowSorter.SortKey(ClusterTableModel.NODES_COL, SortOrder.DESCENDING));
+		sortKeys.add(new RowSorter.SortKey(ClusterTableModel.CLUSTER_COL, SortOrder.ASCENDING));
 		sorter.setSortKeys(sortKeys);
 		sorter.sort();
 	}
@@ -357,7 +369,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		clusterSelectionListener = selectionListenerProvider.get().init(clusterTable);
 		clusterTable.getSelectionModel().addListSelectionListener(clusterSelectionListener);
 		clusterTable.setAutoCreateRowSorter(true);
-		TableColumn collapsedColumn = clusterTable.getColumnModel().getColumn(ClusterTableModel.COLLAPSED_COLUMN_INDEX);
+		TableColumn collapsedColumn = clusterTable.getColumnModel().getColumn(ClusterTableModel.COLLAPSED_COL);
 		collapsedColumn.setCellRenderer(new ClusterTableCollapsedCellRenderer(iconManager));
 		
 		clusterTable.addMouseListener(new MouseAdapter() {
@@ -389,43 +401,67 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	}
 
 	
-	private JPanel createInfoPanel() {
-		JPanel panel = new JPanel(new BorderLayout());
+	private JPanel createClusterInfoPanel() {
+		JPanel panel = new JPanel();
 		
-		JLabel infoLabel = new JLabel();
-		Font font = infoLabel.getFont();
-		Font smaller = font.deriveFont(((float)font.getSize()) - 2.0f);
-		infoLabel.setFont(smaller);
+		JLabel clusterTitleLabel = new JLabel();
+		JLabel clusterIconLabel = new JLabel();
+		clusterIconLabel.setIcon(thumbnailRenderer.getEmptyIcon());
+		clusterIconLabel.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));
+		JLabel clusterStatusLabel = new JLabel();
 		
-		BiConsumer<Integer,Integer> updator = (clusters, selected) -> {
-			if(clusters == 1)
-				infoLabel.setText(clusters + " cluster, " + selected + " selected");
-			else
-				infoLabel.setText(clusters + " clusters, " + selected + " selected");
+		LookAndFeelUtil.makeSmall(clusterStatusLabel);
+
+		clusterThumbnailListener = evt -> {
+			System.out.println("clusterSelectionHandler");
+			Cluster cluster = getSelectedCluster();
+			if(cluster == null) {
+				clusterTitleLabel.setText("");
+				clusterIconLabel.setIcon(thumbnailRenderer.getEmptyIcon());
+				clusterStatusLabel.setText("");
+			} else {
+				Icon icon = thumbnailRenderer.getThumbnailIcon(cluster);
+				String statusText = getStatusText(cluster);
+				clusterTitleLabel.setText(cluster.getLabel());
+				clusterIconLabel.setIcon(icon);
+				clusterStatusLabel.setText(statusText);
+			}
 		};
 		
-		clusterTable.getSelectionModel().addListSelectionListener(evt -> {
-			int clusters = clusterTable.getRowCount();
-			int selected = clusterTable.getSelectedRowCount();
-			updator.accept(clusters, selected);
-		});
+		clusterTable.getSelectionModel().addListSelectionListener(clusterThumbnailListener);
+//		clusterTable.addPropertyChangeListener("model", evt -> clusterSelectionHandler.run());
 		
-		// Can't use a TableModelListener because I swap out the ClusterTableModel whenever the AnnotationSet changes.
-		clusterTable.addPropertyChangeListener("model", evt -> {
-			ClusterTableModel model = (ClusterTableModel)evt.getNewValue();
-			int clusters = model.getRowCount();
-			int selected = clusterTable.getSelectedRowCount(); // is this always zero?
-			updator.accept(clusters, selected);
-		});
+		var layout = new GroupLayout(panel);
+		panel.setLayout(layout);
+		layout.setAutoCreateContainerGaps(false);
+		layout.setAutoCreateGaps(!LookAndFeelUtil.isAquaLAF());
 		
-		panel.add(infoLabel, BorderLayout.WEST);
+		layout.setHorizontalGroup(layout.createParallelGroup()
+			.addComponent(clusterTitleLabel)
+			.addComponent(clusterIconLabel)
+			.addComponent(clusterStatusLabel)
+   		);
+		
+   		layout.setVerticalGroup(layout.createSequentialGroup()
+			.addComponent(clusterTitleLabel)
+			.addComponent(clusterIconLabel)
+			.addComponent(clusterStatusLabel)
+   		);
+		
 		return panel;
 	}
 	
+	private static String getStatusText(Cluster cluster) {
+		int nodes = cluster.getNodeCount();
+		int edges = cluster.getEdgeCount();
+		var nodesText = nodes == 1 ? "1 node" : nodes + " nodes";
+		var edgesText = edges == 1 ? "1 edge" : edges + " edges";
+		return nodesText + ", " + edgesText;
+	}
 	
 	
 	private List<Cluster> getSelectedClusters() {
-		ClusterTableModel model = (ClusterTableModel) clusterTable.getModel();
+		var model = (ClusterTableModel) clusterTable.getModel();
 		int[] rows = clusterTable.getSelectedRows();
 		List<Cluster> clusters = new ArrayList<>(rows.length);
 		for(int i : rows) {
@@ -436,6 +472,17 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		return clusters;
 	}
 	
+	
+	private Cluster getSelectedCluster() {
+		int rowIndex = clusterTable.getSelectedRow();
+		if(rowIndex >= 0) {
+			var model = (ClusterTableModel) clusterTable.getModel();
+			int modelIndex = clusterTable.convertRowIndexToModel(rowIndex);
+			return model.getCluster(modelIndex);
+		}
+		return null;
+	}
+
 	
 	private void showAnnotationSetPopupMenu(ActionEvent event) {
 		Optional<AnnotationSet> as = Optional.empty();

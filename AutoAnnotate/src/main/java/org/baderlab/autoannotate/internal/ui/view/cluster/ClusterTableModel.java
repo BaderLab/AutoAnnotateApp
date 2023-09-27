@@ -1,7 +1,6 @@
 package org.baderlab.autoannotate.internal.ui.view.cluster;
 
 import java.util.ArrayList;
-import java.util.function.Function;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -11,15 +10,9 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 @SuppressWarnings("serial")
 public class ClusterTableModel extends AbstractTableModel {
 	
-	public static final int CLUSTER_COLUMN_INDEX = 0;
-	public static final int NODES_COLUMN_INDEX = 1;
-	public static final int COLLAPSED_COLUMN_INDEX = 2;
-	
-	private Column[] columns = {
-		new Column("Cluster",   String.class,  Cluster::getLabel),
-		new Column("Nodes",     Integer.class, Cluster::getExpandedNodeCount),
-		new Column("Collapsed", Boolean.class, Cluster::isCollapsed)
-	};
+	public static final int CLUSTER_COL = 0;
+	public static final int NODES_COL = 1;
+	public static final int COLLAPSED_COL = 2;
 	
 	private final AnnotationSet annotationSet;
 	private final ArrayList<Cluster> clusters;
@@ -74,22 +67,37 @@ public class ClusterTableModel extends AbstractTableModel {
 	@Override
 	public Object getValueAt(int row, int col) {
 		Cluster cluster = clusters.get(row);
-		return columns[col].getter.apply(cluster);
+		switch(col) {
+		case CLUSTER_COL:   return cluster.getLabel();
+		case NODES_COL:     return cluster.getExpandedNodeCount();
+		case COLLAPSED_COL: return cluster.isCollapsed();
+		default: return null;
+		}
 	}
 	
 	@Override
 	public String getColumnName(int col) {
-        return columns[col].name;
+		switch(col) {
+		case CLUSTER_COL:   return "Clusters (" + clusters.size() + ")";
+		case NODES_COL:     return "Nodes";
+		case COLLAPSED_COL: return "Collapsed";
+		default: return null;
+		}
     }
 	
 	@Override
 	public Class<?> getColumnClass(int col) {
-		return columns[col].type;
+		switch(col) {
+		case CLUSTER_COL:   return String.class;
+		case NODES_COL:     return Integer.class;
+		case COLLAPSED_COL: return Boolean.class;
+		default: return null;
+		}
 	}
 
 	@Override
 	public int getColumnCount() {
-		return columns.length;
+		return 3;
 	}
 	
 	@Override
@@ -100,19 +108,6 @@ public class ClusterTableModel extends AbstractTableModel {
 	@Override
 	public boolean isCellEditable(int row, int col) { 
 		return false;
-	}
-	
-	
-	private static class Column {
-		public final String name;
-		public final Class<?> type;
-		public final Function<Cluster,Object> getter;
-		
-		public Column(String name, Class<?> type, Function<Cluster,Object> getter) {
-			this.name = name;
-			this.type = type;
-			this.getter = getter;
-		}
 	}
 	
 }

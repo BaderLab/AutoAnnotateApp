@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.cytoscape.model.CyEdge;
+import org.cytoscape.model.CyEdge.Type;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
@@ -61,12 +63,31 @@ public class Cluster {
 		return nodes.size();
 	}
 	
+	public int getEdgeCount() {
+		return getEdges().size(); // TODO optimize
+	}
+	
 	public int getExpandedNodeCount() {
 		return getRoot().getExpandedNodeCount(this);
 	}
 	
 	public Set<CyNode> getNodes() {
 		return Collections.unmodifiableSet(nodes);
+	}
+	
+	public Set<CyEdge> getEdges() {
+		var network = getNetwork();
+		var nodes = getNodes();
+		var edges = new HashSet<CyEdge>();
+		
+		for(var node : nodes) {
+			for(var edge : network.getAdjacentEdgeIterable(node, Type.ANY)) {
+				if(nodes.contains(edge.getSource()) && nodes.contains(edge.getTarget())) {
+					edges.add(edge);
+				}
+			}
+		}
+		return edges;
 	}
 	
 	public boolean isCollapsed() {
