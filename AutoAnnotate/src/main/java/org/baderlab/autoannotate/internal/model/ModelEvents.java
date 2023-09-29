@@ -136,6 +136,16 @@ public class ModelEvents {
 		}
 	}
 	
+	public static class ClusterSelectedInNetwork implements ModelEvent {
+		private final Cluster cluster;
+		public ClusterSelectedInNetwork(Cluster cluster) {
+			this.cluster = cluster;
+		}
+		public Cluster getCluster() {
+			return cluster;
+		}
+	}
+	
 	
 	public static class NetworkViewSetDeleted implements ModelEvent {
 		private final NetworkViewSet networkViewSet;

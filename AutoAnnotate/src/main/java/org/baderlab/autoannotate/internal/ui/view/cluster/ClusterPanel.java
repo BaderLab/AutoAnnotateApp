@@ -20,6 +20,7 @@ import java.util.Optional;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -200,27 +201,50 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	}
 	
 	@Subscribe
-	public void handle(ModelEvents.ClustersSelected event) {
+	public void handle(ModelEvents.ClusterSelectedInNetwork event) {
+		// Fired when the user explicitly selects a cluster in the network view using the context menu.
+		Cluster cluster = event.getCluster();
+		
 		ListSelectionModel selectionModel = clusterTable.getSelectionModel();
 		ClusterTableModel tableModel = (ClusterTableModel)clusterTable.getModel();
 		
-		selectionModel.removeListSelectionListener(clusterSelectionListener);
-		selectionModel.removeListSelectionListener(clusterThumbnailListener);
-		
-		selectionModel.clearSelection();
-		for(Cluster cluster : event.getClusters()) {
-			int modelIndex = tableModel.rowIndexOf(cluster);
-			if(modelIndex >= 0) {
-				int viewIndex = clusterTable.convertRowIndexToView(modelIndex);
-				selectionModel.addSelectionInterval(viewIndex, viewIndex);
-			}
+		int modelIndex = tableModel.rowIndexOf(cluster);
+		if(modelIndex >= 0) {
+			selectionModel.removeListSelectionListener(clusterSelectionListener);
+			selectionModel.removeListSelectionListener(clusterThumbnailListener);
+			
+			int viewIndex = clusterTable.convertRowIndexToView(modelIndex);
+			selectionModel.addSelectionInterval(viewIndex, viewIndex);
+			
+			selectionModel.addListSelectionListener(clusterSelectionListener);
+			selectionModel.addListSelectionListener(clusterThumbnailListener);
 		}
-		
-		selectionModel.addListSelectionListener(clusterSelectionListener);
-		selectionModel.addListSelectionListener(clusterThumbnailListener);
 		
 		clusterThumbnailListener.valueChanged(null);
 	}
+	
+//	@Subscribe
+//	public void handle(ModelEvents.ClustersSelected event) {
+//		ListSelectionModel selectionModel = clusterTable.getSelectionModel();
+//		ClusterTableModel tableModel = (ClusterTableModel)clusterTable.getModel();
+//		
+//		selectionModel.removeListSelectionListener(clusterSelectionListener);
+//		selectionModel.removeListSelectionListener(clusterThumbnailListener);
+//		
+//		selectionModel.clearSelection();
+//		for(Cluster cluster : event.getClusters()) {
+//			int modelIndex = tableModel.rowIndexOf(cluster);
+//			if(modelIndex >= 0) {
+//				int viewIndex = clusterTable.convertRowIndexToView(modelIndex);
+//				selectionModel.addSelectionInterval(viewIndex, viewIndex);
+//			}
+//		}
+//		
+//		selectionModel.addListSelectionListener(clusterSelectionListener);
+//		selectionModel.addListSelectionListener(clusterThumbnailListener);
+//		
+//		clusterThumbnailListener.valueChanged(null);
+//	}
 	
 	@AfterInjection
 	private void createContents() {
@@ -431,6 +455,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		JButton fitSelectedButton = new JButton();
 		Icon zoomIcon = iconManager.getIcon("cy::LAYERED_ZOOM_SELECTED");
 		fitSelectedButton.setIcon(zoomIcon);
+		fitSelectedButton.setToolTipText("Show cluster in network view");
 		fitSelectedButton.addActionListener(e -> clusterSelectionListener.selectCurrentCluster(true));
 		
 		JButton significanceButton = new JButton("Set Significance Attribute...");
@@ -512,7 +537,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	   			.addGroup(layout.createSequentialGroup()
 					.addComponent(sliderPanel)
 					.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					.addGroup(layout.createParallelGroup()
+					.addGroup(layout.createParallelGroup(Alignment.BASELINE)
 						.addComponent(significanceButton)
 						.addComponent(fitSelectedButton)
 					)

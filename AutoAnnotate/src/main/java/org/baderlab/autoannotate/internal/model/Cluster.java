@@ -120,6 +120,12 @@ public class Cluster {
 		getRoot().addPendingGroupEvent(new ModelEvents.ClustersChanged(this));
 	}
 	
+	public void select() {
+		var network = getParent().getParent().getNetwork();
+		for(var node : getNodes()) {
+			network.getRow(node).set(CyNetwork.SELECTED, true);
+		}
+	}
 	
 	@Override
 	public String toString() {
