@@ -59,6 +59,7 @@ import org.baderlab.autoannotate.internal.util.ColorPaletteButton;
 import org.baderlab.autoannotate.internal.util.ColorPaletteButton.Mode;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.LeftAlignCheckBox;
+import org.baderlab.autoannotate.internal.util.SliderWithLabel;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;

@@ -8,8 +8,10 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters.ClusterMakerParameters;
+import org.baderlab.autoannotate.internal.util.DiscreteSlider;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.model.CyColumn;
@@ -22,6 +24,7 @@ import com.google.inject.assistedinject.AssistedInject;
 @SuppressWarnings("serial")
 public class ClusterSizeOptionsPanel extends JPanel implements DialogPanel {
 	
+	public static final Pair<String,String> SLIDER_LABELS = Pair.of("fewer/smaller", "more/larger");
 	public static final List<Double> MCL_INFLATION_VALUES = List.of(0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5);
 
 	@Inject private InstallWarningPanel.Factory installWarningPanelFactory;
@@ -30,7 +33,7 @@ public class ClusterSizeOptionsPanel extends JPanel implements DialogPanel {
 	private final CyNetwork network;
 	private final DialogParent parent;
 	
-	private ClusterSizeSlider clusterSizeSlider;
+	private DiscreteSlider<Double> clusterSizeSlider;
 	
 	private boolean ready;
 	private InstallWarningPanel warnPanel;
@@ -49,7 +52,7 @@ public class ClusterSizeOptionsPanel extends JPanel implements DialogPanel {
 	private void createContents() {
 		JLabel clusterIdLabel = new JLabel("   Amount of clusters:    ");
 		
-		clusterSizeSlider = new ClusterSizeSlider(MCL_INFLATION_VALUES);
+		clusterSizeSlider = new DiscreteSlider<>(SLIDER_LABELS, MCL_INFLATION_VALUES);
 		
 		SwingUtil.makeSmall(clusterIdLabel);
 		

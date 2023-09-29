@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.ui.view.display;
+package org.baderlab.autoannotate.internal.util;
 
 import static org.baderlab.autoannotate.internal.util.SwingUtil.makeSmall;
 
@@ -10,25 +10,22 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 
-import org.baderlab.autoannotate.internal.util.GBCFactory;
-
 @SuppressWarnings("serial")
 public class SliderWithLabel extends JPanel {
  
 	private JSlider slider;
 	private String title;
-	private Function<Integer,String> valueToLabel;
 	
 	public SliderWithLabel(String title, int min, int max, int defaultValue, Function<Integer,String> valueToLabel) {
 		this.title = title;
-		this.valueToLabel = valueToLabel;
+		Function<Integer,String> show = valueToLabel == null ? String::valueOf : valueToLabel;
 		
 		setLayout(new GridBagLayout());
 		
 		JLabel label = new JLabel(title);
 		add(makeSmall(label), GBCFactory.grid(0,0).weightx(1.0).get());
 		
-		JLabel percentageLabel = new JLabel(show(defaultValue));
+		JLabel percentageLabel = new JLabel(show.apply(defaultValue));
 		add(makeSmall(percentageLabel), GBCFactory.grid(1,0).anchor(GridBagConstraints.EAST).get());
 		
 		slider = new JSlider(min, max, defaultValue);
@@ -36,7 +33,7 @@ public class SliderWithLabel extends JPanel {
 		
 		slider.addChangeListener(e -> {
 			int value = slider.getValue();
-			percentageLabel.setText(show(value));
+			percentageLabel.setText(show.apply(value));
 		});
 		
 		setOpaque(false);
@@ -44,10 +41,6 @@ public class SliderWithLabel extends JPanel {
 	
 	public SliderWithLabel(String title, int min, int max, int defaultValue) {
 		this(title, min, max, defaultValue, null);
-	}
-	
-	private String show(int value) {
-		return valueToLabel == null ? String.valueOf(value) : valueToLabel.apply(value);
 	}
 	
 	public String getLabel() {

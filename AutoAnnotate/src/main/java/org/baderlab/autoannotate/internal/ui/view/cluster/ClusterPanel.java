@@ -28,6 +28,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.LayoutStyle;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
@@ -37,6 +38,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.CyActivator;
@@ -53,6 +55,7 @@ import org.baderlab.autoannotate.internal.ui.render.ClusterThumbnailRenderer;
 import org.baderlab.autoannotate.internal.ui.view.action.RedrawAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
 import org.baderlab.autoannotate.internal.util.ComboItem;
+import org.baderlab.autoannotate.internal.util.DiscreteSliderWithLabel;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
@@ -414,29 +417,62 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	private JPanel createClusterInfoPanel() {
 		JPanel panel = new JPanel();
 		
-		JLabel clusterTitleLabel = new JLabel();
-		clusterTitleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 4, 0));
+		JLabel clusterTitle= new JLabel();
+		clusterTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 4, 0));
+		
 		JLabel clusterIconLabel = new JLabel();
 		clusterIconLabel.setIcon(thumbnailRenderer.getEmptyIcon());
 		clusterIconLabel.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));
+		
 		JLabel clusterStatusLabel = new JLabel();
 		clusterStatusLabel.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
-		
 		LookAndFeelUtil.makeSmall(clusterStatusLabel);
+		
+		JButton fitSelectedButton = new JButton();
+		Icon zoomIcon = iconManager.getIcon("cy::LAYERED_ZOOM_SELECTED");
+		fitSelectedButton.setIcon(zoomIcon);
+		fitSelectedButton.addActionListener(e -> clusterSelectionListener.selectCurrentCluster(true));
+		
+		JButton significanceButton = new JButton("Set Significance Attribute...");
+		LookAndFeelUtil.makeSmall(significanceButton);
+		
+		JPanel sliderPanel = new JPanel();
+		sliderPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+		sliderPanel.setOpaque(false);
+		sliderPanel.setLayout(new BorderLayout());
+		
+		sliderPanel.setVisible(false);
+		fitSelectedButton.setVisible(false);
+		significanceButton.setVisible(false);
 
 		clusterThumbnailListener = evt -> {
-			System.out.println("clusterSelectionHandler");
 			Cluster cluster = getSelectedCluster();
 			if(cluster == null) {
-				clusterTitleLabel.setText("");
+				clusterTitle.setText("");
 				clusterIconLabel.setIcon(thumbnailRenderer.getEmptyIcon());
 				clusterStatusLabel.setText("");
+				
+				sliderPanel.removeAll();
+				sliderPanel.setVisible(false);
+				fitSelectedButton.setVisible(false);
+				significanceButton.setVisible(false);
+				
 			} else {
-				Icon icon = thumbnailRenderer.getThumbnailIcon(cluster);
-				String statusText = getStatusText(cluster);
-				clusterTitleLabel.setText(cluster.getLabel());
-				clusterIconLabel.setIcon(icon);
-				clusterStatusLabel.setText(statusText);
+				clusterTitle.setText("<html>" + cluster.getLabel() + "</html>"); // <html> enables word wrap
+				clusterIconLabel.setIcon(thumbnailRenderer.getThumbnailIcon(cluster));
+				clusterStatusLabel.setText(getStatusText(cluster));
+				
+				int n = cluster.getNodeCount();
+				var values = new ArrayList<Integer>(n+1);
+				for(int i = 0; i <= n; values.add(i++));
+				
+				var slider = new DiscreteSliderWithLabel<Integer>(Pair.of("0", ""+n), "Visible Nodes", values, n+1);
+				
+				sliderPanel.removeAll();
+				sliderPanel.add(slider, BorderLayout.CENTER);
+				sliderPanel.setVisible(true);
+				fitSelectedButton.setVisible(true);
+				significanceButton.setVisible(true);
 			}
 		};
 		
@@ -449,15 +485,39 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		layout.setAutoCreateGaps(!LookAndFeelUtil.isAquaLAF());
 		
 		layout.setHorizontalGroup(layout.createParallelGroup()
-			.addComponent(clusterTitleLabel)
-			.addComponent(clusterIconLabel)
-			.addComponent(clusterStatusLabel)
+			.addComponent(clusterTitle)
+			.addGroup(layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup()
+					.addComponent(clusterIconLabel)
+					.addComponent(clusterStatusLabel)
+				)
+				.addGroup(layout.createParallelGroup()
+					.addComponent(sliderPanel)
+					.addGroup(layout.createSequentialGroup()
+						.addComponent(significanceButton)
+						.addGap(0, Short.MAX_VALUE, Short.MAX_VALUE)
+						.addComponent(fitSelectedButton)
+					)
+				)
+			)
    		);
 		
    		layout.setVerticalGroup(layout.createSequentialGroup()
-			.addComponent(clusterTitleLabel)
-			.addComponent(clusterIconLabel)
-			.addComponent(clusterStatusLabel)
+   			.addComponent(clusterTitle)
+   			.addGroup(layout.createParallelGroup()
+	   			.addGroup(layout.createSequentialGroup()
+					.addComponent(clusterIconLabel)
+					.addComponent(clusterStatusLabel)
+				)
+	   			.addGroup(layout.createSequentialGroup()
+					.addComponent(sliderPanel)
+					.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+					.addGroup(layout.createParallelGroup()
+						.addComponent(significanceButton)
+						.addComponent(fitSelectedButton)
+					)
+				)
+   			)
    		);
 		
 		return panel;
@@ -494,15 +554,19 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		}
 		return null;
 	}
-
 	
-	private void showAnnotationSetPopupMenu(ActionEvent event) {
+	
+	private Optional<AnnotationSet> getCurrentAnnotationSet() {
 		Optional<AnnotationSet> as = Optional.empty();
 		int index = annotationSetCombo.getSelectedIndex();
 		if(index != -1) {
 			as = Optional.ofNullable(annotationSetCombo.getItemAt(index).getValue()); // may be null
 		}
-		
+		return as;
+	}
+	
+	private void showAnnotationSetPopupMenu(ActionEvent event) {
+		var as = getCurrentAnnotationSet();
 		AnnotationSetMenu menu = annotationSetMenuProvider.get();
 		Component c = (Component)event.getSource();
 		menu.show(as, c, 0, c.getHeight());

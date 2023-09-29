@@ -45,6 +45,7 @@ import com.google.inject.Singleton;
 public class ClusterThumbnailRenderer {
 	
 	public static final int IMG_SIZE = 160;
+	public static final int CACHE_MAX = 100;
 	
 	@Inject private NetworkImageFactory networkImageFactory;
 	@Inject private CyRootNetworkManager rootNetworkManager;
@@ -91,7 +92,7 @@ public class ClusterThumbnailRenderer {
 	        
 	    return CacheBuilder
 	    	.newBuilder()
-	    	.maximumSize(20)
+	    	.maximumSize(CACHE_MAX)
 	    	.weakKeys()
 	    	.removalListener(removalListener)
 	    	.build(loader);

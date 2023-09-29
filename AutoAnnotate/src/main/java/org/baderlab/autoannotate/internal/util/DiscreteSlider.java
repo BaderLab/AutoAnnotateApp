@@ -1,4 +1,4 @@
-package org.baderlab.autoannotate.internal.ui.view.create;
+package org.baderlab.autoannotate.internal.util;
 
 import java.awt.BorderLayout;
 import java.util.ArrayList;
@@ -9,21 +9,24 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 
-import org.baderlab.autoannotate.internal.util.SwingUtil;
+import org.apache.commons.lang3.tuple.Pair;
 
 @SuppressWarnings("serial")
-public class ClusterSizeSlider extends JPanel {
+public class DiscreteSlider<T> extends JPanel {
 
 	private JSlider slider;
 	private final int defaultTick;
-	private final List<Double> values;
+	private List<T> values;
 	
-	
-	public ClusterSizeSlider(List<Double> values) {
-		this(values, values.size() / 2 + 1);
+	public DiscreteSlider(Pair<String,String> labels, List<T> values) {
+		this(labels.getLeft(), labels.getRight(), values);
 	}
 	
-	public ClusterSizeSlider(List<Double> values, int defaultTick) {
+	public DiscreteSlider(String leftLabel, String rightLabel, List<T> values) {
+		this(leftLabel, rightLabel, values, values.size() / 2 + 1);
+	}
+	
+	public DiscreteSlider(String leftLabel, String rightLabel, List<T> values, int defaultTick) {
 		this.defaultTick = defaultTick;
 		this.values = new ArrayList<>(values);
 		
@@ -32,8 +35,8 @@ public class ClusterSizeSlider extends JPanel {
 		slider.setSnapToTicks(true);
 		slider.setPaintTicks(true);
 		
-		JLabel sparseLabel = new JLabel("fewer/larger");
-		JLabel denseLabel  = new JLabel("more/smaller");
+		JLabel sparseLabel = new JLabel(leftLabel);
+		JLabel denseLabel  = new JLabel(rightLabel);
 		SwingUtil.makeSmall(sparseLabel, denseLabel);
 		
 		Hashtable<Integer,JLabel> labelTable = new Hashtable<>();
@@ -49,11 +52,18 @@ public class ClusterSizeSlider extends JPanel {
 		setOpaque(false);
 	}
 	
+	public void setValues(List<T> newValues, int defaultTick) {
+		values = newValues;
+		slider.setMinimum(1);
+		slider.setMaximum(values.size());
+		slider.setValue(defaultTick);
+	}
+	
 	public void setTick(int tick) {
 		slider.setValue(tick);
 	}
 	
-	public Double getValue() {
+	public T getValue() {
 		return values.get(slider.getValue()-1);
 	}
 	

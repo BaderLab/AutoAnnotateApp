@@ -8,10 +8,8 @@ import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
-import org.cytoscape.model.CyRow;
 
 public class ClusterTableSelectionListener implements ListSelectionListener {
 
@@ -27,9 +25,13 @@ public class ClusterTableSelectionListener implements ListSelectionListener {
 	public void valueChanged(ListSelectionEvent e) {
 		if(e.getValueIsAdjusting())
 			return;
-		
-		ClusterTableModel model = (ClusterTableModel)table.getModel();
-		AnnotationSet annotationSet = model.getAnnotationSet();
+		selectCurrentCluster(false);
+	}
+	
+	
+	public void selectCurrentCluster(boolean fitSelected) {
+		var model = (ClusterTableModel)table.getModel();
+		var annotationSet = model.getAnnotationSet();
 		if(annotationSet == null)
 			return;
 		
@@ -40,16 +42,21 @@ public class ClusterTableSelectionListener implements ListSelectionListener {
 			.flatMap(c -> c.getNodes().stream())
 			.collect(Collectors.toSet());
 		
-		CyNetwork network = annotationSet.getParent().getNetwork();
+		var network = annotationSet.getParent().getNetwork();
 		
-		for(CyNode node : network.getNodeList()) {
-			CyRow row = network.getRow(node);
+		for(var node : network.getNodeList()) {
+			var row = network.getRow(node);
 			
 			// Test if the node is already in the correct state, don't fire unnecessary events
 			boolean select = nodesToSelect.contains(node);
 			if(!Boolean.valueOf(select).equals(row.get(CyNetwork.SELECTED, Boolean.class))) {
 				row.set(CyNetwork.SELECTED, select);
 			}
+		}
+		
+		if(fitSelected) {
+			var netView = annotationSet.getParent().getNetworkView();
+			netView.fitSelected();
 		}
 	}
 

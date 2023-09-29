@@ -1,5 +1,8 @@
 package org.baderlab.autoannotate.internal.ui.view.create;
 
+import static org.baderlab.autoannotate.internal.ui.view.create.ClusterSizeOptionsPanel.MCL_INFLATION_VALUES;
+import static org.baderlab.autoannotate.internal.ui.view.create.ClusterSizeOptionsPanel.SLIDER_LABELS;
+
 import java.awt.BorderLayout;
 import java.awt.GridBagLayout;
 import java.util.List;
@@ -15,6 +18,7 @@ import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.LabelMakerManager;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
 import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters.ClusterMakerParameters;
+import org.baderlab.autoannotate.internal.util.DiscreteSlider;
 import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.CyApplicationManager;
@@ -41,7 +45,7 @@ public class QuickModeTab extends JPanel implements DialogTab {
 	@Inject private InstallWarningPanel.Factory installWarningPanelFactory;
 	@Inject private DependencyChecker dependencyChecker;
 	
-	private ClusterSizeSlider clusterSlider;
+	private DiscreteSlider<Double> clusterSlider;
 	private JCheckBox layoutCheckBox;
 	private CyColumnComboBox labelCombo;
 	
@@ -75,7 +79,7 @@ public class QuickModeTab extends JPanel implements DialogTab {
 	
 	private JPanel createParentPanel() {
 		JLabel clusterIdLabel = new JLabel("   Amount of clusters:    ");
-		clusterSlider = new ClusterSizeSlider(ClusterSizeOptionsPanel.MCL_INFLATION_VALUES);
+		clusterSlider = new DiscreteSlider<>(SLIDER_LABELS, MCL_INFLATION_VALUES);
 		
 		JLabel labelLabel = new JLabel("   Label Column:");
 		labelCombo = CreateViewUtil.createLabelColumnCombo(presentationManagerProvider.get(), networkView.getModel());
