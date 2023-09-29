@@ -36,7 +36,7 @@ public class DiscreteSlider<T> extends JPanel {
 		slider.setPaintTicks(true);
 		
 		JLabel sparseLabel = new JLabel(leftLabel);
-		JLabel denseLabel  = new JLabel(rightLabel);
+		JLabel denseLabel  = new JLabel(rightLabel, JLabel.TRAILING);
 		SwingUtil.makeSmall(sparseLabel, denseLabel);
 		
 		Hashtable<Integer,JLabel> labelTable = new Hashtable<>();

@@ -569,7 +569,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		highlightSigCheckBox.addActionListener(sigListener);
 		
 		highlightSigButton = new JButton("Set Significance Attribute...");
-		highlightSigButton.addActionListener(e -> showSignificanceColumnDialog());
+		highlightSigButton.addActionListener(e -> showSignificanceSettingsDialog());
 		
 		SwingUtil.makeSmall(colorSigCheckBox, highlightSigCheckBox, highlightSigButton);
 		
@@ -606,7 +606,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		fillColorButton.setMode(fillTypeToButtonMode(fillType));
 	}
 	
-	private void showSignificanceColumnDialog() {
+	private void showSignificanceSettingsDialog() {
 		var network = displayOptions.getParent().getParent().getNetwork();
 		var so = displayOptions.getSignificanceOptions();
 		var params = SignificancePanelParams.fromSignificanceOptions(so);
@@ -615,13 +615,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		
 		SwingUtil.invokeOnEDTAndWait(() -> {
 			var newParams = action.showSignificanceDialog();
-			if(newParams != null) {
-				so.setSignificance(
-					newParams.getSignificance(), 
-					newParams.getSignificanceColumn(), 
-					newParams.getDataSet(), 
-					newParams.isEM());
-			}
+			so.setSignificance(newParams);
 		});
 	}
 	

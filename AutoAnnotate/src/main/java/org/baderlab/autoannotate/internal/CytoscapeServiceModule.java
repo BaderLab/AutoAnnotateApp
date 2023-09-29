@@ -23,6 +23,7 @@ import org.cytoscape.model.CyTableManager;
 import org.cytoscape.model.subnetwork.CyRootNetworkManager;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.session.CySessionManager;
+import org.cytoscape.task.select.DeselectAllTaskFactory;
 import org.cytoscape.util.color.Palette;
 import org.cytoscape.util.color.PaletteProviderManager;
 import org.cytoscape.util.swing.FileUtil;
@@ -89,6 +90,7 @@ public class CytoscapeServiceModule extends AbstractModule {
 		bindService(PaletteProviderManager.class);
 		bindService(NetworkImageFactory.class);
 		bindService(VisualStyleFactory.class);
+		bindService(DeselectAllTaskFactory.class);
 		
 		bindService(DialogTaskManager.class);
 		TypeLiteral<SynchronousTaskManager<?>> synchronousManager = new TypeLiteral<SynchronousTaskManager<?>>(){};

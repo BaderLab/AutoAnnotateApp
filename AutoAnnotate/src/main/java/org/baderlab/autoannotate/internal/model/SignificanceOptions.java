@@ -5,6 +5,7 @@ import java.util.Objects;
 import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
 import org.baderlab.autoannotate.internal.ui.view.display.Significance;
+import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelParams;
 
 /**
  * Fill...
@@ -55,7 +56,6 @@ public class SignificanceOptions {
 	}
 	
 	
-
 	public void setSignificance(Significance sigificance, String significanceColumn, String dataSet, boolean isEM) {
 		this.significanceColumn = significanceColumn;
 		this.significance = sigificance;
@@ -69,6 +69,16 @@ public class SignificanceOptions {
 			postEvent(Option.LABEL_HIGHLIGHT);
 	}
 	
+	public void setSignificance(SignificancePanelParams params) {
+		if(params == null)
+			return;
+		
+		setSignificance(
+				params.getSignificance(), 
+				params.getSignificanceColumn(), 
+				params.getDataSet(), 
+				params.isEM());
+	}
 	
 	public void setHighlight(Highlight highlight) {
 		Objects.requireNonNull(highlight);

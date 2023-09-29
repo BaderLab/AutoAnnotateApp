@@ -39,7 +39,6 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.CyActivator;
@@ -55,6 +54,8 @@ import org.baderlab.autoannotate.internal.task.Grouping;
 import org.baderlab.autoannotate.internal.ui.render.ClusterThumbnailRenderer;
 import org.baderlab.autoannotate.internal.ui.view.action.RedrawAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
+import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelFactory;
+import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelParams;
 import org.baderlab.autoannotate.internal.util.ComboItem;
 import org.baderlab.autoannotate.internal.util.DiscreteSliderWithLabel;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
@@ -82,6 +83,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	@Inject private ClusterThumbnailRenderer thumbnailRenderer;
 	
 	@Inject private CollapseAllTaskFactory.Factory collapseTaskFactoryFactory;
+ 	@Inject private SignificancePanelFactory.Factory significancePanelFactoryFactory;
 	@Inject private Provider<ClusterTableSelectionListener> selectionListenerProvider;
 	@Inject private Provider<AnnotationSetMenu> annotationSetMenuProvider;
 	@Inject private Provider<ClusterMenu> clusterMenuProvider;
@@ -456,13 +458,14 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		Icon zoomIcon = iconManager.getIcon("cy::LAYERED_ZOOM_SELECTED");
 		fitSelectedButton.setIcon(zoomIcon);
 		fitSelectedButton.setToolTipText("Show cluster in network view");
-		fitSelectedButton.addActionListener(e -> clusterSelectionListener.selectCurrentCluster(true));
+		fitSelectedButton.addActionListener(e -> clusterSelectionListener.selectFirstCluster());
 		
-		JButton significanceButton = new JButton("Set Significance Attribute...");
+		JButton significanceButton = new JButton("Set Significance...");
 		LookAndFeelUtil.makeSmall(significanceButton);
+		significanceButton.addActionListener(e -> showSignificanceSettingsDialog());
 		
 		JPanel sliderPanel = new JPanel();
-		sliderPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+		sliderPanel.setBorder(BorderFactory.createEmptyBorder(5,8,5,8));
 		sliderPanel.setOpaque(false);
 		sliderPanel.setLayout(new BorderLayout());
 		
@@ -491,7 +494,10 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 				var values = new ArrayList<Integer>(n+1);
 				for(int i = 0; i <= n; values.add(i++));
 				
-				var slider = new DiscreteSliderWithLabel<Integer>(Pair.of("0", ""+n), "Visible Nodes", values, n+1);
+				var slider = new DiscreteSliderWithLabel<Integer>(
+						"<html>Less<br>Significant</html>", 
+						"<html><div align=right>More<br>Significant</div></html>", 
+						"Visible Nodes", values, n+1);
 				
 				sliderPanel.removeAll();
 				sliderPanel.add(slider, BorderLayout.CENTER);
@@ -546,6 +552,24 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
    		);
 		
 		return panel;
+	}
+	
+	
+	private void showSignificanceSettingsDialog() {
+		Cluster cluster = getSelectedCluster();
+		if(cluster != null) {
+			var as = cluster.getParent();
+			var network = as.getParent().getNetwork();
+			var so = as.getDisplayOptions().getSignificanceOptions();
+			var params = SignificancePanelParams.fromSignificanceOptions(so);
+			
+			var action = significancePanelFactoryFactory.create(network, params);
+			
+			SwingUtil.invokeOnEDT(() -> {
+				var newParams = action.showSignificanceDialog();
+				so.setSignificance(newParams);
+			});
+		}
 	}
 	
 	private static String getStatusText(Cluster cluster) {
