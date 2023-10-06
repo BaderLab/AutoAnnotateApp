@@ -1,5 +1,6 @@
 package org.baderlab.autoannotate.internal.ui.view.display;
 
+import java.util.Comparator;
 
 /**
  * Determines how the most significant nodes in a cluster are sorted.
@@ -11,30 +12,23 @@ public enum Significance {
 	
 	public String getDisplayName() {
 		switch(this) {
-			case MINIMUM: return "Minimum value";
-			case MAXIMUM: return "Maximum value";
-			case GREATEST_MAGNITUDE: return "Largest absolute value";
-			default: return null;
+		default:
+		case MINIMUM: return "Minimum value";
+		case MAXIMUM: return "Maximum value";
+		case GREATEST_MAGNITUDE: return "Largest absolute value";
 		}
 	}
 	
-	public boolean isMoreSignificant(Number arg1, Number arg2) {
-		var val1 = arg1 == null ? Double.NaN : arg1.doubleValue();
-		var val2 = arg2 == null ? Double.NaN : arg2.doubleValue();
-		
-		if(Double.isNaN(val1) && Double.isNaN(val2)) {
-			return false;
-		} else if(Double.isNaN(val1)) {
-			return false;
-		} else if(Double.isNaN(val2)) {
-			return true;
-		}
-		
+	
+	public Comparator<Number> comparator() {
 		switch(this) {
-			case MINIMUM: return val1 < val2;
-			case MAXIMUM: return val1 > val2;
-			case GREATEST_MAGNITUDE: return Math.abs(val1) > Math.abs(val2);
-			default: return false;
+		default:
+		case MINIMUM: 
+			return Comparator.nullsLast(Comparator.comparingDouble(Number::doubleValue));
+		case MAXIMUM: 
+			return Comparator.nullsLast(Comparator.comparingDouble(Number::doubleValue).reversed());
+		case GREATEST_MAGNITUDE:
+			return Comparator.nullsLast(Comparator.comparingDouble((Number n) -> Math.abs(n.doubleValue())).reversed());
 		}
 	}
 	

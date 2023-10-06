@@ -11,6 +11,7 @@ public class MostSignificantLabelMakerFactory implements LabelMakerFactory<MostS
 	public static final String ID = "mostSignificant";
 	
 	@Inject private MostSignificantLabelMakerUI.Factory uiFactory;
+	@Inject private MostSignificantLabelMaker.Factory labelMakerFactory;
 	
 	
 	@Override
@@ -35,7 +36,7 @@ public class MostSignificantLabelMakerFactory implements LabelMakerFactory<MostS
 
 	@Override
 	public LabelMaker createLabelMaker(MostSignificantOptions context) {
-		return new MostSignificantLabelMaker(context);
+		return labelMakerFactory.create(context);
 	}
 
 	@Override

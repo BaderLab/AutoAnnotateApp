@@ -7,6 +7,7 @@ import org.baderlab.autoannotate.internal.command.LabelClusterCommandTask;
 import org.baderlab.autoannotate.internal.labels.LabelFactoryModule;
 import org.baderlab.autoannotate.internal.labels.LabelQuestionButton;
 import org.baderlab.autoannotate.internal.labels.makers.ClusterBoostedLabelMakerUI;
+import org.baderlab.autoannotate.internal.labels.makers.MostSignificantLabelMaker;
 import org.baderlab.autoannotate.internal.labels.makers.MostSignificantLabelMakerUI;
 import org.baderlab.autoannotate.internal.labels.makers.SizeSortedLabelMakerUI;
 import org.baderlab.autoannotate.internal.layout.CoseLayoutAlgorithmTask;
@@ -115,6 +116,7 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(SizeSortedLabelMakerUI.Factory.class);
 		installFactory(ClusterBoostedLabelMakerUI.Factory.class);
 		installFactory(MostSignificantLabelMakerUI.Factory.class);
+		installFactory(MostSignificantLabelMaker.Factory.class);
 		installFactory(SummaryNetworkDialog.Factory.class);
 		installFactory(AttributeAggregationPanel.Factory.class);
 		installFactory(RunEMAssociateTaskFactory.Factory.class);

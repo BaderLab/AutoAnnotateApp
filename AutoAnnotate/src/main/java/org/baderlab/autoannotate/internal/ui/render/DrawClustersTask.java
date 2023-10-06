@@ -94,7 +94,7 @@ public class DrawClustersTask extends AbstractTask {
 		var highlight = annotationSet.getDisplayOptions().getSignificanceOptions().getHighlight();
 		
 		if(highlight == Highlight.BOLD_LABEL) {
-			var sigNodes = significanceLookup.getSigNodes(annotationSet);
+			var sigNodes = significanceLookup.getMostSignificantNodes(annotationSet);
 			for(var cluster : clusters) {
 				highlightLabel(cluster, sigNodes);
 			}

@@ -4,9 +4,11 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
@@ -16,7 +18,6 @@ import org.cytoscape.command.AvailableCommands;
 import org.cytoscape.command.CommandExecutorTaskFactory;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
-import org.cytoscape.model.CyTable;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.work.SynchronousTaskManager;
 
@@ -38,13 +39,19 @@ public class SignificanceLookup {
 			return getColorsFromSigColumns(annotationSet);
 	}
 	
-	public Map<Cluster,CyNode> getSigNodes(AnnotationSet annotationSet) {
+	public Map<Cluster,CyNode> getMostSignificantNodes(AnnotationSet annotationSet) {
 		if(useEM(annotationSet))
-			return getSigNodesFromEM(annotationSet);
+			return getMostSignificantNodeInEachClusterEM(annotationSet);
 		else
-			return getSigNodesFromSigColumns(annotationSet);
+			return getMostSignificantNodeInEachClusterColumns(annotationSet);
 	}
 	
+	public List<CyNode> getNodesSortedBySignificance(Cluster cluster) {
+		if(useEM(cluster.getParent()))
+			return getNodesSortedBySignificanceEM(cluster);
+		else
+			return getNodesSortedBySignificanceColumn(cluster);
+	}
 	
 	public boolean useEM(AnnotationSet annotationSet) {
 		var sigOptions = annotationSet.getDisplayOptions().getSignificanceOptions();
@@ -77,7 +84,7 @@ public class SignificanceLookup {
 	}
 
 	
-	private Map<Cluster,CyNode> getSigNodesFromEM(AnnotationSet annotationSet) {
+	private List<CyNode> getNodesSortedBySignificanceEM(AnnotationSet annotationSet) {
 		var suid = annotationSet.getParent().getNetwork().getSUID();
 		String dataSet = annotationSet.getDisplayOptions().getSignificanceOptions().getEMDataSet();
 		
@@ -86,12 +93,28 @@ public class SignificanceLookup {
 			command += " dataSet=\"" + dataSet + "\"";
 		
 		List<CyNode> nodesSortedBySig = runListCommand(command);
-		if(nodesSortedBySig == null)
-			return Collections.emptyMap();
+		return nodesSortedBySig == null ? Collections.emptyList() : nodesSortedBySig;
+	}
+	
+	
+	private List<CyNode> getNodesSortedBySignificanceEM(Cluster cluster) {
+		var annotationSet = cluster.getParent();
+		var clusterNodes = cluster.getNodes();
+		
+		var nodesSortedBySig = getNodesSortedBySignificanceEM(annotationSet);
+		
+		return nodesSortedBySig.stream()
+			.filter(clusterNodes::contains)
+			.collect(Collectors.toList());
+	}
+	
+	
+	private Map<Cluster,CyNode> getMostSignificantNodeInEachClusterEM(AnnotationSet annotationSet) {
+		var nodesSortedBySig = getNodesSortedBySignificanceEM(annotationSet);
 		
 		Map<Cluster,CyNode> sigNodes = new HashMap<>();
 		
-		for(Cluster cluster : annotationSet.getClusters()) {
+		for(var cluster : annotationSet.getClusters()) {
 			var clusterNodes = cluster.getNodes();
 			var mostSigNode = nodesSortedBySig.stream().filter(n -> clusterNodes.contains(n)).findFirst();
 			if(mostSigNode.isPresent()) {
@@ -106,7 +129,7 @@ public class SignificanceLookup {
 	private Map<Cluster,Color> getColorsFromEM(AnnotationSet annotationSet) {
 		var suid = annotationSet.getParent().getNetwork().getSUID();
 		
-		Map<Cluster,CyNode> sigNodes = getSigNodesFromEM(annotationSet);
+		Map<Cluster,CyNode> sigNodes = getMostSignificantNodeInEachClusterEM(annotationSet);
 		
 		// Need to maintain some order for the clusters, it can be arbitrary but it needs to be maintained for this method.
 		List<Cluster> clusters = new ArrayList<>(annotationSet.getClusters());
@@ -158,7 +181,7 @@ public class SignificanceLookup {
 	}
 	
 	
-	private Map<Cluster,CyNode> getSigNodesFromSigColumns(AnnotationSet annotationSet) {
+	private Map<Cluster,CyNode> getMostSignificantNodeInEachClusterColumns(AnnotationSet annotationSet) {
 		Map<Cluster,CyNode> sigNodes = new HashMap<>();
 		
 		for(var cluster : annotationSet.getClusters()) {
@@ -170,6 +193,55 @@ public class SignificanceLookup {
 		
 		return sigNodes;
 	}
+	
+	
+	private List<CyNode> sortNodesBySignificanceColumn(Collection<CyNode> nodes, CyNetwork network, Significance sigOp, String sigCol) {
+		if(sigOp == null || sigCol == null || nodes == null || nodes.isEmpty())
+			return null;
+		
+		var nodeTable = network.getDefaultNodeTable();
+		var column = nodeTable.getColumn(sigCol);
+		if(column == null)
+			return null;
+		
+		Map<CyNode, Number> sigValues = new HashMap<>();
+		for(var node : nodes) {
+			var value = (Number) network.getRow(node).get(sigCol, column.getType());
+			if(value != null) {
+				sigValues.put(node, value);
+			}
+		}
+		
+		var sortedNodes = new ArrayList<>(nodes);
+		sortedNodes.sort(Comparator.comparing(sigValues::get, sigOp.comparator()));
+		return sortedNodes;
+	}
+	
+	
+	private List<CyNode> getNodesSortedBySignificanceColumn(Cluster cluster) {
+		var sigOptions = cluster.getParent().getDisplayOptions().getSignificanceOptions();
+		var network = cluster.getNetwork();
+		var nodes = new ArrayList<>(cluster.getNodes());
+		
+		var sigOp  = sigOptions.getSignificance();
+		var sigCol = sigOptions.getSignificanceColumn();
+		
+		return sortNodesBySignificanceColumn(nodes, network, sigOp, sigCol);
+	}
+	
+	
+	public List<CyNode> getNodesSortedBySignificanceColumn(Collection<CyNode> nodes, CyNetwork network, Significance sigOp, String sigCol) {
+		return sortNodesBySignificanceColumn(nodes, network, sigOp, sigCol);
+	}
+	
+	
+	private CyNode getMostSignificantNodeByColumn(Cluster cluster) {
+		var nodes = getNodesSortedBySignificance(cluster);
+		if(nodes == null || nodes.isEmpty())
+			return null;
+		return nodes.get(0);
+	}
+	
 	
 	private Map<Cluster,Color> getColorsFromSigColumns(AnnotationSet annotationSet) {
 		Map<Cluster,Color> colors = new HashMap<>();
@@ -190,40 +262,5 @@ public class SignificanceLookup {
 		return colors;
 	}
 	
-	public static CyNode getMostSignificantNode(CyNetwork network, Collection<CyNode> nodes, Significance sigOp, String sigCol) {
-		if(sigOp == null || sigCol == null)
-			return null;
-		
-		CyTable nodeTable = network.getDefaultNodeTable();
-		var column = nodeTable.getColumn(sigCol);
-		if(column == null)
-			return null;
-		
-		CyNode mostSigNode = null;
-		Number mostSigVal  = null;
-		
-		for(var node : nodes) {
-			var value = (Number) network.getRow(node).get(sigCol, column.getType());
-			
-			if(mostSigVal == null || sigOp.isMoreSignificant(value, mostSigVal)) {
-				mostSigNode = node;
-				mostSigVal = value;
-			}
-		}
-		
-		return mostSigNode;
-	}
-	
-	
-	private CyNode getMostSignificantNodeByColumn(Cluster cluster) {
-		var sigOptions = cluster.getParent().getDisplayOptions().getSignificanceOptions();
-		var network = cluster.getNetwork();
-		var nodes = cluster.getNodes();
-		
-		var sigOp  = sigOptions.getSignificance();
-		var sigCol = sigOptions.getSignificanceColumn();
-		
-		return getMostSignificantNode(network, nodes, sigOp, sigCol);
-	}
 	
 }
