@@ -1,16 +1,17 @@
 package org.baderlab.autoannotate.internal.ui.view.action;
 
+import static org.baderlab.autoannotate.internal.util.TaskTools.taskOf;
+
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.ui.view.cluster.ClusterSelector;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.task.NodeViewTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
-import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.TaskIterator;
-import org.cytoscape.work.TaskMonitor;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
@@ -22,6 +23,7 @@ import com.google.inject.Inject;
 public class SelectClusterTaskFactory implements NodeViewTaskFactory {
 
 	@Inject private ModelManager modelManager;
+	@Inject private ClusterSelector clusterSelector;
 	
 	private EventBus eventBus;
 	
@@ -30,8 +32,8 @@ public class SelectClusterTaskFactory implements NodeViewTaskFactory {
 		Cluster cluster = getCluster(nodeView, netView);
 		
 		return new TaskIterator(
-			new SelectClusterInNetworkViewTask(cluster),
-			new FireEventTask(cluster)
+			taskOf(() -> clusterSelector.selectCluster(cluster, false)),
+			taskOf(() -> eventBus.post(new ModelEvents.ClusterSelectedInNetwork(cluster)))
 		);
 	}
 	
@@ -52,39 +54,6 @@ public class SelectClusterTaskFactory implements NodeViewTaskFactory {
 			.flatMap(NetworkViewSet::getActiveAnnotationSet)
 			.flatMap(as -> as.getCluster(nodeView.getModel()))
 			.orElse(null);
-	}
-	
-	
-	private class SelectClusterInNetworkViewTask extends AbstractTask {
-		
-		private final Cluster cluster;
-		
-		public SelectClusterInNetworkViewTask(Cluster cluster) {
-			this.cluster = cluster;
-		}
-
-		@Override
-		public void run(TaskMonitor tm) {
-			if(cluster == null)
-				return;
-			cluster.select();
-		}
-	}
-	
-	
-	private class FireEventTask extends AbstractTask {
-		
-		private final Cluster cluster;
-		
-		public FireEventTask(Cluster cluster) {
-			this.cluster = cluster;
-		}
-
-		@Override
-		public void run(TaskMonitor tm) {
-			eventBus.post(new ModelEvents.ClusterSelectedInNetwork(cluster));
-		}
-		
 	}
 	
 }

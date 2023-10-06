@@ -120,6 +120,11 @@ public class Cluster {
 		getRoot().addPendingGroupEvent(new ModelEvents.ClustersChanged(this));
 	}
 	
+	
+	/**
+	 * @deprecated use ClusterSelector instead
+	 */
+	@Deprecated
 	public void select() {
 		var network = getParent().getParent().getNetwork();
 		for(var node : getNodes()) {

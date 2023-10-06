@@ -4,7 +4,6 @@ import static org.baderlab.autoannotate.internal.util.TaskTools.allFinishedObser
 import static org.baderlab.autoannotate.internal.util.TaskTools.taskOf;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -19,17 +18,13 @@ import java.util.Optional;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.LayoutStyle;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
@@ -51,19 +46,14 @@ import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
 import org.baderlab.autoannotate.internal.task.Grouping;
-import org.baderlab.autoannotate.internal.ui.render.ClusterThumbnailRenderer;
 import org.baderlab.autoannotate.internal.ui.view.action.RedrawAction;
 import org.baderlab.autoannotate.internal.ui.view.action.ShowCreateDialogAction;
-import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelFactory;
-import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelParams;
 import org.baderlab.autoannotate.internal.util.ComboItem;
-import org.baderlab.autoannotate.internal.util.DiscreteSliderWithLabel;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.model.CyDisposable;
 import org.cytoscape.util.swing.IconManager;
-import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskObserver;
 import org.cytoscape.work.swing.DialogTaskManager;
@@ -80,15 +70,14 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	@Inject private ModelManager modelManager;
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private IconManager iconManager;
-	@Inject private ClusterThumbnailRenderer thumbnailRenderer;
-	
+
 	@Inject private CollapseAllTaskFactory.Factory collapseTaskFactoryFactory;
- 	@Inject private SignificancePanelFactory.Factory significancePanelFactoryFactory;
 	@Inject private Provider<ClusterTableSelectionListener> selectionListenerProvider;
 	@Inject private Provider<AnnotationSetMenu> annotationSetMenuProvider;
 	@Inject private Provider<ClusterMenu> clusterMenuProvider;
 	@Inject private Provider<ShowCreateDialogAction> showActionProvider;
 	@Inject private Provider<RedrawAction> redrawActionProvider;
+	@Inject private ClusterSignificancePanel clusterSignificancePanel;
 	
 	private JComboBox<ComboItem<AnnotationSet>> annotationSetCombo;
 	private JTable clusterTable;
@@ -254,13 +243,13 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		
 		JPanel comboPanel = createComboPanel();
 		JPanel tablePanel = createTablePanel();
-		JPanel infoPanel  = createClusterInfoPanel();
+		JPanel signfPanel = clusterSignificancePanel;
 		
-		infoPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		signfPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		
 		add(comboPanel, BorderLayout.NORTH);
 		add(tablePanel, BorderLayout.CENTER);
-		add(infoPanel,  BorderLayout.SOUTH);
+		add(signfPanel, BorderLayout.SOUTH);
 	}
 
 	
@@ -407,6 +396,9 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		clusterTable.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		clusterSelectionListener = selectionListenerProvider.get().init(clusterTable);
 		clusterTable.getSelectionModel().addListSelectionListener(clusterSelectionListener);
+		clusterTable.getSelectionModel().addListSelectionListener(clusterThumbnailListener = e -> {
+			clusterSignificancePanel.updateCluster(getSelectedCluster());
+		});
 		clusterTable.setAutoCreateRowSorter(true);
 		TableColumn collapsedColumn = clusterTable.getColumnModel().getColumn(ClusterTableModel.COLLAPSED_COL);
 		collapsedColumn.setCellRenderer(new ClusterTableCollapsedCellRenderer(iconManager));
@@ -440,144 +432,14 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	}
 
 	
-	private JPanel createClusterInfoPanel() {
-		JPanel panel = new JPanel();
-		
-		JLabel clusterTitle= new JLabel();
-		clusterTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 4, 0));
-		
-		JLabel clusterIconLabel = new JLabel();
-		clusterIconLabel.setIcon(thumbnailRenderer.getEmptyIcon());
-		clusterIconLabel.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));
-		
-		JLabel clusterStatusLabel = new JLabel();
-		clusterStatusLabel.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
-		LookAndFeelUtil.makeSmall(clusterStatusLabel);
-		
-		JButton fitSelectedButton = new JButton();
-		Icon zoomIcon = iconManager.getIcon("cy::LAYERED_ZOOM_SELECTED");
-		fitSelectedButton.setIcon(zoomIcon);
-		fitSelectedButton.setToolTipText("Show cluster in network view");
-		fitSelectedButton.addActionListener(e -> clusterSelectionListener.selectFirstCluster());
-		
-		JButton significanceButton = new JButton("Set Significance...");
-		LookAndFeelUtil.makeSmall(significanceButton);
-		significanceButton.addActionListener(e -> showSignificanceSettingsDialog());
-		
-		JPanel sliderPanel = new JPanel();
-		sliderPanel.setBorder(BorderFactory.createEmptyBorder(5,8,5,8));
-		sliderPanel.setOpaque(false);
-		sliderPanel.setLayout(new BorderLayout());
-		
-		sliderPanel.setVisible(false);
-		fitSelectedButton.setVisible(false);
-		significanceButton.setVisible(false);
-
-		clusterThumbnailListener = evt -> {
-			Cluster cluster = getSelectedCluster();
-			if(cluster == null) {
-				clusterTitle.setText("");
-				clusterIconLabel.setIcon(thumbnailRenderer.getEmptyIcon());
-				clusterStatusLabel.setText("");
-				
-				sliderPanel.removeAll();
-				sliderPanel.setVisible(false);
-				fitSelectedButton.setVisible(false);
-				significanceButton.setVisible(false);
-				
-			} else {
-				clusterTitle.setText("<html>" + cluster.getLabel() + "</html>"); // <html> enables word wrap
-				clusterIconLabel.setIcon(thumbnailRenderer.getThumbnailIcon(cluster));
-				clusterStatusLabel.setText(getStatusText(cluster));
-				
-				int n = cluster.getNodeCount();
-				var values = new ArrayList<Integer>(n+1);
-				for(int i = 0; i <= n; values.add(i++));
-				
-				var slider = new DiscreteSliderWithLabel<Integer>(
-						"<html>Less<br>Significant</html>", 
-						"<html><div align=right>More<br>Significant</div></html>", 
-						"Visible Nodes", values, n+1);
-				
-				sliderPanel.removeAll();
-				sliderPanel.add(slider, BorderLayout.CENTER);
-				sliderPanel.setVisible(true);
-				fitSelectedButton.setVisible(true);
-				significanceButton.setVisible(true);
-			}
-		};
-		
-		clusterTable.getSelectionModel().addListSelectionListener(clusterThumbnailListener);
-//		clusterTable.addPropertyChangeListener("model", evt -> clusterSelectionHandler.run());
-		
-		var layout = new GroupLayout(panel);
-		panel.setLayout(layout);
-		layout.setAutoCreateContainerGaps(false);
-		layout.setAutoCreateGaps(!LookAndFeelUtil.isAquaLAF());
-		
-		layout.setHorizontalGroup(layout.createParallelGroup()
-			.addComponent(clusterTitle)
-			.addGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup()
-					.addComponent(clusterIconLabel)
-					.addComponent(clusterStatusLabel)
-				)
-				.addGroup(layout.createParallelGroup()
-					.addComponent(sliderPanel)
-					.addGroup(layout.createSequentialGroup()
-						.addComponent(significanceButton)
-						.addGap(0, Short.MAX_VALUE, Short.MAX_VALUE)
-						.addComponent(fitSelectedButton)
-					)
-				)
-			)
-   		);
-		
-   		layout.setVerticalGroup(layout.createSequentialGroup()
-   			.addComponent(clusterTitle)
-   			.addGroup(layout.createParallelGroup()
-	   			.addGroup(layout.createSequentialGroup()
-					.addComponent(clusterIconLabel)
-					.addComponent(clusterStatusLabel)
-				)
-	   			.addGroup(layout.createSequentialGroup()
-					.addComponent(sliderPanel)
-					.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					.addGroup(layout.createParallelGroup(Alignment.BASELINE)
-						.addComponent(significanceButton)
-						.addComponent(fitSelectedButton)
-					)
-				)
-   			)
-   		);
-		
-		return panel;
-	}
-	
-	
-	private void showSignificanceSettingsDialog() {
-		Cluster cluster = getSelectedCluster();
-		if(cluster != null) {
-			var as = cluster.getParent();
-			var network = as.getParent().getNetwork();
-			var so = as.getDisplayOptions().getSignificanceOptions();
-			var params = SignificancePanelParams.fromSignificanceOptions(so);
-			
-			var action = significancePanelFactoryFactory.create(network, params);
-			
-			SwingUtil.invokeOnEDT(() -> {
-				var newParams = action.showSignificanceDialog();
-				so.setSignificance(newParams);
-			});
+	private Cluster getSelectedCluster() {
+		int rowIndex = clusterTable.getSelectedRow();
+		if(rowIndex >= 0) {
+			var model = (ClusterTableModel) clusterTable.getModel();
+			int modelIndex = clusterTable.convertRowIndexToModel(rowIndex);
+			return model.getCluster(modelIndex);
 		}
-	}
-	
-	private static String getStatusText(Cluster cluster) {
-		int nodes = cluster.getNodeCount();
-		int edges = cluster.getEdgeCount();
-		var nodesText = nodes == 1 ? "1 node" : nodes + " nodes";
-		var edgesText = edges == 1 ? "1 edge" : edges + " edges";
-		return nodesText + ", " + edgesText;
+		return null;
 	}
 	
 	
@@ -592,18 +454,6 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		}
 		return clusters;
 	}
-	
-	
-	private Cluster getSelectedCluster() {
-		int rowIndex = clusterTable.getSelectedRow();
-		if(rowIndex >= 0) {
-			var model = (ClusterTableModel) clusterTable.getModel();
-			int modelIndex = clusterTable.convertRowIndexToModel(rowIndex);
-			return model.getCluster(modelIndex);
-		}
-		return null;
-	}
-	
 	
 	private Optional<AnnotationSet> getCurrentAnnotationSet() {
 		Optional<AnnotationSet> as = Optional.empty();

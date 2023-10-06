@@ -8,17 +8,13 @@ import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import org.cytoscape.model.CyNetwork;
-import org.cytoscape.model.CyNode;
-import org.cytoscape.task.select.DeselectAllTaskFactory;
-import org.cytoscape.work.SynchronousTaskManager;
+import org.baderlab.autoannotate.internal.model.Cluster;
 
 import com.google.inject.Inject;
 
 public class ClusterTableSelectionListener implements ListSelectionListener {
 
-	@Inject private DeselectAllTaskFactory deselectAllTaskFactory;
-	@Inject private SynchronousTaskManager<?> syncTaskManager;
+	@Inject private ClusterSelector clusterSelector;
 	
 	private JTable table;
 	
@@ -27,7 +23,6 @@ public class ClusterTableSelectionListener implements ListSelectionListener {
 		return this;
 	}
 	
-	
 	@Override
 	public void valueChanged(ListSelectionEvent e) {
 		if(e.getValueIsAdjusting())
@@ -35,10 +30,10 @@ public class ClusterTableSelectionListener implements ListSelectionListener {
 		selectClusters(false, false);
 	}
 	
-	
 	public void selectFirstCluster() {
 		selectClusters(true, true);
 	}
+	
 	
 	private void selectClusters(boolean firstRowOnly, boolean fitSelected) {
 		var model = (ClusterTableModel)table.getModel();
@@ -52,32 +47,13 @@ public class ClusterTableSelectionListener implements ListSelectionListener {
 		if(firstRowOnly)
 			selectedRows = new int[] { selectedRows[0] };
 		
-		Set<CyNode> nodesToSelect = 
+		Set<Cluster> clusters = 
 			Arrays.stream(selectedRows)
 			.map(table::convertRowIndexToModel)
 			.mapToObj(model::getCluster)
-			.flatMap(c -> c.getNodes().stream())
 			.collect(Collectors.toSet());
 		
-		var network = annotationSet.getParent().getNetwork();
-		
-		var deselectTask = deselectAllTaskFactory.createTaskIterator(network);
-		syncTaskManager.execute(deselectTask);
-		
-		for(var node : network.getNodeList()) {
-			var row = network.getRow(node);
-			
-			// Test if the node is already in the correct state, don't fire unnecessary events
-			boolean select = nodesToSelect.contains(node);
-			if(!Boolean.valueOf(select).equals(row.get(CyNetwork.SELECTED, Boolean.class))) {
-				row.set(CyNetwork.SELECTED, select);
-			}
-		}
-		
-		if(fitSelected) {
-			var netView = annotationSet.getParent().getNetworkView();
-			netView.fitSelected();
-		}
+		clusterSelector.selectClusters(clusters, fitSelected);
 	}
 
 }
