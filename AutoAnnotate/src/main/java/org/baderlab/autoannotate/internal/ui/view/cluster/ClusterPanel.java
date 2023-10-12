@@ -397,7 +397,7 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		clusterSelectionListener = selectionListenerProvider.get().init(clusterTable);
 		clusterTable.getSelectionModel().addListSelectionListener(clusterSelectionListener);
 		clusterTable.getSelectionModel().addListSelectionListener(clusterThumbnailListener = e -> {
-			clusterSignificancePanel.updateCluster(getSelectedCluster());
+			clusterSignificancePanel.setCluster(getSelectedCluster());
 		});
 		clusterTable.setAutoCreateRowSorter(true);
 		TableColumn collapsedColumn = clusterTable.getColumnModel().getColumn(ClusterTableModel.COLLAPSED_COL);

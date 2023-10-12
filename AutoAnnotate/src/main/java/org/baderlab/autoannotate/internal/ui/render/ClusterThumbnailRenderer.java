@@ -1,22 +1,15 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
-import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NETWORK_HEIGHT;
-import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NETWORK_WIDTH;
-import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NODE_X_LOCATION;
-import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NODE_Y_LOCATION;
+import static org.cytoscape.view.presentation.property.BasicVisualLexicon.*;
 
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.image.BaseMultiResolutionImage;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.UIManager;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.baderlab.autoannotate.internal.model.Cluster;
-import org.baderlab.autoannotate.internal.model.ModelEvents;
-import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.SavePolicy;
 import org.cytoscape.model.subnetwork.CyRootNetworkManager;
@@ -30,13 +23,6 @@ import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.view.vizmap.VisualStyleFactory;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -56,66 +42,14 @@ public class ClusterThumbnailRenderer {
 	@Inject private Provider<AnnotationRenderer> annotationRendererProvider;
 	
 
-	private LoadingCache<Cluster, Pair<Image,CySubNetwork>> cache;
 	private Icon emptyIcon;
-	
-
-	public ClusterThumbnailRenderer() {
-		cache = createCache();
-	}
-	
-	@Inject
-	public void registerForEvents(EventBus eventBus) {
-		eventBus.register(this);
-	}
-	
-	
-	private LoadingCache<Cluster,Pair<Image,CySubNetwork>> createCache() {
-		var loader = new CacheLoader<Cluster,Pair<Image,CySubNetwork>>() {
-	        @Override 
-	        public Pair<Image,CySubNetwork> load(Cluster cluster) {
-	        	var clusterNetwork = createClusterNetwork(cluster);
-	            var image = createThumbnailImage(cluster, clusterNetwork);
-	            return Pair.of(image, clusterNetwork);
-	        }
-	    };
-	    
-	    var removalListener = new RemovalListener<Cluster,Pair<Image,CySubNetwork>>() {
-	        @Override 
-	        public void onRemoval(RemovalNotification<Cluster,Pair<Image,CySubNetwork>> n) {
-	            if(n.wasEvicted()) {
-	            	var clusterNetwork = n.getValue().getRight();
-	            	dispose(clusterNetwork);
-	            }
-	        }
-	    };
-	        
-	    return CacheBuilder
-	    	.newBuilder()
-	    	.maximumSize(CACHE_MAX)
-	    	.weakKeys()
-	    	.removalListener(removalListener)
-	    	.build(loader);
-	}
-	
-	
-	@Subscribe
-	public void handle(ModelEvents.DisplayOptionChanged event) {
-		var option = event.getOption();
-		if(option == Option.OPACITY || option == Option.SHOW_CLUSTERS || option == Option.FILL_COLOR) {
-			var clusters = event.getDisplayOptions().getParent().getClusters();
-			cache.invalidateAll(clusters);
-		}
-	}
 	
 	
 	public Image getThumbnailImage(Cluster cluster) {
-		var pair = cache.getUnchecked(cluster);
-		return pair == null ? null : pair.getLeft();
-	}
-	
-	public Icon getThumbnailIcon(Cluster cluster) {
-		return new ImageIcon(getThumbnailImage(cluster));
+		var clusterNetwork = createClusterNetwork(cluster);
+        var image = createThumbnailImage(cluster, clusterNetwork);
+        dispose(clusterNetwork);
+        return image;
 	}
 	
 	
@@ -127,12 +61,11 @@ public class ClusterThumbnailRenderer {
 		clusterView.setVisualProperty(NETWORK_HEIGHT, Double.valueOf(height));
 		
 		for(var nodeView : clusterView.getNodeViews()) {
-			var originalNodeView = cluster.getNetworkView().getNodeView(nodeView.getModel());
-			if(originalNodeView != null) {
-				double x = originalNodeView.getVisualProperty(NODE_X_LOCATION);
-				double y = originalNodeView.getVisualProperty(NODE_Y_LOCATION);
-				nodeView.setVisualProperty(NODE_X_LOCATION, x);
-				nodeView.setVisualProperty(NODE_Y_LOCATION, y);
+			var origNodeView = cluster.getNetworkView().getNodeView(nodeView.getModel());
+			if(origNodeView != null) {
+				nodeView.setVisualProperty(NODE_X_LOCATION, origNodeView.getVisualProperty(NODE_X_LOCATION));
+				nodeView.setVisualProperty(NODE_Y_LOCATION, origNodeView.getVisualProperty(NODE_Y_LOCATION));
+				nodeView.setVisualProperty(NODE_VISIBLE,    origNodeView.getVisualProperty(NODE_VISIBLE));
 			}
 		}
 		
@@ -224,7 +157,7 @@ public class ClusterThumbnailRenderer {
 	}
 	
 	
-	public void dispose(CySubNetwork network) {
+	private void dispose(CySubNetwork network) {
 		if(network == null)
 			return;
 		
