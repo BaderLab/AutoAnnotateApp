@@ -9,6 +9,7 @@ import java.util.function.Function;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 
 @SuppressWarnings("serial")
 public class DiscreteSliderWithLabel<T> extends JPanel {
@@ -16,12 +17,12 @@ public class DiscreteSliderWithLabel<T> extends JPanel {
 	private DiscreteSlider<T> slider;
 	
 	
-	public DiscreteSliderWithLabel(String left, String right, String title, List<T> values, int defaultTick) {
+	public DiscreteSliderWithLabel(String title, String left, String right, List<T> values, int defaultTick) {
 		this(left, right, title, values, defaultTick, null);
 	}
 	
 	
-	public DiscreteSliderWithLabel(String left, String right, String title, List<T> values, int defaultTick, Function<T,String> valueToLabel) {
+	public DiscreteSliderWithLabel(String title, String left, String right, List<T> values, int defaultTick, Function<T,String> valueToLabel) {
 		Function<T,String> show = valueToLabel == null ? String::valueOf : valueToLabel;
 		
 		setLayout(new GridBagLayout());
@@ -37,7 +38,7 @@ public class DiscreteSliderWithLabel<T> extends JPanel {
 		
 		percentageLabel.setText(show.apply(slider.getValue()));
 		
-		slider.getSlider().addChangeListener(e -> {
+		slider.getJSlider().addChangeListener(e -> {
 			percentageLabel.setText(show.apply(slider.getValue()));
 		});
 		
@@ -49,4 +50,7 @@ public class DiscreteSliderWithLabel<T> extends JPanel {
 		return slider.getValue();
 	}
 	
+	public JSlider getJSlider() {
+		return slider.getJSlider();
+	}
 }

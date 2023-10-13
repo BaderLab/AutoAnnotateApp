@@ -1,5 +1,7 @@
 package org.baderlab.autoannotate.internal.ui.view.cluster;
 
+import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NODE_VISIBLE;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.util.ArrayList;
@@ -14,21 +16,23 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.LayoutStyle;
+import javax.swing.SwingConstants;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
+import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
 import org.baderlab.autoannotate.internal.ui.render.ClusterThumbnailRenderer;
 import org.baderlab.autoannotate.internal.ui.render.SignificanceLookup;
 import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelFactory;
 import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelParams;
 import org.baderlab.autoannotate.internal.util.DiscreteSliderWithLabel;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
+import org.cytoscape.event.DebounceTimer;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.view.model.View;
-import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -42,6 +46,8 @@ public class ClusterSignificancePanel extends JPanel {
 	@Inject private ClusterThumbnailRenderer thumbnailRenderer;
  	@Inject private SignificancePanelFactory.Factory significancePanelFactoryFactory;
 	@Inject private IconManager iconManager;
+	
+	private final DebounceTimer debounceTimer = new DebounceTimer(600);
 	
 	private JLabel clusterTitle;
 	private JLabel clusterIconLabel;
@@ -67,6 +73,14 @@ public class ClusterSignificancePanel extends JPanel {
 		}
 	}
 	
+	@Subscribe
+	public void handleEvent(ModelEvents.DisplayOptionChanged event) {
+		var option = event.getOption();
+		if(option == Option.OPACITY || option == Option.SHOW_CLUSTERS || option == Option.FILL_COLOR) {
+			setCluster(cluster);
+		}
+	}
+	
 	
 	@AfterInjection
 	private void createContents() {
@@ -87,8 +101,10 @@ public class ClusterSignificancePanel extends JPanel {
 		fitSelectedButton.setToolTipText("Show cluster in network view");
 		fitSelectedButton.addActionListener(e -> clusterSelector.selectCluster(this.cluster, true));
 		
-		significanceButton = new JButton("Set Significance...");
-		LookAndFeelUtil.makeSmall(significanceButton);
+//		significanceButton = new JButton("Set Significance Attribute...");
+		significanceButton = new JButton("<html>Set Significance<br>Attribute...</html>");
+//		LookAndFeelUtil.makeSmall(significanceButton);
+		significanceButton.setFont(significanceButton.getFont().deriveFont(LookAndFeelUtil.getSmallFontSize()));
 		significanceButton.addActionListener(e -> showSignificanceSettingsDialog());
 		
 		sliderPanel = new JPanel();
@@ -115,11 +131,12 @@ public class ClusterSignificancePanel extends JPanel {
 					.addComponent(clusterIconLabel)
 					.addComponent(clusterStatusLabel)
 				)
+				.addGap(6)
 				.addGroup(layout.createParallelGroup()
 					.addComponent(sliderPanel)
 					.addGroup(layout.createSequentialGroup()
 						.addComponent(significanceButton)
-						.addGap(0, Short.MAX_VALUE, Short.MAX_VALUE)
+						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 						.addComponent(fitSelectedButton)
 					)
 				)
@@ -143,6 +160,8 @@ public class ClusterSignificancePanel extends JPanel {
 				)
    			)
    		);
+   		
+   		layout.linkSize(SwingConstants.VERTICAL, significanceButton, fitSelectedButton);
    		
    		setCluster(null);
 	}
@@ -168,6 +187,13 @@ public class ClusterSignificancePanel extends JPanel {
 			
 			sigNodes = significanceLookup.getNodesSortedBySignificance(cluster); // sorted from most significant to less
 			slider = createSlider(sigNodes, cluster);
+			slider.getJSlider().addChangeListener(e -> {
+				int numVisible = slider.getValue();
+				debounceTimer.debounce(() -> {
+					System.out.println("numVisible: " + numVisible);
+					setVisibility(numVisible);
+				});
+			});
 			
 			sliderPanel.removeAll();
 			sliderPanel.add(slider, BorderLayout.CENTER);
@@ -192,27 +218,43 @@ public class ClusterSignificancePanel extends JPanel {
 		
 		var netView = cluster.getParent().getParent().getNetworkView();
 		
-		int tick = n + 1;
+		int tick = 1;
 		for(var node : sigNodes) {
 			var nodeView = netView.getNodeView(node);
-			if(visible(nodeView)) {
+			if(!visible(nodeView)) {
 				break;
 			}
-			tick--;
+			tick++;
 		}
 		
-		System.out.println(values);
-		System.out.println(tick);
-		
 		return new DiscreteSliderWithLabel<Integer>(
-			"<html>Less<br>Significant</html>", 
-			"<html><div align=right>More<br>Significant</div></html>", 
-			"Visible Nodes", values, tick);
+			"Visible Nodes", 
+			"<html>More<br>Significant</html>", 
+			"<html><div align=right>Less<br>Significant</div></html>", 
+			values, 
+			tick, 
+			x -> String.format("%d of %d", x, values.size()-1)
+		);
 	}
 	
 	
 	private static boolean visible(View<CyNode> nodeView) {
-		return !Boolean.FALSE.equals(nodeView.getVisualProperty(BasicVisualLexicon.NODE_VISIBLE));
+		return !Boolean.FALSE.equals(nodeView.getVisualProperty(NODE_VISIBLE));
+	}
+	
+	
+	private void setVisibility(int numVisible) {
+		var networkView  = cluster.getNetworkView();
+		
+		var visibleNodes = sigNodes.subList(0, numVisible);
+		var hiddenNodes  = sigNodes.subList(numVisible, sigNodes.size());
+		
+		for(var n : visibleNodes) {
+			networkView.getNodeView(n).setLockedValue(NODE_VISIBLE, true);
+		}
+		for(var n : hiddenNodes) {
+			networkView.getNodeView(n).setLockedValue(NODE_VISIBLE, false);
+		}
 	}
 	
 	

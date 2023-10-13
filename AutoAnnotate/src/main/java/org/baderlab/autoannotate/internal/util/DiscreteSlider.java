@@ -71,7 +71,7 @@ public class DiscreteSlider<T> extends JPanel {
 		slider.setValue(defaultTick);
 	}
 	
-	public JSlider getSlider() {
+	public JSlider getJSlider() {
 		return slider;
 	}
 	

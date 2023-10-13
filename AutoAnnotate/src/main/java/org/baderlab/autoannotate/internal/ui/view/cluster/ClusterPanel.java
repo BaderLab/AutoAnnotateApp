@@ -40,7 +40,6 @@ import org.baderlab.autoannotate.internal.CyActivator;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
-import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
 import org.baderlab.autoannotate.internal.model.ModelEvents.NetworkViewSetChanged.Type;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
@@ -132,14 +131,6 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 	public void handle(ModelEvents.NetworkViewSetChanged event) {
 		if(event.getChangeType() == Type.ANNOTATION_SET_ORDER) {
 			setNetworkViewSet(Optional.of(event.getNetworkViewSet())); // refreshes the panel
-		}
-	}
-	
-	@Subscribe
-	public void handle(ModelEvents.DisplayOptionChanged event) {
-		var option = event.getOption();
-		if(option == Option.OPACITY || option == Option.SHOW_CLUSTERS || option == Option.FILL_COLOR) {
-			clusterThumbnailListener.valueChanged(null);
 		}
 	}
 	
