@@ -3,6 +3,7 @@ package org.baderlab.autoannotate.internal.command;
 import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.model.SignificanceOptions.Highlight;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
+import org.baderlab.autoannotate.internal.ui.view.cluster.ClusterSignificancePanel;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ContainsTunables;
 import org.cytoscape.work.TaskMonitor;
@@ -14,12 +15,15 @@ import com.google.inject.Provider;
 public class RedrawCommandTask extends AbstractTask {
 
 	@Inject private Provider<AnnotationRenderer> rendererProvider;
+	@Inject private Provider<ClusterSignificancePanel> clusterSignificancePanelProvider;
+	
 	
 	@ContainsTunables @Inject
 	public NetworkContext networkContext;
 	
 	@Tunable(description = "for internal use")
 	public String eventType;
+	
 	
 	@Override
 	public void run(TaskMonitor tm)  {
@@ -46,6 +50,8 @@ public class RedrawCommandTask extends AbstractTask {
 			System.out.println("AutoAnnotate redraw");
 			rendererProvider.get().redrawAnnotations(nvs, asOpt);
 		}
+		
+		clusterSignificancePanelProvider.get().refresh();
 	}
 	
 }

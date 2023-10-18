@@ -1,11 +1,8 @@
 package org.baderlab.autoannotate.internal.ui.view.cluster;
 
-import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NODE_VISIBLE;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -23,26 +20,24 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
 import org.baderlab.autoannotate.internal.ui.render.ClusterThumbnailRenderer;
-import org.baderlab.autoannotate.internal.ui.render.SignificanceLookup;
 import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelFactory;
 import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelParams;
 import org.baderlab.autoannotate.internal.util.DiscreteSliderWithLabel;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.event.DebounceTimer;
-import org.cytoscape.model.CyNode;
 import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.LookAndFeelUtil;
-import org.cytoscape.view.model.View;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 @SuppressWarnings("serial")
+@Singleton
 public class ClusterSignificancePanel extends JPanel {
 
 	@Inject private ClusterSelector clusterSelector;
-	@Inject private SignificanceLookup significanceLookup;
 	@Inject private ClusterThumbnailRenderer thumbnailRenderer;
  	@Inject private SignificancePanelFactory.Factory significancePanelFactoryFactory;
 	@Inject private IconManager iconManager;
@@ -58,7 +53,6 @@ public class ClusterSignificancePanel extends JPanel {
 	
 	private DiscreteSliderWithLabel<Integer> slider;
 	private Cluster cluster;
-	private List<CyNode> sigNodes; // sorted from most significant to less
 	
 	
 	@Inject
@@ -79,6 +73,10 @@ public class ClusterSignificancePanel extends JPanel {
 		if(option == Option.OPACITY || option == Option.SHOW_CLUSTERS || option == Option.FILL_COLOR) {
 			setCluster(cluster);
 		}
+	}
+	
+	public void refresh() {
+		setCluster(cluster);
 	}
 	
 	
@@ -185,13 +183,12 @@ public class ClusterSignificancePanel extends JPanel {
 			clusterIconLabel.setIcon(new ImageIcon(image));
 			clusterStatusLabel.setText(getStatusText(cluster));
 			
-			sigNodes = significanceLookup.getNodesSortedBySignificance(cluster); // sorted from most significant to less
-			slider = createSlider(sigNodes, cluster);
+			slider = createSlider(cluster);
 			slider.getJSlider().addChangeListener(e -> {
 				int numVisible = slider.getValue();
 				debounceTimer.debounce(() -> {
-					System.out.println("numVisible: " + numVisible);
-					setVisibility(numVisible);
+					// debounce because setMaxVisible() fires an event that redraws the cluster
+					cluster.setMaxVisible(numVisible);
 				});
 			});
 			
@@ -206,26 +203,13 @@ public class ClusterSignificancePanel extends JPanel {
 	}
 	
 	
-	private static DiscreteSliderWithLabel<Integer> createSlider(List<CyNode> sigNodes, Cluster cluster) {
+	private static DiscreteSliderWithLabel<Integer> createSlider(Cluster cluster) {
 		int n = cluster.getNodeCount();
-		
-		if(sigNodes == null || sigNodes.size() != n) {
-			return null;
-		}
+		var maxVisible = cluster.getMaxVisible();
+		int tick = maxVisible == null ? n + 1 : maxVisible + 1;
 		
 		var values = new ArrayList<Integer>(n+1);
 		for(int i = 0; i <= n; values.add(i++));
-		
-		var netView = cluster.getParent().getParent().getNetworkView();
-		
-		int tick = 1;
-		for(var node : sigNodes) {
-			var nodeView = netView.getNodeView(node);
-			if(!visible(nodeView)) {
-				break;
-			}
-			tick++;
-		}
 		
 		return new DiscreteSliderWithLabel<Integer>(
 			"Visible Nodes", 
@@ -238,24 +222,9 @@ public class ClusterSignificancePanel extends JPanel {
 	}
 	
 	
-	private static boolean visible(View<CyNode> nodeView) {
-		return !Boolean.FALSE.equals(nodeView.getVisualProperty(NODE_VISIBLE));
-	}
-	
-	
-	private void setVisibility(int numVisible) {
-		var networkView  = cluster.getNetworkView();
-		
-		var visibleNodes = sigNodes.subList(0, numVisible);
-		var hiddenNodes  = sigNodes.subList(numVisible, sigNodes.size());
-		
-		for(var n : visibleNodes) {
-			networkView.getNodeView(n).setLockedValue(NODE_VISIBLE, true);
-		}
-		for(var n : hiddenNodes) {
-			networkView.getNodeView(n).setLockedValue(NODE_VISIBLE, false);
-		}
-	}
+//	private static boolean visible(View<CyNode> nodeView) {
+//		return !Boolean.FALSE.equals(nodeView.getVisualProperty(NODE_VISIBLE));
+//	}
 	
 	
 	private void showSignificanceSettingsDialog() {

@@ -135,7 +135,7 @@ public class AnnotationRenderer {
 		var netView = first.getNetworkView();
 		
 		debouncer.debounce(clusters, () -> {
-			var clusterUpdateTask = updateTaskProvider.create(clusters);
+			var clusterUpdateTask = updateTaskProvider.create(clusters, event.forceRedraw());
 			var updateNetworkViewTask = new UpdateNetworkViewTask(netView);
 			var taskIterator = new TaskIterator(clusterUpdateTask, updateNetworkViewTask);
 			syncTaskManager.execute(taskIterator);
@@ -192,7 +192,7 @@ public class AnnotationRenderer {
 		case FONT_SCALE:
 		case FONT_SIZE:
 		case USE_CONSTANT_FONT_SIZE: // when changing font size the label position must also be recalculated
-			var task = updateTaskProvider.create(as.getClusters());
+			var task = updateTaskProvider.create(as.getClusters(), false);
 			syncTaskManager.execute(new TaskIterator(task));
 			break;
 		case USE_WORD_WRAP: // when changing word wrap we need to re-create the label annotation objects
@@ -246,7 +246,7 @@ public class AnnotationRenderer {
 		
 		selectedClusters = new HashSet<>(select);
 		
-		UpdateClustersTask task = updateTaskProvider.create(clustersToRedraw);
+		UpdateClustersTask task = updateTaskProvider.create(clustersToRedraw, false);
 		syncTaskManager.execute(new TaskIterator(task));
 	}
 

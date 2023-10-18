@@ -48,22 +48,32 @@ public class DrawClustersTask extends AbstractTask {
 	@Inject private SignificanceLookup significanceLookup;
 	
 	private final Collection<Cluster> clusters;
+	private final boolean redrawVisibility;
 	
 	
 	public static interface Factory {
+		DrawClustersTask create(Collection<Cluster> clusters, boolean redrawVisibility);
 		DrawClustersTask create(Collection<Cluster> clusters);
 		DrawClustersTask create(Cluster cluster);
 	}
 	
 	
 	@AssistedInject
+	public DrawClustersTask(@Assisted Collection<Cluster> clusters, @Assisted boolean redrawVisibility) {
+		this.clusters = clusters;
+		this.redrawVisibility = redrawVisibility;
+	}
+	
+	@AssistedInject
 	public DrawClustersTask(@Assisted Collection<Cluster> clusters) {
 		this.clusters = clusters;
+		this.redrawVisibility = false;
 	}
 	
 	@AssistedInject
 	public DrawClustersTask(@Assisted Cluster cluster) {
 		this.clusters = Collections.singleton(cluster);
+		this.redrawVisibility = false;
 	}
 	
 	
@@ -71,15 +81,22 @@ public class DrawClustersTask extends AbstractTask {
 	public void run(TaskMonitor taskMonitor) {
 		taskMonitor.setTitle(BuildProperties.APP_NAME);
 		taskMonitor.setStatusMessage("Drawing Annotations");
-		
 		if(clusters.isEmpty())
 			return;
 		
-		var significanceColors = getSignificanceColors(); // may be null
-				
-		List<Annotation> allAnnotations = new ArrayList<>();
+		var allAnnotations = createAnnotations();
+		createHighlights();
+		createVisibility();
 		
-		// Create annotations
+		if(!allAnnotations.isEmpty())
+			annotationManager.addAnnotations(allAnnotations);
+	}
+	
+	
+	private List<Annotation> createAnnotations() {
+		List<Annotation> allAnnotations = new ArrayList<>();
+		var significanceColors = getSignificanceColors(); // may be null
+		
 		for(var cluster : clusters) {
 			if(!cluster.isCollapsed() && !HiddenTools.allNodesHidden(cluster)) {
 				boolean isSelected = annotationRenderer.isSelected(cluster);
@@ -88,52 +105,8 @@ public class DrawClustersTask extends AbstractTask {
 				allAnnotations.addAll(group.getAnnotations());
 			}
 		}
-		
-		// Create highlights
-		var annotationSet = clusters.iterator().next().getParent();
-		var highlight = annotationSet.getDisplayOptions().getSignificanceOptions().getHighlight();
-		
-		if(highlight == Highlight.BOLD_LABEL) {
-			var sigNodes = significanceLookup.getMostSignificantNodes(annotationSet);
-			for(var cluster : clusters) {
-				highlightLabel(cluster, sigNodes);
-			}
-		}
-		
-		if(!allAnnotations.isEmpty())
-			annotationManager.addAnnotations(allAnnotations);
+		return allAnnotations;
 	}
-	
-	
-	private void highlightLabel(Cluster cluster, Map<Cluster,CyNode> sigNodes) {
-		var node = sigNodes.get(cluster);
-		if(node == null)
-			return;
-		
-		var nodeView = cluster.getNetworkView().getNodeView(node);
-		if(nodeView == null)
-			return;
-		
-		var fontSize = getVP(nodeView, NODE_LABEL_FONT_SIZE);
-		var fontFace = getVP(nodeView, NODE_LABEL_FONT_FACE);
-		
-		fontSize += 4;
-		fontFace = fontFace.deriveFont(Font.BOLD);
-		
-		cluster.setHighlightedNode(node.getSUID());
-		
-		nodeView.setLockedValue(NODE_LABEL_FONT_SIZE, fontSize);
-		nodeView.setLockedValue(NODE_LABEL_FONT_FACE, fontFace);
-	}
-	
-	
-	private static <T> T getVP(View<CyNode> nodeView, VisualProperty<T> vp) {
-		var value = nodeView.getVisualProperty(vp);
-		if(value == null)
-			value = vp.getDefault();
-		return value;
-	}
-	
 	
 	private Map<Cluster,Color> getSignificanceColors() {
 		// Assume all clusters are from the same annotation set
@@ -144,7 +117,6 @@ public class DrawClustersTask extends AbstractTask {
 		return null;
 	}
 	
-	
 	static Color getSelectionColor(VisualMappingManager visualMappingManager, CyNetworkView netView) {
 		VisualStyle vs = visualMappingManager.getVisualStyle(netView);
 		if(vs == null)
@@ -154,7 +126,6 @@ public class DrawClustersTask extends AbstractTask {
 			return (Color) p;
 		return null;
 	}
-	
 	
 	private AnnotationGroup createClusterAnnotations(Cluster cluster, boolean isSelected, Map<Cluster,Color> significanceColors) {
 		AnnotationSet annotationSet = cluster.getParent();
@@ -184,6 +155,72 @@ public class DrawClustersTask extends AbstractTask {
 		return new AnnotationGroup(shape, textAnnotations);
 	}
 	
+	
+	private void createHighlights() {
+		var annotationSet = clusters.iterator().next().getParent();
+		var highlight = annotationSet.getDisplayOptions().getSignificanceOptions().getHighlight();
+		
+		if(highlight == Highlight.BOLD_LABEL) {
+			var sigNodes = significanceLookup.getMostSignificantNodes(annotationSet);
+			for(var cluster : clusters) {
+				var mostSigNode = sigNodes.get(cluster);
+				if(mostSigNode != null) {
+					highlightLabel(cluster, mostSigNode);
+				}
+			}
+		}
+	}
+	
+	private void highlightLabel(Cluster cluster, CyNode sigNode) {
+		var nodeView = cluster.getNetworkView().getNodeView(sigNode);
+		if(nodeView == null)
+			return;
+		
+		var fontSize = getVP(nodeView, NODE_LABEL_FONT_SIZE);
+		var fontFace = getVP(nodeView, NODE_LABEL_FONT_FACE);
+		
+		fontSize += 4;
+		fontFace = fontFace.deriveFont(Font.BOLD);
+		
+		cluster.setHighlightedNode(sigNode.getSUID());
+		
+		nodeView.setLockedValue(NODE_LABEL_FONT_SIZE, fontSize);
+		nodeView.setLockedValue(NODE_LABEL_FONT_FACE, fontFace);
+	}
+	
+	private static <T> T getVP(View<CyNode> nodeView, VisualProperty<T> vp) {
+		var value = nodeView.getVisualProperty(vp);
+		if(value == null)
+			value = vp.getDefault();
+		return value;
+	}
+	
+	
+	
+	private void createVisibility() {
+		if(!redrawVisibility)
+			return;
+			
+		for(var cluster : clusters) {
+			var sortedNodes = significanceLookup.getNodesSortedBySignificance(cluster);
+			setVisibilityUsingSignificance(cluster, sortedNodes);
+		}
+	}
+	
+	private void setVisibilityUsingSignificance(Cluster cluster, List<CyNode> sigNodes) {
+		var networkView  = cluster.getNetworkView();
+		int numVisible = cluster.getMaxVisible(); // assume not null
+		
+		var visibleNodes = sigNodes.subList(0, numVisible);
+		var hiddenNodes  = sigNodes.subList(numVisible, sigNodes.size());
+		
+		for(var n : visibleNodes) {
+			networkView.getNodeView(n).setLockedValue(BasicVisualLexicon.NODE_VISIBLE, true);
+		}
+		for(var n : hiddenNodes) {
+			networkView.getNodeView(n).setLockedValue(BasicVisualLexicon.NODE_VISIBLE, false);
+		}
+	}
 	
 	
 }

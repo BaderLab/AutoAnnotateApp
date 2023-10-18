@@ -3,13 +3,17 @@ package org.baderlab.autoannotate.internal.model;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyEdge.Type;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.view.model.CyNetworkView;
+
 
 public class Cluster {
 
@@ -19,7 +23,8 @@ public class Cluster {
 	private Set<CyNode> nodes;
 	private boolean collapsed;
 	
-	private Long highlightedNode = null; // May be null
+	private @Nullable Long highlightedNode = null; // May be null
+	private @Nullable Integer maxVisible = null; // May be null
 	
 	/**
 	 * Flag indicating if the cluster label was manually renamed by the user.
@@ -100,6 +105,17 @@ public class Cluster {
 	
 	public Long getHighlightedNode() {
 		return highlightedNode;
+	}
+	
+	public void setMaxVisible(Integer maxVisible) {
+		if(!Objects.equals(this.maxVisible, maxVisible)) {
+			this.maxVisible = maxVisible;
+			getRoot().postEvent(new ModelEvents.ClustersChanged(this, true));
+		}
+	}
+	
+	public Integer getMaxVisible() {
+		return maxVisible;
 	}
 	
 	void collapse(CyNode groupNode) {
