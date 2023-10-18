@@ -38,6 +38,7 @@ import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.model.io.CreationParameter;
 import org.baderlab.autoannotate.internal.util.ResultObserver;
+import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
@@ -253,7 +254,13 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 			var resultObserver = new RunClusterMakerResultObserver();
 			
 			var tasks = taskFactory.createTaskIterator(resultObserver);
-			syncTaskManager.execute(tasks);
+			
+			syncTaskManager.execute(tasks, TaskTools.onFail(finishStatus -> {
+				Exception e = finishStatus.getException();
+				if(e != null)
+					throw new RunClusterMakerException(e); // better than swallowing the exception
+			}));
+			
 			return resultObserver.getClusters();
 		});
 	}

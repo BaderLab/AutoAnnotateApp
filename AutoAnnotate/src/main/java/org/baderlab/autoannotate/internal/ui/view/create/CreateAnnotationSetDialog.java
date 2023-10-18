@@ -7,8 +7,10 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.Setting;
@@ -17,11 +19,13 @@ import org.baderlab.autoannotate.internal.task.AnnotationSetTaskParamters;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
 import org.baderlab.autoannotate.internal.task.Grouping;
+import org.baderlab.autoannotate.internal.task.RunClusterMakerException;
 import org.baderlab.autoannotate.internal.ui.view.WarnDialog;
 import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.util.swing.LookAndFeelUtil;
 import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.work.FinishStatus;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.swing.DialogTaskManager;
 
@@ -41,6 +45,7 @@ public class CreateAnnotationSetDialog extends JDialog implements DialogParent {
 	@Inject private CreateAnnotationSetTask.Factory createTaskFactory;
 	@Inject private CollapseAllTaskFactory.Factory collapseTaskFactoryFactory;
 	@Inject private SettingManager settingManager;
+	@Inject private Provider<JFrame> jframeProvider;
 	
 	@Inject private DialogTaskManager dialogTaskManager;
 	
@@ -193,9 +198,29 @@ public class CreateAnnotationSetDialog extends JDialog implements DialogParent {
 		CreateAnnotationSetTask createTask = createTaskFactory.create(params);
 		tasks.append(createTask);
 		
-		dialogTaskManager.execute(tasks);
+		dialogTaskManager.execute(tasks, TaskTools.onFail(status -> handleTaskFail(status, params)));
 	}
 
+	
+	private void handleTaskFail(FinishStatus status, AnnotationSetTaskParamters params) {
+		if(status.getException() instanceof RunClusterMakerException) {
+			String attr = params.getClusterMakerEdgeAttribute();
+			String title = "AutoAnnotate: Error Running Clustering Task";
+			String message = 
+				"<html>There was an error running the clustering task.<br><br>"
+				+ "This can occur when all the rows in the <b>Edge weight column</b> in the edge table contain the same value.<br>"
+				+ "The edge weight column was <b>" + attr + "</b><br><br>"
+				+ "Please try again by going to the <b>Advanced</b> tab, select <b>Use clustermaker2 app</b> and <br>"
+				+ "set the <b>Edge weight column</b> to <b>--None--</b>."
+				+ "</html>";
+			
+			SwingUtilities.invokeLater(() ->
+				JOptionPane.showMessageDialog(jframeProvider.get(), message, title, JOptionPane.ERROR_MESSAGE)
+			);
+		}
+	}
+	
+	
 	@Override
 	public void close() {
 		dispose(); // close this dialog

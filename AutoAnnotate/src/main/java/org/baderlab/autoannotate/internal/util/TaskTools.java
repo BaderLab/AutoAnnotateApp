@@ -75,6 +75,20 @@ public class TaskTools {
 		};
 	}
 	
+	public static TaskObserver onFail(Consumer<FinishStatus> consumer) {
+		return new TaskObserver() {
+			@Override
+			public void taskFinished(ObservableTask task) {
+			}
+			@Override
+			public void allFinished(FinishStatus finishStatus) {
+				if(finishStatus.getType() == FinishStatus.Type.FAILED) {
+					consumer.accept(finishStatus);
+				}
+			}
+		};
+	}
+	
 	public static <T> TaskObserver taskFinished(Class<T> taskType, Consumer<T> consumer) {
 		return new TaskObserver() {
 			@Override
