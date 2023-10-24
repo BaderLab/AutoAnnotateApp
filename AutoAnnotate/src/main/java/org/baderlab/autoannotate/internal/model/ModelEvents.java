@@ -90,24 +90,24 @@ public class ModelEvents {
 	
 	public static class ClustersChanged implements ModelEvent {
 		private final Set<Cluster> clusters;
-		private final boolean forceRedraw;
+		private final boolean visibilityChanged;
 		ClustersChanged(Set<Cluster> clusters) {
 			this.clusters = clusters;
-			this.forceRedraw = false;
+			this.visibilityChanged = false;
 		}
 		ClustersChanged(Cluster cluster) {
 			this.clusters = Set.of(cluster);
-			this.forceRedraw = false;
+			this.visibilityChanged = false;
 		}
-		ClustersChanged(Cluster cluster, boolean forceRedraw) {
+		ClustersChanged(Cluster cluster, boolean visibilityChanged) {
 			this.clusters = Set.of(cluster);
-			this.forceRedraw = forceRedraw;
+			this.visibilityChanged = visibilityChanged;
 		}
 		public Set<Cluster> getClusters() {
 			return clusters;
 		}
-		public boolean forceRedraw() {
-			return forceRedraw;
+		public boolean getVisibilityChanged() {
+			return visibilityChanged;
 		}
 	}
 	

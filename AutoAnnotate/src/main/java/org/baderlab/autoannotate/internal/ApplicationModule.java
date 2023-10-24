@@ -30,6 +30,8 @@ import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.baderlab.autoannotate.internal.ui.render.DrawClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.EraseClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.UpdateClustersTask;
+import org.baderlab.autoannotate.internal.ui.render.VisibilityClearTask;
+import org.baderlab.autoannotate.internal.ui.render.VisibilityTask;
 import org.baderlab.autoannotate.internal.ui.view.ManageAnnotationSetsDialog;
 import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTask;
 import org.baderlab.autoannotate.internal.ui.view.action.LayoutClustersAction;
@@ -122,6 +124,8 @@ public class ApplicationModule extends AbstractModule {
 		installFactory(RunEMAssociateTaskFactory.Factory.class);
 		installFactory(SignificancePanelFactory.Factory.class);
 		installFactory(ClusterSizeOptionsPanel.Factory.class);
+		installFactory(VisibilityTask.Factory.class);
+		installFactory(VisibilityClearTask.Factory.class);
 	}
 	
 	private void installFactory(Class<?> factoryInterface) {

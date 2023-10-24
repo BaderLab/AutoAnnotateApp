@@ -1,7 +1,10 @@
 package org.baderlab.autoannotate.internal;
 
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.ops4j.peaberry.Peaberry.service;
 import static org.ops4j.peaberry.util.Filters.ldap;
+
+import java.lang.annotation.Retention;
 
 import javax.swing.JFrame;
 
@@ -37,6 +40,7 @@ import org.cytoscape.view.presentation.annotations.AnnotationFactory;
 import org.cytoscape.view.presentation.annotations.AnnotationManager;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.annotations.TextAnnotation;
+import org.cytoscape.view.vizmap.VisualMappingFunctionFactory;
 import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.view.vizmap.VisualStyleFactory;
 import org.cytoscape.work.SynchronousTaskManager;
@@ -45,6 +49,7 @@ import org.cytoscape.work.swing.PanelTaskManager;
 import org.cytoscape.work.undo.UndoSupport;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.BindingAnnotation;
 import com.google.inject.Provides;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Named;
@@ -57,6 +62,12 @@ import com.google.inject.name.Named;
  */
 public class CytoscapeServiceModule extends AbstractModule {
 
+	// VisualMappingFunctionFactory
+	@BindingAnnotation @Retention(RUNTIME) public @interface Continuous {}
+	@BindingAnnotation @Retention(RUNTIME) public @interface Discrete {}
+	@BindingAnnotation @Retention(RUNTIME) public @interface Passthrough {}
+	
+	
 	@Override
 	protected void configure() {
 		// Bind cytoscape OSGi services
@@ -101,6 +112,10 @@ public class CytoscapeServiceModule extends AbstractModule {
 		bind(shapeFactory).toProvider(service(shapeFactory).filter(ldap("(type=ShapeAnnotation.class)")).single());
 		TypeLiteral<AnnotationFactory<TextAnnotation>> textFactory = new TypeLiteral<AnnotationFactory<TextAnnotation>>(){};
 		bind(textFactory).toProvider(service(textFactory).filter(ldap("(type=TextAnnotation.class)")).single());
+		
+		bind(VisualMappingFunctionFactory.class).annotatedWith(Continuous.class).toProvider(service(VisualMappingFunctionFactory.class).filter(ldap("(mapping.type=continuous)")).single());
+		bind(VisualMappingFunctionFactory.class).annotatedWith(Discrete.class).toProvider(service(VisualMappingFunctionFactory.class).filter(ldap("(mapping.type=discrete)")).single());
+		bind(VisualMappingFunctionFactory.class).annotatedWith(Passthrough.class).toProvider(service(VisualMappingFunctionFactory.class).filter(ldap("(mapping.type=passthrough)")).single());
 	}
 		
 	private <T> void bindService(Class<T> serviceClass) {

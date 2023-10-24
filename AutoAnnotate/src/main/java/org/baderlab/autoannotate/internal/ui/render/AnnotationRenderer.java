@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.function.BiConsumer;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
@@ -45,11 +46,15 @@ public class AnnotationRenderer {
 	@Inject private DrawClustersTask.Factory drawTaskProvider;
 	@Inject private EraseClustersTask.Factory eraseTaskProvider;
 	@Inject private UpdateClustersTask.Factory updateTaskProvider;
+	@Inject private VisibilityTask.Factory visibilityTaskProvider;
+	@Inject private VisibilityClearTask.Factory visibilityClearTaskProvider;
 	
 	private final DebounceTimer debouncer = new DebounceTimer();
 	
 	private Map<Cluster,AnnotationGroup> clusterAnnotations = new HashMap<>();
 	private Set<Cluster> selectedClusters = new HashSet<>();
+	
+	private Set<AnnotationSet> updateVisibility = Collections.newSetFromMap(new WeakHashMap<>());
 	
 	
 	@Inject
@@ -85,21 +90,26 @@ public class AnnotationRenderer {
 	
 	
 	private TaskIterator createRedrawTasks(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet) {
-		Set<Cluster> clusters = getClusters(networkViewSet);
+		Set<Cluster> clustersToErase = getClustersToErase(networkViewSet);
 		
 		TaskIterator tasks = new TaskIterator();
 		
-		var eraseTask = eraseTaskProvider.create(clusters);
+		if(selectedAnnotationSet.isPresent())
+			tasks.append(visibilityTaskProvider.create(selectedAnnotationSet.get()));
+		else
+			tasks.append(visibilityClearTaskProvider.create(networkViewSet));
+		
+		var eraseTask = eraseTaskProvider.create(clustersToErase);
 		if(eraseTask == null) // can happen in tests
 			return null;
-		
 		eraseTask.setEraseAll(true);
 		tasks.append(eraseTask);
 		
-		selectedAnnotationSet
-			.map(AnnotationSet::getClusters)
-			.map(drawTaskProvider::create)
-			.ifPresent(tasks::append);
+		if(selectedAnnotationSet.isPresent()) {
+			var clusters = selectedAnnotationSet.get().getClusters();
+			var drawTask = drawTaskProvider.create(clusters);
+			tasks.append(drawTask);
+		}
 		
 		var networkView = networkViewSet.getNetworkView();
 		tasks.append(TaskTools.taskOf(networkView::updateView));
@@ -129,16 +139,28 @@ public class AnnotationRenderer {
 		
 		// Assume all clusters are from the same AnnotationSet
 		Cluster first = clusters.iterator().next();
-		if(!first.getParent().isActive())
+		var annotationSet = first.getParent();
+		if(!annotationSet.isActive())
 			return;
 		
 		var netView = first.getNetworkView();
 		
+		if(event.getVisibilityChanged()) {
+			updateVisibility.add(annotationSet);
+		}
+		
 		debouncer.debounce(clusters, () -> {
-			var clusterUpdateTask = updateTaskProvider.create(clusters, event.forceRedraw());
-			var updateNetworkViewTask = new UpdateNetworkViewTask(netView);
-			var taskIterator = new TaskIterator(clusterUpdateTask, updateNetworkViewTask);
-			syncTaskManager.execute(taskIterator);
+			var tasks = new TaskIterator();
+					
+			var as = clusters.iterator().next().getParent();
+			if(updateVisibility.remove(as)) {
+				tasks.append(visibilityTaskProvider.create(as));
+			}
+			
+			tasks.append(updateTaskProvider.create(clusters));
+			tasks.append(new UpdateNetworkViewTask(netView));
+			
+			syncTaskManager.execute(tasks);
 		});
 	}
 	
@@ -192,7 +214,7 @@ public class AnnotationRenderer {
 		case FONT_SCALE:
 		case FONT_SIZE:
 		case USE_CONSTANT_FONT_SIZE: // when changing font size the label position must also be recalculated
-			var task = updateTaskProvider.create(as.getClusters(), false);
+			var task = updateTaskProvider.create(as.getClusters());
 			syncTaskManager.execute(new TaskIterator(task));
 			break;
 		case USE_WORD_WRAP: // when changing word wrap we need to re-create the label annotation objects
@@ -246,7 +268,7 @@ public class AnnotationRenderer {
 		
 		selectedClusters = new HashSet<>(select);
 		
-		UpdateClustersTask task = updateTaskProvider.create(clustersToRedraw, false);
+		UpdateClustersTask task = updateTaskProvider.create(clustersToRedraw);
 		syncTaskManager.execute(new TaskIterator(task));
 	}
 
@@ -256,7 +278,7 @@ public class AnnotationRenderer {
 	}
 	
 	
-	Set<Cluster> getClusters(NetworkViewSet nvs) { 
+	Set<Cluster> getClustersToErase(NetworkViewSet nvs) { 
 		Set<Cluster> clusters = new HashSet<>();
 		for(Cluster cluster : clusterAnnotations.keySet()) {
 			if(cluster.getParent().getParent().equals(nvs)) {

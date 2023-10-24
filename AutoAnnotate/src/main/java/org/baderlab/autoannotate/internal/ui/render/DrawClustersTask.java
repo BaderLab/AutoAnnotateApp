@@ -48,32 +48,22 @@ public class DrawClustersTask extends AbstractTask {
 	@Inject private SignificanceLookup significanceLookup;
 	
 	private final Collection<Cluster> clusters;
-	private final boolean redrawVisibility;
 	
 	
 	public static interface Factory {
-		DrawClustersTask create(Collection<Cluster> clusters, boolean redrawVisibility);
 		DrawClustersTask create(Collection<Cluster> clusters);
 		DrawClustersTask create(Cluster cluster);
 	}
 	
 	
 	@AssistedInject
-	public DrawClustersTask(@Assisted Collection<Cluster> clusters, @Assisted boolean redrawVisibility) {
-		this.clusters = clusters;
-		this.redrawVisibility = redrawVisibility;
-	}
-	
-	@AssistedInject
 	public DrawClustersTask(@Assisted Collection<Cluster> clusters) {
 		this.clusters = clusters;
-		this.redrawVisibility = false;
 	}
 	
 	@AssistedInject
 	public DrawClustersTask(@Assisted Cluster cluster) {
 		this.clusters = Collections.singleton(cluster);
-		this.redrawVisibility = false;
 	}
 	
 	
@@ -86,7 +76,6 @@ public class DrawClustersTask extends AbstractTask {
 		
 		var allAnnotations = createAnnotations();
 		createHighlights();
-		createVisibility();
 		
 		if(!allAnnotations.isEmpty())
 			annotationManager.addAnnotations(allAnnotations);
@@ -194,33 +183,5 @@ public class DrawClustersTask extends AbstractTask {
 			value = vp.getDefault();
 		return value;
 	}
-	
-	
-	
-	private void createVisibility() {
-		if(!redrawVisibility)
-			return;
-			
-		for(var cluster : clusters) {
-			var sortedNodes = significanceLookup.getNodesSortedBySignificance(cluster);
-			setVisibilityUsingSignificance(cluster, sortedNodes);
-		}
-	}
-	
-	private void setVisibilityUsingSignificance(Cluster cluster, List<CyNode> sigNodes) {
-		var networkView  = cluster.getNetworkView();
-		int numVisible = cluster.getMaxVisible(); // assume not null
-		
-		var visibleNodes = sigNodes.subList(0, numVisible);
-		var hiddenNodes  = sigNodes.subList(numVisible, sigNodes.size());
-		
-		for(var n : visibleNodes) {
-			networkView.getNodeView(n).setLockedValue(BasicVisualLexicon.NODE_VISIBLE, true);
-		}
-		for(var n : hiddenNodes) {
-			networkView.getNodeView(n).setLockedValue(BasicVisualLexicon.NODE_VISIBLE, false);
-		}
-	}
-	
 	
 }

@@ -65,7 +65,7 @@ public class ClusterThumbnailRenderer {
 			if(origNodeView != null) {
 				nodeView.setVisualProperty(NODE_X_LOCATION, origNodeView.getVisualProperty(NODE_X_LOCATION));
 				nodeView.setVisualProperty(NODE_Y_LOCATION, origNodeView.getVisualProperty(NODE_Y_LOCATION));
-				nodeView.setVisualProperty(NODE_VISIBLE,    origNodeView.getVisualProperty(NODE_VISIBLE));
+//				nodeView.setVisualProperty(NODE_VISIBLE,    origNodeView.getVisualProperty(NODE_VISIBLE));
 			}
 		}
 		

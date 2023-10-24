@@ -29,16 +29,14 @@ public class UpdateClustersTask extends AbstractTask {
 	@Inject private SignificanceLookup significanceLookup;
 	
 	private final Collection<Cluster> clusters;
-	private final boolean forceRedraw;
 	
 	public static interface Factory {
-		UpdateClustersTask create(Collection<Cluster> clusters, boolean forceRedraw);
+		UpdateClustersTask create(Collection<Cluster> clusters);
 	}
 	
 	@AssistedInject
-	public UpdateClustersTask(@Assisted Collection<Cluster> clusters, @Assisted boolean forceRedraw) {
+	public UpdateClustersTask(@Assisted Collection<Cluster> clusters) {
 		this.clusters = clusters;
-		this.forceRedraw = forceRedraw;
 	}
 	
 	
@@ -65,7 +63,7 @@ public class UpdateClustersTask extends AbstractTask {
 	
 	
 	private boolean maybeUpdateOneCluster(Cluster cluster) {
-		if(forceRedraw || cluster.isCollapsed() || HiddenTools.hasHiddenNodes(cluster)) {
+		if(cluster.isCollapsed() || HiddenTools.hasHiddenNodes(cluster)) {
 			return false;
 		}
 		
@@ -121,7 +119,7 @@ public class UpdateClustersTask extends AbstractTask {
 	private void redraw(Collection<Cluster> clusters) {
 		if(!clusters.isEmpty()) {
 			EraseClustersTask eraseTask = eraseTaskProvider.create(clusters);
-			DrawClustersTask drawTask = drawTaskProvider.create(clusters, forceRedraw);
+			DrawClustersTask drawTask = drawTaskProvider.create(clusters);
 			insertTasksAfterCurrentTask(eraseTask, drawTask);
 		}
 	}
