@@ -14,6 +14,10 @@ public class ModelEvents {
 	}
 	
 	
+	public static class ModelLoaded implements ModelEvent {
+	}
+	
+	
 	public static class AnnotationSetAdded implements ModelEvent {
 		private final AnnotationSet annotationSet;
 		AnnotationSetAdded(AnnotationSet annotationSet) {

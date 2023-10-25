@@ -24,11 +24,10 @@ import org.baderlab.autoannotate.internal.model.AnnotationSetBuilder;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
+import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
-import org.baderlab.autoannotate.internal.model.SignificanceOptions.Highlight;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationPersistor;
-import org.baderlab.autoannotate.internal.ui.view.display.Significance;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
 import org.cytoscape.model.CyNetworkTableManager;
@@ -49,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
+import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
@@ -105,13 +105,15 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		TEXT_ID = "textID",
 		// Added word wrap which means multiple text IDs, but need separate column for backwards compatibility
 		TEXT_ID_ADDITIONAL = "textID_additional",
-		MANUAL = "manual";  
+		MANUAL = "manual",
+		MAX_VISIBLE = "maxVisible";  
 	
 	
 	@Inject private Provider<AnnotationPersistor> annotationPersistorProvider;
 	@Inject private Provider<ModelManager> modelManagerProvider;
 	@Inject private Provider<LabelMakerManager> labelManagerProvider;
 	@Inject private Provider<PaletteProviderManager> paletteManagerProvider;
+	@Inject private EventBus eventBus;
 	
 	@Inject private CyNetworkTableManager networkTableManager;
 	@Inject private CyNetworkManager networkManager;
@@ -179,6 +181,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			NetworkViewSet nvs = as.getParent();
 			nvs.select(as);
 		}
+		
+		eventBus.post(new ModelEvents.ModelLoaded());
 	}
 	
 	
@@ -240,10 +244,10 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			safeGet(asRow, WORD_WRAP, Boolean.class, builder::setUseWordWrap);
 			safeGet(asRow, WORD_WRAP_LENGTH, Integer.class, builder::setWordWrapLength);
 			safeGet(asRow, SIGNIFICANCE_COLUMN, String.class, builder::setSignificanceColumn);
-			safeGet(asRow, SIGNIFICANCE_METRIC, String.class, s -> builder.setSignificance(Significance.valueOf(s)));
 			safeGet(asRow, SIGNIFICANCE_EM_DATASET, String.class, builder::setEmDataSet);
 			safeGet(asRow, SIGNIFICANCE_USE_EM, Boolean.class, builder::setEM);
-			safeGet(asRow, SIGNIFICANCE_HIGHLIGHT, String.class, s -> builder.setHighlight(Highlight.valueOf(s)));
+			safeGet(asRow, SIGNIFICANCE_HIGHLIGHT, String.class, builder::setHighlight);
+			safeGet(asRow, SIGNIFICANCE_METRIC, String.class, builder::setSignificance);
 			
 			String labelMakerID = asRow.get(LABEL_MAKER_ID, String.class);
 			String serializedContext = asRow.get(LABEL_MAKER_CONTEXT, String.class);
@@ -304,6 +308,8 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				manual = false;
 			}
 			
+			var maxVisible = clusterRow.get(MAX_VISIBLE, Integer.class); // May be null
+			
 			Optional<UUID> shapeID = safeUUID(clusterRow.get(SHAPE_ID, String.class));
 			Optional<UUID> textID  = safeUUID(clusterRow.get(TEXT_ID, String.class));
 			Optional<List<UUID>> textIDAdditional = safeUUID(clusterRow.getList(TEXT_ID_ADDITIONAL, String.class));
@@ -315,6 +321,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			builder.addCluster(nodes, label, collapsed, manual, cluster -> {
 				annotationPersistor.restoreCluster(cluster, shapeID, textID, textIDAdditional);
 				cluster.setHighlightedNode(highlightedNodeSuid);
+				cluster.setMaxVisible(maxVisible, false);
 			});
 		}
 		
@@ -329,6 +336,9 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		}
 		
 		return activeSets;
+	}
+	
+	private static void noop() {
 	}
 	
 	private class Ids {
@@ -423,6 +433,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				clusterRow.set(ANNOTATION_SET_ID, ids.asId);
 				clusterRow.set(NODES_SUID, nodeSuids);
 				clusterRow.set(HIGHLIGHTED_NODE_SUID, cluster.getHighlightedNode());
+				clusterRow.set(MAX_VISIBLE, cluster.getMaxVisible());
 				
 				Optional<UUID> shapeID = annotationPersistor.getShapeID(cluster);
 				clusterRow.set(SHAPE_ID, shapeID.map(UUID::toString).orElse(null));
@@ -507,6 +518,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, LABEL, String.class);
 		createColumn(table, COLLAPSED, Boolean.class);
 		createColumn(table, MANUAL, Boolean.class);
+		createColumn(table, MAX_VISIBLE, Integer.class);
 		createListColumn(table, NODES_SUID, Long.class);
 		createColumn(table, HIGHLIGHTED_NODE_SUID, Long.class);
 		createColumn(table, ANNOTATION_SET_ID, Long.class);

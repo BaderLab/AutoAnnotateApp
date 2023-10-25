@@ -16,6 +16,8 @@ import org.cytoscape.model.CyNode;
 import org.cytoscape.util.color.Palette;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 
+import com.google.common.base.Strings;
+
 /**
  * The purpose of this builder is to create a complete annotation set with
  * all its child clusters and have a single event fire. Calling
@@ -310,6 +312,13 @@ public class AnnotationSetBuilder {
 	public void setSignificance(Significance significance) {
 		this.significance = significance;
 	}
+	
+	public void setSignificance(String significance) { // for restoring from table
+		if(Strings.isNullOrEmpty(significance))
+			setSignificance((Significance)null);
+		else
+			setSignificance(Significance.valueOf(significance));
+	}
 
 
 	public String getEmDataSet() {
@@ -339,6 +348,13 @@ public class AnnotationSetBuilder {
 
 	public void setHighlight(Highlight highlight) {
 		this.highlight = highlight;
+	}
+	
+	public void setHighlight(String highlight) { // for restoring from table
+		if(Strings.isNullOrEmpty(highlight))
+			setHighlight(Highlight.NONE);
+		else
+			setHighlight(Highlight.valueOf(highlight));
 	}
 
 	

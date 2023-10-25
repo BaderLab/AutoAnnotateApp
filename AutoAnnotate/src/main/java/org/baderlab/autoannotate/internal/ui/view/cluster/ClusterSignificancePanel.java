@@ -194,7 +194,7 @@ public class ClusterSignificancePanel extends JPanel {
 				int numVisible = slider.getValue();
 				debounceTimer.debounce(() -> {
 					// debounce because setMaxVisible() fires an event that redraws the cluster
-					cluster.setMaxVisible(numVisible);
+					cluster.setMaxVisible(numVisible, true);
 				});
 			});
 			
@@ -228,7 +228,7 @@ public class ClusterSignificancePanel extends JPanel {
 						label.setIcon(IconManager.resizeIcon(icon,16));
 					}
 				}
-				label.setText("EnrichmentMap " + SwingUtil.abbreviate(dataSet, 20) + " chart");
+				label.setText(SwingUtil.abbreviate(dataSet, 22) + " chart");
 			}
 		} else {
 			var sigCol = sigOpts.getSignificanceColumn();

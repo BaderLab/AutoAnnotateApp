@@ -21,6 +21,7 @@ import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.DisplayOptions;
 import org.baderlab.autoannotate.internal.model.DisplayOptions.FillType;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
+import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.view.action.SelectClusterTask;
 import org.baderlab.autoannotate.internal.util.TaskTools;
@@ -39,6 +40,8 @@ import com.google.inject.Singleton;
 
 @Singleton
 public class AnnotationRenderer {
+	
+	@Inject private ModelManager modelManager;
 	
 	@Inject private DialogTaskManager dialogTaskManager;
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
@@ -86,6 +89,25 @@ public class AnnotationRenderer {
 		if(annotationSet.isActive()) {
 			redrawAnnotations(annotationSet.getParent(), Optional.of(event.getAnnotationSet()), false);
 		};
+	}
+	
+	
+	@Subscribe
+	public void handle(ModelEvents.ModelLoaded event) {
+		System.out.println("AnnotationRenderer.handle()");
+		TaskIterator tasks = new TaskIterator();
+		
+		for(var nvs : modelManager.getNetworkViewSets()) {
+			var asOpt = nvs.getActiveAnnotationSet();
+			if(asOpt.isPresent()) {
+				var as = asOpt.get();
+				tasks.append(visibilityTaskProvider.create(as));
+			}
+		}
+		
+		if(tasks.getNumTasks() > 0) {
+			syncTaskManager.execute(tasks);
+		}
 	}
 	
 	

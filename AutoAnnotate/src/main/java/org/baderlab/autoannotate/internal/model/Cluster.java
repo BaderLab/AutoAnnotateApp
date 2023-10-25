@@ -107,10 +107,12 @@ public class Cluster {
 		return highlightedNode;
 	}
 	
-	public void setMaxVisible(Integer maxVisible) {
+	public void setMaxVisible(Integer maxVisible, boolean fireEvent) { // fireEvent is a hack
 		if(!Objects.equals(this.maxVisible, maxVisible)) {
 			this.maxVisible = maxVisible;
-			getRoot().postEvent(new ModelEvents.ClustersChanged(this, true));
+			if(fireEvent) {
+				getRoot().postEvent(new ModelEvents.ClustersChanged(this, true));
+			}
 		}
 	}
 	
