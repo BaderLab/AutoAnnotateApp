@@ -24,6 +24,7 @@ import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelFacto
 import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelParams;
 import org.baderlab.autoannotate.internal.util.DiscreteSliderWithLabel;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
+import org.cytoscape.application.swing.CyColumnPresentationManager;
 import org.cytoscape.event.DebounceTimer;
 import org.cytoscape.util.swing.IconManager;
 import org.cytoscape.util.swing.LookAndFeelUtil;
@@ -41,6 +42,7 @@ public class ClusterSignificancePanel extends JPanel {
 	@Inject private ClusterThumbnailRenderer thumbnailRenderer;
  	@Inject private SignificancePanelFactory.Factory significancePanelFactoryFactory;
 	@Inject private IconManager iconManager;
+	@Inject private CyColumnPresentationManager columnPresentationManager;
 	
 	private final DebounceTimer debounceTimer = new DebounceTimer(600);
 	
@@ -50,6 +52,7 @@ public class ClusterSignificancePanel extends JPanel {
 	private JButton fitSelectedButton;
 	private JPanel sliderPanel;
 	private JButton significanceButton;
+	private JLabel significanceLabel;
 	
 	private DiscreteSliderWithLabel<Integer> slider;
 	private Cluster cluster;
@@ -99,7 +102,10 @@ public class ClusterSignificancePanel extends JPanel {
 		fitSelectedButton.setToolTipText("Show cluster in network view");
 		fitSelectedButton.addActionListener(e -> clusterSelector.selectCluster(this.cluster, true));
 		
-//		significanceButton = new JButton("Set Significance Attribute...");
+		significanceLabel = new JLabel();
+		significanceLabel.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 2));
+		LookAndFeelUtil.makeSmall(significanceLabel);
+		
 		significanceButton = new JButton("<html>Set Significance<br>Attribute...</html>");
 //		LookAndFeelUtil.makeSmall(significanceButton);
 		significanceButton.setFont(significanceButton.getFont().deriveFont(LookAndFeelUtil.getSmallFontSize()));
@@ -113,9 +119,6 @@ public class ClusterSignificancePanel extends JPanel {
 		sliderPanel.setVisible(false);
 		fitSelectedButton.setVisible(false);
 		significanceButton.setVisible(false);
-
-//		clusterTable.getSelectionModel().addListSelectionListener(clusterThumbnailListener);
-//		clusterTable.addPropertyChangeListener("model", evt -> clusterSelectionHandler.run());
 		
 		var layout = new GroupLayout(this);
 		setLayout(layout);
@@ -137,6 +140,7 @@ public class ClusterSignificancePanel extends JPanel {
 						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 						.addComponent(fitSelectedButton)
 					)
+					.addComponent(significanceLabel)
 				)
 			)
    		);
@@ -155,6 +159,7 @@ public class ClusterSignificancePanel extends JPanel {
 						.addComponent(significanceButton)
 						.addComponent(fitSelectedButton)
 					)
+					.addComponent(significanceLabel)
 				)
    			)
    		);
@@ -176,7 +181,8 @@ public class ClusterSignificancePanel extends JPanel {
 			sliderPanel.setVisible(false);
 			fitSelectedButton.setVisible(false);
 			significanceButton.setVisible(false);
-			
+			significanceLabel.setText("");
+			significanceLabel.setVisible(false);
 		} else {
 			clusterTitle.setText("<html>" + cluster.getLabel() + "</html>"); // <html> enables word wrap
 			var image = thumbnailRenderer.getThumbnailImage(cluster);
@@ -197,9 +203,39 @@ public class ClusterSignificancePanel extends JPanel {
 			sliderPanel.setVisible(true);
 			fitSelectedButton.setVisible(true);
 			significanceButton.setVisible(true);
+			
+			setSignificanceLabelText(cluster, significanceLabel);
+			significanceLabel.setVisible(true);
 		}
 		
 		return this;
+	}
+	
+	
+	private void setSignificanceLabelText(Cluster cluster, JLabel label) {
+		label.setText("");
+		label.setIcon(null);
+		
+		var sigOpts  = cluster.getParent().getDisplayOptions().getSignificanceOptions();
+		
+		if(sigOpts.isEM()) {
+			var dataSet = sigOpts.getEMDataSet();
+			if(dataSet != null) {
+				var presentation = columnPresentationManager.getColumnPresentation("EnrichmentMap");
+				if(presentation != null) {
+					Icon icon = presentation.getNamespaceIcon();
+					if (icon != null) {
+						label.setIcon(IconManager.resizeIcon(icon,16));
+					}
+				}
+				label.setText("EnrichmentMap " + SwingUtil.abbreviate(dataSet, 20) + " chart");
+			}
+		} else {
+			var sigCol = sigOpts.getSignificanceColumn();
+			if(sigCol != null) {
+				columnPresentationManager.setLabel(sigCol, label);
+			}
+		}
 	}
 	
 	
@@ -220,11 +256,6 @@ public class ClusterSignificancePanel extends JPanel {
 			x -> String.format("%d of %d", x, values.size()-1)
 		);
 	}
-	
-	
-//	private static boolean visible(View<CyNode> nodeView) {
-//		return !Boolean.FALSE.equals(nodeView.getVisualProperty(NODE_VISIBLE));
-//	}
 	
 	
 	private void showSignificanceSettingsDialog() {

@@ -31,11 +31,9 @@ public class SignificanceOptions {
 	private String significanceColumn = null;
 	private Significance significance = Significance.getDefault();
 	
-	// For when enrichmentmap is used to determine significance.
-	private String emDataSet = null;
-	
 	// Indicates that significance comes from EnrichmentMap
 	private boolean isEM = false;
+	private String emDataSet = null;
 	
 	// True if the most significant node in a cluster should be "highlighted"
 	private Highlight highlight = Highlight.NONE;
