@@ -58,6 +58,9 @@ public class AnnotateCommandTask extends AbstractTask {
 	public boolean returnJsonOnly = false;
 	
 	
+	public boolean hideShapesAndLabels = false;
+	
+	
 	@ContainsTunables
 	public Supplier<?> labelMakerArguments;
 
@@ -119,9 +122,8 @@ public class AnnotateCommandTask extends AbstractTask {
 		}
 		
 		Object labelMakerContext = labelMakerArguments.get();
-		
-		AnnotationSetTaskParamters params = 
-			new AnnotationSetTaskParamters.Builder(networkView)
+		 
+		var builder = new AnnotationSetTaskParamters.Builder(networkView)
 			.setLabelColumn(labelColumn)
 			.setLabelMakerFactory(labelMakerFactory)
 			.setLabelMakerContext(labelMakerContext)
@@ -131,9 +133,14 @@ public class AnnotateCommandTask extends AbstractTask {
 				useClusterMaker 
 					? new ClusterMakerParameters(alg, edgeWeightColumn)
 					: new ClusterIDParameters(clusterIdColumn)
-			)
-			.build();
+			);
 		
+		if(hideShapesAndLabels) {
+			builder.setShowLabels(false);
+			builder.setShowShapes(false);
+		}
+		
+		AnnotationSetTaskParamters params = builder.build();
 		createTasks(params);
 	}
 

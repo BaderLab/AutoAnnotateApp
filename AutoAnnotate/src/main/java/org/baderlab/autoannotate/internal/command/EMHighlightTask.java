@@ -1,11 +1,12 @@
 package org.baderlab.autoannotate.internal.command;
 
+import static org.baderlab.autoannotate.internal.util.TaskTools.onFinished;
+
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.makers.ClusterBoostedLabelMakerFactory;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.SignificanceOptions.Highlight;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
-import org.baderlab.autoannotate.internal.util.TaskTools;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
@@ -14,7 +15,6 @@ import org.cytoscape.work.Tunable;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-
 /**
  * This task is specifically for EnrichmentMap to call, it highlights
  * the "most significant" nodes in the network.
@@ -40,10 +40,11 @@ public class EMHighlightTask extends AbstractTask {
 		
 		// The defaults already work for EM networks
 		var annotateTask = annotateTaskFactory.create(labelMakerFactory);
-		var tasks = new TaskIterator(annotateTask);
+		annotateTask.hideShapesAndLabels = true;
 		
-		syncTaskManager.execute(tasks, 
-			TaskTools.taskFinished(CreateAnnotationSetTask.class, task -> {
+		syncTaskManager.execute(
+			new TaskIterator(annotateTask), 
+			onFinished(CreateAnnotationSetTask.class, task -> {
 				var annotationSet = task.getResults(AnnotationSet.class);
 				setDisplayOptions(annotationSet);
 			}
@@ -58,8 +59,6 @@ public class EMHighlightTask extends AbstractTask {
 		var sigOpts  = dispOpts.getSignificanceOptions();
 		
 		try(var s = dispOpts.silenceEvents()) {
-			dispOpts.setShowClusters(false);
-			dispOpts.setShowLabels(false);
 			sigOpts.setSignificance(null, null, dataSet, true);
 			sigOpts.setHighlight(Highlight.BOLD_LABEL);
 		}

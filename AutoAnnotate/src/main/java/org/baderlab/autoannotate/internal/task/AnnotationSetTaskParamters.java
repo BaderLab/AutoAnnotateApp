@@ -18,6 +18,8 @@ public class AnnotationSetTaskParamters {
 	private final Object labelMakerContext;
 	private final boolean createSingletonClusters;
 	private final Optional<Integer> maxClusters;
+	private final boolean showShapes;
+	private final boolean showLabels;
 	private final boolean returnJsonOnly;
 	
 	
@@ -111,6 +113,8 @@ public class AnnotationSetTaskParamters {
 		this.labelMakerContext = builder.labelMakerContext;
 		this.createSingletonClusters = builder.createSingletonClusters;
 		this.maxClusters = builder.maxClusters;
+		this.showShapes = builder.showShapes;
+		this.showLabels = builder.showLabels;
 		this.returnJsonOnly = builder.returnJsonOnly;
 	}
 	
@@ -125,6 +129,8 @@ public class AnnotationSetTaskParamters {
 		private Object labelMakerContext;
 		private boolean createSingletonClusters = false;
 		private Optional<Integer> maxClusters = Optional.empty();
+		private boolean showShapes = true;
+		private boolean showLabels = true;
 		private boolean returnJsonOnly = false;
 		
 		public Builder(CyNetworkView networkView) {
@@ -157,6 +163,14 @@ public class AnnotationSetTaskParamters {
 		}
 		public Builder setMaxClusters(int maxClusters) {
 			this.maxClusters = Optional.of(maxClusters);
+			return this;
+		}
+		public Builder setShowShapes(boolean show) {
+			this.showShapes = show;
+			return this;
+		}
+		public Builder setShowLabels(boolean show) {
+			this.showLabels = show;
 			return this;
 		}
 		public Builder setReturnJsonOnly(boolean returnJsonOnly) {
@@ -247,6 +261,14 @@ public class AnnotationSetTaskParamters {
 		return returnJsonOnly;
 	}
 	
+	public boolean showShapes() {
+		return showShapes;
+	}
+
+	public boolean showLabels() {
+		return showLabels;
+	}
+
 	@Override
 	public String toString() {
 		return MoreObjects.toStringHelper(this)

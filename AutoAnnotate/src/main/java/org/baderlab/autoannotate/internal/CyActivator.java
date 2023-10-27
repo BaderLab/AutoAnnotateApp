@@ -23,7 +23,6 @@ import org.baderlab.autoannotate.internal.layout.CoseLayoutAlgorithm;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.io.ModelTablePersistor;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
-import org.baderlab.autoannotate.internal.ui.PanelManagerImpl;
 import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
 import org.baderlab.autoannotate.internal.ui.view.action.CreateClusterTaskFactory;
 import org.baderlab.autoannotate.internal.ui.view.action.SelectClusterTaskFactory;
@@ -72,9 +71,9 @@ public class CyActivator extends AbstractCyActivator {
 		registerAllServices(bc, modelManager);
 		
 		// Register menu Actions
-		PanelManager panelManager = injector.getInstance(PanelManager.class);
+		var panelManager = injector.getInstance(PanelManager.class);
 		registerAppsMenuAction(bc, injector.getInstance(ShowCreateDialogAction.class), ShowCreateDialogAction.TITLE, 1.0f, false);
-		registerAppsMenuAction(bc, panelManager.getShowHideActionTaskFactory(), PanelManagerImpl.SHOW_HIDE_TITLE, 2.0f, false);
+		registerAppsMenuAction(bc, panelManager.getShowHideActionTaskFactory(), PanelManager.SHOW_HIDE_TITLE, 2.0f, false);
 		registerAppsMenuAction(bc, injector.getInstance(ShowHelpAction.class), ShowHelpAction.TITLE, 3.0f, true);
 		registerAppsMenuAction(bc, injector.getInstance(ShowAboutDialogAction.class), ShowAboutDialogAction.TITLE, 4.0f, false);
 		

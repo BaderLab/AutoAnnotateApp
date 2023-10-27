@@ -25,7 +25,6 @@ import org.baderlab.autoannotate.internal.task.RunEMAssociateTaskFactory;
 import org.baderlab.autoannotate.internal.task.RunMCODETaskFactory;
 import org.baderlab.autoannotate.internal.task.SummaryNetworkTask;
 import org.baderlab.autoannotate.internal.ui.PanelManager;
-import org.baderlab.autoannotate.internal.ui.PanelManagerImpl;
 import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.baderlab.autoannotate.internal.ui.render.DrawClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.EraseClustersTask;
@@ -66,7 +65,7 @@ public class ApplicationModule extends AbstractModule {
 
 	@Override
 	protected void configure() {
-		bind(PanelManager.class).to(PanelManagerImpl.class).asEagerSingleton();
+		bind(PanelManager.class).asEagerSingleton();
 		bind(ModelManager.class).asEagerSingleton();
 		bind(AnnotationRenderer.class).asEagerSingleton();
 		bind(LabelFactoryModule.class).asEagerSingleton();

@@ -152,6 +152,9 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 			builder.setFillColorPalette(defaultPalette);
 		}
 		
+		builder.setShowClusters(params.showShapes());
+		builder.setShowLabels(params.showLabels());
+		
 		for(String clusterKey : clusters.keySet()) {
 			Collection<CyNode> nodes = clusters.get(clusterKey);
 			String label = labelMaker.makeLabel(network, nodes, labelColumn);

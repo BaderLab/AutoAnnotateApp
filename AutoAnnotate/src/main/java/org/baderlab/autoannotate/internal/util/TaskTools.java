@@ -89,7 +89,7 @@ public class TaskTools {
 		};
 	}
 	
-	public static <T> TaskObserver taskFinished(Class<T> taskType, Consumer<T> consumer) {
+	public static <T> TaskObserver onFinished(Class<T> taskType, Consumer<T> consumer) {
 		return new TaskObserver() {
 			@Override
 			public void taskFinished(ObservableTask task) {
