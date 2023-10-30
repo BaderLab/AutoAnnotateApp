@@ -71,7 +71,7 @@ public class AnnotationRenderer {
 		// User switched annotation sets
 		Optional<AnnotationSet> selected = event.getAnnotationSet();
 		
-		Set<Cluster> selectedClusters = selected.map(AnnotationSet::getClusters).orElse(Collections.emptySet());
+		Set<Cluster> selectedClusters = selected.map(AnnotationSet::getClusters).orElse(Set.of());
 		
 		// This happens when the session has just been restored.
 		if(!selectedClusters.isEmpty() && clusterAnnotations.keySet().containsAll(selectedClusters)) {
