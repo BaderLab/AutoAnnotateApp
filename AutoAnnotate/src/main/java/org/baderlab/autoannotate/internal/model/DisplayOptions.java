@@ -6,6 +6,7 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
+import org.baderlab.autoannotate.internal.model.ModelEvents.ModelEvent;
 import org.cytoscape.util.color.Palette;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation.ShapeType;
 
@@ -161,9 +162,13 @@ public class DisplayOptions {
 	}
 	
 	protected void postEvent(Option option) {
+		postEvent(new ModelEvents.DisplayOptionChanged(this, option));
+	}
+	
+	protected void postEvent(ModelEvent event) {
 		if(silenced > 0)
 			return;
-		parent.getParent().getParent().postEvent(new ModelEvents.DisplayOptionChanged(this, option));
+		parent.getParent().getParent().postEvent(event);
 	}
 	
 	

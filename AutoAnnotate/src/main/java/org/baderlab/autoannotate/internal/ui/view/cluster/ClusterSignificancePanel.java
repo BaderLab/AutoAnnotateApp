@@ -3,6 +3,7 @@ package org.baderlab.autoannotate.internal.ui.view.cluster;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -19,6 +20,7 @@ import org.baderlab.autoannotate.internal.AfterInjection;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
+import org.baderlab.autoannotate.internal.model.SignificanceOptions;
 import org.baderlab.autoannotate.internal.ui.render.ClusterThumbnailRenderer;
 import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelFactory;
 import org.baderlab.autoannotate.internal.ui.view.display.SignificancePanelParams;
@@ -64,16 +66,23 @@ public class ClusterSignificancePanel extends JPanel {
 	}
 	
 	@Subscribe
-	public void handleEvent(ModelEvents.ClustersChanged event) {
+	public void handle(ModelEvents.ClustersChanged event) {
 		if(cluster != null && event.getClusters().contains(cluster)) {
 			setCluster(cluster);
 		}
 	}
 	
 	@Subscribe
-	public void handleEvent(ModelEvents.DisplayOptionChanged event) {
+	public void handle(ModelEvents.DisplayOptionChanged event) {
 		var option = event.getOption();
 		if(option == Option.OPACITY || option == Option.SHOW_CLUSTERS || option == Option.FILL_COLOR) {
+			setCluster(cluster);
+		}
+	}
+	
+	@Subscribe
+	public void handle(ModelEvents.SignificanceOptionChanged event) {
+		if(Objects.equals(this.getSignificanceOptions(), event.getSignificanceOptions())) {
 			setCluster(cluster);
 		}
 	}
@@ -107,7 +116,6 @@ public class ClusterSignificancePanel extends JPanel {
 		LookAndFeelUtil.makeSmall(significanceLabel);
 		
 		significanceButton = new JButton("<html>Set Significance<br>Attribute...</html>");
-//		LookAndFeelUtil.makeSmall(significanceButton);
 		significanceButton.setFont(significanceButton.getFont().deriveFont(LookAndFeelUtil.getSmallFontSize()));
 		significanceButton.addActionListener(e -> showSignificanceSettingsDialog());
 		
@@ -206,6 +214,8 @@ public class ClusterSignificancePanel extends JPanel {
 			
 			setSignificanceLabelText(cluster, significanceLabel);
 			significanceLabel.setVisible(true);
+			
+			SwingUtil.recursiveEnable(sliderPanel, getSignificanceOptions().isSet());
 		}
 		
 		return this;
@@ -258,6 +268,11 @@ public class ClusterSignificancePanel extends JPanel {
 	}
 	
 	
+	private SignificanceOptions getSignificanceOptions() {
+		return cluster == null ? null : cluster.getParent().getDisplayOptions().getSignificanceOptions();
+	}
+	
+	
 	private void showSignificanceSettingsDialog() {
 		if(cluster == null)
 			return;
@@ -272,6 +287,7 @@ public class ClusterSignificancePanel extends JPanel {
 		SwingUtil.invokeOnEDT(() -> {
 			var newParams = action.showSignificanceDialog();
 			so.setSignificance(newParams);
+			setCluster(cluster);
 		});
 	}
 	

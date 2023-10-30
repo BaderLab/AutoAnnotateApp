@@ -10,8 +10,7 @@ import java.util.Set;
 public class ModelEvents {
 
 	
-	public interface ModelEvent {
-	}
+	public interface ModelEvent { }
 	
 	
 	public static class ModelLoaded implements ModelEvent {
@@ -71,6 +70,7 @@ public class ModelEvents {
 		}
 	}
 	
+	
 	public static class ClustersLabelsUpdated implements ModelEvent {
 		private final AnnotationSet annotationSet;
 		ClustersLabelsUpdated(AnnotationSet annotationSet) {
@@ -80,6 +80,7 @@ public class ModelEvents {
 			return annotationSet;
 		}
 	}
+	
 	
 	public static class ClusterAdded implements ModelEvent {
 		private final Cluster cluster;
@@ -115,6 +116,7 @@ public class ModelEvents {
 		}
 	}
 	
+	
 	public static class ClusterRemoved implements ModelEvent {
 		private final Cluster cluster;
 		ClusterRemoved(Cluster cluster) {
@@ -124,6 +126,7 @@ public class ModelEvents {
 			return cluster;
 		}
 	}
+	
 	
 	public static class ClustersSelected implements ModelEvent {
 		private final Collection<Cluster> clusters;
@@ -140,6 +143,7 @@ public class ModelEvents {
 		}
 	}
 	
+	
 	public static class NetworkViewSetSelected implements ModelEvent {
 		private final Optional<NetworkViewSet> networkViewSet;
 		NetworkViewSetSelected(Optional<NetworkViewSet> networkViewSet) {
@@ -149,6 +153,7 @@ public class ModelEvents {
 			return networkViewSet;
 		}
 	}
+	
 	
 	public static class ClusterSelectedInNetwork implements ModelEvent {
 		private final Cluster cluster;
@@ -193,6 +198,7 @@ public class ModelEvents {
 		}
 	}
 	
+	
 	public static class DisplayOptionChanged implements ModelEvent {
 		
 		public static enum Option {
@@ -226,6 +232,20 @@ public class ModelEvents {
 		}
 		public Option getOption() {
 			return option;
+		}
+	}
+	
+	
+	public static class SignificanceOptionChanged implements ModelEvent {
+		
+		private final SignificanceOptions significanceOptions;
+		
+		SignificanceOptionChanged(SignificanceOptions significanceOptions) {
+			this.significanceOptions = significanceOptions;
+		}
+		
+		public SignificanceOptions getSignificanceOptions() {
+			return significanceOptions;
 		}
 	}
 	

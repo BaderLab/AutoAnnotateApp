@@ -54,6 +54,13 @@ public class SignificanceOptions {
 	}
 	
 	
+	public boolean isSet() {
+		if(isEM)
+			return emDataSet != null;
+		else
+			return significanceColumn != null;
+	}
+	
 	public void setSignificance(Significance sigificance, String significanceColumn, String dataSet, boolean isEM) {
 		this.significanceColumn = significanceColumn;
 		this.significance = sigificance;
@@ -61,10 +68,11 @@ public class SignificanceOptions {
 		this.isEM = isEM;
 		
 		if(parent.getFillType() == FillType.SIGNIFICANT)
-			postEvent(Option.FILL_COLOR);
-		
+			parent.postEvent(Option.FILL_COLOR);
 		if(highlight == Highlight.BOLD_LABEL)
-			postEvent(Option.LABEL_HIGHLIGHT);
+			parent.postEvent(Option.LABEL_HIGHLIGHT);
+		
+		parent.postEvent(new ModelEvents.SignificanceOptionChanged(this));
 	}
 	
 	public void setSignificance(SignificancePanelParams params) {
@@ -81,7 +89,8 @@ public class SignificanceOptions {
 	public void setHighlight(Highlight highlight) {
 		Objects.requireNonNull(highlight);
 		this.highlight = highlight;
-		postEvent(Option.LABEL_HIGHLIGHT);
+		parent.postEvent(Option.LABEL_HIGHLIGHT);
+		parent.postEvent(new ModelEvents.SignificanceOptionChanged(this));
 	}
 	
 	
@@ -105,7 +114,8 @@ public class SignificanceOptions {
 		return isEM;
 	}
 	
-	private void postEvent(Option option) {
-		parent.postEvent(option);
+	public DisplayOptions getParent() {
+		return parent;
 	}
+	
 }
