@@ -13,6 +13,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,7 +31,6 @@ import javax.swing.RowSorter;
 import javax.swing.RowSorter.SortKey;
 import javax.swing.SortOrder;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
@@ -302,15 +302,17 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 		int widths[] = getColumnWidths(clusterTable);
 		clusterTable.setModel(clusterModel);
 		setColumnWidths(clusterTable, widths);
-		TableColumn collapsedColumn = clusterTable.getColumnModel().getColumn(ClusterTableModel.COLLAPSED_COL);
-		collapsedColumn.setCellRenderer(new ClusterTableCollapsedCellRenderer(iconManager));
 		
+		var colModel = clusterTable.getColumnModel();
+		colModel.getColumn(ClusterTableModel.NODES_COL).setCellRenderer(new ClusterTableNodesCellRenderer());
+		colModel.getColumn(ClusterTableModel.COLLAPSED_COL).setCellRenderer(new ClusterTableCollapsedCellRenderer(iconManager));
 		
 		// sort
 		TableRowSorter<TableModel> sorter = new TableRowSorter<>(clusterTable.getModel());
 		clusterTable.setRowSorter(sorter);
+		sorter.setComparator(ClusterTableModel.NODES_COL, Comparator.naturalOrder());
 		List<SortKey> sortKeys = new ArrayList<>(2);
-		sortKeys.add(new RowSorter.SortKey(ClusterTableModel.NODES_COL, SortOrder.DESCENDING));
+		sortKeys.add(new RowSorter.SortKey(ClusterTableModel.NODES_COL,   SortOrder.DESCENDING));
 		sortKeys.add(new RowSorter.SortKey(ClusterTableModel.CLUSTER_COL, SortOrder.ASCENDING));
 		sorter.setSortKeys(sortKeys);
 		sorter.sort();
@@ -391,8 +393,10 @@ public class ClusterPanel extends JPanel implements CytoPanelComponent, CyDispos
 			clusterSignificancePanel.setCluster(getSelectedCluster());
 		});
 		clusterTable.setAutoCreateRowSorter(true);
-		TableColumn collapsedColumn = clusterTable.getColumnModel().getColumn(ClusterTableModel.COLLAPSED_COL);
-		collapsedColumn.setCellRenderer(new ClusterTableCollapsedCellRenderer(iconManager));
+		
+		var colModel = clusterTable.getColumnModel();
+		colModel.getColumn(ClusterTableModel.NODES_COL).setCellRenderer(new ClusterTableNodesCellRenderer());
+		colModel.getColumn(ClusterTableModel.COLLAPSED_COL).setCellRenderer(new ClusterTableCollapsedCellRenderer(iconManager));
 		
 		clusterTable.addMouseListener(new MouseAdapter() {
 			@Override public void mousePressed(MouseEvent e) { showPopup(e); }

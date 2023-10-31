@@ -30,8 +30,8 @@ public class ClusterTableModel extends AbstractTableModel {
 			this.clusters = new ArrayList<>(annotationSet.getClusters());
 	}
 	
-	public Cluster getCluster(int index) {
-		return clusters.get(index);
+	public Cluster getCluster(int modelIndex) {
+		return clusters.get(modelIndex);
 	}
 	
 	public int rowIndexOf(Cluster cluster) {
