@@ -76,16 +76,19 @@ public class WarnDialog {
 		}
 	}
 	
-	public void setMessages(String... messages) {
+	public WarnDialog setMessages(String... messages) {
 		this.messages = messages;
+		return this;
 	}
 	
-	public void setPropertyName(String propertyName) {
+	public WarnDialog setPropertyName(String propertyName) {
 		this.propertyName = Optional.ofNullable(propertyName);
+		return this;
 	}
 	
-	public void setAskToContinue(boolean askToContinute) {
+	public WarnDialog setAskToContinue(boolean askToContinute) {
 		this.askToContinue = askToContinute;
+		return this;
 	}
 	
 	/**

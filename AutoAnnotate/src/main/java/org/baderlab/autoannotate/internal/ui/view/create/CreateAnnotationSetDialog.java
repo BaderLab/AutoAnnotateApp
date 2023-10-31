@@ -1,5 +1,7 @@
 package org.baderlab.autoannotate.internal.ui.view.create;
 
+import static org.baderlab.autoannotate.internal.util.HiddenTools.hasHiddenNodesOrEdges;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 
@@ -41,7 +43,9 @@ public class CreateAnnotationSetDialog extends JDialog implements DialogParent {
 		ADVANCED
 	}
 	
-	@Inject private @WarnDialogModule.Create Provider<WarnDialog> warnDialogProvider;
+	@Inject private @WarnDialogModule.Hidden Provider<WarnDialog> warnDialogHiddenProvider;
+	@Inject private @WarnDialogModule.Create Provider<WarnDialog> warnDialogCreateProvider;
+	
 	@Inject private CreateAnnotationSetTask.Factory createTaskFactory;
 	@Inject private CollapseAllTaskFactory.Factory collapseTaskFactoryFactory;
 	@Inject private SettingManager settingManager;
@@ -168,15 +172,23 @@ public class CreateAnnotationSetDialog extends JDialog implements DialogParent {
 	
 	
 	private void createButtonPressed() {
-		WarnDialog warnDialog = warnDialogProvider.get();
-		boolean doIt = warnDialog.warnUser(this);
-		
-		if(doIt) {
-			try {
-				createAnnotations();
-			} finally {
-				close(); // close this dialog
+		boolean hasHidden = hasHiddenNodesOrEdges(networkView);
+		if(hasHidden) {
+			boolean proceed = warnDialogHiddenProvider.get().warnUser(this);
+			if(!proceed) {
+				return;
 			}
+		}
+		
+		boolean proceed = warnDialogCreateProvider.get().warnUser(this);
+		if(!proceed) {
+			return;
+		}
+		
+		try {
+			createAnnotations();
+		} finally {
+			close(); // close this dialog
 		}
 	}
 	

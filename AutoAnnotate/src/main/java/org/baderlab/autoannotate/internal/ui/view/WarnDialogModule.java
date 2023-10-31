@@ -20,12 +20,14 @@ import com.google.inject.Provides;
 public class WarnDialogModule extends AbstractModule {
 	
 	public static final String 
+		CY_PROPERTY_WARN_HIDDEN    = "warnDialog.dontShowAgain.hidden",
 		CY_PROPERTY_WARN_CREATE    = "warnDialog.dontShowAgain.create",
 		CY_PROPERTY_WARN_COLLAPSE  = "warnDialog.dontShowAgain.collapse",
 		CY_PROPERTY_WARN_LAYOUT    = "warnDialog.dontShowAgain.layout",
 		CY_PROPERTY_WARN_LABEL     = "warnDialog.dontShowAgain.label",
 		CY_PROPERTY_WARN_SUMMARY   = "warnDialog.dontShowAgain.summary";
 
+	@BindingAnnotation @Retention(RUNTIME) public @interface Hidden {}
 	@BindingAnnotation @Retention(RUNTIME) public @interface Create {}
 	@BindingAnnotation @Retention(RUNTIME) public @interface Collapse {}
 	@BindingAnnotation @Retention(RUNTIME) public @interface Layout {}
@@ -37,12 +39,22 @@ public class WarnDialogModule extends AbstractModule {
 
 	public static List<String> getPropertyKeys() {
 		return Arrays.asList(
+			CY_PROPERTY_WARN_HIDDEN,
 			CY_PROPERTY_WARN_COLLAPSE, 
 			CY_PROPERTY_WARN_CREATE, 
 			CY_PROPERTY_WARN_LABEL, 
 			CY_PROPERTY_WARN_LAYOUT,
 			CY_PROPERTY_WARN_SUMMARY
 		); 
+	}
+	
+	
+	@Provides @Hidden 
+	public WarnDialog warnHidden(CyProperty<Properties> cyProperty) {
+		return new WarnDialog(cyProperty, CY_PROPERTY_WARN_HIDDEN,
+			"There are hidden nodes and/or edges in the current network view.",
+			"Hidden nodes will not be included in clusters."
+		).setAskToContinue(true);
 	}
 	
 	@Provides @Create 
@@ -55,42 +67,34 @@ public class WarnDialogModule extends AbstractModule {
 	
 	@Provides @Collapse
 	public WarnDialog warnCollapse(CyProperty<Properties> cyProperty) {
-		WarnDialog warnDialog = new WarnDialog(cyProperty, CY_PROPERTY_WARN_COLLAPSE,
+		return new WarnDialog(cyProperty, CY_PROPERTY_WARN_COLLAPSE,
 			"Warning: Collapsing or expanding clusters can be slow for large networks. "
 			+ "Please try using the '" + SummaryNetworkAction.TITLE + "' command instead.",
 			"Before collapsing clusters please go to the menu 'Edit > Preferences > Group Preferences...' and "
 			+ "select 'Enable attribute aggregation'."
-		);
-		warnDialog.setAskToContinue(true);
-		return warnDialog;
+		).setAskToContinue(true);
 	}
 	
 	@Provides @Layout
 	public WarnDialog warnLayout(CyProperty<Properties> cyProperty) {
-		WarnDialog warnDialog =  new WarnDialog(cyProperty, CY_PROPERTY_WARN_LAYOUT, 
+		return new WarnDialog(cyProperty, CY_PROPERTY_WARN_LAYOUT, 
 			"Layout clusters cannot be undone."
-		);
-		warnDialog.setAskToContinue(true);
-		return warnDialog;
+		).setAskToContinue(true);
 	}
 	
 	@Provides @Label
 	public WarnDialog warnLabel(CyProperty<Properties> cyProperty) {
-		WarnDialog warnDialog = new WarnDialog(cyProperty, CY_PROPERTY_WARN_LABEL, 
+		return new WarnDialog(cyProperty, CY_PROPERTY_WARN_LABEL, 
 			"Recalculating labels for selected clusters cannot be undone."
-		);
-		warnDialog.setAskToContinue(true);
-		return warnDialog;
+		).setAskToContinue(true);
 	}
 	
 	@Provides @Summary
 	public WarnDialog warnSummary(CyProperty<Properties> cyProperty) {
-		WarnDialog warnDialog = new WarnDialog(cyProperty, CY_PROPERTY_WARN_SUMMARY, 
+		return new WarnDialog(cyProperty, CY_PROPERTY_WARN_SUMMARY, 
 			"Column values in summary network are aggregated using the Group aggregation settings.",
 		    "To Edit the Group aggregation settings go to the menu 'Edit > Preferences > Group Preferences...'"
 		);
-		return warnDialog;
 	}
-	
 	
 }
