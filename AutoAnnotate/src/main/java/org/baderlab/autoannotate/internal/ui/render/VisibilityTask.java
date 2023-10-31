@@ -5,6 +5,9 @@ import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.view.model.events.ViewChangeRecord;
+import org.cytoscape.view.model.events.ViewChangedEvent;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
 import org.cytoscape.view.vizmap.VisualMappingFunction;
 import org.cytoscape.view.vizmap.VisualMappingFunctionFactory;
@@ -51,7 +54,17 @@ public class VisibilityTask extends AbstractTask {
 		} else {
 			visualStyle.addVisualMappingFunction(mapping);
 			visualStyle.apply(netView);
+			
+			fireViewChangeEvent(netView);
 		}
+	}
+	
+	
+	@SuppressWarnings("unchecked")
+	private void fireViewChangeEvent(CyNetworkView netView) {
+		// Tricks the NetworkViewMediator into updating the hidden nodes indicator at the bottom of the network view.
+		var record = new ViewChangeRecord<>(netView, BasicVisualLexicon.NODE_VISIBLE, true, true);
+		eventHelper.addEventPayload(netView, record, ViewChangedEvent.class);
 	}
 	
 	
