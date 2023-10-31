@@ -215,10 +215,16 @@ public class ClusterSignificancePanel extends JPanel {
 			setSignificanceLabelText(cluster, significanceLabel);
 			significanceLabel.setVisible(true);
 			
-			SwingUtil.recursiveEnable(sliderPanel, getSignificanceOptions().isSet());
+			SwingUtil.recursiveEnable(sliderPanel, enableSlider());
 		}
 		
 		return this;
+	}
+	
+	private boolean enableSlider() {
+		return cluster != null
+			&& !cluster.isCollapsed()
+			&& getSignificanceOptions().isSet();
 	}
 	
 	
