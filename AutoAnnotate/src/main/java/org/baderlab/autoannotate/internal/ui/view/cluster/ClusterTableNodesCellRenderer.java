@@ -29,12 +29,12 @@ public class ClusterTableNodesCellRenderer extends DefaultTableCellRenderer {
 	
 	private static String getNodeLabel(Cluster cluster) {
 		int total = cluster.getExpandedNodeCount();
-		var max = cluster.getMaxVisible();
-		if(max == null || max == total) {
+//		var max = cluster.getMaxVisible();
+//		if(max == null || max == total) {
 			return String.valueOf(total);
-		} else {
-			return max + " of " + total;
-		}
+//		} else {
+//			return max + " of " + total;
+//		}
 	}
 
 }

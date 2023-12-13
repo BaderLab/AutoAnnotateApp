@@ -105,8 +105,10 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		TEXT_ID = "textID",
 		// Added word wrap which means multiple text IDs, but need separate column for backwards compatibility
 		TEXT_ID_ADDITIONAL = "textID_additional",
-		MANUAL = "manual",
-		MAX_VISIBLE = "maxVisible";  
+		MANUAL = "manual";
+		
+		// TODO remove
+//		MAX_VISIBLE = "maxVisible";  
 	
 	
 	@Inject private Provider<AnnotationPersistor> annotationPersistorProvider;
@@ -308,7 +310,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				manual = false;
 			}
 			
-			var maxVisible = clusterRow.get(MAX_VISIBLE, Integer.class); // May be null
+//			var maxVisible = clusterRow.get(MAX_VISIBLE, Integer.class); // May be null
 			
 			Optional<UUID> shapeID = safeUUID(clusterRow.get(SHAPE_ID, String.class));
 			Optional<UUID> textID  = safeUUID(clusterRow.get(TEXT_ID, String.class));
@@ -321,7 +323,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 			builder.addCluster(nodes, label, collapsed, manual, cluster -> {
 				annotationPersistor.restoreCluster(cluster, shapeID, textID, textIDAdditional);
 				cluster.setHighlightedNode(highlightedNodeSuid);
-				cluster.setMaxVisible(maxVisible, false);
+//				cluster.setMaxVisible(maxVisible, false);
 			});
 		}
 		
@@ -433,7 +435,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 				clusterRow.set(ANNOTATION_SET_ID, ids.asId);
 				clusterRow.set(NODES_SUID, nodeSuids);
 				clusterRow.set(HIGHLIGHTED_NODE_SUID, cluster.getHighlightedNode());
-				clusterRow.set(MAX_VISIBLE, cluster.getMaxVisible());
+//				clusterRow.set(MAX_VISIBLE, cluster.getMaxVisible());
 				
 				Optional<UUID> shapeID = annotationPersistor.getShapeID(cluster);
 				clusterRow.set(SHAPE_ID, shapeID.map(UUID::toString).orElse(null));
@@ -518,7 +520,7 @@ public class ModelTablePersistor implements SessionAboutToBeSavedListener, Sessi
 		createColumn(table, LABEL, String.class);
 		createColumn(table, COLLAPSED, Boolean.class);
 		createColumn(table, MANUAL, Boolean.class);
-		createColumn(table, MAX_VISIBLE, Integer.class);
+//		createColumn(table, MAX_VISIBLE, Integer.class);
 		createListColumn(table, NODES_SUID, Long.class);
 		createColumn(table, HIGHLIGHTED_NODE_SUID, Long.class);
 		createColumn(table, ANNOTATION_SET_ID, Long.class);

@@ -3,7 +3,6 @@ package org.baderlab.autoannotate.internal.model;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -24,7 +23,6 @@ public class Cluster {
 	private boolean collapsed;
 	
 	private @Nullable Long highlightedNode = null; // May be null
-	private @Nullable Integer maxVisible = null; // May be null
 	
 	/**
 	 * Flag indicating if the cluster label was manually renamed by the user.
@@ -105,19 +103,6 @@ public class Cluster {
 	
 	public Long getHighlightedNode() {
 		return highlightedNode;
-	}
-	
-	public void setMaxVisible(Integer maxVisible, boolean fireEvent) { // fireEvent is a hack
-		if(!Objects.equals(this.maxVisible, maxVisible)) {
-			this.maxVisible = maxVisible;
-			if(fireEvent) {
-				getRoot().postEvent(new ModelEvents.ClustersChanged(this, true));
-			}
-		}
-	}
-	
-	public Integer getMaxVisible() {
-		return maxVisible;
 	}
 	
 	void collapse(CyNode groupNode) {

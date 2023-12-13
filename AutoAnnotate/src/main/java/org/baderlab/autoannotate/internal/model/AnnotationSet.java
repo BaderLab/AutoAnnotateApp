@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.baderlab.autoannotate.internal.model.ModelEvents.ModelEvent;
 import org.baderlab.autoannotate.internal.model.io.CreationParameter;
 import org.cytoscape.model.CyNode;
 
@@ -24,6 +25,9 @@ public class AnnotationSet {
 	private final DisplayOptions displayOptions;
 	private final String labelColumn;
 	private LinkedHashSet<Cluster> clusters;
+	
+	// an integer between 0 - 100 inclusive
+	private int sigVisiblePercent = 100;
 	
 	
 	/**
@@ -61,11 +65,14 @@ public class AnnotationSet {
 		}
 	}
 	
+	private void postEvent(ModelEvent event) {
+		parent.getParent().postEvent(event);
+	}
 	
 	public Cluster createCluster(Collection<CyNode> nodes, String label, boolean collapsed) {
 		Cluster cluster = new Cluster(this, nodes, label, collapsed, false);
 		clusters.add(cluster);
-		parent.getParent().postEvent(new ModelEvents.ClusterAdded(cluster));
+		postEvent(new ModelEvents.ClusterAdded(cluster));
 		return cluster;
 	}
 	
@@ -76,7 +83,7 @@ public class AnnotationSet {
 	public void setName(String newName) {
 		if(!newName.equals(name)) {
 			name = newName;
-			parent.getParent().postEvent(new ModelEvents.AnnotationSetChanged(this));
+			postEvent(new ModelEvents.AnnotationSetChanged(this));
 		}
 	}
 	
@@ -118,6 +125,7 @@ public class AnnotationSet {
 	public NetworkViewSet getParent() {
 		return parent;
 	}
+	
 
 	public boolean hasCollapsedCluster() {
 		return clusters.stream().anyMatch(Cluster::isCollapsed);
@@ -138,7 +146,7 @@ public class AnnotationSet {
 
 	void delete(Cluster cluster) {
 		if(clusters.remove(cluster)) {
-			parent.getParent().postEvent(new ModelEvents.ClusterRemoved(cluster));
+			postEvent(new ModelEvents.ClusterRemoved(cluster));
 		}
 	}
 	
@@ -164,8 +172,21 @@ public class AnnotationSet {
 		}
 		
 		if(updated) {
-			parent.getParent().postEvent(new ModelEvents.ClustersLabelsUpdated(this));
+			postEvent(new ModelEvents.ClustersLabelsUpdated(this));
 		}
+	}
+	
+	public void setSigVisiblePercent(int percent) {
+		percent = Math.max(Math.min(percent, 100), 0);
+		if(this.sigVisiblePercent != percent) {
+			this.sigVisiblePercent = percent;
+			// TODO, is this event appropriate?
+			postEvent(new ModelEvents.ClustersChanged(getClusters(), true));
+		}
+	}
+	
+	public int getSigVisiblePercent() {
+		return sigVisiblePercent;
 	}
 	
 }

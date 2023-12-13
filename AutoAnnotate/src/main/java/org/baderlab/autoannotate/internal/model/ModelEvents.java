@@ -96,17 +96,18 @@ public class ModelEvents {
 	public static class ClustersChanged implements ModelEvent {
 		private final Set<Cluster> clusters;
 		private final boolean visibilityChanged;
-		ClustersChanged(Set<Cluster> clusters) {
+		ClustersChanged(Set<Cluster> clusters, boolean visibilityChanged) {
 			this.clusters = clusters;
-			this.visibilityChanged = false;
+			this.visibilityChanged = visibilityChanged;
+		}
+		ClustersChanged(Set<Cluster> clusters) {
+			this(clusters, false);
 		}
 		ClustersChanged(Cluster cluster) {
-			this.clusters = Set.of(cluster);
-			this.visibilityChanged = false;
+			this(Set.of(cluster), false);
 		}
 		ClustersChanged(Cluster cluster, boolean visibilityChanged) {
-			this.clusters = Set.of(cluster);
-			this.visibilityChanged = visibilityChanged;
+			this(Set.of(cluster), visibilityChanged);
 		}
 		public Set<Cluster> getClusters() {
 			return clusters;

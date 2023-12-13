@@ -1,9 +1,11 @@
 package org.baderlab.autoannotate.internal.ui.view.cluster;
 
+import static java.util.stream.Collectors.toList;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -17,6 +19,7 @@ import javax.swing.LayoutStyle;
 import javax.swing.SwingConstants;
 
 import org.baderlab.autoannotate.internal.AfterInjection;
+import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
 import org.baderlab.autoannotate.internal.model.ModelEvents;
 import org.baderlab.autoannotate.internal.model.ModelEvents.DisplayOptionChanged.Option;
@@ -197,14 +200,7 @@ public class ClusterSignificancePanel extends JPanel {
 			clusterIconLabel.setIcon(new ImageIcon(image));
 			clusterStatusLabel.setText(getStatusText(cluster));
 			
-			slider = createSlider(cluster);
-			slider.getJSlider().addChangeListener(e -> {
-				int numVisible = slider.getValue();
-				debounceTimer.debounce(() -> {
-					// debounce because setMaxVisible() fires an event that redraws the cluster
-					cluster.setMaxVisible(numVisible, true);
-				});
-			});
+			slider = createSlider(cluster.getParent());
 			
 			sliderPanel.removeAll();
 			sliderPanel.add(slider, BorderLayout.CENTER);
@@ -255,22 +251,29 @@ public class ClusterSignificancePanel extends JPanel {
 	}
 	
 	
-	private static DiscreteSliderWithLabel<Integer> createSlider(Cluster cluster) {
-		int n = cluster.getNodeCount();
-		var maxVisible = cluster.getMaxVisible();
-		int tick = maxVisible == null ? n + 1 : maxVisible + 1;
+	private DiscreteSliderWithLabel<Integer> createSlider(AnnotationSet as) {
+		int percent = as.getSigVisiblePercent();
+		int tick = Math.max(Math.min(percent, 100), 0) + 1;
+		var values = Stream.iterate(0, x -> x + 1).limit(101).collect(toList());
 		
-		var values = new ArrayList<Integer>(n+1);
-		for(int i = 0; i <= n; values.add(i++));
-		
-		return new DiscreteSliderWithLabel<Integer>(
-			"Visible Nodes", 
-			"<html>More<br>Significant</html>", 
-			"<html><div align=right>Less<br>Significant</div></html>", 
+		var slider = new DiscreteSliderWithLabel<Integer>(
+			"Visible Nodes (Significance)", 
+			"<html>0%</html>", 
+			"<html>100%</html>", 
 			values, 
 			tick, 
-			x -> String.format("%d of %d", x, values.size()-1)
+			x -> x + "%"
 		);
+		
+		slider.getJSlider().setMajorTickSpacing(10);
+		slider.getJSlider().setMinorTickSpacing(2);
+		
+		slider.getJSlider().addChangeListener(e -> {
+			int p = slider.getValue();
+			debounceTimer.debounce(() -> as.setSigVisiblePercent(p));
+		});
+		
+		return slider;
 	}
 	
 	

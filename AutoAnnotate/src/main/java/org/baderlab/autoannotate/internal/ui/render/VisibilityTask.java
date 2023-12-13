@@ -2,7 +2,6 @@ package org.baderlab.autoannotate.internal.ui.render;
 
 import org.baderlab.autoannotate.internal.CytoscapeServiceModule.Discrete;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
-import org.baderlab.autoannotate.internal.model.Cluster;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.view.model.CyNetworkView;
@@ -69,7 +68,8 @@ public class VisibilityTask extends AbstractTask {
 	
 	
 	private VisualMappingFunction<Long,Boolean> createVisibilityMapping() {
-		if(allVisible(annotationSet))
+		float percentVisible = annotationSet.getSigVisiblePercent() / 100.0f;
+		if(percentVisible >= 1.0)
 			return null;
 		
 		var mapping = (DiscreteMapping<Long,Boolean>) discreteMappingFactory
@@ -84,23 +84,19 @@ public class VisibilityTask extends AbstractTask {
 			}
 			
 			for(var cluster : annotationSet.getClusters()) {
-				if(allVisible(cluster)) {
-					for(var node : cluster.getNodes()) {
-						mapping.putMapValue(node.getSUID(), true);
-					}
-				} else {
-					var sigNodes = significanceLookup.getNodesSortedBySignificance(cluster);
-					int numVisible = cluster.getMaxVisible(); // assume not null
-					
-					var visibleNodes = sigNodes.subList(0, numVisible);
-					var hiddenNodes  = sigNodes.subList(numVisible, sigNodes.size());
-					
-					for(var node : visibleNodes) {
-						mapping.putMapValue(node.getSUID(), true);
-					}
-					for(var node : hiddenNodes) {
-						mapping.putMapValue(node.getSUID(), false);
-					}
+				var sigNodes = significanceLookup.getNodesSortedBySignificance(cluster);
+				
+				int nodeCount = cluster.getNodeCount();
+				int numVisible = Math.round(nodeCount * percentVisible);
+				
+				var visibleNodes = sigNodes.subList(0, numVisible);
+				var hiddenNodes  = sigNodes.subList(numVisible, sigNodes.size());
+				
+				for(var node : visibleNodes) {
+					mapping.putMapValue(node.getSUID(), true);
+				}
+				for(var node : hiddenNodes) {
+					mapping.putMapValue(node.getSUID(), false);
 				}
 			}
 		} finally {
@@ -109,16 +105,5 @@ public class VisibilityTask extends AbstractTask {
 		return mapping;
 	}
 	
-	
-	private static boolean allVisible(AnnotationSet annotationSet) {
-		return annotationSet.getClusters().stream().allMatch(VisibilityTask::allVisible);
-	}
-
-	
-	private static boolean allVisible(Cluster cluster) {
-		var maxVisible = cluster.getMaxVisible();
-		return maxVisible == null || maxVisible == cluster.getNodeCount();
-	}
-
 
 }
