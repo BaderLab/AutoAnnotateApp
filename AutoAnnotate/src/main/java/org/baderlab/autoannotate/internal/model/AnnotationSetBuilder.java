@@ -64,6 +64,7 @@ public class AnnotationSetBuilder {
 	private String emDataSet = null;
 	private boolean isEM = false;
 	private Highlight highlight = Highlight.NONE;
+	private int visiblePercent = 100;
 	
 	private Optional<Consumer<AnnotationSet>> asCallback = Optional.empty();
 	
@@ -357,6 +358,13 @@ public class AnnotationSetBuilder {
 			setHighlight(Highlight.valueOf(highlight));
 	}
 
+	public int getVisiblePercent() {
+		return visiblePercent;
+	}
+	
+	public void setVisiblePercent(int p) {
+		this.visiblePercent = p;
+	}
 	
 	public void addCreationParam(String displayName, String displayValue) {
 		addCreationParam(new CreationParameter(displayName, displayValue));

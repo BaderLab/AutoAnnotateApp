@@ -252,7 +252,7 @@ public class ClusterSignificancePanel extends JPanel {
 	
 	
 	private DiscreteSliderWithLabel<Integer> createSlider(AnnotationSet as) {
-		int percent = as.getSigVisiblePercent();
+		int percent = as.getDisplayOptions().getSignificanceOptions().getVisiblePercent();
 		int tick = Math.max(Math.min(percent, 100), 0) + 1;
 		var values = Stream.iterate(0, x -> x + 1).limit(101).collect(toList());
 		
@@ -270,7 +270,9 @@ public class ClusterSignificancePanel extends JPanel {
 		
 		slider.getJSlider().addChangeListener(e -> {
 			int p = slider.getValue();
-			debounceTimer.debounce(() -> as.setSigVisiblePercent(p));
+			debounceTimer.debounce(() -> 
+				as.getDisplayOptions().getSignificanceOptions().setVisiblePercent(p)
+			);
 		});
 		
 		return slider;

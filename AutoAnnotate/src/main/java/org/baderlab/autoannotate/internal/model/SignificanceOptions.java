@@ -38,6 +38,9 @@ public class SignificanceOptions {
 	// True if the most significant node in a cluster should be "highlighted"
 	private Highlight highlight = Highlight.NONE;
 	
+	// Percent 0-100 inclusive
+	private int visiblePercent = 100;
+	
 	
 	
 	protected SignificanceOptions(DisplayOptions parent) {
@@ -51,6 +54,7 @@ public class SignificanceOptions {
 		this.emDataSet = builder.getEmDataSet();
 		this.isEM = builder.isEM();
 		this.highlight = builder.getHighlight();
+		this.visiblePercent = builder.getVisiblePercent();
 	}
 	
 	
@@ -116,6 +120,20 @@ public class SignificanceOptions {
 	
 	public DisplayOptions getParent() {
 		return parent;
+	}
+	
+	
+	public void setVisiblePercent(int percent) {
+		percent = Math.max(Math.min(percent, 100), 0);
+		if(this.visiblePercent != percent) {
+			this.visiblePercent = percent;
+			// TODO, is this event appropriate?
+			parent.postEvent(new ModelEvents.ClustersChanged(parent.getParent().getClusters(), true));
+		}
+	}
+	
+	public int getVisiblePercent() {
+		return visiblePercent;
 	}
 	
 }

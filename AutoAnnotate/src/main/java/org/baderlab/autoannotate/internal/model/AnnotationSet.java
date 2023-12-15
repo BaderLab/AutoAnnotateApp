@@ -26,9 +26,6 @@ public class AnnotationSet {
 	private final String labelColumn;
 	private LinkedHashSet<Cluster> clusters;
 	
-	// an integer between 0 - 100 inclusive
-	private int sigVisiblePercent = 100;
-	
 	
 	/**
 	 * Create an empty AnnotationSet with default DisplayOptions.
@@ -174,19 +171,6 @@ public class AnnotationSet {
 		if(updated) {
 			postEvent(new ModelEvents.ClustersLabelsUpdated(this));
 		}
-	}
-	
-	public void setSigVisiblePercent(int percent) {
-		percent = Math.max(Math.min(percent, 100), 0);
-		if(this.sigVisiblePercent != percent) {
-			this.sigVisiblePercent = percent;
-			// TODO, is this event appropriate?
-			postEvent(new ModelEvents.ClustersChanged(getClusters(), true));
-		}
-	}
-	
-	public int getSigVisiblePercent() {
-		return sigVisiblePercent;
 	}
 	
 }

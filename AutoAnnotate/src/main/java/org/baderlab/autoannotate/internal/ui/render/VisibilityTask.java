@@ -68,7 +68,7 @@ public class VisibilityTask extends AbstractTask {
 	
 	
 	private VisualMappingFunction<Long,Boolean> createVisibilityMapping() {
-		float percentVisible = annotationSet.getSigVisiblePercent() / 100.0f;
+		float percentVisible = annotationSet.getDisplayOptions().getSignificanceOptions().getVisiblePercent() / 100.0f;
 		if(percentVisible >= 1.0)
 			return null;
 		
