@@ -165,13 +165,18 @@ public class DrawClustersTask extends AbstractTask {
 		if(nodeView == null)
 			return;
 		
+		highlightNode(nodeView);
+		cluster.setHighlightedNode(sigNode.getSUID());
+	}
+	
+	
+	// The code to remove the highlight is in EraseClustersTask
+	private static void highlightNode(View<CyNode> nodeView) {
 		var fontSize = getVP(nodeView, NODE_LABEL_FONT_SIZE);
 		var fontFace = getVP(nodeView, NODE_LABEL_FONT_FACE);
 		
 		fontSize += 4;
 		fontFace = fontFace.deriveFont(Font.BOLD);
-		
-		cluster.setHighlightedNode(sigNode.getSUID());
 		
 		nodeView.setLockedValue(NODE_LABEL_FONT_SIZE, fontSize);
 		nodeView.setLockedValue(NODE_LABEL_FONT_FACE, fontFace);

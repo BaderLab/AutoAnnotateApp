@@ -346,4 +346,17 @@ public class AnnotationRenderer {
 		return clusterAnnotations.remove(cluster);
 	}
 	
+	
+	/**
+	 * When a new network is created from an existing one the bypasses get copied, 
+	 * which we don't want for nodes that have significance highlights.
+	 */
+	public static void clearHighlights(CyNetworkView netView) {
+		// We don't know exactly which network the new network was created from.
+		// Unfortunately we need to go over all the nodes to clear any potential highlights.
+		for(var nodeView : netView.getNodeViews()) {
+			EraseClustersTask.clearHighlight(nodeView);
+		}
+	}
+	
 }

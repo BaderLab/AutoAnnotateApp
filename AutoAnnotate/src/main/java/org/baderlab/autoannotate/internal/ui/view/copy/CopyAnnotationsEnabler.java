@@ -69,7 +69,7 @@ public class CopyAnnotationsEnabler {
 	}
 	
 	
-	public CySubNetwork getProvenanceHierarchyParent(CySubNetwork net) {
+	public CySubNetwork getProvenanceHierarchyParent(CyNetwork net) {
 		String PARENT_NETWORK_COLUMN = "__parentNetwork.SUID";
 		CyTable hiddenTable = net.getTable(CyNetwork.class, CyNetwork.HIDDEN_ATTRS);
 		CyRow row = hiddenTable != null ? hiddenTable.getRow(net.getSUID()) : null;

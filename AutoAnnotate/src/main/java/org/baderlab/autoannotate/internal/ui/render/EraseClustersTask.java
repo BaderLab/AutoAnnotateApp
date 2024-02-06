@@ -10,6 +10,9 @@ import java.util.Set;
 
 import org.baderlab.autoannotate.internal.BuildProperties;
 import org.baderlab.autoannotate.internal.model.Cluster;
+import org.cytoscape.model.CyNode;
+import org.cytoscape.view.model.View;
+import org.cytoscape.view.model.VisualProperty;
 import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.presentation.annotations.AnnotationManager;
 import org.cytoscape.work.AbstractTask;
@@ -97,13 +100,21 @@ public class EraseClustersTask extends AbstractTask {
 			if(nodeSUID.equals(node.getSUID())) {
 				// Find an existing node that is highlighted
 				var nodeView = cluster.getNetworkView().getNodeView(node);
-				if(nodeView != null) {
-					nodeView.clearValueLock(NODE_LABEL_FONT_SIZE);
-					nodeView.clearValueLock(NODE_LABEL_FONT_FACE);
-				}
+				clearHighlight(nodeView);
 				break;
 			}
 		}
+	}
+	
+	public static void clearHighlight(View<CyNode> nodeView) {
+		if(nodeView != null) {
+			nodeView.clearValueLock(NODE_LABEL_FONT_SIZE);
+			nodeView.clearValueLock(NODE_LABEL_FONT_FACE);
+		}
+	}
+	
+	public static boolean isHighlightedNodeVP(VisualProperty<?> vp) {
+		return vp == NODE_LABEL_FONT_FACE || vp == NODE_LABEL_FONT_SIZE;
 	}
 
 }
