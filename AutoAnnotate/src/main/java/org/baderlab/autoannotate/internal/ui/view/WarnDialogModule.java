@@ -25,7 +25,8 @@ public class WarnDialogModule extends AbstractModule {
 		CY_PROPERTY_WARN_COLLAPSE  = "warnDialog.dontShowAgain.collapse",
 		CY_PROPERTY_WARN_LAYOUT    = "warnDialog.dontShowAgain.layout",
 		CY_PROPERTY_WARN_LABEL     = "warnDialog.dontShowAgain.label",
-		CY_PROPERTY_WARN_SUMMARY   = "warnDialog.dontShowAgain.summary";
+		CY_PROPERTY_WARN_SUMMARY   = "warnDialog.dontShowAgain.summary",
+		CY_PROPERTY_WARN_EM        = "warnDialog.dontShowAgain.em";
 
 	@BindingAnnotation @Retention(RUNTIME) public @interface Hidden {}
 	@BindingAnnotation @Retention(RUNTIME) public @interface Create {}
@@ -33,6 +34,7 @@ public class WarnDialogModule extends AbstractModule {
 	@BindingAnnotation @Retention(RUNTIME) public @interface Layout {}
 	@BindingAnnotation @Retention(RUNTIME) public @interface Label {}
 	@BindingAnnotation @Retention(RUNTIME) public @interface Summary {}
+	@BindingAnnotation @Retention(RUNTIME) public @interface EM {}
 	
 	@Override
 	protected void configure() { }
@@ -44,8 +46,18 @@ public class WarnDialogModule extends AbstractModule {
 			CY_PROPERTY_WARN_CREATE, 
 			CY_PROPERTY_WARN_LABEL, 
 			CY_PROPERTY_WARN_LAYOUT,
-			CY_PROPERTY_WARN_SUMMARY
+			CY_PROPERTY_WARN_SUMMARY,
+			CY_PROPERTY_WARN_EM
 		); 
+	}
+	
+	
+	@Provides @EM 
+	public WarnDialog warnEMInit(CyProperty<Properties> cyProperty) {
+		return new WarnDialog(cyProperty, CY_PROPERTY_WARN_EM,
+			"The AutoAnnotate app was used to find clusters in the network and highlight the most significant node in each cluster.",
+			"Use the AutoAnnotate panel to change how clusters are shown, and to create/remove sets of clusters."
+		);
 	}
 	
 	

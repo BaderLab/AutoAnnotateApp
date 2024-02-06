@@ -2,11 +2,16 @@ package org.baderlab.autoannotate.internal.command;
 
 import static org.baderlab.autoannotate.internal.util.TaskTools.onFinished;
 
+import javax.swing.JFrame;
+
 import org.baderlab.autoannotate.internal.labels.LabelMakerFactory;
 import org.baderlab.autoannotate.internal.labels.makers.ClusterBoostedLabelMakerFactory;
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.SignificanceOptions.Highlight;
 import org.baderlab.autoannotate.internal.task.CreateAnnotationSetTask;
+import org.baderlab.autoannotate.internal.ui.view.WarnDialog;
+import org.baderlab.autoannotate.internal.ui.view.WarnDialogModule;
+import org.baderlab.autoannotate.internal.util.SwingUtil;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
@@ -25,10 +30,16 @@ public class EMHighlightTask extends AbstractTask {
 	@Tunable
 	public String dataSet;
 	
+	@Tunable
+	public boolean warn = false;
+	
 	
 	@Inject AnnotateCommandTask.Factory annotateTaskFactory;
 	@Inject Provider<ClusterBoostedLabelMakerFactory> labelMakerFactoryProvider;
 	@Inject SynchronousTaskManager<?> syncTaskManager;
+	
+	@Inject private @WarnDialogModule.EM Provider<WarnDialog> warnDialogEMProvider;
+	@Inject private Provider<JFrame> jFrameProvider;
 	
 
 	@Override
@@ -49,6 +60,12 @@ public class EMHighlightTask extends AbstractTask {
 				setDisplayOptions(annotationSet);
 			}
 		));
+		
+		if(warn) {
+			SwingUtil.invokeOnEDT(() -> {
+				warnDialogEMProvider.get().warnUser(jFrameProvider.get());
+			});
+		}
 	}
 	
 	private void setDisplayOptions(AnnotationSet annotationSet) {

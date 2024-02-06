@@ -61,7 +61,7 @@ public class WarnDialog {
 			}
 			
 			if(propertyName.isPresent()) {
-				dontShowAgainBox = new JCheckBox("Don't ask me again");
+				dontShowAgainBox = new JCheckBox(askToContinue ? "Don't ask me again" : "Don't show this again");
 			}
 			
 			setLayout(new BorderLayout());
