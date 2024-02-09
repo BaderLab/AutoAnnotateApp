@@ -52,7 +52,7 @@ public class AnnotationRenderer {
 	@Inject private VisibilityTask.Factory visibilityTaskProvider;
 	@Inject private VisibilityClearTask.Factory visibilityClearTaskProvider;
 	
-	private final DebounceTimer debouncer = new DebounceTimer();
+	private final DebounceTimer debouncer = new DebounceTimer(80);
 	
 	private Map<Cluster,AnnotationGroup> clusterAnnotations = new HashMap<>();
 	private Set<Cluster> selectedClusters = new HashSet<>();

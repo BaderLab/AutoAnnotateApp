@@ -61,6 +61,7 @@ public class ClusterSignificancePanel extends JPanel {
 	
 	private DiscreteSliderWithLabel<Integer> slider;
 	private Cluster cluster;
+	private DebounceTimer debouncer = new DebounceTimer();
 	
 	
 	@Inject
@@ -71,7 +72,7 @@ public class ClusterSignificancePanel extends JPanel {
 	@Subscribe
 	public void handle(ModelEvents.ClustersChanged event) {
 		if(cluster != null && event.getClusters().contains(cluster)) {
-			setCluster(cluster);
+			updateCluster(cluster);
 		}
 	}
 	
@@ -79,19 +80,19 @@ public class ClusterSignificancePanel extends JPanel {
 	public void handle(ModelEvents.DisplayOptionChanged event) {
 		var option = event.getOption();
 		if(option == Option.OPACITY || option == Option.SHOW_CLUSTERS || option == Option.FILL_COLOR) {
-			setCluster(cluster);
+			updateCluster(cluster);
 		}
 	}
 	
 	@Subscribe
 	public void handle(ModelEvents.SignificanceOptionChanged event) {
-		if(Objects.equals(this.getSignificanceOptions(), event.getSignificanceOptions())) {
-			setCluster(cluster);
+		if(Objects.equals(getSignificanceOptions(cluster), event.getSignificanceOptions())) {
+			updateCluster(cluster);
 		}
 	}
 	
 	public void refresh() {
-		setCluster(cluster);
+		updateCluster(cluster);
 	}
 	
 	
@@ -177,50 +178,58 @@ public class ClusterSignificancePanel extends JPanel {
    		
    		layout.linkSize(SwingConstants.VERTICAL, significanceButton, fitSelectedButton);
    		
-   		setCluster(null);
+   		updateCluster(null);
 	}
 	
 	
-	public ClusterSignificancePanel setCluster(Cluster cluster) {
+	public ClusterSignificancePanel updateCluster(Cluster cluster) {
 		this.cluster = cluster;
 		
-		if(cluster == null) {
-			clusterTitle.setText("");
-			clusterIconLabel.setIcon(thumbnailRenderer.getEmptyIcon());
-			clusterStatusLabel.setText("Select a cluster");
-			sliderPanel.removeAll();
-			sliderPanel.setVisible(false);
-			fitSelectedButton.setVisible(false);
-			significanceButton.setVisible(false);
-			significanceLabel.setText("");
-			significanceLabel.setVisible(false);
-		} else {
-			clusterTitle.setText("<html>" + cluster.getLabel() + "</html>"); // <html> enables word wrap
-			var image = thumbnailRenderer.getThumbnailImage(cluster);
-			clusterIconLabel.setIcon(new ImageIcon(image));
-			clusterStatusLabel.setText(getStatusText(cluster));
-			
-			slider = createSlider(cluster.getParent());
-			
-			sliderPanel.removeAll();
-			sliderPanel.add(slider, BorderLayout.CENTER);
-			sliderPanel.setVisible(true);
-			fitSelectedButton.setVisible(true);
-			significanceButton.setVisible(true);
-			
-			setSignificanceLabelText(cluster, significanceLabel);
-			significanceLabel.setVisible(true);
-			
-			SwingUtil.recursiveEnable(sliderPanel, enableSlider());
-		}
+		debouncer.debounce(() -> {
+			SwingUtil.invokeOnEDT(() -> {
+				if(cluster == null) {
+					clusterTitle.setText("");
+					clusterIconLabel.setIcon(thumbnailRenderer.getEmptyIcon());
+					clusterStatusLabel.setText("Select a cluster");
+					sliderPanel.removeAll();
+					sliderPanel.setVisible(false);
+					fitSelectedButton.setVisible(false);
+					significanceButton.setVisible(false);
+					significanceLabel.setText("");
+					significanceLabel.setVisible(false);
+				} else {
+					clusterTitle.setText("<html>" + cluster.getLabel() + "</html>"); // <html> enables word wrap
+					var image = thumbnailRenderer.getThumbnailImage(cluster);
+					clusterIconLabel.setIcon(new ImageIcon(image));
+					clusterStatusLabel.setText(getStatusText(cluster));
+					
+					slider = createSlider(cluster.getParent());
+					
+					sliderPanel.removeAll();
+					sliderPanel.add(slider, BorderLayout.CENTER);
+					sliderPanel.setVisible(true);
+					fitSelectedButton.setVisible(true);
+					significanceButton.setVisible(true);
+					
+					setSignificanceLabelText(cluster, significanceLabel);
+					significanceLabel.setVisible(true);
+					
+					SwingUtil.recursiveEnable(sliderPanel, enableSlider(cluster));
+				}
+			});
+		});
 		
 		return this;
 	}
 	
-	private boolean enableSlider() {
+	private static boolean enableSlider(Cluster cluster) {
 		return cluster != null
 			&& !cluster.isCollapsed()
-			&& getSignificanceOptions().isSet();
+			&& getSignificanceOptions(cluster).isSet();
+	}
+	
+	private static SignificanceOptions getSignificanceOptions(Cluster cluster) {
+		return cluster == null ? null : cluster.getParent().getDisplayOptions().getSignificanceOptions();
 	}
 	
 	
@@ -279,11 +288,6 @@ public class ClusterSignificancePanel extends JPanel {
 	}
 	
 	
-	private SignificanceOptions getSignificanceOptions() {
-		return cluster == null ? null : cluster.getParent().getDisplayOptions().getSignificanceOptions();
-	}
-	
-	
 	private void showSignificanceSettingsDialog() {
 		if(cluster == null)
 			return;
@@ -298,7 +302,7 @@ public class ClusterSignificancePanel extends JPanel {
 		SwingUtil.invokeOnEDT(() -> {
 			var newParams = action.showSignificanceDialog();
 			so.setSignificance(newParams);
-			setCluster(cluster);
+			updateCluster(cluster);
 		});
 	}
 	
