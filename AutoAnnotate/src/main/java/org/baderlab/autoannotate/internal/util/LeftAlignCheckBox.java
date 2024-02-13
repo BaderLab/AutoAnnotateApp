@@ -1,8 +1,8 @@
 package org.baderlab.autoannotate.internal.util;
 
-import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
 
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -20,9 +20,15 @@ public class LeftAlignCheckBox extends JPanel {
 		SwingUtil.makeSmall(label, checkBox);
 		setOpaque(false);
 				
-		setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-		add(label);
-		add(checkBox);
+		var layout = SwingUtil.createGroupLayout(this);
+		layout.setVerticalGroup(layout.createParallelGroup(Alignment.CENTER)
+			.addComponent(label)
+			.addComponent(checkBox)		
+		);
+		layout.setHorizontalGroup(layout.createSequentialGroup()
+			.addComponent(label)
+			.addComponent(checkBox)
+		);
 	}
 	
 //	public JCheckBox getCheckBox() {

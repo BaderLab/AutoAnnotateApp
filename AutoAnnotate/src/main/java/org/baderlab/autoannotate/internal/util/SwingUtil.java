@@ -8,6 +8,7 @@ import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -144,5 +145,31 @@ public final class SwingUtil {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public static GroupLayout createGroupLayout(Container host) {
+		var layout = new GroupLayout(host);
+		host.setLayout(layout);
+		layout.setAutoCreateContainerGaps(false);
+		layout.setAutoCreateGaps(!LookAndFeelUtil.isAquaLAF());
+		return layout;
+	}
+	
+	public static GroupLayout verticalLayout(Container host, JComponent... components) {
+		var layout = createGroupLayout(host);
+		
+		var parallel = layout.createParallelGroup();
+		for(var comp : components) {
+			parallel.addComponent(comp);
+		}
+		layout.setHorizontalGroup(parallel);
+		
+		var seq = layout.createSequentialGroup();
+		for(var comp : components) {
+			seq.addComponent(comp);
+		}
+		layout.setVerticalGroup(seq);
+		
+		return layout;
 	}
 }

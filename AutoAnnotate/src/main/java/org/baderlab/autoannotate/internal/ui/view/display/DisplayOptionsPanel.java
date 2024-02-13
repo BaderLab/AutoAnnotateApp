@@ -1,6 +1,5 @@
 package org.baderlab.autoannotate.internal.ui.view.display;
 
-import static java.awt.GridBagConstraints.NONE;
 import static javax.swing.GroupLayout.DEFAULT_SIZE;
 import static javax.swing.GroupLayout.PREFERRED_SIZE;
 import static org.baderlab.autoannotate.internal.model.DisplayOptions.*;
@@ -9,7 +8,6 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
-import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -34,8 +32,10 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JToggleButton;
+import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
@@ -57,7 +57,6 @@ import org.baderlab.autoannotate.internal.ui.view.display.scale.ScalePanel;
 import org.baderlab.autoannotate.internal.util.ColorButton;
 import org.baderlab.autoannotate.internal.util.ColorPaletteButton;
 import org.baderlab.autoannotate.internal.util.ColorPaletteButton.Mode;
-import org.baderlab.autoannotate.internal.util.GBCFactory;
 import org.baderlab.autoannotate.internal.util.LeftAlignCheckBox;
 import org.baderlab.autoannotate.internal.util.SliderWithLabel;
 import org.baderlab.autoannotate.internal.util.SwingUtil;
@@ -96,6 +95,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	
 	private JPanel shapePanel;
 	private JPanel labelPanel;
+	private JPanel cardPanel;
 	
 	// Shape controls
 	private SliderWithLabel borderWidthSlider;
@@ -187,8 +187,8 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 
 	
 	public void setAnnotationSet(Optional<AnnotationSet> annotationSet) {
-		CardLayout cardLayout = (CardLayout) getLayout();
-		cardLayout.show(this, annotationSet.isPresent() ? CARD_MAIN : CARD_NULL);
+		var cardLayout = (CardLayout) cardPanel.getLayout();
+		cardLayout.show(cardPanel, annotationSet.isPresent() ? CARD_MAIN : CARD_NULL);
 		
 		if(annotationSet.isPresent()) {
 			AnnotationSet as = annotationSet.get();
@@ -279,10 +279,16 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		JPanel nullPanel = new NullViewPanel();
 		JPanel mainPanel = createMainPanel();
 		
-		setLayout(new CardLayout());
+		cardPanel = new JPanel(new CardLayout());
+		cardPanel.add(nullPanel, CARD_NULL);
+		cardPanel.add(mainPanel, CARD_MAIN);
 		
-		add(nullPanel, CARD_NULL);
-		add(mainPanel, CARD_MAIN);
+		var scrollPane = new JScrollPane(cardPanel, 
+				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, 
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		
+		setLayout(new BorderLayout());
+		add(scrollPane, BorderLayout.CENTER);
 	}
 	
 	
@@ -302,15 +308,12 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		
 		LookAndFeelUtil.makeSmall(layoutButton, resetButton);
 		
-		JPanel panel = new JPanel(new GridBagLayout());
-		panel.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
-		
-		var layout = new GroupLayout(panel);
-		panel.setLayout(layout);
+		JPanel panel = new JPanel();
+		var layout = SwingUtil.createGroupLayout(panel);
 		
 		layout.setVerticalGroup(layout.createSequentialGroup()
 			.addComponent(shapePanel)
-			.addComponent(labelPanel)			
+			.addComponent(labelPanel)	
 			.addGroup(layout.createParallelGroup()
 				.addComponent(layoutButton, Alignment.LEADING)
 				.addComponent(resetButton, Alignment.TRAILING)
@@ -323,7 +326,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			.addComponent(labelPanel)
 			.addGroup(layout.createSequentialGroup()
 				.addComponent(layoutButton)
-				.addGap(0, Short.MAX_VALUE, Short.MAX_VALUE)
+				.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addComponent(resetButton)
 			)
 			.addComponent(advancedPanel)
@@ -345,10 +348,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		var collapsiblePabel = new BasicCollapsiblePanel("Advanced");
 		collapsiblePabel.setCollapsed(true);
 		
-		var layout = new GroupLayout(collapsiblePabel.getContentPane());
-		collapsiblePabel.getContentPane().setLayout(layout);
-		layout.setAutoCreateContainerGaps(false);
-		layout.setAutoCreateGaps(true);
+		var layout = SwingUtil.createGroupLayout(collapsiblePabel.getContentPane());
 		
 		layout.setHorizontalGroup(layout.createParallelGroup(Alignment.CENTER, true)
 			.addComponent(signfPanel, DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
@@ -427,25 +427,56 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		SwingUtil.makeSmall(shapeLabel, ellipseRadio, rectangleRadio, fillColorLabel, fillColorButton);
 		SwingUtil.makeSmall(borderColorLabel, borderColorButton, hideClustersCheckBox, usePaletteCheckBox);
 				
-		JPanel shapePanel = new JPanel(new FlowLayout());
+		JPanel shapePanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 		shapePanel.setOpaque(false);
 		shapePanel.add(ellipseRadio);
 		shapePanel.add(rectangleRadio);
+
+		var layout = SwingUtil.createGroupLayout(panel); 
 		
-		panel.setLayout(new GridBagLayout());
+		layout.setHorizontalGroup(layout.createParallelGroup()
+			.addGroup(layout.createSequentialGroup()
+				.addComponent(shapeLabel)
+				.addComponent(shapePanel)
+			)
+			.addComponent(borderWidthSlider)
+			.addComponent(opacitySlider)
+			.addComponent(paddingAdjustSlider)
+			.addGroup(layout.createSequentialGroup()
+				.addComponent(fillColorLabel)
+				.addComponent(fillColorButton)
+				.addComponent(usePaletteCheckBox)
+				.addComponent(fillColorWarnLabel)
+			)
+			.addGroup(layout.createSequentialGroup()
+				.addComponent(borderColorLabel)
+				.addComponent(borderColorButton)
+			)
+			.addComponent(hideClustersCheckBox)
+		);
 		
-		panel.add(shapeLabel,           GBCFactory.grid(0,0).get());
-		panel.add(shapePanel,     		GBCFactory.grid(1,0).fill(NONE).gridwidth(2).get());
-		panel.add(borderWidthSlider,    GBCFactory.grid(0,1).gridwidth(4).weightx(1.0).get());
-		panel.add(opacitySlider,        GBCFactory.grid(0,2).gridwidth(4).weightx(1.0).get());
-		panel.add(paddingAdjustSlider,  GBCFactory.grid(0,3).gridwidth(4).weightx(1.0).get());
-		panel.add(fillColorLabel,       GBCFactory.grid(0,4).get());
-		panel.add(fillColorButton,      GBCFactory.grid(1,4).fill(NONE).get());
-		panel.add(usePaletteCheckBox,   GBCFactory.grid(2,4).fill(NONE).get());
-		panel.add(fillColorWarnLabel,   GBCFactory.grid(3,4).fill(NONE).get());
-		panel.add(borderColorLabel,     GBCFactory.grid(0,5).get());
-		panel.add(borderColorButton,    GBCFactory.grid(1,5).fill(NONE).gridwidth(2).get());
-		panel.add(hideClustersCheckBox, GBCFactory.grid(0,6).gridwidth(4).weightx(1.0).get());
+		layout.setVerticalGroup(layout.createSequentialGroup()
+			.addGroup(layout.createParallelGroup(Alignment.CENTER)
+				.addComponent(shapeLabel)
+				.addComponent(shapePanel)
+			)
+			.addComponent(borderWidthSlider)
+			.addComponent(opacitySlider)
+			.addComponent(paddingAdjustSlider)
+			.addGroup(layout.createParallelGroup(Alignment.BASELINE)
+				.addComponent(fillColorLabel)
+				.addComponent(fillColorButton)
+				.addComponent(usePaletteCheckBox)
+				.addComponent(fillColorWarnLabel)
+			)
+			.addGroup(layout.createParallelGroup(Alignment.BASELINE)
+				.addComponent(borderColorLabel)
+				.addComponent(borderColorButton)
+			)
+			.addComponent(hideClustersCheckBox)
+		);
+		
+		layout.linkSize(fillColorLabel, borderColorLabel);
 		
 		return panel;
 	}
@@ -464,10 +495,13 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		minFontSizeSlider.getSlider().addChangeListener(minFontSizeListener = e -> debounceSetMinFontSize());
 		minFontSizeSlider.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
 		
-		JPanel fontScalePanel = new JPanel(new GridBagLayout());
+		JPanel fontScalePanel = new JPanel();
 		fontScalePanel.setOpaque(false);
-		fontScalePanel.add(fontScaleSlider,   GBCFactory.grid(0,0).weightx(1.0).get());
-		fontScalePanel.add(minFontSizeSlider, GBCFactory.grid(0,1).weightx(1.0).get());
+		
+		SwingUtil.verticalLayout(fontScalePanel, 
+			fontScaleSlider, 
+			minFontSizeSlider
+		);
 		
 		JPanel fontPanel = new JPanel(new CardLayout());
 		fontPanel.setOpaque(false);
@@ -516,20 +550,40 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			hideLabelsCheckBox.setEnabled(true);
 		});
 		
-		
 		SwingUtil.makeSmall(fontByClusterCheckbox, fontColorLabel, fontColorButton, hideLabelsCheckBox);
 		SwingUtil.makeSmall(wordWrapCheckBox, wordWrapLengthLabel, wordWrapLengthSpinner);
 		
-		panel.setLayout(new GridBagLayout());
+		var layout = SwingUtil.createGroupLayout(panel);
 		
-		panel.add(fontByClusterCheckbox, GBCFactory.grid(0,0).weightx(1.0).fill(NONE).gridwidth(3).get());
-		panel.add(fontPanel,             GBCFactory.grid(0,1).gridwidth(3).get());
-		panel.add(fontColorLabel,        GBCFactory.grid(0,2).get());
-		panel.add(fontColorButton,       GBCFactory.grid(1,2).fill(NONE).gridwidth(2).get());
-		panel.add(wordWrapCheckBox,      GBCFactory.grid(0,3).get());
-		panel.add(wordWrapLengthLabel,   GBCFactory.grid(1,3).get());
-		panel.add(wordWrapLengthSpinner, GBCFactory.grid(2,3).fill(NONE).get());
-		panel.add(hideLabelsCheckBox,    GBCFactory.grid(0,4).fill(NONE).gridwidth(3).get());
+		layout.setHorizontalGroup(layout.createParallelGroup()
+			.addComponent(fontByClusterCheckbox)
+			.addComponent(fontPanel)
+			.addGroup(layout.createSequentialGroup()
+				.addComponent(fontColorLabel)
+				.addComponent(fontColorButton)
+			)
+			.addGroup(layout.createSequentialGroup()
+				.addComponent(wordWrapCheckBox)
+				.addComponent(wordWrapLengthLabel)
+				.addComponent(wordWrapLengthSpinner, 0, 60, 60)
+			)
+			.addComponent(hideLabelsCheckBox)
+		);
+		
+		layout.setVerticalGroup(layout.createSequentialGroup()
+			.addComponent(fontByClusterCheckbox)
+			.addComponent(fontPanel)
+			.addGroup(layout.createParallelGroup(Alignment.BASELINE)
+				.addComponent(fontColorLabel)
+				.addComponent(fontColorButton)
+			)
+			.addGroup(layout.createParallelGroup(Alignment.BASELINE)
+				.addComponent(wordWrapCheckBox)
+				.addComponent(wordWrapLengthLabel)
+				.addComponent(wordWrapLengthSpinner)
+			)
+			.addComponent(hideLabelsCheckBox)
+		);
 		
 		return panel;
 	}
@@ -573,11 +627,11 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 		
 		SwingUtil.makeSmall(colorSigCheckBox, highlightSigCheckBox, highlightSigButton);
 		
-		panel.setLayout(new GridBagLayout());
-		
-		panel.add(colorSigCheckBox,     GBCFactory.grid(0,0).weightx(1.0).get());
-		panel.add(highlightSigCheckBox, GBCFactory.grid(0,1).get());
-		panel.add(highlightSigButton,   GBCFactory.grid(0,2).fill(NONE).get());
+		SwingUtil.verticalLayout(panel,
+			colorSigCheckBox, 
+			highlightSigCheckBox, 
+			highlightSigButton
+		);
 		
 		return panel;
 	}
@@ -715,10 +769,7 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 			infoLabel.setEnabled(false);
 			infoLabel.setForeground(UIManager.getColor("Label.disabledForeground"));
 			
-			final GroupLayout layout = new GroupLayout(this);
-			this.setLayout(layout);
-			layout.setAutoCreateContainerGaps(true);
-			layout.setAutoCreateGaps(true);
+			var layout = SwingUtil.createGroupLayout(this);
 			
 			layout.setHorizontalGroup(layout.createSequentialGroup()
 					.addGap(0, 0, Short.MAX_VALUE)
