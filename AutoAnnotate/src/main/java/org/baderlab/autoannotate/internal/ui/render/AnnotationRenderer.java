@@ -355,7 +355,7 @@ public class AnnotationRenderer {
 		// We don't know exactly which network the new network was created from.
 		// Unfortunately we need to go over all the nodes to clear any potential highlights.
 		for(var nodeView : netView.getNodeViews()) {
-			EraseClustersTask.clearHighlight(nodeView);
+			DrawClustersTask.clearHighlight(nodeView);
 		}
 	}
 	

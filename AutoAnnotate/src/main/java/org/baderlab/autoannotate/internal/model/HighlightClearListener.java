@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import org.baderlab.autoannotate.internal.ui.render.EraseClustersTask;
+import org.baderlab.autoannotate.internal.ui.render.DrawClustersTask;
 import org.baderlab.autoannotate.internal.ui.view.copy.CopyAnnotationsEnabler;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
@@ -102,7 +102,7 @@ public class HighlightClearListener implements NetworkViewAddedListener, Network
 				var nodeSUID = newNodeView.getModel().getSUID();
 				
 				if(nodeSUIDs.remove(nodeSUID)) {
-					EraseClustersTask.clearHighlight(newNodeView);
+					DrawClustersTask.clearHighlight(newNodeView);
 				}
 			}
 		}
@@ -110,7 +110,7 @@ public class HighlightClearListener implements NetworkViewAddedListener, Network
 	
 	
 	private static boolean isHighlightedNodeVP(ViewChangeRecord<?> record) {
-		return record.isLockedValue() && EraseClustersTask.isHighlightedNodeVP(record.getVisualProperty());
+		return record.isLockedValue() && DrawClustersTask.isHighlightedNodeVP(record.getVisualProperty());
 	}
 
 

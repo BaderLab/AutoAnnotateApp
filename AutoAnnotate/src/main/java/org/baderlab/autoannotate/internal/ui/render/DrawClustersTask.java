@@ -1,10 +1,9 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
-import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NODE_LABEL_FONT_FACE;
 import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NODE_LABEL_FONT_SIZE;
+import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NODE_LABEL_TRANSPARENCY;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Paint;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -173,14 +172,29 @@ public class DrawClustersTask extends AbstractTask {
 	// The code to remove the highlight is in EraseClustersTask
 	private static void highlightNode(View<CyNode> nodeView) {
 		var fontSize = getVP(nodeView, NODE_LABEL_FONT_SIZE);
-		var fontFace = getVP(nodeView, NODE_LABEL_FONT_FACE);
+		var transparancy = getVP(nodeView, NODE_LABEL_TRANSPARENCY);
 		
-		fontSize += 4;
-		fontFace = fontFace.deriveFont(Font.BOLD);
+		// Don't make the font bold because that can cause problems with PDF export
+		fontSize += 8;
+		transparancy = Math.min(transparancy + 75, 255);
 		
 		nodeView.setLockedValue(NODE_LABEL_FONT_SIZE, fontSize);
-		nodeView.setLockedValue(NODE_LABEL_FONT_FACE, fontFace);
+		nodeView.setLockedValue(NODE_LABEL_TRANSPARENCY, transparancy);
 	}
+	
+	
+	public static void clearHighlight(View<CyNode> nodeView) {
+		if(nodeView != null) {
+			nodeView.clearValueLock(NODE_LABEL_FONT_SIZE);
+			nodeView.clearValueLock(NODE_LABEL_TRANSPARENCY);
+		}
+	}
+	
+	
+	public static boolean isHighlightedNodeVP(VisualProperty<?> vp) {
+		return vp == NODE_LABEL_FONT_SIZE || vp == NODE_LABEL_TRANSPARENCY;
+	}
+	
 	
 	private static <T> T getVP(View<CyNode> nodeView, VisualProperty<T> vp) {
 		var value = nodeView.getVisualProperty(vp);
