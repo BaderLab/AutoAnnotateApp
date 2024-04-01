@@ -71,8 +71,8 @@ public class RunClusterMakerTaskFactory implements TaskFactory {
 			.append(" clusterAttribute=\"").append(columnName).append('"');
 		if(algorithm.isEdgeAttributeRequired())
 			sb.append(" attribute=\"").append(edgeAttribute).append('"');
-		if(algorithm.isEdgeAttributeRequired() && cutoff != null)
-			sb.append(" edgeCutOff=\"").append(cutoff).append('"');
+//		if(algorithm.isEdgeAttributeRequired() && cutoff != null)
+//			sb.append(" edgeCutOff=\"").append(cutoff).append('"');
 		if(algorithm == ClusterAlgorithm.MCL && mclInflation != null)
 			sb.append(" inflation_parameter=\"").append(mclInflation).append('"');
 		

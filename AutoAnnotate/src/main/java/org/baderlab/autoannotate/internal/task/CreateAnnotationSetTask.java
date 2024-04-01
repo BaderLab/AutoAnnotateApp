@@ -39,6 +39,7 @@ import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.model.io.CreationParameter;
 import org.baderlab.autoannotate.internal.util.ResultObserver;
 import org.baderlab.autoannotate.internal.util.TaskTools;
+import org.cytoscape.application.CyUserLog;
 import org.cytoscape.model.CyEdge;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNetworkManager;
@@ -51,6 +52,8 @@ import org.cytoscape.work.SynchronousTaskManager;
 import org.cytoscape.work.TaskIterator;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.json.JSONResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
@@ -73,6 +76,8 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 	
 	@Inject private SynchronousTaskManager<?> syncTaskManager;
 	@Inject private ModelManager modelManager;
+	
+	private static final Logger logger = LoggerFactory.getLogger(CyUserLog.NAME);
 	
 
 	private final AnnotationSetTaskParamters params;
@@ -104,11 +109,11 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 		//System.out.println(params);
 		
 		Optional<Double> cutoff = Optional.empty();
-		if(needClusterEdgeAttribute()) {
-			String edgeAttribute = params.getClusterMakerEdgeAttribute();
-			CyNetwork network = params.getNetworkView().getModel();
-			cutoff = runCutoffTask(network, edgeAttribute);
-		}
+//		if(needClusterEdgeAttribute()) {
+//			String edgeAttribute = params.getClusterMakerEdgeAttribute();
+//			CyNetwork network = params.getNetworkView().getModel();
+//			cutoff = runCutoffTask(network, edgeAttribute);
+//		}
 		
 		Map<String,Collection<CyNode>> clusters;
 		if(params.isUseClusterMaker()) {
@@ -260,6 +265,7 @@ public class CreateAnnotationSetTask extends AbstractTask implements ObservableT
 			
 			syncTaskManager.execute(tasks, TaskTools.onFail(finishStatus -> {
 				Exception e = finishStatus.getException();
+				logger.error("Error running clusterMaker from AutoAnnotate", e);
 				if(e != null)
 					throw new RunClusterMakerException(e); // better than swallowing the exception
 			}));
