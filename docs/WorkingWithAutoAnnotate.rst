@@ -6,88 +6,15 @@ Panels
 
 When an Annotation Set is created the AutoAnnotate panels will be shown.
 
-.. note:: To show or hide the AutoAnnotate panels go to the main menu and 
-          select **Apps > AutoAnnotate > (Show/Hide) AutoAnnotate Panels**. 
-
-.. image:: images/aa_panels_red.png
+To show or hide the AutoAnnotate panels go to the main menu and 
+select **Apps > AutoAnnotate > (Show/Hide) AutoAnnotate Panels**. 
 
 
 * In the **Control Panel** on the left side is the **Main AutoAnnotate Panel**.
 
   * This panel is used to manage Annotation Sets and Clusters. 
 
-* In the **Results Panel** on the right side is the **Display Options Panel**.
-
-  * This panel is used to modify the look of the annotations. 
-
-
-Changing Display Options
-------------------------
-
-This AutoAnnotate Display panel shows display options for the currently selected Annotation Set.
-
-.. image:: images/display_options_3.png
-   :width: 220px
-   :align: right
-
-Shape Options
-
-  Shape
-    There are two available shapes: Ellipse or Rectangle
-
-  Border width
-    Slider that adjusts the width of the cluster annotation borders.
-
-  Opacity
-    Slider that adjusts the opacity of the cluster annotation fill color.
-    Slide to the left for completely transparent. Slide to the right for completely opaque. 
-
-  Padding
-    Slider that adjust the space between the content of a cluster and the annotation border.
-
-  Palette
-    When selected the annotations will have multiple colors from a color palette. 
-    The color of each annotation is chosen automatically from the palette.
-
-  Fill Color
-    Opens a color picker for choosing the fill color.
-
-  Border Color
-    Opens a color picker for choosing the border color.
-
-  Hide Shapes
-    Select to hide all cluster shape annotations. 
-
-
-Label Options
-
-  Font Size
-    Slider that adjusts the font size.
-
-    Scale font by cluster size
-      When selected the size of the label will be relative to the number of 
-      nodes in the cluster. Larger clusters will have larger labels.
-      When deselected all the clusters will have the same size labels. 
-      Slider is used to adjust the font size or font scale.
-
-  Font Color
-    Opens a color picker for choosing the font color.
-
-  Word Wrap
-    Allows long labels to be broken and wrap onto the next line.
-
-    Wrap Length
-      Defines the maximum width of the label in number of characters.
-      Individual words that are longer than the wrap length will not be broken.
-      Has no effect if Word Wrap is disabled.
-
-  Hide Labels
-    Select to hide all cluster labels. 
-
-Reset Button
-
-  Sets all the display options back to their defaults.
-
+.. image:: images/aa_panels_main_red.png
 
 Managing Annotation Sets
 ------------------------
@@ -244,6 +171,31 @@ Right click with he mouse to show the cluster table context menu.
 
   Recalculate Labels
     Recalculates the labels for the selected clusters. See :ref:`label_options` for more details.
+
+
+Cluster Thumbnail Panel
+-----------------------
+
+This panel shows a thumbnail image of the selected cluster.
+
+.. image:: images/cluster_thumbnail_panel.png
+   :width: 400 px
+
+Visible Nodes (significance)
+  This slider can be used to hide the least significant nodes in each cluster.
+  By default all nodes are shown.
+  The slider effects all clusters at the same time. For example if the slider is set to 50%
+  then the least significant half
+  of the nodes in each cluster will be hidden.
+
+Set significance attribute
+  Opens a small dialog that lets you choose which column (or EnrichmentMap chart)
+  to use to compare the nodes in each cluster to determine
+  significance.
+
+Magnifying glass button
+  This button will select all the nodes in the cluster and zoom in on the cluster in the network view.
+
 
 
 Managing Clusters in the Network View

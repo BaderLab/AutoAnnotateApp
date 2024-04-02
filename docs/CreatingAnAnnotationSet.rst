@@ -25,92 +25,154 @@ The dialog has two tabs, **Quick Start** and **Advanced**.
 
 
 Quick Start
-~~~~~~~~~~~
+-----------
 
 The quick start tab has a minimal set of basic options.
 
-.. image:: images/create_dialog_quick3.png
-   :width: 400 px
+.. image:: images/create_dialog_quick4.png
+   :width: 500 px
  
-Annotate the entire network
-  Every node in the graph will be part of a cluster.
 
-Maximum number of annotations
-  If this is selected then only the X largest clusters in the network will be given annotations.
-
-Layout network to prevent cluster overlap
-  Runs a layout algorithm that separates the clusters so that they do not overlap.
+Amount of clusters
+  Determines if there should be a larger number of smaller clustes, or a smaller number of larger clusters.
 
 Label Column
   Column used to generate the labels.
 
-.. note:: Quick start uses the clusterMaker2 MCL algorithm, with the "Adjacent Words" label option.
+Layout network to mimimize cluster overlap
+  Runs a layout algorithm that attempts to separate the clusters so that they do not overlap.
 
 
 Advanced
-~~~~~~~~
+--------
 
 The Advanced tab provides full control over clustering and label options.
+There are two sections
 
-.. image:: images/create_dialog_advanced3.png
-   :width: 450 px
+* Cluster Creation options
+* Label Creation options
+
+.. image:: images/create_dialog_advanced4.png
+   :width: 500 px
 
 
-Cluster Options
 
-  Use clusterMaker App
-    If this is selected then clusterMaker will be used to calculate the clusters.
+Cluster Creation Options
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Cluster algorithm
-    Used to select the clustering algorithm provided by clusterMaker that will 
-    be used to calculate the clusters. See the table below for a list of clusterMaker algorithms 
-    currently available for use in AutoAnnotate. 
+  There are 4 different strategies that can be used to find clusters in the network.
+  The strategy to use can be selected from the combo box.
 
-  Edge weight column
-    Some clusterMaker algorithms use edge weights. This box is used to select 
-    the Edge Column to use for the edge weights. If the selected algorithm does 
-    not use edge weights then this box will be disabled (greyed out). 
+  1. Choose amount of clusters
 
-  User-defined clusters
+    Provides a simple slider that allows you to choose if there should be a larger number of 
+    smaller clustes, or a smaller number of larger clusters.
+
+    .. image:: images/create_dialog_advanced_clusters1.png
+       :width: 500 px
+
+  2. Use clusterMaker2 App
+
+    This strategy allows finer control over how clusterMaker2 will find the clusters.
+    You may choose from a list of clustering alogorithms provided by clusterMaker2.
+
+    .. image:: images/create_dialog_advanced_clusters2.png
+       :width: 500 px
+
+    Cluster algorithm
+      Used to select the clustering algorithm provided by clusterMaker that will 
+      be used to calculate the clusters. See the table below for a list of clusterMaker algorithms 
+      currently available for use in AutoAnnotate. 
+
+    Edge weight column
+      Some clusterMaker algorithms use edge weights. This box is used to select 
+      the Edge Column to use for the edge weights. If the selected algorithm does 
+      not use edge weights then this box will be disabled (greyed out). 
+
+  3. Use MCODE App
+
+    This strategy uses the MCODE app to find the clusters.
+
+    .. image:: images/create_dialog_advanced_clusters3.png
+       :width: 500 px
+
+    The MCODE App is not installed by default. It can be downloaded here: https://apps.cytoscape.org/apps/mcode
+
+  4. Use column with predefined cluster IDs
+
     You may provide your own clusters or use another clustering app to calculate 
-    the clusters. In this case the clusters must already be calculated and cluster 
+    the clusters. 
+
+    .. image:: images/create_dialog_advanced_clusters4.png
+       :width: 500 px
+
+    In this case the clusters must already be calculated and cluster 
     identifiers must be stored in a Node Column.
     Any Node Column of may be used to identify the clusters. 
-    If you select a column of List type then the clusters may overlap. 
+    If you select a column of List type then the clusters may overlap.
 
-  Create Singleton Clusters
-    Sometimes the cluster algorithm will leave some nodes un-clustered. If the 
-    'create singleton clusters' option is selected then a cluster will be created 
-    for each un-clustered node.
 
-  Layout network to prevent cluster overlap
-    Runs a layout algorithm that separates the clusters so that they do not overlap.
+  Additional Options
 
-Label Options
+    Create Singleton Clusters
+      Sometimes the cluster algorithm will leave some nodes un-clustered. If the 
+      'create singleton clusters' option is selected then a cluster will be created 
+      for each un-clustered node.
 
-  Label Column
-    Select a Node Column that will be used to calculate the cluster labels. 
+    Layout network to minimize cluster overlap
+      Runs a layout algorithm that separates the clusters so that they do not overlap.
 
-  Label Algorithm
-    Select an algorithm that is used to calculuate the label for each cluster. Two label 
-    algorithms are currently available:
 
-        1. WordCloud: Adjacent Words
+Label Creation Options
+~~~~~~~~~~~~~~~~~~~~~~
 
-           Uses the WordCloud app to calculate the labels.
+There are 3 different strategies for generating labels for clusters.
 
-           Based on the algorithm that is used by the "Cloud Style: Clustered Standard" option 
-           in WordCloud. Words in the label are chosen from the most frequent words in the cluster,
-           and words that are adjacent to the most frequent words.
-           The higher the *"adjacent word bonus"* is, the more likely adjacent words will be in 
-           the label. 
+  
+  1. Name of most significant node in cluster
 
-        2. WordCloud: Largest Words
+    .. image:: images/create_dialog_advanced_labels1.png
+       :width: 500 px
 
-           Uses the WordCloud app to calculate the labels.
+    Finds the most "significant" node in each cluster and uses the chosen 
+    column for the label.
 
-           Basically the same algorithm that is used by the "Cloud Style: No Clustering" option in WordCloud.
-           Words in the label are chosen from the most frequent words in the cluster. 
+    Label Column
+      Select a Node Column that will be used for the cluster labels. 
+
+    Significance
+      This section provides options for how to decide which node in each cluster is the 
+      most significant.
+
+      Use node column for significance
+        Compares values in the chosen column to decide which node is the most
+        significant. There are options for choosing the node with the minimum, 
+        maximum or largest absolute value.
+
+      Use current EnrichmentMap chart settings for significance
+        This option is available for networks created by the EnrichmentMap app.
+        The Chart Data option in the Style section of the EnrichmentMap panel will
+        determine how to decide which node is the most significant. 
+
+  2. Use WordCloud app (most frequent words in cluster and adjacent words)
+
+    .. image:: images/create_dialog_advanced_labels2.png
+       :width: 500 px
+
+    Uses the WordCloud app to calculate the labels.
+
+    Words in the cluster labels are chosen from the most frequent words in the cluster,
+    and words that are adjacent to the most frequent words.
+    The higher the *"adjacent word bonus"* is, the more likely adjacent words will be included in 
+    the label. 
+
+  3. Use WordCloud app (most frequent words in cluster)
+
+    .. image:: images/create_dialog_advanced_labels3.png
+       :width: 500 px
+
+    Uses the WordCloud app to calculate the labels.
+    Words in the label are chosen from the most frequently occuring words in the cluster. 
 
   Set Excluded Words
     Opens a dialog that allows you to exclude words from cluster labels.

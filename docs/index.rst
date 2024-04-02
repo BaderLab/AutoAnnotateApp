@@ -1,4 +1,4 @@
-AutoAnnotate Cytoscape App 1.4
+AutoAnnotate Cytoscape App 1.5
 ==============================
 
 AutoAnnotate is a Cytoscape App that identifies clusters of nodes and automatically draws shape 
@@ -13,7 +13,7 @@ to experiment with different clustering algorithms and label generation strategi
 AutoAnnotate allows clusters to be collapsed, which can simplify large networks by reducing 
 potentially large sections of the network into single nodes.
 
-.. image:: images/aa_panels.png
+.. image:: images/aa_panels2.png
 
 
 .. toctree::
@@ -25,6 +25,7 @@ potentially large sections of the network into single nodes.
    CreatingAnAnnotationSet
    External
    WorkingWithAutoAnnotate
+   DisplayOptions
    MovingAndResizing
    GroupingAndLayout
    SummaryNetwork

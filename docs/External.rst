@@ -27,25 +27,6 @@ list columns that may assign some nodes to more than one cluster. These columns 
 be used with AutoAnnotate.
 
 
-Using the MCODE App
-~~~~~~~~~~~~~~~~~~~
-
-The MCODE App is a popular clustering App that works well with AutoAnnotate.
-
-* Install MCODE: https://apps.cytoscape.org/apps/mcode
-
-Using MCODE with AutoAnnotate
-
-* Select **Apps > MCODE**
-* A dialog with algorithm settings will be shown. 
-
-  * If the dialog does not appear, then go to the MCODE panel and click the (+) icon at the top of the panel.
-
-* In the MCODE dialog click the **Analyze Current Network** button.
-* Open the **New Annotation Set** dialog and choose the Advanced panel. 
-* Select **User-defined clusters** and then select the MCODE **Clusters (1)** column. 
-* Click **Create Annotations**.
-
 
 Using External Scripts
 ~~~~~~~~~~~~~~~~~~~~~~

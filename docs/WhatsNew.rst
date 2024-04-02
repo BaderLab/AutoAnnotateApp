@@ -1,6 +1,24 @@
 What's New
 ==========
 
+
+New in AutoAnnotate 1.5
+-----------------------
+
+* UI updates to the AutoAnotate creation dialog.
+
+  * Option to label clusters using the name of the most significant node in the cluster.
+  * New slider that alows to choose the granularity of the clusters.
+  * Support for using the MCODE app to find clusters in the network.
+
+* Thumbnail view at the bottom of the cluster panel. 
+* Slider at bottom of cluster panel that allows to show/hide nodes according to their significance.
+* Better integration with EnrichmentMap.
+* Advanced options section in the Display Options panel.
+* Bug fixes.
+
+
+
 New in AutoAnnotate 1.4
 -----------------------
 

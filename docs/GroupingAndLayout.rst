@@ -9,8 +9,8 @@ Cluster-Aware Layouts
 AutoAnnotate provides three cluster-aware layout algorithms. These are available from the
 panel menu.
 
-.. image:: images/layout_menu_items.png
-   :width: 550 px
+.. image:: images/layout_menu_items2.png
+
 
 CoSE Layout
 ~~~~~~~~~~~
@@ -18,6 +18,7 @@ CoSE Layout
 .. image:: images/layout_cose_3.png
    :width: 550 px
 
+Selecting **Layout clusters to minimize overlap** runs the CoSE layout.
 The CoSE (Compound Spring Embedded) layout is a force-directed layout that is cluster-aware.
 It will attempt to minimize cluster overlap while still placing connected clusters
 near each other.
@@ -26,7 +27,7 @@ Cluster annotations will still sometimes overlap. If this is happening try runni
 the layout again or manually adjust the position of the clusters.
 
 There are two versions of CoSE available. The standard version will allow unclustered nodes
-to be placed about the graph. The **CoSE Layout (Group Single Nodes)** version will group 
+to be placed about the graph. The **(Group Single Nodes)** version will group 
 all unclustered nodes together rather than allowing them to be spread about the graph.
 
 If you would like to increase or decrease the spacing between clusters this can be done from the
