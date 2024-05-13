@@ -338,4 +338,17 @@ public class DisplayOptions {
 		this.wordWrapLength = wordWrapLength;
 		postEvent(Option.WORD_WRAP_LENGTH);
 	}
+
+	@Override
+	public String toString() {
+		return "DisplayOptions [shapeType=" + shapeType + ", showClusters=" + showClusters + ", showLabels="
+				+ showLabels + ", useConstantFontSize=" + useConstantFontSize + ", fontScale=" + fontScale
+				+ ", minFontSizeForScale=" + minFontSizeForScale + ", opacity=" + opacity + ", borderWidth="
+				+ borderWidth + ", paddingAdjust=" + paddingAdjust + ", fontSize=" + fontSize + ", fillColor="
+				+ fillColor + ", fillColorPalette=" + fillColorPalette + ", fillType=" + fillType + ", borderColor="
+				+ borderColor + ", fontColor=" + fontColor + ", useWordWrap=" + useWordWrap + ", wordWrapLength="
+				+ wordWrapLength + ", significanceOptions=" + significanceOptions + ", silenced=" + silenced + "]";
+	}
+	
+	
 }

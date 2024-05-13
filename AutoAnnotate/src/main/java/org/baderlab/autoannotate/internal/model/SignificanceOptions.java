@@ -135,5 +135,14 @@ public class SignificanceOptions {
 	public int getVisiblePercent() {
 		return visiblePercent;
 	}
+
+	@Override
+	public String toString() {
+		return "SignificanceOptions [significanceColumn=" + significanceColumn + ", significance=" + significance
+				+ ", isEM=" + isEM + ", emDataSet=" + emDataSet + ", highlight=" + highlight + ", visiblePercent="
+				+ visiblePercent + "]";
+	}
+	
+	
 	
 }

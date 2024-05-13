@@ -73,7 +73,11 @@ public class CreationParameter {
 			return false;
 		return true;
 	}
-	
-	
+
+
+	@Override
+	public String toString() {
+		return "CreationParameter [name=" + displayName + ", value=" + displayValue + "]";
+	}
 	
 }

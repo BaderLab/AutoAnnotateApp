@@ -172,5 +172,11 @@ public class AnnotationSet {
 			postEvent(new ModelEvents.ClustersLabelsUpdated(this));
 		}
 	}
+
+	@Override
+	public String toString() {
+		return "AnnotationSet [creationParameters=" + creationParameters + ", name=" + name + ", displayOptions="
+				+ displayOptions + ", labelColumn=" + labelColumn + ", clusters(" + clusters.size() + ")=" + clusters + "]";
+	}
 	
 }

@@ -24,6 +24,16 @@ public class TaskTools {
 	private TaskTools() {}
 	
 	
+	public static abstract class AbstractTaskObserver implements TaskObserver {
+		@Override
+		public void allFinished(FinishStatus finishStatus) {
+		}
+		@Override
+		public void taskFinished(ObservableTask task) {
+		}
+	}
+	
+	
 	public static Collector<Task, ?, TaskIterator> taskIterator() {
 		return Collector.of(
 				TaskIterator::new, 
@@ -64,10 +74,7 @@ public class TaskTools {
 	
 	
 	public static TaskObserver allFinishedObserver(Runnable runnable) {
-		return new TaskObserver() {
-			@Override
-			public void taskFinished(ObservableTask task) {
-			}
+		return new AbstractTaskObserver() {
 			@Override
 			public void allFinished(FinishStatus finishStatus) {
 				runnable.run();
@@ -76,10 +83,7 @@ public class TaskTools {
 	}
 	
 	public static TaskObserver onFail(Consumer<FinishStatus> consumer) {
-		return new TaskObserver() {
-			@Override
-			public void taskFinished(ObservableTask task) {
-			}
+		return new AbstractTaskObserver() {
 			@Override
 			public void allFinished(FinishStatus finishStatus) {
 				if(finishStatus.getType() == FinishStatus.Type.FAILED) {
@@ -90,16 +94,13 @@ public class TaskTools {
 	}
 	
 	public static <T> TaskObserver onFinished(Class<T> taskType, Consumer<T> consumer) {
-		return new TaskObserver() {
+		return new AbstractTaskObserver() {
 			@Override
 			public void taskFinished(ObservableTask task) {
 				if(taskType.isInstance(task)) {
 					consumer.accept(taskType.cast(task));
 				}
 			}
-
-			@Override
-			public void allFinished(FinishStatus finishStatus) { }
 		};
 	}
 	
@@ -113,7 +114,7 @@ public class TaskTools {
 	}
 	
 	
-	public static class ResultObserver<R> implements TaskObserver {
+	public static class ResultObserver<R> extends AbstractTaskObserver {
 		
 		private final Class<R> resultType;
 		
@@ -129,10 +130,6 @@ public class TaskTools {
 			if(tempResult != null) {
 				result = tempResult;
 			}
-		}
-		
-		@Override
-		public void allFinished(FinishStatus finishStatus) {
 		}
 		
 		public R getResult() {

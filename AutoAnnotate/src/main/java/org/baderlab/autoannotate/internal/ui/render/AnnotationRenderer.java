@@ -14,7 +14,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import org.baderlab.autoannotate.internal.model.AnnotationSet;
 import org.baderlab.autoannotate.internal.model.Cluster;
@@ -25,13 +27,15 @@ import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
 import org.baderlab.autoannotate.internal.ui.view.action.SelectClusterTask;
 import org.baderlab.autoannotate.internal.util.TaskTools;
+import org.cytoscape.application.CyUserLog;
 import org.cytoscape.event.DebounceTimer;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
 import org.cytoscape.view.presentation.property.BasicVisualLexicon;
-import org.cytoscape.work.SynchronousTaskManager;
+import org.cytoscape.work.Task;
 import org.cytoscape.work.TaskIterator;
-import org.cytoscape.work.swing.DialogTaskManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -41,16 +45,16 @@ import com.google.inject.Singleton;
 @Singleton
 public class AnnotationRenderer {
 	
+	private static final Logger logger = LoggerFactory.getLogger(CyUserLog.NAME);
+	
 	@Inject private ModelManager modelManager;
-	
-	@Inject private DialogTaskManager dialogTaskManager;
-	@Inject private SynchronousTaskManager<?> syncTaskManager;
-	
 	@Inject private DrawClustersTask.Factory drawTaskProvider;
 	@Inject private EraseClustersTask.Factory eraseTaskProvider;
 	@Inject private UpdateClustersTask.Factory updateTaskProvider;
 	@Inject private VisibilityTask.Factory visibilityTaskProvider;
 	@Inject private VisibilityClearTask.Factory visibilityClearTaskProvider;
+	
+	@Inject private TaskQueue taskQueue;
 	
 	private final DebounceTimer debouncer = new DebounceTimer(80);
 	
@@ -94,7 +98,6 @@ public class AnnotationRenderer {
 	
 	@Subscribe
 	public void handle(ModelEvents.ModelLoaded event) {
-		System.out.println("AnnotationRenderer.handle()");
 		TaskIterator tasks = new TaskIterator();
 		
 		for(var nvs : modelManager.getNetworkViewSets()) {
@@ -105,46 +108,58 @@ public class AnnotationRenderer {
 			}
 		}
 		
-		if(tasks.getNumTasks() > 0) {
-			syncTaskManager.execute(tasks);
+		try {
+			taskQueue.submit(tasks, true).get();
+		} catch (InterruptedException | ExecutionException e) {
+			logger.error(e.getMessage(), e);
 		}
 	}
 	
 	
-	private TaskIterator createRedrawTasks(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet) {
+	private List<Task> createRedrawTasks(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet) {
 		Set<Cluster> clustersToErase = getClustersToErase(networkViewSet);
 		
-		TaskIterator tasks = new TaskIterator();
+		List<Task> tasks = new ArrayList<>();
 		
 		if(selectedAnnotationSet.isPresent())
-			tasks.append(visibilityTaskProvider.create(selectedAnnotationSet.get()));
+			tasks.add(visibilityTaskProvider.create(selectedAnnotationSet.get()));
 		else
-			tasks.append(visibilityClearTaskProvider.create(networkViewSet));
+			tasks.add(visibilityClearTaskProvider.create(networkViewSet));
 		
 		var eraseTask = eraseTaskProvider.create(clustersToErase);
 		if(eraseTask == null) // can happen in tests
 			return null;
 		eraseTask.setEraseAll(true);
-		tasks.append(eraseTask);
+		tasks.add(eraseTask);
 		
 		if(selectedAnnotationSet.isPresent()) {
 			var clusters = selectedAnnotationSet.get().getClusters();
 			var drawTask = drawTaskProvider.create(clusters);
-			tasks.append(drawTask);
+			tasks.add(drawTask);
 		}
 		
 		var networkView = networkViewSet.getNetworkView();
-		tasks.append(TaskTools.taskOf(networkView::updateView));
+		tasks.add(TaskTools.taskOf(networkView::updateView));
 		
 		return tasks;
 	}
 	
 	private void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet, boolean sync) {
-		TaskIterator tasks = createRedrawTasks(networkViewSet, selectedAnnotationSet);
+		var tasks = createRedrawTasks(networkViewSet, selectedAnnotationSet);
 		if(tasks == null)
 			return;
-		var taskManager = sync ? syncTaskManager : dialogTaskManager;
-		taskManager.execute(tasks);
+		
+		String taskList = tasks.stream().map(task -> task.getClass().getSimpleName()).collect(Collectors.joining(", "));
+		logger.warn("AutoAnnotate: AnnotationRenderer.redrawAnnotations: sync=" + sync + ", taskList=" + taskList);
+		
+		var future = taskQueue.submit(tasks, sync);
+		if(sync) {
+			try {
+				future.get();
+			} catch (InterruptedException | ExecutionException e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
 	}
 	
 	public void redrawAnnotations(NetworkViewSet networkViewSet, Optional<AnnotationSet> selectedAnnotationSet) {
@@ -182,7 +197,7 @@ public class AnnotationRenderer {
 			tasks.append(updateTaskProvider.create(clusters));
 			tasks.append(new UpdateNetworkViewTask(netView));
 			
-			syncTaskManager.execute(tasks);
+			taskQueue.submit(tasks, true);
 		});
 	}
 	
@@ -192,7 +207,7 @@ public class AnnotationRenderer {
 		Cluster cluster = event.getCluster();
 		TaskIterator tasks = new TaskIterator();
 		tasks.append(eraseTaskProvider.create(cluster));
-		syncTaskManager.execute(tasks);
+		taskQueue.submit(tasks, true);
 	}
 	
 	
@@ -200,7 +215,7 @@ public class AnnotationRenderer {
 	public void handle(ModelEvents.ClusterAdded event) {
 		Cluster cluster = event.getCluster();
 		DrawClustersTask task = drawTaskProvider.create(cluster);
-		syncTaskManager.execute(new TaskIterator(task));
+		taskQueue.submit(task, true);
 	}
 	
 	
@@ -237,7 +252,7 @@ public class AnnotationRenderer {
 		case FONT_SIZE:
 		case USE_CONSTANT_FONT_SIZE: // when changing font size the label position must also be recalculated
 			var task = updateTaskProvider.create(as.getClusters());
-			syncTaskManager.execute(new TaskIterator(task));
+			taskQueue.submit(task, true);
 			break;
 		case USE_WORD_WRAP: // when changing word wrap we need to re-create the label annotation objects
 		case WORD_WRAP_LENGTH:
@@ -291,7 +306,7 @@ public class AnnotationRenderer {
 		selectedClusters = new HashSet<>(select);
 		
 		UpdateClustersTask task = updateTaskProvider.create(clustersToRedraw);
-		syncTaskManager.execute(new TaskIterator(task));
+		taskQueue.submit(task, true);
 	}
 
 	
@@ -318,6 +333,10 @@ public class AnnotationRenderer {
 		return clusterAnnotations.get(cluster);
 	}
 	
+	Collection<AnnotationGroup> getAnnotationGroups() {
+		return Collections.unmodifiableCollection(clusterAnnotations.values());
+	}
+	
 	void putAnnotations(Cluster cluster, AnnotationGroup annotations) {
 		clusterAnnotations.put(cluster, annotations);
 		registerSelectionListener(cluster, annotations);
@@ -333,7 +352,7 @@ public class AnnotationRenderer {
 				public void propertyChange(PropertyChangeEvent evt) {
 					boolean selected = Boolean.TRUE.equals(evt.getNewValue());
 					var task = new SelectClusterTask(cluster, selected);
-					dialogTaskManager.execute(new TaskIterator(task));
+					taskQueue.submit(task, false);
 				}
 			});
 		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {

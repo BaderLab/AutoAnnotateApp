@@ -73,7 +73,7 @@ public class NetworkViewSet {
 	}
 	
 
-	public void select(AnnotationSet annotationSet, boolean isCommand) {
+	public void select(AnnotationSet annotationSet, final boolean isCommand) {
 		if(annotationSet == null || annotationSets.contains(annotationSet)) {
 			
 			if(Optional.ofNullable(annotationSet).equals(activeSet)) {
@@ -202,4 +202,8 @@ public class NetworkViewSet {
 		return name[0];
 	}
 	
+	@Override
+	public String toString() {
+		return "NetworkViewSet [networkView=" + networkView.getSUID() + "]";
+	}
 }
