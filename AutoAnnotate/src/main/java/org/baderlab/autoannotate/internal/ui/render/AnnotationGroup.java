@@ -3,8 +3,12 @@ package org.baderlab.autoannotate.internal.ui.render;
 import java.awt.Color;
 import java.awt.Paint;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.cytoscape.view.presentation.annotations.Annotation;
 import org.cytoscape.view.presentation.annotations.ShapeAnnotation;
@@ -68,4 +72,24 @@ public class AnnotationGroup {
 			text.setTextColor(color);
 		}
 	}
+	
+	public int getCount() {
+		return 1 + labels.size();
+	}
+
+	
+	private static Map<String,String> keepKeys(Map<String,String> map, String... keys) {
+		var copy = new HashMap<>(map);
+		copy.keySet().retainAll(Arrays.asList(keys));
+		return copy;
+	}
+	
+	@Override
+	public String toString() {
+		var count = getCount();
+		var shapeArgs = keepKeys(shape.getArgMap(), "uuid", "name");
+		var labelArgs = labels.stream().map(label -> keepKeys(label.getArgMap(), "uuid", "name")).collect(Collectors.toList());
+		return "AnnotationGroup [count=" + count + ", shape=" + shapeArgs + ", labels=" + labelArgs + "]";
+	}
+	
 }

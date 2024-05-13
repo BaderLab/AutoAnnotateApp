@@ -13,6 +13,7 @@ import org.baderlab.autoannotate.internal.labels.makers.SizeSortedLabelMakerUI;
 import org.baderlab.autoannotate.internal.layout.CoseLayoutAlgorithmTask;
 import org.baderlab.autoannotate.internal.layout.GridLayoutAnnotationSetTaskFactory;
 import org.baderlab.autoannotate.internal.layout.GridLayoutClustersTaskFactory;
+import org.baderlab.autoannotate.internal.model.DebugEventListener;
 import org.baderlab.autoannotate.internal.model.ModelManager;
 import org.baderlab.autoannotate.internal.task.CollapseAllTaskFactory;
 import org.baderlab.autoannotate.internal.task.CollapseTask;
@@ -65,6 +66,7 @@ public class ApplicationModule extends AbstractModule {
 
 	@Override
 	protected void configure() {
+		//bind(DebugEventListener.class).asEagerSingleton();
 		bind(PanelManager.class).asEagerSingleton();
 		bind(ModelManager.class).asEagerSingleton();
 		bind(AnnotationRenderer.class).asEagerSingleton();

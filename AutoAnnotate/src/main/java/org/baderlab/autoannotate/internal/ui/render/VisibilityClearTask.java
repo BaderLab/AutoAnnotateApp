@@ -1,7 +1,10 @@
 package org.baderlab.autoannotate.internal.ui.render;
 
+import static org.cytoscape.view.presentation.property.BasicVisualLexicon.NODE_VISIBLE;
+
 import org.baderlab.autoannotate.internal.CytoscapeServiceModule.Discrete;
 import org.baderlab.autoannotate.internal.model.NetworkViewSet;
+import org.baderlab.autoannotate.internal.util.HiddenTools;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.view.model.CyNetworkView;
@@ -39,11 +42,17 @@ public class VisibilityClearTask extends AbstractTask {
 	@Override
 	public void run(TaskMonitor tm) {
 		var netView = networkViewSet.getNetworkView();
+		
+		// This task is heavyweight and causes lots of events to fire, don't run if not needed.
+		if(!HiddenTools.hasHiddenNodes(netView)) {
+			return;
+		}
+		
 		var visualStyle = visualMappingManager.getVisualStyle(netView);
 		
 		// create mapping that sets everything to visible, apply it, then remove it????
 		var mapping = (DiscreteMapping<Long,Boolean>) discreteMappingFactory
-				.createVisualMappingFunction(CyNetwork.SUID, Long.class, BasicVisualLexicon.NODE_VISIBLE);
+				.createVisualMappingFunction(CyNetwork.SUID, Long.class, NODE_VISIBLE);
 		
 		var network = networkViewSet.getNetwork();
 		
@@ -56,7 +65,7 @@ public class VisibilityClearTask extends AbstractTask {
 		visualStyle.addVisualMappingFunction(mapping);
 		visualStyle.apply(netView);
 		
-		visualStyle.removeVisualMappingFunction(BasicVisualLexicon.NODE_VISIBLE);
+		visualStyle.removeVisualMappingFunction(NODE_VISIBLE);
 		visualStyle.apply(netView);
 		
 		fireViewChangeEvent(netView);

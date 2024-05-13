@@ -25,6 +25,11 @@ public class ModelEvents {
 		public AnnotationSet getAnnotationSet() {
 			return annotationSet;
 		}
+		@Override
+		public String toString() {
+			return "AnnotationSetAdded [annotationSet=" + annotationSet + "]";
+		}
+		
 	}
 	
 	
@@ -46,6 +51,12 @@ public class ModelEvents {
 		public boolean isCommand() {
 			return isCommand;
 		}
+		@Override
+		public String toString() {
+			return "AnnotationSetSelected [annotationSet=" + annotationSet + ", networkViewSet=" + networkViewSet
+					+ ", isCommand=" + isCommand + "]";
+		}
+		
 	}
 	
 	
@@ -57,6 +68,11 @@ public class ModelEvents {
 		public AnnotationSet getAnnotationSet() {
 			return annotationSet;
 		}
+		@Override
+		public String toString() {
+			return "AnnotationSetDeleted [annotationSet=" + annotationSet + "]";
+		}
+		
 	}
 	
 	
@@ -68,6 +84,11 @@ public class ModelEvents {
 		public AnnotationSet getAnnotationSet() {
 			return annotationSet;
 		}
+		@Override
+		public String toString() {
+			return "AnnotationSetChanged [annotationSet=" + annotationSet + "]";
+		}
+		
 	}
 	
 	
@@ -79,6 +100,11 @@ public class ModelEvents {
 		public AnnotationSet getAnnotationSet() {
 			return annotationSet;
 		}
+		@Override
+		public String toString() {
+			return "ClustersLabelsUpdated [annotationSet=" + annotationSet + "]";
+		}
+		
 	}
 	
 	
@@ -90,6 +116,11 @@ public class ModelEvents {
 		public Cluster getCluster() {
 			return cluster;
 		}
+		@Override
+		public String toString() {
+			return "ClusterAdded [cluster=" + cluster + "]";
+		}
+		
 	}
 	
 	
@@ -115,6 +146,11 @@ public class ModelEvents {
 		public boolean getVisibilityChanged() {
 			return visibilityChanged;
 		}
+		@Override
+		public String toString() {
+			return "ClustersChanged [clusters(" + clusters.size() + ")=" + clusters + ", visibilityChanged=" + visibilityChanged + "]";
+		}
+		
 	}
 	
 	
@@ -126,6 +162,11 @@ public class ModelEvents {
 		public Cluster getCluster() {
 			return cluster;
 		}
+		@Override
+		public String toString() {
+			return "ClusterRemoved [cluster=" + cluster + "]";
+		}
+		
 	}
 	
 	
@@ -142,6 +183,11 @@ public class ModelEvents {
 		public AnnotationSet getAnnotationSet() {
 			return annotationSet;
 		}
+		@Override
+		public String toString() {
+			return "ClustersSelected [clusters(" + clusters.size() + ")=" + clusters + ", annotationSet=" + annotationSet + "]";
+		}
+		
 	}
 	
 	
@@ -153,6 +199,11 @@ public class ModelEvents {
 		public Optional<NetworkViewSet> getNetworkViewSet() {
 			return networkViewSet;
 		}
+		@Override
+		public String toString() {
+			return "NetworkViewSetSelected [networkViewSet=" + networkViewSet + "]";
+		}
+		
 	}
 	
 	
@@ -164,6 +215,11 @@ public class ModelEvents {
 		public Cluster getCluster() {
 			return cluster;
 		}
+		@Override
+		public String toString() {
+			return "ClusterSelectedInNetwork [cluster=" + cluster + "]";
+		}
+		
 	}
 	
 	
@@ -175,6 +231,11 @@ public class ModelEvents {
 		public NetworkViewSet getNetworkViewSet() {
 			return networkViewSet;
 		}
+		@Override
+		public String toString() {
+			return "NetworkViewSetDeleted [networkViewSet=" + networkViewSet + "]";
+		}
+		
 	}
 	
 	
@@ -197,6 +258,11 @@ public class ModelEvents {
 		public Type getChangeType() {
 			return type;
 		}
+		@Override
+		public String toString() {
+			return "NetworkViewSetChanged [networkViewSet=" + networkViewSet + ", type=" + type + "]";
+		}
+		
 	}
 	
 	
@@ -234,6 +300,11 @@ public class ModelEvents {
 		public Option getOption() {
 			return option;
 		}
+		@Override
+		public String toString() {
+			return "DisplayOptionChanged [option=" + option + ", displayOptions=" + displayOptions + "]";
+		}
+		
 	}
 	
 	
@@ -248,6 +319,12 @@ public class ModelEvents {
 		public SignificanceOptions getSignificanceOptions() {
 			return significanceOptions;
 		}
+
+		@Override
+		public String toString() {
+			return "SignificanceOptionChanged [significanceOptions=" + significanceOptions + "]";
+		}
+		
 	}
 	
 }
