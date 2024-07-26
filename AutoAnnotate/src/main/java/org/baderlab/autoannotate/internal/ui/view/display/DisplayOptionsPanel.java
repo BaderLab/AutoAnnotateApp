@@ -174,17 +174,25 @@ public class DisplayOptionsPanel extends JPanel implements CytoPanelComponent, C
 	@Subscribe
 	public void handle(ModelEvents.AnnotationSetSelected event) {
 		var as = event.getAnnotationSet();
-		setAnnotationSet(as);
+		if(isSelected(as)) {
+			setAnnotationSet(as);
+		}
 	}
 	
 	@Subscribe
 	public void handle(ModelEvents.DisplayOptionChanged event) {
 		if(event.getOption() == Option.RESET) {
-			var as = event.getDisplayOptions().getParent();
-			setAnnotationSet(Optional.of(as));
+			var as = Optional.of(event.getDisplayOptions().getParent());
+			if(isSelected(as)) {
+				setAnnotationSet(as);
+			}
 		}
 	}
 
+	private static boolean isSelected(Optional<AnnotationSet> as) {
+		return as.map(a -> a.getParent().isSelected()).orElse(false);
+	}
+	
 	
 	public void setAnnotationSet(Optional<AnnotationSet> annotationSet) {
 		var cardLayout = (CardLayout) cardPanel.getLayout();
