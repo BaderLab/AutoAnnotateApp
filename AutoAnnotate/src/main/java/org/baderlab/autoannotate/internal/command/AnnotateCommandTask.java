@@ -110,8 +110,15 @@ public class AnnotateCommandTask extends AbstractTask {
 			if(edgeWeightColumn == null) {
 				Optional<String> col = getColumnEndingWith(network.getDefaultEdgeTable(), "similarity_coefficient");
 				edgeWeightColumn = col.orElse("--None--");
-			} else if(network.getDefaultEdgeTable().getColumn(edgeWeightColumn) == null) {
-				 throw new IllegalArgumentException("Column with name '" + edgeWeightColumn + "' does not exist in the edge table.");
+			} else {
+				var col = network.getDefaultEdgeTable().getColumn(edgeWeightColumn);
+				if(col == null) {
+					throw new IllegalArgumentException("Column with name '" + edgeWeightColumn + "' does not exist in the edge table.");
+				}
+				var type = col.getType();
+				if(type == null || !Number.class.isAssignableFrom(type)) {
+					throw new IllegalArgumentException("Column used for the 'edgeWeightColumn' parameter must be numeric.'");
+				}
 			}
 		}
 		if(!useClusterMaker) {
