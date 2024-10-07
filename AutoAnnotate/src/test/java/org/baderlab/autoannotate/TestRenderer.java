@@ -17,6 +17,8 @@ import org.baderlab.autoannotate.internal.ui.render.AnnotationRenderer;
 import org.baderlab.autoannotate.internal.ui.render.DrawClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.EraseClustersTask;
 import org.baderlab.autoannotate.internal.ui.render.UpdateClustersTask;
+import org.baderlab.autoannotate.internal.ui.render.VisibilityClearTask;
+import org.baderlab.autoannotate.internal.ui.render.VisibilityTask;
 import org.baderlab.autoannotate.internal.ui.view.display.Significance;
 import org.baderlab.autoannotate.util.LogSilenceRule;
 import org.baderlab.autoannotate.util.SerialTestTaskManager;
@@ -62,16 +64,12 @@ public class TestRenderer {
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setup(CyApplicationManager appManager, ModelManager modelManager, AnnotationRenderer renderer,
-			DrawClustersTask.Factory drawTaskFactory, EraseClustersTask.Factory eraseTaskFactory) {
-		
+			DrawClustersTask.Factory drawTaskFactory, EraseClustersTask.Factory eraseTaskFactory,
+			VisibilityTask.Factory visibilityTaskFactory, VisibilityClearTask.Factory visibilityClearTaskFactory
+	) {
 		// set up stubbing
 		CyNetworkView networkView = mock(CyNetworkView.class);
 		when(appManager.getCurrentNetworkView()).thenReturn(networkView);
-		
-		when(drawTaskFactory.create(any(Collection.class))).thenReturn(mock(DrawClustersTask.class));
-		when(drawTaskFactory.create(any(Cluster.class))).thenReturn(mock(DrawClustersTask.class));
-		when(eraseTaskFactory.create(any(Collection.class))).thenReturn(mock(EraseClustersTask.class));
-		when(eraseTaskFactory.create(any(Cluster.class))).thenReturn(mock(EraseClustersTask.class));
 		
 		NetworkTestSupport networkTestSupport = new NetworkTestSupport();
 		CyNetworkFactory networkFactory = networkTestSupport.getNetworkFactory();
@@ -93,6 +91,8 @@ public class TestRenderer {
 		// Unfortunately reset() also resets the stubbing so we need to redo it.
 		reset(drawTaskFactory, eraseTaskFactory);
 		
+		when(visibilityTaskFactory.create(any(AnnotationSet.class))).thenReturn(mock(VisibilityTask.class));
+        when(visibilityClearTaskFactory.create(any(NetworkViewSet.class))).thenReturn(mock(VisibilityClearTask.class));
 		when(drawTaskFactory.create(any(Collection.class))).thenReturn(mock(DrawClustersTask.class));
 		when(drawTaskFactory.create(any(Cluster.class))).thenReturn(mock(DrawClustersTask.class));
 		when(eraseTaskFactory.create(any(Collection.class))).thenReturn(mock(EraseClustersTask.class));
